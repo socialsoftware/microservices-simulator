@@ -159,7 +159,7 @@ for the short spec and plan after we finish the audit.
 ### Missing inputs and materialization
 
 - Only 36 of 68 discovered Quizzes Sagas have accepted inputs. We want to determine how much comes from missing test coverage and how much comes from verifier extraction.
-- Only 91 of 794 accepted inputs are materializable. This is the main current bottleneck.
+- Relative-date support improved the accepted-input result from 91 to 150 materializable inputs. The current full-cap result is therefore 150 materializable and 644 blocked out of 794 accepted inputs.
 - `staticRecipeReady` can be false while `materializable` is true because the two checks treat runtime-owned arguments differently. We decided to remove `staticRecipeReady` and retain the materializability result that understands runtime-owned arguments.
 
 ### Dynamic attribution
@@ -203,11 +203,150 @@ Completed follow-up:
 
 Ranked remaining follow-up by evaluation validity and executable coverage:
 
-1. **Improve accepted-input materializability.** Only 91 of 794 accepted Quizzes inputs
-   are materializable; address one representative blocker family at a time after exact
-   runtime identity is trustworthy.
+1. **Improve accepted-input materializability.** The relative-date change raised the
+   result from 91 to 150 of 794 accepted Quizzes inputs. Address one representative
+   remaining blocker family at a time after exact runtime identity is trustworthy.
 2. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
    landscape still has flat ImpactV1 and remains downstream of reliable identity and
    executable input coverage.
 
 This ranking does not authorize or pre-specify any follow-up implementation.
+
+## Open follow-up list — 2026-09-04
+
+These are the confirmed problems and missing measurements found after the artifact
+reshape and workload-driven setup work.
+
+### 1. Exact event route identity — resolved 2026-09-04
+
+A generated AnonymizeStudent event has two selected routes: one through
+`QuizAnswerEventHandling` and one through `TournamentEventHandling`. Both classes expose
+the method `handleAnonymizeStudentEvents`. The package used to discard the exact class,
+so execution could not tell which route had been selected.
+
+Saga facts now preserve the fully qualified `eventHandlingClass` and handler class for
+each route. The reader restores them and the executor loads those exact classes; it no
+longer searches globally by method or simple class name. Route ordering and ids remain
+stable, and a negative test proves that a simple-name fallback is not accepted.
+
+The same triple controls now pass the old ambiguous-class point. Four event-reaching
+vectors instead report `SELECTED_SUBSCRIBER_NOT_FOUND`; the other two fault before the
+event. This exposed the separate setup gap recorded in item 10.
+
+### 2. Catalog-writing Cartesian scan — resolved 2026-09-04
+
+The full-cap strict size-1–3 accounting result contains 74,273 selected input-bound
+workloads, but catalog-writing previously constructed the complete Cartesian product and
+applied strict selection only at each completed tuple. For Quizzes that meant visiting
+1,247,308,000 input combinations before writing the selected workloads.
+
+A full-cap writer was stopped after 8 minutes 42 seconds before publishing artifacts.
+The reduced run with at most ten inputs per Saga completed and wrote 1,415 WorkloadPlans.
+
+Tuple construction now applies conservative strict/fallback compatibility to each
+partial tuple and abandons a branch only when no later Saga can connect it. Count-only
+streams the surviving tuples instead of collecting them all. The strict size-1–3 result
+completed in 99 seconds; size 1–4 completed in about 15 minutes while staying below
+1 GiB in the Docker container. The all-space number remains an algebraic baseline and is
+not enumerated.
+
+### 3. Count-only workload setup accounting — resolved 2026-09-04
+
+Count-only now partitions every selected strict/fallback workload into
+`withSourceSetup`, `withoutSetup`, or `blocked`, including totals by Saga-set size. It
+uses the same setup selection and materialization rules as catalog-writing and includes
+the configured schedule count. Provider-backed workloads remain a separate configured
+category rather than being mixed into input-derived counts.
+
+For strict sizes 1–3, 11,842 workloads have source setup, 93 need no setup, and 62,338
+are blocked, for 11,935 ready workloads out of 74,273. For sizes 1–4, the result is
+16,642 with setup, 93 without, and 378,658 blocked out of 395,393.
+
+### 4. Runtime setup evidence is still narrow
+
+The reduced writer attached source-derived setup to 408 workloads and all 94 referenced
+setup definitions passed static validation. Runtime preflight has exercised only two
+representative workloads: the Remove/Add pair and one natural triple. Both succeeded,
+covering five participants and all of their setup actions and bindings.
+
+Next measurement: preflight the complete set of statically materializable workloads in
+the reduced package. Based on the observed isolated-startup rate, this is an overnight
+job.
+
+### 5. One fresh process per scenario is too slow for broad execution or search
+
+Current Docker execution rebuilds or starts an isolated application process for each
+FaultScenario. Recent runs took roughly 40–50 seconds each. At that rate, the reduced
+package's 1,980 scenarios require roughly 22–28 hours, and even one scenario for each of
+74,273 full-cap workloads would require several weeks.
+
+This is not yet a reason to weaken isolation: a fresh process and H2 database currently
+provide the reset boundary that makes attempts comparable. Before GA work, investigate a
+simple batch runner that avoids repeated build/start overhead while retaining an honest
+fresh-state boundary, or explicitly budget a smaller representative execution set.
+
+### 6. ImpactV1 still does not provide a dependable search objective
+
+In the fresh twelve-scenario smoke, the Remove/Add pair produced one ImpactV1 finding in
+the all-zero scenario and zero in each single-fault scenario. Exact route identity now
+works for the triple, but four event-reaching scenarios cannot be evaluated because the
+selected subscriber's state is absent. This is useful execution evidence, but not yet a
+sensible optimization landscape.
+
+Next measurement: after subscriber setup is available, rerun the same controls and
+inspect why the all-zero pair reports an invariant violation. Broaden impact only after
+distinguishing an executor/control problem from a genuine limitation of ImpactV1.
+
+### 7. Size 4 accounting — measured 2026-09-04
+
+Strict size 4 adds 37 connected Saga sets and 321,120 selected input-bound workloads.
+Only 4,800 have source setup and none are ready without setup; 316,320 are blocked. The
+ready share is therefore about 1.5%, so a full size-4 catalog is poor value until setup
+and input coverage improve.
+
+### 8. Half of the discovered Sagas still have no accepted input
+
+Quizzes currently has 68 discovered Sagas, but only 36 have at least one accepted input.
+This is different from the 644 blocked accepted inputs: these 32 Sagas never reach the
+accepted-input pool at all.
+
+Next investigation: classify each missing Saga as absent from relevant tests, present in
+tests but missed by input extraction, or deliberately excluded by the accepted-status
+configuration. Fix representative verifier gaps; report genuine missing test coverage as
+an application limitation instead of manufacturing inputs.
+
+### 9. Launch commands and configuration still need a separate cleanup
+
+Generation, on-demand generation, preflight, execution, and impact currently expose
+overlapping environment variables and command shapes whose ownership is difficult to
+understand. We agreed to audit this separately after the artifact shape. Do it after the
+next correctness and measurement work so it documents the launcher we actually keep,
+not the one we are about to change.
+
+### 10. Event-expanded workloads lack subscriber setup
+
+Exact route identity now reaches the selected Quizzes event consumer correctly, but four
+triple controls stop because no eligible subscriber exists. Their source setup creates a
+CourseExecution and User; the selected AnonymizeStudent routes require an existing
+QuizAnswer or Tournament subscriber. The current setup belongs to the three selected
+Saga inputs and does not add state required only by the chosen event consequence.
+
+Before broad event execution, decide the smallest way for an event-expanded workload to
+carry the selected consumer's prerequisites. Count-only setup accounting currently
+measures the base input workload, so it must not be presented as proof that every event
+expansion is executable.
+
+### 11. Accepted inputs often lose their usable test setup
+
+A diagnostic all-single-Saga catalog produced 794 base input workloads: 267 were ready
+and 527 were blocked. Every input with an attached source setup was ready; all 527
+blocked inputs had no setup attached. Their first blockers were 372
+`callReceiverNotReady`, 81 `propertyReceiverNotReady`, 39 `unmaterializableReceiver`,
+15 `unresolvedPlaceholder`, 13 `eventPayloadPlaceholder`, four loop-dependent
+mutations, and three unknown values.
+
+The largest call-receiver clusters are CreateQuestion (85), CreateTopic (83), AddStudent
+(62), FindTournament (47), AddParticipant (23), and GetCourseExecutionById (22). Many
+come from shared setup helpers. Investigate whether one deduplicated input is associated
+with several equivalent candidate setups and therefore receives none; preserve
+caller-specific provenance only when the candidate setups genuinely differ.

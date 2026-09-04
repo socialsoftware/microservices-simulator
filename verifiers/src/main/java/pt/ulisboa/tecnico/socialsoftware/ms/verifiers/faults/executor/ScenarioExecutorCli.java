@@ -229,18 +229,15 @@ public final class ScenarioExecutorCli {
         }
 
         @Override
-        public Class<?> resolveEventHandlingType(String persistedHandler, String processingMethod)
+        public Class<?> resolveEventHandlingType(String eventHandlingClassFqn)
                 throws ClassNotFoundException {
-            List<Class<?>> matches = java.util.Arrays.stream(context.getBeanDefinitionNames())
-                    .map(context::getType).filter(java.util.Objects::nonNull).distinct()
-                    .filter(type -> java.util.Arrays.stream(type.getMethods())
-                            .anyMatch(method -> method.getName().equals(processingMethod)
-                                    && method.getParameterCount() == 0))
-                    .toList();
-            if (matches.size() == 1) return matches.getFirst();
-            if (matches.size() > 1) throw new IllegalArgumentException(
-                    "ambiguous event processing method " + processingMethod + ": " + matches);
-            return resolveType(persistedHandler);
+            return Class.forName(eventHandlingClassFqn);
+        }
+
+        @Override
+        public Class<?> resolveEventHandlerType(String eventHandlerClassFqn)
+                throws ClassNotFoundException {
+            return Class.forName(eventHandlerClassFqn);
         }
     }
 }

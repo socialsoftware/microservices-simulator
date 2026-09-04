@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorMaterializationPolicy
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScheduleEnumerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
@@ -19,6 +20,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Inpu
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupAction
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult
@@ -63,6 +67,42 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         and:
         report.topContributors()*.sagaSetKey().take(2) == ['saga.A|saga.B', 'saga.A']
         report.topContributors()*.representedScenarioShapeCount().take(2) == ['4', '2']
+    }
+
+    def 'setup-aware accounting partitions selected shapes by source setup and readiness'() {
+        given:
+        def readyWithSetup = InputVariantNormalizer.normalizeForArtifact(
+                input('saga.A', 'a-setup', [:], recipe(true, [])))
+        def readyWithoutSetup = input('saga.B', 'b-ready', [:], recipe(true, []))
+        def blocked = input('saga.C', 'c-blocked', [:], recipe(false, ['UNRESOLVED_VALUE'], [
+                arg(0, Integer.name, false, ['UNRESOLVED_VALUE'], unresolved())
+        ]))
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, [
+                new SetupAction('setup-1', 0, 'Spec:1', 'demo.Fixture#create():java.lang.String', [],
+                        String.name, false, [])
+        ], [], [])
+        def bindings = [new SourceSetupPlanBinding([readyWithSetup.deterministicId()], setup)]
+        def config = config(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                true, 1, 10, 2, ScenarioGeneratorConfig.ScheduleStrategy.SERIAL, 100000)
+
+        when:
+        def report = new ScenarioSpaceAccountingCalculator().calculate(
+                'dummyapp',
+                [saga('saga.A', 1), saga('saga.B', 1), saga('saga.C', 1)],
+                [readyWithSetup, readyWithoutSetup, blocked], bindings, [], config, 0)
+        def setupCoverage = report.inputBoundScenarioSpace().setupCoverage()
+
+        then:
+        setupCoverage.withSourceSetup().total() == '1'
+        setupCoverage.withoutSetup().total() == '1'
+        setupCoverage.blocked().total() == '1'
+        setupCoverage.withSourceSetup().bySagaSetSize() == ['1': '1']
+        setupCoverage.withoutSetup().bySagaSetSize() == ['1': '1']
+        setupCoverage.blocked().bySagaSetSize() == ['1': '1']
+        (setupCoverage.withSourceSetup().total().toBigInteger()
+                + setupCoverage.withoutSetup().total().toBigInteger()
+                + setupCoverage.blocked().total().toBigInteger())
+                == report.inputBoundScenarioSpace().selectedByGenerator().total().toBigInteger()
     }
 
     def 'order preserving schedule formula matches materialized small enumerations'() {

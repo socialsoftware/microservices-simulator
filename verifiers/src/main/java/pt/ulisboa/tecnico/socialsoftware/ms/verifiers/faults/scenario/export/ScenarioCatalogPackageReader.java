@@ -392,12 +392,13 @@ public final class ScenarioCatalogPackageReader {
                 String eventId = occurrence.path("id").asText(); String trigger = occurrence.path("triggeringStep").asText();
                 JsonNode route = currentEventRoute(occurrence, trigger, steps, participants, sagaFacts);
                 String eventType = textOrNull(route, "event");
+                String eventHandlingClass = textOrNull(route, "eventHandlingClass");
                 String handler = textOrNull(route, "handler");
                 String processingMethod = textOrNull(route, "processingMethod");
                 String functionalityMethod = textOrNull(route, "functionalityMethod");
                 EventConsequence event = new EventConsequence(eventId, trigger,
                         new EventEmissionSite(eventId, "current", "current", 0, eventType, List.of()),
-                        eventType, handler, processingMethod, handler, null, processingMethod,
+                        eventType, eventHandlingClass, processingMethod, handler, null, processingMethod,
                         null, functionalityMethod, textOrNull(route, "downstreamSaga"),
                         EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, List.of());
                 events.add(event); eventById.put(eventId, event); normal.add(NormalActionRef.eventConsequence(normal.size(), eventId));
@@ -1061,6 +1062,8 @@ public final class ScenarioCatalogPackageReader {
                         String routeId = text(route, "id", "step " + id + " event route");
                         if (!routeIds.add(routeId)) throw invalid("duplicate event route id " + routeId + " in Saga " + fqn);
                         text(route, "event", "step " + id + " event route");
+                        text(route, "eventHandlingClass", "step " + id + " event route");
+                        text(route, "handler", "step " + id + " event route");
                     }
                 }
             }

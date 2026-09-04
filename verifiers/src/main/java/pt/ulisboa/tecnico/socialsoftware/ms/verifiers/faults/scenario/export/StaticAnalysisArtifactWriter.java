@@ -168,7 +168,7 @@ public final class StaticAnalysisArtifactWriter {
         // artifact is only a projection of that report.
         ScenarioSpaceAccountingReport accountingReport = new ScenarioSpaceAccountingCalculator().calculate(
                 targetApplication, sagaDefinitions, safeModel.inputVariants(),
-                safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
+                safeModel.sourceSetupPlanBindings(), safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
         Map<String, Object> account = accounting(targetApplication, safeConfig, sagaDefinitions,
                 accountingInputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(),
                 safeModel.aggregateKeyInputEvidence(), accountingReport);
@@ -473,7 +473,8 @@ public final class StaticAnalysisArtifactWriter {
                     if (routeIndex > 0) routeId += "-route#" + routeIndex;
                     route.put("id", routeId);
                     route.put("event", simpleName(definition.emissionSite().eventTypeFqn()));
-                    if (definition.eventHandlerClassFqn() != null) route.put("handler", simpleName(definition.eventHandlerClassFqn()));
+                    if (definition.eventHandlingClassFqn() != null) route.put("eventHandlingClass", definition.eventHandlingClassFqn());
+                    if (definition.eventHandlerClassFqn() != null) route.put("handler", definition.eventHandlerClassFqn());
                     if (definition.eventHandlingMethodName() != null) route.put("processingMethod", definition.eventHandlingMethodName());
                     if (definition.facadeMethodName() != null) route.put("functionalityMethod", definition.facadeMethodName());
                     if (definition.downstreamSagaFqn() != null) route.put("downstreamSaga", definition.downstreamSagaFqn());
@@ -1010,6 +1011,21 @@ public final class StaticAnalysisArtifactWriter {
         result.put("all", allTotals);
         result.put("selected", selectedTotals);
         result.put("written", written);
+        ScenarioSpaceAccountingReport.SetupCoverage setup = accountingReport.inputBoundScenarioSpace().setupCoverage();
+        if (setup != null) {
+            LinkedHashMap<String, Object> setupMetrics = new LinkedHashMap<>();
+            setupMetrics.put("withSourceSetup", setupTotals(setup.withSourceSetup()));
+            setupMetrics.put("withoutSetup", setupTotals(setup.withoutSetup()));
+            setupMetrics.put("blocked", setupTotals(setup.blocked()));
+            result.put("setup", setupMetrics);
+        }
+        return result;
+    }
+
+    private Map<String, Object> setupTotals(ScenarioSpaceAccountingReport.ScenarioSpaceTotals totals) {
+        LinkedHashMap<String, Object> result = new LinkedHashMap<>();
+        result.put("total", new BigInteger(totals.total()));
+        result.put("bySagaSetSize", decimalMap(totals.bySagaSetSize()));
         return result;
     }
 

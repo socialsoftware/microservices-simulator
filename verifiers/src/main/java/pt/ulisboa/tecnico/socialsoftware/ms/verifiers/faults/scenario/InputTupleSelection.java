@@ -153,6 +153,71 @@ public final class InputTupleSelection {
                 .toList();
     }
 
+    /**
+     * Returns false only when no completion of the current prefix can be
+     * connected under the selected input rule.  Edges are deliberately an
+     * over-approximation: each edge may use a different completion for an
+     * unassigned Saga.  That makes pruning safe, while still avoiding the
+     * Cartesian leaves that are already impossible to connect.
+     */
+    public static boolean potentiallySelected(List<String> sagaOrder,
+                                              List<InputVariant> prefix,
+                                              List<List<InputVariant>> candidates,
+                                              List<ConflictCandidate> conflictCandidates,
+                                              List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                                              Mode mode) {
+        List<String> sagas = orderedSagas(sagaOrder);
+        if (mode == Mode.ALL || sagas.size() <= 1) {
+            return true;
+        }
+        if (prefix == null || candidates == null || prefix.size() > candidates.size()
+                || candidates.size() != sagas.size()) {
+            return false;
+        }
+        EvidenceIndex evidenceIndex = new EvidenceIndex(sourceEvidence);
+        List<List<EvidenceProfile>> profilesBySaga = new ArrayList<>();
+        for (int index = 0; index < sagas.size(); index++) {
+            List<InputVariant> possible = index < prefix.size()
+                    ? List.of(prefix.get(index)) : candidates.get(index);
+            if (possible == null || possible.isEmpty()) {
+                return false;
+            }
+            String sagaFqn = sagas.get(index);
+            profilesBySaga.add(possible.stream()
+                    .filter(Objects::nonNull)
+                    .filter(input -> Objects.equals(sagaFqn, input.sagaFqn()))
+                    .map(evidenceIndex::profile)
+                    .distinct()
+                    .toList());
+            if (profilesBySaga.get(index).isEmpty()) {
+                return false;
+            }
+        }
+
+        Map<String, Integer> sagaIndexes = new LinkedHashMap<>();
+        for (int index = 0; index < sagas.size(); index++) {
+            sagaIndexes.put(sagas.get(index), index);
+        }
+        LinkedHashMap<String, LinkedHashSet<String>> adjacency = new LinkedHashMap<>();
+        for (ConflictCandidate candidate : conflictCandidates == null ? List.<ConflictCandidate>of() : conflictCandidates) {
+            Integer leftIndex = sagaIndexes.get(candidate.leftSagaFqn());
+            Integer rightIndex = sagaIndexes.get(candidate.rightSagaFqn());
+            if (leftIndex == null || rightIndex == null) {
+                continue;
+            }
+            boolean possible = profilesBySaga.get(leftIndex).stream().anyMatch(left ->
+                    profilesBySaga.get(rightIndex).stream().anyMatch(right ->
+                            candidateSelected(candidate, left, right, mode)));
+            if (possible) {
+                adjacency.computeIfAbsent(candidate.leftSagaFqn(), ignored -> new LinkedHashSet<>())
+                        .add(candidate.rightSagaFqn());
+                adjacency.computeIfAbsent(candidate.rightSagaFqn(), ignored -> new LinkedHashSet<>())
+                        .add(candidate.leftSagaFqn());
+            }
+        }
+        return connected(sagas, adjacency);
+    }
+
     private static BigInteger countGroups(List<String> sagas,
                                           List<List<ProfileGroup>> groupsBySaga,
                                           int index,
@@ -227,6 +292,10 @@ public final class InputTupleSelection {
             adjacency.computeIfAbsent(candidate.rightSagaFqn(), ignored -> new LinkedHashSet<>())
                     .add(candidate.leftSagaFqn());
         }
+        return connected(sagas, adjacency);
+    }
+
+    private static boolean connected(List<String> sagas, Map<String, ? extends Set<String>> adjacency) {
         ArrayDeque<String> pending = new ArrayDeque<>();
         LinkedHashSet<String> reached = new LinkedHashSet<>();
         pending.add(sagas.get(0));
@@ -235,7 +304,8 @@ public final class InputTupleSelection {
             if (!reached.add(saga)) {
                 continue;
             }
-            adjacency.getOrDefault(saga, new LinkedHashSet<>()).stream()
+            Set<String> neighbors = adjacency.containsKey(saga) ? adjacency.get(saga) : Set.of();
+            neighbors.stream()
                     .filter(next -> !reached.contains(next))
                     .forEach(pending::addLast);
         }

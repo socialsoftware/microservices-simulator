@@ -13,9 +13,14 @@ public interface ScenarioRuntimeContext {
         return Class.forName(persistedName);
     }
 
-    default Class<?> resolveEventHandlingType(String persistedHandler, String processingMethod)
+    default Class<?> resolveEventHandlingType(String eventHandlingClassFqn)
             throws ClassNotFoundException {
-        return resolveType(persistedHandler);
+        return Class.forName(eventHandlingClassFqn);
+    }
+
+    default Class<?> resolveEventHandlerType(String eventHandlerClassFqn)
+            throws ClassNotFoundException {
+        return Class.forName(eventHandlerClassFqn);
     }
 
     default Object createSagaUnitOfWork(String functionalityName) {

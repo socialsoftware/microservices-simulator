@@ -25,8 +25,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculator;
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.StaticAnalysisArtifactWriter;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadGenerationResult;
@@ -417,16 +415,6 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         Path packageWorkloadOutputPath = packageRoot.resolve(workloadOutputPath.getFileName());
         Path packageFaultScenarioOutputPath = packageRoot.resolve(faultScenarioOutputPath.getFileName());
         Path packageAccountingOutputPath = packageRoot.resolve(accountingOutputPath.getFileName());
-        int workloadsWritten = exportResult.effectiveConfig().catalogWriteMode() == ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY
-                ? 0
-                : exportResult.workloadPlans().size();
-        ScenarioSpaceAccountingReport accountingReport = new ScenarioSpaceAccountingCalculator().calculate(
-                applicationBaseDir,
-                adapterResult.sagaDefinitions(),
-                adapterResult.inputVariants(),
-                adapterResult.aggregateKeyInputEvidence(),
-                exportResult.effectiveConfig(),
-                workloadsWritten);
         // Catalog-writing publishes the same current static roles as
         // count-only, then adds reusable executable roles and an empty package
         // request stream.

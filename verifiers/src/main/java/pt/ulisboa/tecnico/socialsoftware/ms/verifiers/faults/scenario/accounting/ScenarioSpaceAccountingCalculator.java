@@ -5,6 +5,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGr
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConnectedSagaSetEnumerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputVariantNormalizer;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelection;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.GroupedSagaSetRow;
@@ -16,7 +19,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.TopContributor;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.TypeLevelCoverage;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadExecutionShape;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceAggregateKeyInputEvidence;
 
 import java.math.BigInteger;
@@ -36,12 +44,23 @@ public final class ScenarioSpaceAccountingCalculator {
                                                    List<InputVariant> inputVariants,
                                                    ScenarioGeneratorConfig config,
                                                    int catalogWritten) {
-        return calculate(targetApplication, sagaDefinitions, inputVariants, List.of(), config, catalogWritten);
+        return calculate(targetApplication, sagaDefinitions, inputVariants, List.of(), List.of(), config, catalogWritten);
     }
 
     public ScenarioSpaceAccountingReport calculate(String targetApplication,
                                                    List<SagaDefinition> sagaDefinitions,
                                                    List<InputVariant> inputVariants,
+                                                   List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                                   ScenarioGeneratorConfig config,
+                                                   int catalogWritten) {
+        return calculate(targetApplication, sagaDefinitions, inputVariants, List.of(), aggregateKeyInputEvidence,
+                config, catalogWritten);
+    }
+
+    public ScenarioSpaceAccountingReport calculate(String targetApplication,
+                                                   List<SagaDefinition> sagaDefinitions,
+                                                   List<InputVariant> inputVariants,
+                                                   List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                                    List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                    ScenarioGeneratorConfig config,
                                                    int catalogWritten) {
@@ -52,24 +71,28 @@ public final class ScenarioSpaceAccountingCalculator {
         GraphViews graphViews = buildGraphViews(sagaByFqn.values().stream().toList(), effectiveConfig);
 
         List<CalculatedRow> calculatedRows = buildGroupedRows(sagaByFqn, inputsBySaga,
-                aggregateKeyInputEvidence, effectiveConfig, graphViews);
+                sourceSetupPlanBindings, aggregateKeyInputEvidence, effectiveConfig, graphViews);
         List<GroupedSagaSetRow> groupedRows = calculatedRows.stream().map(CalculatedRow::row).toList();
         ScenarioSpaceTotals allInputBound = totals(calculatedRows, false);
         ScenarioSpaceTotals selectedByGenerator = totals(calculatedRows, true);
         ScenarioSpaceTotals written = new ScenarioSpaceTotals(Integer.toString(Math.max(0, catalogWritten)), Map.of());
+        InputTupleSelection.Mode selectedMode = selectionMode(effectiveConfig);
+        ScenarioSpaceAccountingReport.SetupCoverage setupCoverage = selectedMode == InputTupleSelection.Mode.ALL
+                ? null : setupCoverage(calculatedRows);
 
         return new ScenarioSpaceAccountingReport(
                 ScenarioSpaceAccountingReport.SCHEMA_VERSION,
                 ScenarioSpaceAccountingReport.AccountingRunConfig.from(targetApplication, effectiveConfig),
                 typeLevelCoverage(sagaByFqn, inputsBySaga, graphViews, effectiveConfig),
                 executorReadiness(normalizedInputs.inputsBySaga()),
-                new InputBoundScenarioSpace(allInputBound, selectedByGenerator, written),
+                new InputBoundScenarioSpace(allInputBound, selectedByGenerator, written, setupCoverage),
                 groupedRows,
                 topContributors(groupedRows));
     }
 
     private List<CalculatedRow> buildGroupedRows(Map<String, SagaDefinition> sagaByFqn,
                                                      Map<String, List<InputVariant>> inputsBySaga,
+                                                     List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                                      List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                      ScenarioGeneratorConfig config,
                                                      GraphViews graphViews) {
@@ -87,7 +110,8 @@ public final class ScenarioSpaceAccountingCalculator {
 
         List<CalculatedRow> rows = new ArrayList<>();
         for (List<String> sagaSet : sagaSets) {
-            rows.add(buildRow(sagaSet, sagaByFqn, inputsBySaga, aggregateKeyInputEvidence, config, graphViews));
+            rows.add(buildRow(sagaSet, sagaByFqn, inputsBySaga, sourceSetupPlanBindings,
+                    aggregateKeyInputEvidence, config, graphViews));
         }
         rows.sort(Comparator
                 .comparingInt((CalculatedRow value) -> value.row().sagaSetSize())
@@ -98,6 +122,7 @@ public final class ScenarioSpaceAccountingCalculator {
     private CalculatedRow buildRow(List<String> sagaSet,
                                        Map<String, SagaDefinition> sagaByFqn,
                                        Map<String, List<InputVariant>> inputsBySaga,
+                                       List<SourceSetupPlanBinding> sourceSetupPlanBindings,
                                        List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                        ScenarioGeneratorConfig config,
                                        GraphViews graphViews) {
@@ -121,6 +146,10 @@ public final class ScenarioSpaceAccountingCalculator {
         InteractionSummary strictSummary = interactionSummary(sagaSet, graphViews.strict());
         InteractionSummary broadSummary = interactionSummary(sagaSet, graphViews.broad());
         boolean selected = selectedTupleCount.signum() > 0;
+        SetupShapeCounts setupShapeCounts = selectedMode == InputTupleSelection.Mode.ALL
+                ? null
+                : setupShapeCounts(sagaSet, inputsBySaga, sourceSetupPlanBindings,
+                aggregateKeyInputEvidence, selectedMode, selectedGraph, scheduleCount);
 
         GroupedSagaSetRow row = new GroupedSagaSetRow(
                 sagaSetKey(sagaSet),
@@ -134,7 +163,7 @@ public final class ScenarioSpaceAccountingCalculator {
                 strictSummary,
                 broadSummary,
                 selected);
-        return new CalculatedRow(row, allShapeCount, selectedShapeCount);
+        return new CalculatedRow(row, allShapeCount, selectedShapeCount, setupShapeCounts);
     }
 
     private InputTupleSelection.Mode selectionMode(ScenarioGeneratorConfig config) {
@@ -144,6 +173,72 @@ public final class ScenarioSpaceAccountingCalculator {
         return config.allowTypeOnlyFallback()
                 ? InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK
                 : InputTupleSelection.Mode.STRICT;
+    }
+
+    private SetupShapeCounts setupShapeCounts(List<String> sagaSet,
+                                              Map<String, List<InputVariant>> inputsBySaga,
+                                              List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                              List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                              InputTupleSelection.Mode selectedMode,
+                                              ConflictGraphBuilder.Result selectedGraph,
+                                              BigInteger scheduleCount) {
+        if (scheduleCount.signum() == 0) {
+            return SetupShapeCounts.empty();
+        }
+        BigInteger[] totals = new BigInteger[]{BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO};
+        InputTupleJoiner.forEachSelected(
+                sagaSet, inputsBySaga, selectedGraph.conflictCandidates(), aggregateKeyInputEvidence, selectedMode, tuple -> {
+            SetupPlan setup = ScenarioGenerator.setupPlanFor(tuple, sourceSetupPlanBindings);
+            if (!tupleMaterializable(tuple, setup)) {
+                totals[2] = totals[2].add(scheduleCount);
+            } else if (setup != null) {
+                totals[0] = totals[0].add(scheduleCount);
+            } else {
+                totals[1] = totals[1].add(scheduleCount);
+            }
+        });
+        return new SetupShapeCounts(totals[0], totals[1], totals[2]);
+    }
+
+    /** Uses the same setup validation and participant-argument readiness path as eager generation. */
+    private boolean tupleMaterializable(InputTupleJoiner.InputTuple tuple, SetupPlan setup) {
+        if (setup != null && !new SetupPlanValidator().validate(setup, tuple.inputs()).valid()) {
+            return false;
+        }
+        WorkloadPlan readinessPlan = new WorkloadPlan(
+                WorkloadPlan.CURRENT_SCHEMA_VERSION,
+                "accounting-readiness",
+                tuple.inputs().size() == 1 ? ScenarioKind.SINGLE_SAGA : ScenarioKind.MULTI_SAGA,
+                WorkloadExecutionShape.SAGA_LOCAL,
+                List.of(), tuple.inputs(), List.of(), List.of(), List.of(), null, setup,
+                List.of(), List.of(), List.of(), List.of());
+        ScenarioExecutorReadinessEvaluator evaluator = new ScenarioExecutorReadinessEvaluator();
+        return tuple.inputs().stream().allMatch(input -> evaluator.evaluate(readinessPlan, input).materializable());
+    }
+
+    private ScenarioSpaceAccountingReport.SetupCoverage setupCoverage(List<CalculatedRow> rows) {
+        return new ScenarioSpaceAccountingReport.SetupCoverage(
+                setupTotals(rows, SetupShapeCounts::withSourceSetup),
+                setupTotals(rows, SetupShapeCounts::withoutSetup),
+                setupTotals(rows, SetupShapeCounts::blocked));
+    }
+
+    private ScenarioSpaceTotals setupTotals(List<CalculatedRow> rows,
+                                             java.util.function.Function<SetupShapeCounts, BigInteger> extractor) {
+        LinkedHashMap<String, BigInteger> bySize = new LinkedHashMap<>();
+        BigInteger total = BigInteger.ZERO;
+        for (CalculatedRow row : rows) {
+            if (row.setupShapeCounts() == null) {
+                throw new IllegalStateException("setup totals require exact selected tuple classification");
+            }
+            BigInteger count = extractor.apply(row.setupShapeCounts());
+            total = total.add(count);
+            bySize.merge(Integer.toString(row.row().sagaSetSize()), count, BigInteger::add);
+        }
+        LinkedHashMap<String, String> serialized = new LinkedHashMap<>();
+        bySize.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> serialized.put(entry.getKey(), entry.getValue().toString()));
+        return new ScenarioSpaceTotals(total.toString(), serialized);
     }
 
     private InteractionSummary interactionSummary(List<String> sagaSet, ConflictGraphBuilder.Result graph) {
@@ -446,7 +541,17 @@ public final class ScenarioSpaceAccountingCalculator {
 
     private record CalculatedRow(GroupedSagaSetRow row,
                                  BigInteger allShapeCount,
-                                 BigInteger selectedShapeCount) {
+                                 BigInteger selectedShapeCount,
+                                 SetupShapeCounts setupShapeCounts) {
+    }
+
+    private record SetupShapeCounts(BigInteger withSourceSetup,
+                                    BigInteger withoutSetup,
+                                    BigInteger blocked) {
+
+        private static SetupShapeCounts empty() {
+            return new SetupShapeCounts(BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO);
+        }
     }
 
     private record GraphViews(ConflictGraphBuilder.Result strict, ConflictGraphBuilder.Result broad) {

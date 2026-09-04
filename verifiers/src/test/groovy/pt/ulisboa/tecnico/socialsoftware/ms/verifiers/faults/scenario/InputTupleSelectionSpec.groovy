@@ -6,9 +6,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.Sta
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupAction
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference
@@ -148,6 +154,30 @@ class InputTupleSelectionSpec extends Specification {
         !selected(broken, graph, InputTupleSelection.Mode.STRICT)
     }
 
+    def 'early strict pruning keeps a triple connected through an alternate path'() {
+        given:
+        def sagas = [saga('A', footprint('Order', 'orderId', FootprintConfidence.SYMBOLIC)),
+                     saga('B', footprint('Order', 'orderId', FootprintConfidence.SYMBOLIC),
+                             footprint('Product', 'productId', FootprintConfidence.SYMBOLIC)),
+                     saga('C', footprint('Product', 'productId', FootprintConfidence.SYMBOLIC))]
+        def graph = ConflictGraphBuilder.build(sagas, config(false))
+        def values = [input('A', 'a', [orderId: '1']),
+                      input('B', 'b', [orderId: '1', productId: '9']),
+                      input('C', 'c', [productId: '9'])]
+        def bySaga = values.groupBy { it.sagaFqn() }
+
+        when:
+        def joined = InputTupleJoiner.join(['A', 'B', 'C'], bySaga, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.STRICT)
+
+        then:
+        InputTupleSelection.potentiallySelected(['A', 'B', 'C'], [values[0]],
+                [[values[0]], bySaga.B, bySaga.C],
+                graph.conflictCandidates(), [], InputTupleSelection.Mode.STRICT)
+        joined.tuples().size() == 1
+        joined.tuples()[0].inputs() == values
+    }
+
     def 'all stays Cartesian and strict grouped accounting equals catalog enumeration'() {
         given:
         def sagas = [saga('A', footprint('Order', 'orderId', FootprintConfidence.SYMBOLIC)),
@@ -265,6 +295,57 @@ class InputTupleSelectionSpec extends Specification {
         accounting.path('workloads').path('selected').path('inputBoundTotal').asInt() == 1
     }
 
+    def 'count-only writer reports exact setup categories with schedule multiplicity'() {
+        given:
+        def sagas = [
+                saga('A', footprint('Order', 'shared', FootprintConfidence.EXACT),
+                        footprint('Order', 'shared', FootprintConfidence.EXACT)),
+                saga('B', footprint('Order', 'shared', FootprintConfidence.EXACT)),
+                saga('C', footprint('Order', 'shared', FootprintConfidence.EXACT))
+        ]
+        def sourceInput = readyInput('A', 'source')
+        def noSetupInput = readyInput('B', 'no-setup')
+        def blockedInput = blockedInput('C', 'blocked')
+        def setup = new SetupPlan(SetupPlan.SCHEMA_VERSION, [
+                new SetupAction('setup-1', 0, 'Spec:1', 'demo.Fixture#create():java.lang.String', [],
+                        String.name, false, [])
+        ], [], [])
+        def model = new ScenarioModelAdapterResult(
+                sagas,
+                [sourceInput, noSetupInput, blockedInput],
+                [],
+                [new SourceSetupPlanBinding([sourceInput.deterministicId()], setup)],
+                [:], [], [:], [])
+        def config = new ScenarioGeneratorConfig(true,
+                ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.COUNT_ONLY,
+                true, 2, 100, 10, 10, false,
+                ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING, 41L)
+        def directory = Files.createTempDirectory('setup-accounting-shape-')
+
+        when:
+        new StaticAnalysisArtifactWriter().write(model, 'dummyapp', config, directory,
+                '2026-09-02T00:00:00Z')
+        def accounting = new com.fasterxml.jackson.databind.ObjectMapper().readTree(
+                directory.resolve('accounting.json').toFile())
+        def setupMetrics = accounting.path('workloads').path('setup')
+
+        then:
+        setupMetrics.path('withSourceSetup').path('total').bigIntegerValue() == 1
+        setupMetrics.path('withoutSetup').path('total').bigIntegerValue() == 4
+        setupMetrics.path('blocked').path('total').bigIntegerValue() == 6
+        setupMetrics.path('withSourceSetup').path('bySagaSetSize').path('1').bigIntegerValue() == 1
+        setupMetrics.path('withoutSetup').path('bySagaSetSize').path('1').bigIntegerValue() == 1
+        setupMetrics.path('withoutSetup').path('bySagaSetSize').path('2').bigIntegerValue() == 3
+        setupMetrics.path('blocked').path('bySagaSetSize').path('1').bigIntegerValue() == 1
+        setupMetrics.path('blocked').path('bySagaSetSize').path('2').bigIntegerValue() == 5
+        (setupMetrics.path('withSourceSetup').path('total').bigIntegerValue()
+                + setupMetrics.path('withoutSetup').path('total').bigIntegerValue()
+                + setupMetrics.path('blocked').path('total').bigIntegerValue())
+                == accounting.path('workloads').path('selected').path('inputBoundTotal').bigIntegerValue()
+    }
+
     private static boolean selected(List<InputVariant> inputs,
                                     ConflictGraphBuilder.Result graph,
                                     InputTupleSelection.Mode mode,
@@ -325,6 +406,26 @@ class InputTupleSelectionSpec extends Specification {
         InputVariantNormalizer.normalizeForArtifact(new InputVariant(id, saga, 'Spec', sourceMethod, null,
                 InputResolutionStatus.RESOLVED, "new Saga(${id})".toString(),
                 "source ${id}".toString(), [], [:], []))
+    }
+
+    private static InputVariant readyInput(String saga, String id) {
+        def argument = new InputRecipeArgument(0, String.name, InputResolutionStatus.RESOLVED,
+                true, [], 'fixture', InputRecipeNode.builder('literal')
+                .executorReady(true).literalKind('string').value(id).build())
+        inputWithRecipe(saga, id, new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], [argument]))
+    }
+
+    private static InputVariant blockedInput(String saga, String id) {
+        def argument = new InputRecipeArgument(0, String.name, InputResolutionStatus.UNRESOLVED,
+                false, ['UNRESOLVED_VALUE'], 'fixture', InputRecipeNode.builder('unresolved')
+                .executorReady(false).blockers(['UNRESOLVED_VALUE']).build())
+        inputWithRecipe(saga, id, new InputRecipe(InputRecipe.SCHEMA_VERSION, null, false,
+                ['UNRESOLVED_VALUE'], [argument]))
+    }
+
+    private static InputVariant inputWithRecipe(String saga, String id, InputRecipe recipe) {
+        InputVariantNormalizer.normalizeForArtifact(new InputVariant(id, saga, 'Spec', id, 'saga',
+                InputResolutionStatus.RESOLVED, 'new Saga()', 'source', [], [:], [], recipe))
     }
 
     private static SourceAggregateKeyInputEvidence source(InputVariant input,

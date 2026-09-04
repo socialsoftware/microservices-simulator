@@ -275,6 +275,20 @@ public final class ScenarioGenerator {
     private static SetupPlan setupPlanFor(InputTuple tuple,
                                           List<SourceSetupPlanBinding> bindings,
                                           LinkedHashSet<String> warnings) {
+        SetupPlan result = setupPlanFor(tuple, bindings);
+        if (result == null && bindings != null && tuple != null && warnings != null) {
+            Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
+                    .collect(java.util.stream.Collectors.toSet());
+            long matches = bindings.stream().filter(binding -> binding.inputVariantIds().containsAll(inputIds)).count();
+            if (matches > 1) {
+                warnings.add("ambiguous source setup for input tuple " + inputIds.stream().sorted().toList());
+            }
+        }
+        return result;
+    }
+
+    /** Selects the one complete source-derived setup that covers a tuple, if any. */
+    public static SetupPlan setupPlanFor(InputTuple tuple, List<SourceSetupPlanBinding> bindings) {
         if (bindings == null || bindings.isEmpty() || tuple == null) return null;
         Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
                 .collect(java.util.stream.Collectors.toSet());
@@ -282,9 +296,6 @@ public final class ScenarioGenerator {
                 .filter(binding -> binding.inputVariantIds().containsAll(inputIds))
                 .toList();
         if (matches.size() != 1) {
-            if (matches.size() > 1 && warnings != null) {
-                warnings.add("ambiguous source setup for input tuple " + inputIds.stream().sorted().toList());
-            }
             return null;
         }
         SetupPlan candidate = matches.get(0).setupPlan();

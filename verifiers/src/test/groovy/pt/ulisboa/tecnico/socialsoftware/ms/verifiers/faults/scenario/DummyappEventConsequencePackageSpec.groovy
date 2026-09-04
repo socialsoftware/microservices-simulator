@@ -81,6 +81,24 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
                 event.has('route') && event.has('triggeringStep') && event.size() == 4
             }
         }
+        current.sagaFacts().findAll { saga ->
+            saga.path('fqn').asText() == PRODUCER_SAGA
+        }.collectMany { saga -> saga.path('steps').toList() }
+                .collectMany { step -> step.path('eventRoutes').toList() }
+                .every { route ->
+                    route.path('eventHandlingClass').asText() ==
+                            'com.example.dummyapp.item.notification.handling.DummyEventHandling' &&
+                            route.path('handler').asText() ==
+                            'com.example.dummyapp.item.notification.handling.handlers.ItemRenamedEventHandler'
+                }
+        execution.workloadPlans().findAll { !it.eventConsequences().isEmpty() }.every { workload ->
+            workload.eventConsequences().every { event ->
+                event.eventHandlingClassFqn() ==
+                        'com.example.dummyapp.item.notification.handling.DummyEventHandling' &&
+                        event.eventHandlerClassFqn() ==
+                        'com.example.dummyapp.item.notification.handling.handlers.ItemRenamedEventHandler'
+            }
+        }
         execution.faultScenarios().findAll { scenario ->
             execution.workloadPlans().find { it.deterministicId() == scenario.workloadPlanId() }
                     ?.eventConsequences()

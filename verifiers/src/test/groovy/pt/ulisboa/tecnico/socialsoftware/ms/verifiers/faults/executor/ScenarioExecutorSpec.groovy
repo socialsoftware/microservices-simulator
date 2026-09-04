@@ -58,6 +58,7 @@ class ScenarioExecutorSpec extends Specification {
     def setup() {
         FixtureWorkflow.reset()
         FixtureEventHandling.reset()
+        AlternateFixtureEventHandling.reset()
         FaultVectorProviderHolder.clear()
     }
 
@@ -1694,7 +1695,10 @@ class ScenarioExecutorSpec extends Specification {
         def before = packageChecksums(packageFixture.directory)
         def service = new TrackingSagaUnitOfWorkService()
         def handling = new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')
-        def runtime = new TrackingRuntimeContext(service, [(FixtureEventHandling): handling])
+        def runtime = new TrackingRuntimeContext(service, [
+                (FixtureEventHandling): handling,
+                (AlternateFixtureEventHandling): new AlternateFixtureEventHandling()
+        ])
         FixtureWorkflow.emitEvents('solo', 'first', 1)
         def gate = activateEventReplay()
 
@@ -1721,6 +1725,7 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()[1].eventEvidence().subscriberAggregateId() == 99
         FixtureEventHandling.ORDER == ['handler-start', 'downstream-saga-complete', 'handler-return']
         FixtureEventHandling.BOUNDARIES == [null]
+        AlternateFixtureEventHandling.INVOCATIONS == 0
         packageChecksums(packageFixture.directory) == before
 
         when: 'the trigger is assigned a pre-body fault'
@@ -1777,6 +1782,40 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.status() == 'MASKED_BY_TRIGGER_FAILURE'
         FixtureEventHandling.ORDER.isEmpty()
         report.scheduleConformance() == 'DEVIATED'
+    }
+
+    def 'event consequence rejects a simple handler name even when one runtime type matches it'() {
+        given:
+        def workload = eventWorkload(0, FixtureEventHandler.simpleName)
+        def scenario = scenarios(workload, '00').find {
+            it.actions()*.kind().contains(FaultScenarioActionKind.EVENT_CONSEQUENCE)
+        }
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def runtime = new TrackingRuntimeContext(service, [
+                (FixtureEventHandling): new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS'),
+                (FixtureEventHandler): new FixtureEventHandler(1, 'SUCCESS')
+        ])
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.hardStopReason() == 'EVENT_REPLAY_CONTROL_FAILED'
+        report.actualActions().find { it.kind() == 'EVENT_CONSEQUENCE' }.with {
+            status() == 'EVENT_REPLAY_CONTROL_FAILED' &&
+                    exceptionClass() == ClassNotFoundException.name
+        }
+        FixtureEventHandling.ORDER.isEmpty()
     }
 
     def 'trigger failure after matching event emission hard stops without dispatch and preserves event occurrence identity'() {
@@ -2134,7 +2173,8 @@ class ScenarioExecutorSpec extends Specification {
                 null, [], [], [], null, null, null, [])
     }
 
-    private static WorkloadPlan eventWorkload(int triggerIndex = 0) {
+    private static WorkloadPlan eventWorkload(int triggerIndex = 0,
+                                              String eventHandlerClassFqn = FixtureEventHandler.name) {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def trigger = base.forwardSchedule()[triggerIndex]
         def site = new EventEmissionSite(
@@ -2142,11 +2182,11 @@ class ScenarioExecutorSpec extends Specification {
                 'dummyapp.FixtureService', 'emit()', 0, FixtureEvent.name, ['dummyapp runtime fixture'])
         def consequenceId = ScenarioIdGenerator.eventConsequenceId(
                 trigger.deterministicId(), site, FixtureEventHandling.name, 'handleFixtureEvents',
-                FixtureEventHandler.name, 'dummyapp.FixtureEventProcessing', 'process',
+                eventHandlerClassFqn, 'dummyapp.FixtureEventProcessing', 'process',
                 'dummyapp.FixtureFacade', 'startSaga', 'dummyapp.DownstreamFunctionalitySagas',
                 EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER)
         def consequence = new EventConsequence(consequenceId, trigger.deterministicId(), site, FixtureEvent.name,
-                FixtureEventHandling.name, 'handleFixtureEvents', FixtureEventHandler.name,
+                FixtureEventHandling.name, 'handleFixtureEvents', eventHandlerClassFqn,
                 'dummyapp.FixtureEventProcessing', 'process', 'dummyapp.FixtureFacade', 'startSaga',
                 'dummyapp.DownstreamFunctionalitySagas', EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
         def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
@@ -2483,6 +2523,18 @@ class ScenarioExecutorSpec extends Specification {
         }
     }
 
+    static class AlternateFixtureEventHandling {
+        static int INVOCATIONS
+
+        void handleFixtureEvents() {
+            INVOCATIONS++
+        }
+
+        static void reset() {
+            INVOCATIONS = 0
+        }
+    }
+
     static class FixtureEventHandler extends EventHandler {
         private final int subscriberCount
         private final String mode
@@ -2686,13 +2738,15 @@ class ScenarioExecutorSpec extends Specification {
         }
 
         @Override
-        Class<?> resolveEventHandlingType(String persistedHandler, String processingMethod)
+        Class<?> resolveEventHandlingType(String eventHandlingClassFqn)
                 throws ClassNotFoundException {
-            def matches = extraBeans.keySet().findAll { type ->
-                type.methods.any { it.name == processingMethod && it.parameterCount == 0 }
-            }
-            if (matches.size() == 1) return matches.first()
-            resolveType(persistedHandler)
+            Class.forName(eventHandlingClassFqn)
+        }
+
+        @Override
+        Class<?> resolveEventHandlerType(String eventHandlerClassFqn)
+                throws ClassNotFoundException {
+            Class.forName(eventHandlerClassFqn)
         }
 
         @Override

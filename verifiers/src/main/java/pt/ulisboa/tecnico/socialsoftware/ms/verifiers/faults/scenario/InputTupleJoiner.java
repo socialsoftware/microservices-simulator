@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Consumer;
 
 public final class InputTupleJoiner {
 
@@ -79,6 +80,60 @@ public final class InputTupleJoiner {
         return new Result(List.copyOf(orderedTuples), Collections.unmodifiableMap(counts), List.copyOf(warnings));
     }
 
+    /** Visits selected tuples one at a time without retaining the Cartesian result. */
+    public static void forEachSelected(List<String> sagaOrder,
+                                       Map<String, List<InputVariant>> inputsBySaga,
+                                       List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates,
+                                       List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                                       InputTupleSelection.Mode mode,
+                                       Consumer<InputTuple> consumer) {
+        Objects.requireNonNull(consumer, "consumer");
+        List<String> orderedSagas = sagaOrder == null ? List.of() : sagaOrder.stream()
+                .filter(Objects::nonNull).distinct().sorted().toList();
+        if (orderedSagas.isEmpty()) return;
+        List<List<InputVariant>> inputCandidates = new ArrayList<>();
+        for (String sagaFqn : orderedSagas) {
+            List<InputVariant> sagaInputs = inputsBySaga == null ? null : inputsBySaga.get(sagaFqn);
+            if (sagaInputs == null || sagaInputs.isEmpty()) return;
+            List<InputVariant> sorted = new ArrayList<>(sagaInputs);
+            sorted.sort(Comparator.comparing(InputVariant::deterministicId, Comparator.nullsFirst(String::compareTo))
+                    .thenComparing(InputVariant::sourceClassFqn, Comparator.nullsFirst(String::compareTo))
+                    .thenComparing(InputVariant::sourceMethodName, Comparator.nullsFirst(String::compareTo)));
+            inputCandidates.add(sorted);
+        }
+        visitTuples(orderedSagas, inputCandidates, 0, new ArrayList<>(), new LinkedHashSet<>(),
+                conflictCandidates == null ? List.of() : conflictCandidates,
+                sourceEvidence == null ? List.of() : sourceEvidence,
+                mode == null ? InputTupleSelection.Mode.ALL : mode, consumer);
+    }
+
+    private static void visitTuples(List<String> sagaOrder,
+                                    List<List<InputVariant>> candidates,
+                                    int index,
+                                    List<InputVariant> current,
+                                    Set<String> seenSignatures,
+                                    List<ConflictGraphBuilder.ConflictCandidate> conflictCandidates,
+                                    List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                                    InputTupleSelection.Mode mode,
+                                    Consumer<InputTuple> consumer) {
+        if (index == candidates.size()) {
+            if (!InputTupleSelection.selected(sagaOrder, current, conflictCandidates, sourceEvidence, mode)) return;
+            String signature = signature(current);
+            if (seenSignatures.add(signature)) {
+                consumer.accept(new InputTuple(List.copyOf(current), signature, mergeWarnings(current)));
+            }
+            return;
+        }
+        if (!InputTupleSelection.potentiallySelected(sagaOrder, current, candidates,
+                conflictCandidates, sourceEvidence, mode)) return;
+        for (InputVariant candidate : candidates.get(index)) {
+            current.add(candidate);
+            visitTuples(sagaOrder, candidates, index + 1, current, seenSignatures,
+                    conflictCandidates, sourceEvidence, mode, consumer);
+            current.remove(current.size() - 1);
+        }
+    }
+
     private static void buildTuples(List<String> sagaOrder,
                                     List<List<InputVariant>> candidates,
                                     int index,
@@ -102,6 +157,11 @@ public final class InputTupleJoiner {
                 counters[1]++;
                 tuples.put(signature, existing.withWarnings(mergeWarnings(existing.inputs(), current)));
             }
+            return;
+        }
+
+        if (!InputTupleSelection.potentiallySelected(sagaOrder, current, candidates,
+                conflictCandidates, sourceEvidence, mode)) {
             return;
         }
 

@@ -697,13 +697,13 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 .path('steps').first().path('eventRoutes').first()
         def site = new EventEmissionSite('dummy-emission', 'dummy.Service', 'emit()', 0, 'dummy.Event', ['fixture'])
         def routeA = new EventConsequenceDefinition(sagaFqn, triggerStep.stepKey(), site,
-                'dummy.Handling', 'handleA', 'dummy.HandlerA', 'dummy.Processing', 'processA',
+                'dummy.ZHandling', 'handleA', 'dummy.HandlerA', 'dummy.Processing', 'processA',
                 'dummy.Facade', 'invokeA', sagaFqn, EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
         def duplicateRouteA = new EventConsequenceDefinition(sagaFqn, triggerStep.stepKey(), site,
-                'dummy.Handling', 'handleA', 'dummy.HandlerA', 'dummy.Processing', 'processA',
+                'dummy.ZHandling', 'handleA', 'dummy.HandlerA', 'dummy.Processing', 'processA',
                 'dummy.Facade', 'invokeA', sagaFqn, EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, ['duplicate source row'])
         def routeB = new EventConsequenceDefinition(sagaFqn, triggerStep.stepKey(), site,
-                'dummy.Handling', 'handleB', 'dummy.HandlerB', 'dummy.Processing', 'processB',
+                'dummy.AHandling', 'handleB', 'dummy.HandlerB', 'dummy.Processing', 'processB',
                 'dummy.Facade', 'invokeB', sagaFqn, EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
         def eventModel = new ScenarioModelAdapterResult([repeatedSaga], [],
                 [routeB, duplicateRouteA, routeA], [], [:], [], [:], [])
@@ -727,6 +727,8 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         firstRoutes.isEmpty()
         emitted.size() == 2
         emitted*.path('id')*.asText() == ['sameName#1/event#0', 'sameName#1/event#0-route#1']
+        emitted*.path('eventHandlingClass')*.asText() == ['dummy.ZHandling', 'dummy.AHandling']
+        emitted*.path('handler')*.asText() == ['dummy.HandlerA', 'dummy.HandlerB']
         emitted.first().fieldNames().toList() == expectedRoute.fieldNames().toList()
 
         when:
@@ -745,6 +747,19 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         then:
         def duplicateRoute = thrown(IllegalArgumentException)
         duplicateRoute.message.contains('duplicate event route id')
+
+        when:
+        routeArray[1].put('id', 'sameName#1/event#0-route#1')
+        routeArray[0].remove('handler')
+        replaced = lines.collect { it.contains(sagaFqn) ? mapper.writeValueAsString(first) : it }
+        Files.writeString(sagaPath, replaced.join('\n') + '\n')
+        manifest = mapper.readTree(manifestPath.toFile())
+        refreshHash(manifest, manifestPath, 'sagas', sagaPath)
+        new ScenarioCatalogPackageReader().readCurrentStatic(manifestPath)
+
+        then:
+        def missingHandler = thrown(IllegalArgumentException)
+        missingHandler.message.contains('handler')
     }
 
     def 'dummyapp current reader rejects checksum mismatch and escaping artifact paths'() {

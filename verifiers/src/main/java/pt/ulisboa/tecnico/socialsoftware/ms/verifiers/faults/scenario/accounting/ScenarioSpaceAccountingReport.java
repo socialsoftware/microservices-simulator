@@ -367,13 +367,40 @@ public record ScenarioSpaceAccountingReport(
     public record InputBoundScenarioSpace(
             ScenarioSpaceTotals allInputBound,
             ScenarioSpaceTotals selectedByGenerator,
-            ScenarioSpaceTotals catalogWritten) {
+            ScenarioSpaceTotals catalogWritten,
+            SetupCoverage setupCoverage) {
+
+        public InputBoundScenarioSpace {
+            allInputBound = allInputBound == null ? new ScenarioSpaceTotals("0", Map.of()) : allInputBound;
+            selectedByGenerator = selectedByGenerator == null ? new ScenarioSpaceTotals("0", Map.of()) : selectedByGenerator;
+            catalogWritten = catalogWritten == null ? new ScenarioSpaceTotals("0", Map.of()) : catalogWritten;
+        }
+
+        public InputBoundScenarioSpace(ScenarioSpaceTotals allInputBound,
+                                       ScenarioSpaceTotals selectedByGenerator,
+                                       ScenarioSpaceTotals catalogWritten) {
+            this(allInputBound, selectedByGenerator, catalogWritten, null);
+        }
 
         public static InputBoundScenarioSpace empty() {
             return new InputBoundScenarioSpace(
                     new ScenarioSpaceTotals("0", Map.of()),
                     new ScenarioSpaceTotals("0", Map.of()),
-                    new ScenarioSpaceTotals("0", Map.of()));
+                    new ScenarioSpaceTotals("0", Map.of()),
+                    null);
+        }
+    }
+
+    /** Selected input-bound workload shapes classified by the setup they can use. */
+    public record SetupCoverage(
+            ScenarioSpaceTotals withSourceSetup,
+            ScenarioSpaceTotals withoutSetup,
+            ScenarioSpaceTotals blocked) {
+
+        public SetupCoverage {
+            withSourceSetup = withSourceSetup == null ? new ScenarioSpaceTotals("0", Map.of()) : withSourceSetup;
+            withoutSetup = withoutSetup == null ? new ScenarioSpaceTotals("0", Map.of()) : withoutSetup;
+            blocked = blocked == null ? new ScenarioSpaceTotals("0", Map.of()) : blocked;
         }
     }
 

@@ -1,8 +1,8 @@
 # Verifier roadmap
 
-Last updated: 2026-09-03
+Last updated: 2026-09-04
 
-[`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It deliberately avoids repeating current metrics and commands.
+[`current-state.md`](current-state.md) describes what exists now and the evidence behind it. This roadmap describes the remaining outcomes, why they matter to the thesis, their dependencies, and what would count as done. It repeats only the evidence needed to explain the current order.
 
 ## End goal
 
@@ -27,6 +27,28 @@ input quality and executable harmful scenarios
 ```
 
 Do not start search or prioritization while generated scenarios are mostly blocked, cannot be reset reliably, or produce flat impact values.
+
+## Current next work
+
+Exact event-route identity, early tuple pruning, setup-aware count-only accounting, and
+strict size-4 measurement were completed on 2026-09-04. The next work is:
+
+1. Add the setup required by a selected event consumer. Exact routing now reaches the
+   chosen consumer, but four triple controls lack the QuizAnswer or Tournament state
+   needed to find an eligible subscriber.
+2. Diagnose why accepted inputs reached through shared setup helpers often have no setup
+   attached. In the complete single-Saga diagnostic, 267 of 794 base inputs are ready
+   and all 527 blocked inputs lack setup.
+3. Preflight the complete statically materializable subset of the reduced 1,415-workload
+   package and use the failures to choose the next setup or input-extraction change.
+4. Classify the 32 of 68 discovered Sagas with no accepted input as missing tests,
+   unsupported extraction, or configured exclusion.
+5. Re-establish a trustworthy impact comparison, then reduce per-scenario startup cost
+   before starting GA work. At the observed isolated-run rate, 1,980 scenarios take
+   roughly a day and the full selected workload space takes weeks.
+
+The supporting measurements and failure examples are kept in the artifact audit's
+open follow-up list.
 
 ## Outcome 0 — Repair exact runtime input identity
 

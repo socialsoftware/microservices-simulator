@@ -870,9 +870,9 @@ public final class ScenarioExecutor {
         boolean handlerInvoked = false;
         try {
             Class<?> handlingType = runtimeContext.resolveEventHandlingType(
-                    consequence.eventHandlingClassFqn(), consequence.eventHandlingMethodName());
-            Class<?> handlerType = resolveRelatedType(
-                    consequence.eventHandlerClassFqn(), handlingType, runtimeContext);
+                    consequence.eventHandlingClassFqn());
+            Class<?> handlerType = runtimeContext.resolveEventHandlerType(
+                    consequence.eventHandlerClassFqn());
             Object handlingBean = runtimeContext.bean(handlingType);
             Method method = handlingType.getMethod(consequence.eventHandlingMethodName());
             if (method.getParameterCount() != 0) {
@@ -925,23 +925,6 @@ public final class ScenarioExecutor {
         if (runtimeFqn == null || persistedName == null || persistedName.indexOf('.') >= 0) return false;
         int separator = Math.max(runtimeFqn.lastIndexOf('.'), runtimeFqn.lastIndexOf('$'));
         return runtimeFqn.substring(separator + 1).equals(persistedName);
-    }
-
-    private Class<?> resolveRelatedType(String persistedName, Class<?> handlingType,
-                                        ScenarioRuntimeContext runtimeContext) throws ClassNotFoundException {
-        try {
-            return runtimeContext.resolveType(persistedName);
-        } catch (ClassNotFoundException missingSimpleName) {
-            Class<?> enclosing = handlingType.getEnclosingClass();
-            if (enclosing != null) {
-                for (Class<?> candidate : enclosing.getDeclaredClasses()) {
-                    if (candidate.getSimpleName().equals(persistedName)) return candidate;
-                }
-            }
-            String packageName = handlingType.getPackageName();
-            if (!packageName.isBlank()) return Class.forName(packageName + "." + persistedName);
-            throw missingSimpleName;
-        }
     }
 
     private ScenarioExecutionReport.EventRuntimeEvidence eventEvidence(

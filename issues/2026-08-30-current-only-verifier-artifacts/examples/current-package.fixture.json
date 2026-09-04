@@ -67,11 +67,11 @@
       "files": {
         "accounting": {
           "path": "accounting.json",
-          "sha256": "825891f3d14faa9ed80e9ee69dad386fbe6e84ce07eb1409feb2c6cff29b21c8"
+          "sha256": "8e4f98f39e53e3f57e900179ea28e4d138ca22d0eaf01e078982691d4df2502c"
         },
         "sagas": {
           "path": "sagas.jsonl",
-          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+          "sha256": "f4fce9985e0d716b321dc843ab620296d175fdf8eb1d4b57cfc491a8443a9724"
         },
         "inputs": {
           "path": "inputs.jsonl",
@@ -92,7 +92,7 @@
         },
         "sagas": {
           "path": "sagas.jsonl",
-          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+          "sha256": "f4fce9985e0d716b321dc843ab620296d175fdf8eb1d4b57cfc491a8443a9724"
         },
         "inputs": {
           "path": "inputs.jsonl",
@@ -129,7 +129,7 @@
         },
         "sagas": {
           "path": "sagas.jsonl",
-          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+          "sha256": "f4fce9985e0d716b321dc843ab620296d175fdf8eb1d4b57cfc491a8443a9724"
         },
         "inputs": {
           "path": "inputs.jsonl",
@@ -174,7 +174,7 @@
         },
         "sagas": {
           "path": "sagas.jsonl",
-          "sha256": "4967b85ffa1eed52192a74897c56afa7af6acd7165c00b33af75aa3d0079ad67"
+          "sha256": "f4fce9985e0d716b321dc843ab620296d175fdf8eb1d4b57cfc491a8443a9724"
         },
         "inputs": {
           "path": "inputs.jsonl",
@@ -318,6 +318,24 @@
           },
           "written": {
             "total": 0
+          },
+          "setup": {
+            "withSourceSetup": {
+              "total": 1,
+              "bySagaSetSize": {
+                "1": 1
+              }
+            },
+            "withoutSetup": {
+              "total": 118264581564861423,
+              "bySagaSetSize": {
+                "2": 118264581564861423
+              }
+            },
+            "blocked": {
+              "total": 0,
+              "bySagaSetSize": {}
+            }
           }
         }
       },
@@ -818,6 +836,7 @@
               {
                 "id": "reserveOrder#0/event#0",
                 "event": "OrderReservedEvent",
+                "eventHandlingClass": "example.OrderEventHandling",
                 "handler": "example.PaymentEventHandler",
                 "processingMethod": "handleOrderReserved",
                 "functionalityMethod": "chargePayment",
