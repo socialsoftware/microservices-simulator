@@ -1,0 +1,7 @@
+interface:
+  display_name: "Review Consistency Sweep"
+  short_description: "Interpret sweep reports against application code"
+  default_prompt: "Use $review-consistency-sweep to analyze a completed consistency sweep."
+
+policy:
+  allow_implicit_invocation: false

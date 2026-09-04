@@ -1,0 +1,22 @@
+schema_version: 1
+application: {{appName}}
+mode: neutral-baseline
+saga_aggregates:
+  - class: {{qualifiedSagaAggregateClass}}
+    source: {{sagaAggregateSourcePath}}
+    catalogs: []
+    handles: []
+aggregate_relationships: []
+functionalities:
+  # Replace with one entry per discovered WorkflowFunctionality class.
+  - class: {{qualifiedFunctionalityClass}}
+    kind: unknown
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence: []
+    exclusion_reason: Classification pending.
+candidate_inter_invariants: []
+confirmed_inter_invariants: []
+unimplemented_explicit_inter_invariants: []
+cross_catalog_gaps: []

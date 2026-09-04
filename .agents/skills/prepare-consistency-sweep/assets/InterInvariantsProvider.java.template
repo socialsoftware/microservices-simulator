@@ -1,0 +1,21 @@
+package {{testPackage}};
+
+import java.util.Set;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariant;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantsProvider;
+
+@Component
+@Profile("oracle")
+public class {{appName}}InterInvariantsProvider implements InterInvariantsProvider {
+
+    @Override
+    public Set<InterInvariant> getInterInvariants() {
+        // Add only invariants explicitly stated by code comments, tests, or domain docs.
+        // Keep uncertain candidates in catalog-coverage.yaml, not executable code.
+        return Set.of();
+    }
+}

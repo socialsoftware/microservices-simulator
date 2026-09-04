@@ -1,0 +1,4 @@
+interface:
+  display_name: "Prepare Consistency Sweep"
+  short_description: "Onboard simulator apps for consistency sweeps"
+  default_prompt: "Use $prepare-consistency-sweep to onboard an application for consistency testing."

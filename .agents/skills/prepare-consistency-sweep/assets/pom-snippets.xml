@@ -1,0 +1,30 @@
+<!-- Add under project/dependencies when absent. -->
+<dependency>
+    <groupId>pt.ulisboa.tecnico.socialsoftware</groupId>
+    <artifactId>ConsistencyTesting</artifactId>
+    <version>1.0-SNAPSHOT</version>
+    <scope>test</scope>
+</dependency>
+
+<!-- Add under project/profiles when absent. Replace placeholders. -->
+<profile>
+    <id>consistency-sweep</id>
+    <properties>
+        <activatedProperties>test,sagas,local</activatedProperties>
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.3</version>
+                <configuration>
+                    <includes>
+                        <include>**/{{appName}}ConsistencyCatalogValidation.java</include>
+                        <include>**/{{appName}}ConsistencySweep.java</include>
+                    </includes>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</profile>

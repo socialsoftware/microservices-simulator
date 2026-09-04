@@ -1,0 +1,41 @@
+package {{testPackage}};
+
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Function;
+import java.util.function.Supplier;
+
+import org.springframework.context.annotation.Profile;
+import org.springframework.stereotype.Component;
+
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator.FunctionalityCatalogsProvider;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.AggregateHandlesRegistry;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityCatalog;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+
+@Component
+@Profile("oracle")
+public class {{appName}}FunctionalityCatalogsProvider implements FunctionalityCatalogsProvider {
+
+    @Override
+    public List<FunctionalityCatalog> getCatalogs() {
+        return List.of(new FunctionalityCatalog(
+                "{{catalogName}}", initialStateSetup(), functionalityFactories()));
+    }
+
+    private Supplier<AggregateHandlesRegistry> initialStateSetup() {
+        return () -> {
+            // TODO: Create ordinary valid shared state and register every stable aggregate handle.
+            return new AggregateHandlesRegistry();
+        };
+    }
+
+    private Map<FunctionalityId, Function<AggregateHandlesRegistry, WorkflowFunctionality>> functionalityFactories() {
+        Map<FunctionalityId, Function<AggregateHandlesRegistry, WorkflowFunctionality>> factories =
+                new LinkedHashMap<>();
+        // TODO: Add one fresh factory per included coverage-manifest entry.
+        return factories;
+    }
+}
