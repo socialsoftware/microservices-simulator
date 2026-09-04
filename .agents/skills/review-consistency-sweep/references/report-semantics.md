@@ -38,3 +38,41 @@ Actual anomaly types (`DIRTY_READ`, `NON_REPEATABLE_READ`, and `WRITE_SKEW`) are
 4. Repeated exceptions under specific schedule.
 5. Anomaly-only groups.
 6. Coverage gaps and zero-group catalogs.
+
+## Review report
+
+Write one report per reviewed campaign at:
+
+```text
+docs/reviews/consistency-sweep-<app-slug>-<YYYY-MM-DD>.md
+```
+
+Start with campaign provenance and triage totals. Then list every reviewed signature under one of these sections:
+
+- confirmed defects;
+- candidates needing more evidence;
+- expected, catalog, engine, or inconclusive outcomes.
+
+Give every confirmed defect and candidate a trace ID stable within that report:
+
+```text
+CS-<APP>-NNN
+```
+
+For example, `CS-QF-001`. A later repair refers to this ID and report path; it does not rely on report line number or raw report filename alone.
+
+Each trace-ID record contains:
+
+- title, classification, and confidence;
+- an `In brief` explanation: concurrent interaction, harmful final outcome, violated application rule, and immediate consequence when relevant;
+- optional likely repair direction when code evidence supports one; describe ownership or semantic boundary to restore, not speculative patch;
+- decisive per-run report path and campaign seed, catalog, group, and run coordinates;
+- observed schedule and final state;
+- expected rule or postcondition, with supporting code or domain evidence;
+- relevant source paths and clearly marked cause inferences;
+- optional application impact when it adds information beyond failed postcondition;
+- next validation or reproduction step.
+
+Do not call raw anomaly evidence a defect until code and rule analysis supports classification.
+
+Use relative Markdown links to decisive reports and source files when available. Keep `In brief` before schedule detail and code evidence.

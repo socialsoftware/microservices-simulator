@@ -5,7 +5,7 @@ description: Interpret completed consistency-testing sweep reports against appli
 
 # Review Consistency Sweep
 
-Review reports progressively, connect observed schedules to application behavior, and separate likely product defects from catalog defects, expected rejections, engine limitations, and inconclusive evidence. Stay read-only unless user separately asks for fixes.
+Review reports progressively, connect observed schedules to application behavior, and separate likely product defects from catalog defects, expected rejections, engine limitations, and inconclusive evidence. Write a durable review report. Remain read-only unless user separately asks for fixes.
 
 ## Required reference
 
@@ -17,7 +17,7 @@ Read [report-semantics.md](references/report-semantics.md) before interpreting s
 2. Resolve target application and reports directory. Default is `applications/<app>/target/consistency-reports`.
 3. Require `campaign-summary.json`. If missing, report exact expected path and stop.
 4. Read application's `catalog-coverage.yaml`, catalogs provider, inter-invariants provider, and sweep class when present.
-5. Remain read-only. Do not patch code, catalogs, or docs during review.
+5. Remain read-only. Do not patch existing code, catalogs, or documentation; review report is sole output artifact.
 
 ## 2. Triage summary first
 
@@ -51,6 +51,7 @@ For each representative:
 3. Reconstruct causal schedule: reads, writes, commits, aborts, compensation, and invariant checks.
 4. Compare concurrent behavior with each functionality's intended solo behavior and documented business rules.
 5. Check whether catalog state, stale injected helper, missing handle, invalid precondition, or uncertain invariant could explain result.
+6. Before detailed trace, write plain-language explanation: what happened, why it should not have happened, harmful final outcome. Reader must not replay schedule to understand claim.
 
 Treat code and reports as evidence. Mark inference explicitly.
 
@@ -64,11 +65,13 @@ Use exactly one primary classification:
 - `engine-limitation-or-instrumentation`
 - `inconclusive`
 
-Give confidence (`high`, `medium`, `low`), decisive report path, supporting source paths, impact, and next validation step. Never call anomaly a product defect without code evidence.
+For every signature not ruled out as expected, assign a report-local trace ID such as `CS-QF-001`. Give confidence (`high`, `medium`, `low`), plain-language explanation, decisive report path, supporting source paths, optional impact, likely repair direction when evidence supports one, and next validation step. Never call anomaly a product defect without code evidence.
 
 ## 6. Deliver verdict
 
-Lead with whether campaign provides actionable evidence. Summarize counts, then prioritized signatures. Distinguish observed facts from inferred cause.
+Write `docs/reviews/consistency-sweep-<app-slug>-<YYYY-MM-DD>.md`. Lead with whether campaign provides actionable evidence. Summarize counts, then prioritized signatures. Distinguish observed facts from inferred cause. Use [report-semantics.md](references/report-semantics.md) for issue-record requirements.
+
+Review report is immutable evidence for subsequent repair. Do not edit application code, and do not assign a trace ID to raw anomaly until code and rule analysis supports classification.
 
 When reproduction helps and generated sweep supports properties, show:
 
