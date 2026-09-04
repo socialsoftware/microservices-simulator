@@ -586,6 +586,14 @@ lacks an attached setup. The first blocker is `callReceiverNotReady` for 372 inp
 helpers dominate several large blocked Saga families and are the next setup-attachment
 investigation.
 
+The complete preflight of this reduced package ran 402 candidate workloads in isolated
+workers. Every worker reported `SETUP_READY`; the combined report retains 395 as ready
+and changes seven to `FRESH_STATE_ISOLATION_FAILED`. Inspection shows those seven also
+completed their setup actions and started their participants. Their setup prepares
+application state but supplies no participant argument, and the parent validator
+currently rejects the empty binding list. The published result is therefore 395/402,
+with a confirmed aggregation false negative affecting seven state-only setups.
+
 ### Bounded current dynamic smoke
 
 The same package was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The current input-map rerun is under `verifiers/target/input-map-fix/quizzes-source-package/`. It has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `exactInput`, 8 `shapeOnly`). Unique input evidence is 2 exact, 0 test-and-shape, 0 shape-only; its only workload remains `allInputsObservedInOneCommonTest`.
@@ -606,6 +614,7 @@ and reference validation.
 
 - Thirty-two discovered Quizzes Sagas still lack accepted static inputs. This does not mean no tests exist; their invocation/value shapes remain unclassified or unsupported.
 - Event-expanded workload setup does not yet include state required only by the selected consumer. Four exact-route triple controls reach their chosen consumer but cannot find a QuizAnswer or Tournament subscriber.
+- The preflight parent validator incorrectly requires every source-derived setup to supply at least one participant argument. Seven state-only setups succeed in their workers but are reported as fresh-state isolation failures.
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
 - Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Other date expressions remain blocked rather than being guessed.

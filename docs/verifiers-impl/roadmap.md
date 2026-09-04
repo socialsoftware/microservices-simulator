@@ -39,8 +39,9 @@ strict size-4 measurement were completed on 2026-09-04. The next work is:
 2. Diagnose why accepted inputs reached through shared setup helpers often have no setup
    attached. In the complete single-Saga diagnostic, 267 of 794 base inputs are ready
    and all 527 blocked inputs lack setup.
-3. Preflight the complete statically materializable subset of the reduced 1,415-workload
-   package and use the failures to choose the next setup or input-extraction change.
+3. Correct the preflight parent validator's assumption that every successful source
+   setup has an input binding. All 402 workers succeeded, but seven state-only setups are
+   reported as isolation failures because their valid binding list is empty.
 4. Classify the 32 of 68 discovered Sagas with no accepted input as missing tests,
    unsupported extraction, or configured exclusion.
 5. Re-establish a trustworthy impact comparison, then reduce per-scenario startup cost

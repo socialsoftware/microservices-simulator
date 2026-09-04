@@ -269,9 +269,18 @@ setup definitions passed static validation. Runtime preflight has exercised only
 representative workloads: the Remove/Add pair and one natural triple. Both succeeded,
 covering five participants and all of their setup actions and bindings.
 
-Next measurement: preflight the complete set of statically materializable workloads in
-the reduced package. Based on the observed isolated-startup rate, this is an overnight
-job.
+The complete preflight of the latest reduced package ran 402 candidate workloads. Every
+worker reported `SETUP_READY`; 395 remain ready in the combined report, while seven are
+changed to `FRESH_STATE_ISOLATION_FAILED` by the parent validator. Those seven did not
+fail at runtime: their setup actions succeeded and their participants started. They have
+zero setup-to-input bindings because the setup prepares application state without
+supplying a Saga argument, while the parent currently requires every source setup to
+have at least one binding.
+
+Next change: remove that incorrect non-empty-binding assumption while retaining the
+checks that setup actions, any bindings that do exist, materialization, and startup all
+succeeded. Then rerun the same preflight; the current evidence indicates 402 runtime
+successes, but the published result must remain 395/402 until the report is corrected.
 
 ### 5. One fresh process per scenario is too slow for broad execution or search
 
