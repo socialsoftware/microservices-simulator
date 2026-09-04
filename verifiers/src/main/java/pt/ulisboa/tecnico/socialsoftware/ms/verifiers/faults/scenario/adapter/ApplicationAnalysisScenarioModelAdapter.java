@@ -106,7 +106,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence = adaptAggregateKeyInputEvidence(
                 state.sourceAggregateKeyInputEvidence(), adaptedInputs.adaptedTraces());
         List<SourceSetupPlanBinding> setupBindings = adaptSetupBindings(
-                state, adaptedInputs.inputVariants(), diagnostics, counts);
+                state, adaptedInputs.inputVariants(), adaptedInputs.adaptedTraces(), diagnostics, counts);
         LinkedHashMap<String, List<StepDispatchFootprint>> dispatchesBySaga = new LinkedHashMap<>();
         state.sagas.stream()
                 .filter(Objects::nonNull)
@@ -196,6 +196,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
     private List<SourceSetupPlanBinding> adaptSetupBindings(
             ApplicationAnalysisState state,
             List<InputVariant> inputs,
+            List<AdaptedTrace> adaptedTraces,
             LinkedHashSet<String> diagnostics,
             LinkedHashMap<String, Integer> counts) {
         SetupPlanMapper mapper = new SetupPlanMapper();
@@ -206,6 +207,9 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 .map(trace -> trace.sourceClassFqn())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        Map<String, InputVariant> inputsById = inputs.stream()
+                .collect(Collectors.toMap(InputVariant::deterministicId, input -> input,
+                        (left, right) -> left, LinkedHashMap::new));
         for (String sourceClassFqn : setupSourceClasses.stream().sorted().toList()) {
             List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace> traces =
                     state.groovyFacadeSetupActionTraces.stream()
@@ -215,10 +219,11 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             if (traces.isEmpty()) continue;
 
             LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligibleParticipants = new LinkedHashMap<>();
-            state.groovyFullTraceResults.stream()
-                    .filter(trace -> Objects.equals(trace.sourceClassFqn(), sourceClassFqn))
-                    .forEach(trace -> {
-                        InputVariant input = findInput(inputs, trace);
+            adaptedTraces.stream()
+                    .filter(adaptedTrace -> Objects.equals(adaptedTrace.trace().sourceClassFqn(), sourceClassFqn))
+                    .forEach(adaptedTrace -> {
+                        GroovyFullTraceResult trace = adaptedTrace.trace();
+                        InputVariant input = inputsById.get(adaptedTrace.inputVariantId());
                         if (input == null || eligibleParticipants.containsKey(input.deterministicId())) return;
                         SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
                                 input.deterministicId(), trace.constructorArguments());
@@ -268,16 +273,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             diagnostics.add("observed setup contexts had no extractable straight-line setup plan");
         }
         return List.copyOf(bindings.values());
-    }
-
-    private InputVariant findInput(List<InputVariant> inputs, GroovyFullTraceResult trace) {
-        return inputs.stream().filter(input ->
-                        Objects.equals(input.sagaFqn(), trace.sagaClassFqn())
-                                && Objects.equals(input.sourceClassFqn(), trace.sourceClassFqn())
-                                && Objects.equals(input.sourceMethodName(), trace.sourceMethodName())
-                                && Objects.equals(input.callContextMethodName(), trace.callContextMethodName())
-                                && Objects.equals(input.sourceBindingName(), trace.sourceBindingName()))
-                .findFirst().orElse(null);
     }
 
     private List<EventConsequenceDefinition> adaptEventConsequences(ApplicationAnalysisState state,

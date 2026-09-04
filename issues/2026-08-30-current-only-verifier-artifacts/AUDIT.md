@@ -203,14 +203,12 @@ Completed follow-up:
 
 Ranked remaining follow-up by evaluation validity and executable coverage:
 
-1. **Improve accepted-input materializability.** The relative-date change raised the
-   result from 91 to 150 of 794 accepted Quizzes inputs. Address one representative
-   remaining blocker family at a time after exact runtime identity is trustworthy.
+1. **Finish setup-result binding.** Setup translation and exact result references raised
+   the single-input static result from 267 of 794 to 560 of 796. The remaining 236 inputs are
+   now mostly partial or missing bindings rather than rejected setup descriptions.
 2. **Define a broader impact contract.** The retained 19/15 Remove/Add final-state
    landscape still has flat ImpactV1 and remains downstream of reliable identity and
    executable input coverage.
-
-This ranking does not authorize or pre-specify any follow-up implementation.
 
 ## Open follow-up list — 2026-09-04
 
@@ -258,16 +256,20 @@ uses the same setup selection and materialization rules as catalog-writing and i
 the configured schedule count. Provider-backed workloads remain a separate configured
 category rather than being mixed into input-derived counts.
 
-For strict sizes 1–3, 11,842 workloads have source setup, 93 need no setup, and 62,338
-are blocked, for 11,935 ready workloads out of 74,273. For sizes 1–4, the result is
-16,642 with setup, 93 without, and 378,658 blocked out of 395,393.
+The first strict size-1–3 measurement found 11,842 workloads with source setup, 93 that
+needed no setup, and 62,338 blocked. After repairing setup translation and result
+bindings, the same analysis finds 57,293 with source setup, one without setup, and
+19,619 blocked out of 76,913. These are static setup results; runtime preflight remains
+separate. The earlier size-4 result has not yet been rerun after this improvement.
 
 ### 4. Runtime setup evidence is still narrow
 
-The reduced writer attached source-derived setup to 408 workloads and all 94 referenced
-setup definitions passed static validation. Runtime preflight has exercised only two
-representative workloads: the Remove/Add pair and one natural triple. Both succeeded,
-covering five participants and all of their setup actions and bindings.
+The earlier reduced writer attached source-derived setup to 408 workloads and all 94
+referenced setup definitions passed static validation. After the setup repair, the same
+bounded shape writes 1,620 workloads, of which 1,338 reference 311 source-derived setups.
+The new setups have static validation but not broad runtime evidence. Runtime preflight
+has exercised two representative workloads: the Remove/Add pair and one natural triple.
+Both succeeded, covering five participants and all of their setup actions and bindings.
 
 The complete preflight of the latest reduced package ran 402 candidate workloads. Every
 worker reported `SETUP_READY`; 395 remain ready in the combined report, while seven are
@@ -316,7 +318,7 @@ and input coverage improve.
 ### 8. Half of the discovered Sagas still have no accepted input
 
 Quizzes currently has 68 discovered Sagas, but only 36 have at least one accepted input.
-This is different from the 644 blocked accepted inputs: these 32 Sagas never reach the
+This is different from the 643 recipe-blocked accepted inputs: these 32 Sagas never reach the
 accepted-input pool at all.
 
 Next investigation: classify each missing Saga as absent from relevant tests, present in
@@ -345,7 +347,7 @@ carry the selected consumer's prerequisites. Count-only setup accounting current
 measures the base input workload, so it must not be presented as proof that every event
 expansion is executable.
 
-### 11. Accepted inputs often lose their usable test setup
+### 11. Accepted inputs often lost their usable test setup — improved 2026-09-04
 
 A diagnostic all-single-Saga catalog produced 794 base input workloads: 267 were ready
 and 527 were blocked. Every input with an attached source setup was ready; all 527
@@ -355,7 +357,28 @@ blocked inputs had no setup attached. Their first blockers were 372
 mutations, and three unknown values.
 
 The largest call-receiver clusters are CreateQuestion (85), CreateTopic (83), AddStudent
-(62), FindTournament (47), AddParticipant (23), and GetCourseExecutionById (22). Many
-come from shared setup helpers. Investigate whether one deduplicated input is associated
-with several equivalent candidate setups and therefore receives none; preserve
-caller-specific provenance only when the candidate setups genuinely differ.
+(62), FindTournament (47), AddParticipant (23), and GetCourseExecutionById (22). A
+follow-up measurement split the same 794 inputs into 174 with attached setup, 93 that
+need no setup, and 527 whose test class has setup but receives none. The 527 failures
+divide into 298 rejected setup plans, 206 inputs for which no setup-result binding was
+found, and 23 with only some required arguments bound. No input matched several setup
+plans, and no blocked input came from a test class without setup.
+
+The rejected plans largely share a few translation problems rather than 298 independent
+causes. All 298 include `UNSUPPORTED_LOCAL_DATE_EXPRESSION` and
+`INCOMPATIBLE_SETUP_LITERAL`; the former is misleading because the mapper also sends
+non-date runtime expressions such as `Arrays.asList(topicDto)` through its date-only
+fallback. Twenty also contain an unsupported constructor and twelve an unresolved
+property. Fix setup value translation first, then connect setup action results to the
+remaining participant arguments and repeat this measurement.
+
+That repair now recognizes the observed `Arrays.asList(...)` shape, bounded constant
+string concatenation, and `QuizDto`, and preserves the exact source occurrence of a
+facade result when binding setup actions to inputs. The repeated measurement changes
+the accepted inputs from 174 with setup / 93 without setup / 527 blocked out of 794 to
+559 with setup / one without setup / 236 blocked out of 796. The remaining 236 divide
+into three rejected plans, 175 partial bindings, and 58 with no binding. No multiple-setup ambiguity was
+found. The largest remaining problem is therefore no longer translating the setup; it
+is connecting every setup result needed by one input, especially calls made in the test
+method before the target Saga call. Three rejected plans also need a two-property result
+path such as `quiz.aggregateId`, while the current binding stores one property.

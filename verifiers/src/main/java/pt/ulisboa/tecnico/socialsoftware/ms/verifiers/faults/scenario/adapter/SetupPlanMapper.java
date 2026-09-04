@@ -87,7 +87,7 @@ final class SetupPlanMapper {
             case LOCAL_TRANSFORM -> localTransform(source, expectedType, actionIdByOccurrence);
             case HELPER_CALL_RESULT -> mapValue(firstChild(source), expectedType, actionIdByOccurrence);
             case PROPERTY_ACCESS -> blocked("UNRESOLVED_SETUP_PROPERTY", expectedType);
-            case UNRESOLVED_RUNTIME_EDGE -> localDateTime(source, expectedType);
+            case UNRESOLVED_RUNTIME_EDGE -> runtimeEdge(source, expectedType);
             case UNRESOLVED_VARIABLE -> blocked("UNSUPPORTED_SETUP_VALUE:" + source.kind(), expectedType);
         };
     }
@@ -177,13 +177,13 @@ final class SetupPlanMapper {
         return blocked("UNSUPPORTED_SETUP_TRANSFORM:" + source.text(), expectedType);
     }
 
-    private SetupValueRecipe localDateTime(GroovyValueRecipe source, String expectedType) {
+    private SetupValueRecipe runtimeEdge(GroovyValueRecipe source, String expectedType) {
         String text = source == null ? null : source.text();
         if (text != null && text.matches("DateHandler\\.now\\(\\)(\\.plusHours\\(1\\))?\\.plusMinutes\\((5|25)\\)")) {
             return value(SetupValueKind.LOCAL_DATE_TIME, "java.time.LocalDateTime",
                     "local_date_time_expression", text);
         }
-        return blocked("UNSUPPORTED_LOCAL_DATE_EXPRESSION:" + text, expectedType);
+        return blocked("UNSUPPORTED_SETUP_RUNTIME_EXPRESSION:" + text, expectedType);
     }
 
     private SetupValueRecipe referenceValue(GroovySourceValueReference reference,

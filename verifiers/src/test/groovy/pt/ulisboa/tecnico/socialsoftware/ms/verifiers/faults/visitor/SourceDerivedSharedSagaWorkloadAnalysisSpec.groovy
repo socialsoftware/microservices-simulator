@@ -56,6 +56,10 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest'
     private static final String START_QUIZ =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas'
+    private static final String FIND_TOURNAMENT_TEST =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest'
+    private static final String FIND_TOURNAMENT =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas'
 
     def 'unmodified Remove Add test proves one shared Tournament producer with semantic key footprints'() {
         given:
@@ -263,6 +267,30 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
                 .value().actionId() == 'setup-action-1'
         setup.participantBindings().find { it.inputVariantId() in adapted.inputVariants().findAll { it.sagaFqn() == ADD }*.deterministicId && it.argumentIndex() == 3 }
                 .value().actionId() == 'setup-action-4'
+
+        and: 'ordinary DTO collections and direct facade results make existing Quizzes setup reusable'
+        def coveredSetupInputIdsNow = adapted.sourceSetupPlanBindings()*.inputVariantIds().flatten() as Set
+        def findTournamentInput = adapted.inputVariants().find {
+            it.sourceClassFqn() == FIND_TOURNAMENT_TEST && it.sagaFqn() == FIND_TOURNAMENT &&
+                    it.sourceMethodName() == 'find tournament successfully'
+        }
+        def startQuizInput = adapted.inputVariants().find {
+            it.sourceClassFqn() == 'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizTest' &&
+                    it.sagaFqn() == START_QUIZ &&
+                    it.sourceMethodName() == 'student can start a quiz they have not started before'
+        }
+        findTournamentInput != null
+        startQuizInput != null
+        findTournamentInput.deterministicId() in coveredSetupInputIdsNow
+        startQuizInput.deterministicId() in coveredSetupInputIdsNow
+        def findBinding = adapted.sourceSetupPlanBindings()*.setupPlan()*.participantBindings().flatten().find {
+            it.inputVariantId() == findTournamentInput.deterministicId() && it.argumentIndex() == 1
+        }
+        findBinding.value().kind() == SetupValueKind.ACTION_RESULT_PROPERTY
+        findBinding.value().propertyName() == 'aggregateId'
+        !adapted.diagnostics().any {
+            it.contains('UNSUPPORTED_LOCAL_DATE_EXPRESSION:Arrays.asList')
+        }
 
         when: 'ordinary deterministic enumeration is given all ten dependency-preserving orders'
         def selectedInputIds = [

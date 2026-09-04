@@ -192,6 +192,42 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         !helperTraceText.contains('[unresolved cyclic reference]')
     }
 
+    def 'facade result references respect assignment and feature boundaries'() {
+        given:
+        def selfRebinding = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'facade self rebinding uses the prior local value' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(itemDto)'
+        }
+        def laterFeature = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'later feature sees the original field value'
+        }
+        def downstream = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'facade result feeds a later facade call' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(created)'
+        }
+
+        expect: 'the assigned call reads the local value that existed before the assignment'
+        selfRebinding != null
+        selfRebinding.constructorArguments()[1].recipe().kind() == GroovyValueKind.CONSTRUCTOR
+        selfRebinding.constructorArguments()[1].producerReference() == null
+
+        and: 'a field assignment in another feature does not leak into this feature'
+        laterFeature != null
+        laterFeature.constructorArguments()[1].recipe().kind() == GroovyValueKind.CONSTRUCTOR
+        laterFeature.constructorArguments()[1].producerReference() == null
+
+        and: 'a genuine downstream use keeps the exact earlier facade result reference'
+        downstream != null
+        downstream.constructorArguments()[1].producerReference() != null
+        downstream.constructorArguments()[1].producerReference().producerMethodName() == 'createItem'
+        state.groovyFacadeSetupActionTraces.any {
+            it.sourceOccurrence() == downstream.constructorArguments()[1].producerReference().occurrenceId()
+        }
+    }
+
     def 'substitutes caller values into ordered helper dto mutations and preserves the adapted recipe'() {
         given:
         def trace = state.groovyFullTraceResults.find {

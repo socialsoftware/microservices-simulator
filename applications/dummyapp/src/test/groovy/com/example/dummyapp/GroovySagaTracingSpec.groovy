@@ -48,6 +48,7 @@ class GroovySagaTracingSpec extends Specification {
     def itemEventHandling = new DummyEventHandling()
     def plainAggregateInField = new DummyAggregate(200, 'plain')
     def runtimeGateway = new RuntimeGateway()
+    def crossFeatureItemDto = new ItemDto(aggregateId: 501, orderId: 601)
 
     def orderSagaInSetup
     static orderSagaInSetupSpec
@@ -288,6 +289,45 @@ class GroovySagaTracingSpec extends Specification {
 
         when:
         itemFunctionalities.createItem(dto)
+
+        then:
+        true
+    }
+
+    def 'facade self rebinding uses the prior local value'() {
+        given:
+        def itemDto = new ItemDto(aggregateId: 71, orderId: 81)
+
+        when:
+        itemDto = itemFunctionalities.createItem(itemDto)
+
+        then:
+        true
+    }
+
+    def 'feature field rebinding stays in that feature'() {
+        when:
+        crossFeatureItemDto = itemFunctionalities.createItem(crossFeatureItemDto)
+
+        then:
+        true
+    }
+
+    def 'later feature sees the original field value'() {
+        when:
+        itemFunctionalities.createItem(crossFeatureItemDto)
+
+        then:
+        true
+    }
+
+    def 'facade result feeds a later facade call'() {
+        given:
+        def original = new ItemDto(aggregateId: 91, orderId: 101)
+
+        when:
+        def created = itemFunctionalities.createItem(original)
+        itemFunctionalities.createItem(created)
 
         then:
         true

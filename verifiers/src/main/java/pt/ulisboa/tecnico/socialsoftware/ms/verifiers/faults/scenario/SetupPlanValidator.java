@@ -30,6 +30,10 @@ public final class SetupPlanValidator {
                     "optionDtos", "java.util.List<pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto>"),
             "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.OptionDto", Map.of(
                     "sequence", "java.lang.Integer", "correct", "java.lang.Boolean", "content", "java.lang.String"),
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto", Map.of(
+                    "title", "java.lang.String", "availableDate", "java.lang.String",
+                    "conclusionDate", "java.lang.String", "resultsDate", "java.lang.String",
+                    "questionDtos", "java.util.List<pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto>"),
             "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto", Map.of(
                     "startTime", "java.lang.String", "endTime", "java.lang.String",
                     "numberOfQuestions", "java.lang.Integer"));

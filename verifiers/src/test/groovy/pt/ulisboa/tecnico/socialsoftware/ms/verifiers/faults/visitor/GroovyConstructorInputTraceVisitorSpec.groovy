@@ -360,6 +360,85 @@ class GroovyConstructorInputTraceVisitorSpec extends VisitorTestSupport {
         !trace.constructorArguments()[0].provenance().contains('[unresolved external/runtime edge]')
     }
 
+    def 'recognizes Arrays asList as a local collection recipe'() {
+        given:
+        def arraysState = new ApplicationAnalysisState()
+        def workflowVisitor = new WorkflowFunctionalityVisitor()
+        parseAllDummyappFiles().each { cu -> workflowVisitor.visit(cu, arraysState) }
+
+        writeSource('arrays-fixture/demo/ArraysTraceSpec.groovy', '''
+            package demo
+
+            import com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas
+            import spock.lang.Specification
+
+            class ArraysTraceSpec extends Specification {
+                def 'Arrays asList stays local'() {
+                    given:
+                    def values = Arrays.asList(1, 2, 3)
+                    def saga = new CreateOrderFunctionalitySagas(values, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'constant strings concatenate locally'() {
+                    given:
+                    def prefix = 'ORDER'
+                    def value = prefix + '_2'
+                    def saga = new CreateOrderFunctionalitySagas(value, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+
+                def 'decimal addition is not string concatenation'() {
+                    given:
+                    def value = 1.5 + 2.5
+                    def saga = new CreateOrderFunctionalitySagas(value, null)
+
+                    when:
+                    saga.executeWorkflow(null)
+
+                    then:
+                    true
+                }
+            }
+        ''')
+
+        def sourceIndex = new GroovySourceIndex()
+        sourceIndex.parse(tempDir.resolve('arrays-fixture'))
+
+        when:
+        new GroovyConstructorInputTraceVisitor().visit(sourceIndex, arraysState)
+
+        then:
+        def trace = arraysState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ArraysTraceSpec' && it.sourceMethodName == 'Arrays asList stays local'
+        }
+        trace != null
+        trace.constructorArguments()[0].recipe().kind() == GroovyValueKind.COLLECTION_LITERAL
+        trace.constructorArguments()[0].recipe().text() == 'list'
+        trace.constructorArguments()[0].recipe().children()*.text() == ['1', '2', '3']
+        !trace.constructorArguments()[0].provenance().contains('[unresolved external/runtime edge]')
+        def concatenated = arraysState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ArraysTraceSpec' && it.sourceMethodName == 'constant strings concatenate locally'
+        }
+        concatenated.constructorArguments()[0].recipe().kind() == GroovyValueKind.LITERAL
+        concatenated.constructorArguments()[0].recipe().text() == 'ORDER_2'
+        def decimalAddition = arraysState.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'demo.ArraysTraceSpec' && it.sourceMethodName == 'decimal addition is not string concatenation'
+        }
+        !(decimalAddition.constructorArguments()[0].recipe().kind() == GroovyValueKind.LITERAL
+                && decimalAddition.constructorArguments()[0].recipe().text() == '1.52.5')
+    }
+
     def 'keeps toSet local when collection items remain unresolved runtime leaves'() {
         given:
         def toSetState = new ApplicationAnalysisState()

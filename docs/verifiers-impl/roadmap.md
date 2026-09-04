@@ -33,12 +33,13 @@ Do not start search or prioritization while generated scenarios are mostly block
 Exact event-route identity, early tuple pruning, setup-aware count-only accounting, and
 strict size-4 measurement were completed on 2026-09-04. The next work is:
 
-1. Add the setup required by a selected event consumer. Exact routing now reaches the
+1. Connect the remaining partial setup-result bindings. Setup translation and exact
+   result references raised the single-input static result from 267 of 794 to 560 of
+   796, but 175 inputs still receive only part of the setup values they need and 58
+   receive none.
+2. Add the setup required by a selected event consumer. Exact routing now reaches the
    chosen consumer, but four triple controls lack the QuizAnswer or Tournament state
    needed to find an eligible subscriber.
-2. Diagnose why accepted inputs reached through shared setup helpers often have no setup
-   attached. In the complete single-Saga diagnostic, 267 of 794 base inputs are ready
-   and all 527 blocked inputs lack setup.
 3. Correct the preflight parent validator's assumption that every successful source
    setup has an input binding. All 402 workers succeeded, but seven state-only setups are
    reported as isolation failures because their valid binding list is empty.
@@ -88,8 +89,9 @@ the exact persisted input id while leaving the matching rules unchanged.
 
 ## Outcome 1 — Improve useful input coverage
 
-**Status: next priority.** Package closure, bounded relative-date recipes, and
-workload-driven source setup are complete. Source setup attachment now uses complete
+**Status: in progress.** Package closure, bounded relative-date recipes, setup value
+translation for the main observed Quizzes shapes, and workload-driven source setup are
+complete. Source setup attachment now uses complete
 selected-input coverage for any generator-emitted workload size, preserves each observed
 test context, and has bounded runtime proof for one natural triple and the existing
 Remove/Add pair. Broader input families remain outcome work.
@@ -109,9 +111,10 @@ baseline, and the remaining Sagas without accepted inputs. The four observed Qui
 relative-date forms are represented and materialized without persisting run-specific
 timestamps. Coherent source setup can now attach to singles, pairs, or larger selected
 workloads only when it completely supplies the setup-dependent arguments; it does not
-synthesize shared state across tests. Remaining blocker families include unresolved
-helper/property values, other unsupported local expressions, and event payload
-placeholders.
+synthesize shared state across tests. In the latest complete single-input analysis, 560
+of 796 accepted inputs are static setup candidates, up from 267 of 794. Remaining work is led
+by partial setup-result bindings, then missing bindings, event payload placeholders, and
+the selected event consumer's own prerequisites.
 
 ### Work direction
 
