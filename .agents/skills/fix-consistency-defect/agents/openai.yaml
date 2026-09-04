@@ -1,0 +1,7 @@
+interface:
+  display_name: "Fix Consistency Defect"
+  short_description: "Reproduce and repair a reviewed sweep defect"
+  default_prompt: "Use $fix-consistency-defect to reproduce and repair this reviewed consistency finding."
+
+policy:
+  allow_implicit_invocation: false
