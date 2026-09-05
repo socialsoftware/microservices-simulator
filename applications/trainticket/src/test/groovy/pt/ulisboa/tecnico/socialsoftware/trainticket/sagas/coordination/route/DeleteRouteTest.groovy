@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,21 +19,9 @@ class DeleteRouteTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deleteRoute: success"() {
-        // Spec: plan.md §4 Route - DeleteRoute (soft delete)
-        given: 'a route exists'
-        def routeAggregateId = createRoute(ROUTE_START_STATION_NAME, ROUTE_END_STATION_NAME)
-
-        when:
-        routeFunctionalities.deleteRoute(routeAggregateId)
-
-        and: 'attempt to load the now-deleted aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(routeAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deleteRoute makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in RouteServiceTest (T2).
 
     def "deleteRoute: getRouteStep acquires IN_DELETE_ROUTE semantic lock"() {
         // Spec: plan.md §4 Route - DeleteRoute; primary-aggregate lock acquisition

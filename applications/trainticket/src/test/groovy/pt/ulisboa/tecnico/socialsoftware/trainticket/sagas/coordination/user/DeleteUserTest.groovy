@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,22 +19,9 @@ class DeleteUserTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deleteUser: success"() {
-        // Spec: plan.md §3 User - DeleteUser (soft delete)
-        given: 'a user exists'
-        def userAggregateId = createUser(USER_NAME, USER_PASSWORD, USER_GENDER, USER_DOCUMENT_TYPE,
-                USER_DOCUMENT_NUMBER, USER_EMAIL)
-
-        when:
-        userFunctionalities.deleteUser(userAggregateId)
-
-        and: 'attempt to load the now-deleted aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(userAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deleteUser makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in UserServiceTest (T2).
 
     def "deleteUser: getUserStep acquires IN_DELETE_USER semantic lock"() {
         // Spec: plan.md §3 User - DeleteUser; primary-aggregate lock acquisition

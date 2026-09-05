@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,21 +19,9 @@ class DeleteContactsTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deleteContacts: success"() {
-        // Spec: plan.md §5 Contacts - DeleteContacts (soft delete)
-        given: 'a contact record exists'
-        def contactsAggregateId = createContacts()
-
-        when:
-        contactsFunctionalities.deleteContacts(contactsAggregateId)
-
-        and: 'attempt to load the now-deleted aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(contactsAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deleteContacts makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in ContactsServiceTest (T2).
 
     def "deleteContacts: getContactsStep acquires IN_DELETE_CONTACTS semantic lock"() {
         // Spec: plan.md §5 Contacts - DeleteContacts; primary-aggregate lock acquisition

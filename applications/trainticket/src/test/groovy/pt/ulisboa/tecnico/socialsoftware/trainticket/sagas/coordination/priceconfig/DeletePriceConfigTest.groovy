@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,21 +19,9 @@ class DeletePriceConfigTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deletePriceConfig: success"() {
-        // Spec: plan.md §7 PriceConfig - DeletePriceConfig (soft delete)
-        given: 'a price config exists'
-        def priceConfigAggregateId = createPriceConfig()
-
-        when:
-        priceConfigFunctionalities.deletePriceConfig(priceConfigAggregateId)
-
-        and: 'attempt to load the now-deleted aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(priceConfigAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deletePriceConfig makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in PriceConfigServiceTest (T2).
 
     def "deletePriceConfig: getPriceConfigStep acquires IN_DELETE_PRICE_CONFIG semantic lock"() {
         // Spec: plan.md §7 PriceConfig - DeletePriceConfig; primary-aggregate lock acquisition

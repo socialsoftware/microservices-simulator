@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,21 +19,9 @@ class DeleteOrderTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deleteOrder: success"() {
-        // Spec: plan.md §8 Order - DeleteOrder; the soft delete leaves nothing for sagaStateOf to load
-        given:
-        def orderAggregateId = createOrder()
-
-        when:
-        orderFunctionalities.deleteOrder(orderAggregateId)
-
-        and: 'attempt to load the now-deleted order'
-        unitOfWorkService.aggregateLoadAndRegisterRead(orderAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deleteOrder makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in OrderServiceTest (T2).
 
     def "deleteOrder: getOrderStep acquires IN_DELETE_ORDER semantic lock"() {
         // Spec: plan.md §8 Order - DeleteOrder; primary-aggregate lock acquisition

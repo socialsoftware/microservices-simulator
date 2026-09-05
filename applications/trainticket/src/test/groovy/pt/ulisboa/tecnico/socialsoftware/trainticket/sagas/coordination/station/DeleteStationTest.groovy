@@ -5,7 +5,6 @@ import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
-import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway
 import pt.ulisboa.tecnico.socialsoftware.trainticket.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.trainticket.TrainticketSpockTest
@@ -20,21 +19,9 @@ class DeleteStationTest extends TrainticketSpockTest {
     @Autowired
     CommandGateway commandGateway
 
-    def "deleteStation: success"() {
-        // Spec: plan.md §1 Station - DeleteStation (soft delete)
-        given: 'a station exists'
-        def stationAggregateId = createStation(STATION_NAME, STATION_STAY_TIME)
-
-        when:
-        stationFunctionalities.deleteStation(stationAggregateId)
-
-        and: 'attempt to load the now-deleted aggregate'
-        unitOfWorkService.aggregateLoadAndRegisterRead(stationAggregateId,
-                unitOfWorkService.createUnitOfWork("check"))
-
-        then: 'DELETED aggregate is not loadable'
-        thrown(SimulatorException)
-    }
+    // No happy-path case: deleteStation makes its own aggregate unresolvable, so sagaStateOf throws.
+    // See docs/concepts/testing.md § T4 - "Exception — a functionality whose success makes
+    // its own aggregate unresolvable". The delete's effect is asserted in StationServiceTest (T2).
 
     def "deleteStation: getStationStep acquires IN_DELETE_STATION semantic lock"() {
         // Spec: plan.md §1 Station - DeleteStation; primary-aggregate lock acquisition
