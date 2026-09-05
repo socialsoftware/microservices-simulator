@@ -204,7 +204,8 @@ Implement only this item. The other items in this session are owned by
 other agents; do not create, modify or test them.
 
 FILES YOU CREATE:
-  <the per-item files for this item, from the plan.md 2.{N}.{type} row>
+  <the per-item files for this item, from the plan.md 2.{N}.{type} row,
+   plus - for slice k=1 only - that row's aggregate-level files>
 
 SHARED FILES YOU APPEND TO (never rewrite, never reformat):
   <the session's shared files, from the table below>
@@ -244,9 +245,9 @@ These accumulate one member per item, which is why slices append and never rewri
 
 | Session | Shared files |
 |---------|--------------|
-| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java` |
-| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}SpockTest.groovy` (fixture-helper bodies only - see below) |
-| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}InterInvariantTest.groovy`, `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (one mutate helper per event), `{Aggregate}.java` (one `getEventSubscriptions()` entry per event) |
+| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java`, `{AppClass}SpockTest.groovy` (the `@Autowired` functionalities field and the fixture-helper bodies session `b` writes) |
+| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}SpockTest.groovy` (fixture-helper bodies only - see below), `{AppClass}ErrorMessage.java` (P3 guard constants) |
+| `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (the ByEvent helper, only when no existing mutate method performs exactly this mutation), `{Aggregate}.java` (one `getEventSubscriptions()` subscription per subscribed event, inside the ACTIVE guard), `{AppClass}ErrorMessage.java` (constants for invariants event processing can violate), `{Aggregate}InterInvariantTest.groovy` |
 
 Session `a` produces one aggregate and is never sliced, so it has no shared-file hazard.
 
@@ -257,3 +258,15 @@ body is owned by the slice named after the functionality it calls: `create{Aggre
 `c1`, the create functionality plan.md always orders first, and each sibling helper by the slice
 implementing the write functionality it is named after. No slice may touch a body it does not own,
 and no slice may change any helper's signature or defaults.
+
+### Aggregate-level files belong to slice `k=1`
+
+A plan.md session row carries two kinds of created file: **per-item** files, one per write op, read
+op or subscribed event, and **aggregate-level** files, exactly one per aggregate however many items
+the session has. `{Aggregate}Controller.java` is the standing example - `classify-and-plan`
+§ Step 7 lists it in every 2.N.c row and gates it on nothing, so it is not attached to any item.
+
+Every aggregate-level file in the row belongs to the session's **first** slice, `k=1`. Later slices
+neither create nor modify it. This is the same rule that already gives `c1` the `create{Aggregate}()`
+helper body, generalised: a create-once file needs a single writer, and the first slice is the only
+one every session is guaranteed to have.

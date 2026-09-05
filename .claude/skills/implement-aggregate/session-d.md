@@ -20,6 +20,10 @@ Load these files before writing any code:
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
    - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: the saga-state skip, and the service-method signature the ByEvent method delegates to
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
+   - **R5** - `getEventSubscriptions()` lives in the downstream (consumer) aggregate only; a publisher
+     never subscribes to its own events and never names a downstream aggregate type
+     (`docs/architecture.md` § R5, restated in `events.md` § EventSubscription). Subscribing in the wrong
+     direction creates a cycle in the event pipeline.
 
 2. **`docs/concepts/testing.md`** — § T3 — Subscription (Inter-Invariant) Test, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
    - What a T3 subscription test asserts (event received → cached field updated → invariant re-evaluated)
@@ -61,6 +65,7 @@ In these cases the discriminating check (e.g., `shipmentId`) must happen inside 
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, UnitOfWork unitOfWork) {
     {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
             .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -152,7 +157,7 @@ public class {Aggregate}EventProcessing {
 
 For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `archiveWarehouse`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
-The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (pure mutation, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
+The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (copy-on-write mutation plus `registerChanged`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
 
 #### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
 
@@ -175,6 +180,7 @@ If the consumer aggregate caches no publisher payload (no name, no description �
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
                                                 Long publisherVersion, UnitOfWork unitOfWork) {
     {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService

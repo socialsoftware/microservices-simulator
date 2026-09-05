@@ -27,11 +27,20 @@ silently created.
 
 Run: `find applications -name plan.md`
 
-Use the first result (if a skill needs different handling for multiple results — e.g. disambiguating
-by unchecked checkboxes or prompting the user — that logic is defined locally in the referencing
-skill, not here). **If `find` returns more than one result and the referencing skill defines no local
-rule, halt and ask which application** — `find` order is filesystem-dependent, so "the first result"
-would otherwise pick an arbitrary app. From the result path, extract:
+If there is exactly one result, use it. If there are several, apply this tie-break in order - `find`
+returns them in directory order, which has nothing to do with which run is current, so never just take
+the first:
+
+1. The plan.md with at least one unchecked `- [ ]` box. If exactly one qualifies, that is the run in
+   flight.
+2. Otherwise (all complete, or several still open) the one whose application directory has the most
+   recent commit: `git log -1 --format=%ct -- applications/{app-name}`.
+3. If that is still ambiguous, halt and ask which application to work on. Never guess.
+
+A referencing skill may override this with its own local rule; absent one, the tie-break above is
+binding.
+
+From the result path, extract:
 
 - `{app-name}` = directory containing `plan.md` (e.g., `my-app`)
 - `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `myapp`)
@@ -233,6 +242,36 @@ Interpret the two together:
 
 Report the build outcome using these observed numbers. Do not write "BUILD SUCCESS" unless
 `MAVEN_EXIT` was `0`.
+
+### Inspecting maven output
+
+The verdict never comes from maven's stdout - that is what the exit status and the surefire reports
+above are for. A few checks nonetheless need the build's *real* stdout, because what they look for
+is written only to the console: a framework log line a test's correctness depends on, for instance.
+
+A shell redirect (`mvn ... > file.log`) does not reliably capture it. A `PreToolUse` hook may
+filter or summarize the command's output before it is written, so the file can hold a condensed
+transcript in which the line you are looking for simply is not present - and a `grep` returning
+zero matches then reads as "the line never appeared" when it means "the line was filtered out".
+
+Capture it from a child process instead, which the hook does not sit in front of:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+python3 -c "
+import subprocess, os, re
+env = dict(os.environ); env['JAVA_HOME'] = '/path/to/jdk-21'
+r = subprocess.run(['mvn','clean','-Ptest-sagas','test'{, '-Dtest=...'}],
+                   capture_output=True, text=True, env=env)
+print('MAVEN_EXIT', r.returncode)
+out = r.stdout + r.stderr
+for line in sorted(set(re.findall(r'{pattern to confirm}', out))):
+    print(line)
+"
+```
+
+The exit status is still `r.returncode`, and the surefire aggregation above still runs afterwards
+unchanged - this recipe adds a console-log assertion, it does not replace either signal.
 
 ---
 

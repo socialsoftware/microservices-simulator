@@ -111,7 +111,9 @@ developer's settings file. Without it the very first `mvn` run fails resolving p
 mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
 machine config, so it is copied from elsewhere in the repo rather than templated: from a sibling app
 if one exists, otherwise from `simulator/.mvn/maven.config`, which is what makes this step work for
-the **first** application in a repo, when the sibling glob matches nothing.
+the **first** application in a repo, when the sibling glob matches nothing. Because the file is
+untracked, a **linked git worktree starts without it** even when the developer has one; the search
+therefore continues into the main worktree before giving up.
 
 > **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
 > machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
@@ -120,27 +122,37 @@ the **first** application in a repo, when the sibling glob matches nothing.
 > never read the sibling's `pom.xml`, source, or tests while doing it.
 
 ```bash
-src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)
-[ -n "$src" ] || src=simulator/.mvn
-[ -f "$src/maven.config" ] || { echo "no maven.config to inherit from $src"; exit 1; }
-mkdir -p applications/{app-name}/.mvn
-cp "$src/maven.config" applications/{app-name}/.mvn/
-echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
+root=$(git rev-parse --show-toplevel)
+common=$(cd "$(git rev-parse --git-common-dir)" && pwd)
+main=$(dirname "$common")
+
+src=$(find "$root/applications" "$main/applications" -maxdepth 3 -path '*/.mvn/maven.config' 2>/dev/null \
+        | grep -v "/applications/{app-name}/.mvn/" | head -1)
+[ -n "$src" ] || src=$(find "$root/simulator/.mvn/maven.config" "$main/simulator/.mvn/maven.config" \
+        -maxdepth 0 2>/dev/null | head -1)
+[ -n "$src" ] || { echo "no maven.config to inherit"; exit 1; }
+
+mkdir -p "$root/applications/{app-name}/.mvn"
+cp "$src" "$root/applications/{app-name}/.mvn/"
+echo "/applications/{app-name}/.mvn/maven.config" >> "$common/info/exclude"
 ```
 
-`.git/info/exclude` lists these paths one app at a time, so the new app's entry must be appended —
-otherwise the file shows up as untracked and can be committed by accident.
+The exclude file lists these paths one app at a time, so the new app's entry must be appended —
+otherwise the file shows up as untracked and can be committed by accident. It is addressed through
+`git rev-parse --git-common-dir` rather than as `.git/info/exclude`, because in a linked worktree
+`.git` is a **file** and the literal path is not a directory; the common dir also happens to be the
+one exclude file all worktrees share.
 
 `simulator/.mvn/maven.config` is itself untracked machine config, for the same reason the copy is -
 it is git-excluded, not committed. It is nonetheless the right fallback: `simulator/` is where the
-core library is built, so any checkout that has ever run `mvn install` has one, which covers the
-first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
+core library is built, so any checkout that has ever run `mvn install` there has one, which covers
+the first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
 resolve" - it typically does not, and the failure surfaces much later as an unreachable-mirror build
 error that reads like a scaffold bug.
 
-If `simulator/.mvn/maven.config` is absent too, the developer has no mirror configuration to inherit:
-halt and say so, rather than scaffolding an application whose build will fail for a reason unrelated
-to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
+Only when no candidate is found in **either** worktree does the developer have no mirror
+configuration to inherit: halt and say so, rather than scaffolding an application whose build will
+fail for a reason unrelated to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
 
 ### Step 6: Verify and Confirm
 

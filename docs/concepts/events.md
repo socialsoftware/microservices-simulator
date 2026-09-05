@@ -74,7 +74,7 @@ Matching is performed by the infrastructure: `EventService.getSubscribedEvents` 
 
 `subscribedAggregateId` must match `publisherAggregateId` in the event.
 
-**`subscribedVersion`:** pass the anchor entity's current version, so that the eligible set is narrowed to events the consumer has not already folded in. If the subscriber entity does not track the publisher's version (e.g., a `Warehouse` cached inside a `Shipment` that has no `warehouseVersion` field), use `0L` — this means all events from that publisher since the beginning are eligible for processing, which is functionally correct but slightly broader than necessary.
+**`subscribedVersion`:** pass the anchor entity's current version, so that the eligible set is narrowed to events the consumer has not already folded in. The anchor entity always has one: `.claude/skills/classify-and-plan/SKILL.md` § Step 3.d gives a version field to every snapshot — an owned-entity class where the snapshot subscribes to events, an id-plus-version field pair on the aggregate itself where it does not. A missing version field is therefore a planning defect to fix at its source, not something to paper over with a `0L` default.
 
 ### A snapshot-seeded version does not exclude the events already published
 

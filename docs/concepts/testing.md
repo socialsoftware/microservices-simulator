@@ -156,7 +156,9 @@ happy-path postconditions, events-published list, subscribed-events table, and P
 *are* the spec — assertions must trace to them, never to the implementation just written (not the
 service body, not the `EventProcessing` class). Write a 1-line `// Spec:` comment at the top of
 each test naming the plan.md section and rule, e.g.
-`// Spec: plan.md §3.5 Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+`// Spec: plan.md § 5. Shipment - UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+The section reference is the `### {N}. {Aggregate}` heading `classify-and-plan` § Step 8 emits - plan.md
+has no `§n.n` numbering, so a `§3.5`-style citation points at nothing.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
 When plan.md is instead *silent* - it specifies no behaviour for the input under test, such as a
@@ -251,7 +253,7 @@ aggregate changes.
 class <Aggregate>ServiceTest extends <AppName>SpockTest {
 
     def "create<Aggregate>: persisted and readable through a fresh UnitOfWork"() {
-        // Spec: plan.md §<n> <Aggregate> — Create<Aggregate> postconditions
+        // Spec: plan.md § <n>. <Aggregate> - Create<Aggregate> postconditions
         when:
         def dto = <aggregate>Service.create<Aggregate>(/* args */,
                 unitOfWorkService.createUnitOfWork("create<Aggregate>"))
@@ -263,7 +265,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     }
 
     def "<serviceMethod>: <RULE_NAME> violation"() {
-        // Spec: plan.md §<n> <Aggregate> — rule <RULE_NAME> (P3 guard / uniqueness)
+        // Spec: plan.md § <n>. <Aggregate> - rule <RULE_NAME> (P3 guard / uniqueness)
         given:
         def existing = create<Aggregate>(/* fixture via base-class helper */)
         when:
@@ -298,7 +300,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     EventService eventService
 
     def "<serviceOp> publishes <Xxx>Event with correct payload"() {
-        // Spec: plan.md §<n> <Aggregate> — events published by <ServiceOp>
+        // Spec: plan.md § <n>. <Aggregate> - events published by <ServiceOp>
         given:
         def publisher = create<Aggregate>(/* fixture via base-class helper */)
         when:
@@ -576,7 +578,10 @@ serve a test.
   dependency chain. Always
   sanity-check a new compensation test by temporarily flipping its fault flag to `0` and re-running
   the *full* suite with logging, not just the exception assertion — confirm the lock-acquiring
-  step's `START EXECUTION STEP` log line actually appears before the fault fires.
+  step's `START EXECUTION STEP` log line actually appears before the fault fires. Capturing that
+  log line needs maven's real stdout, which a shell redirect does not reliably give you — use the
+  capture recipe in `.claude/skills/_shared/conventions.md` § "Run the test suite"
+  (§ "Inspecting maven output").
 
 ### CRITICAL gotcha — one saga class, one compensation test file
 

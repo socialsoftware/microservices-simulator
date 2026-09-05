@@ -17,8 +17,7 @@ The skill is invoked as:
 /classify-and-plan <path/to/{App}-domain-model.md> <path/to/{App}-aggregate-grouping.md>
 ```
 
-Examples:
-- `/classify-and-plan applications/my-app/my-app-domain-model.md applications/my-app/my-app-aggregate-grouping.md`
+Example:
 - `/classify-and-plan applications/{app-name}/{app-name}-domain-model.md applications/{app-name}/{app-name}-aggregate-grouping.md`
 
 > **If arguments are missing or incorrect**, ask the user: "Please provide two file paths: domain-model.md and aggregate-grouping.md. Example: `/classify-and-plan path/to/domain-model.md path/to/aggregate-grouping.md`"
@@ -83,19 +82,37 @@ Extract from the §3.1 table (columns: Rule, Entity, Predicate):
 
 #### 2.b: Parse §3.2 — Cross-Entity Rules
 
-Extract from the custom block format. Each rule is a separate block delimited by heading `#### Rule: {RuleName}`, followed by a table with rows for "Entities" and "Predicate".
+Extract from the custom block format. Each rule is a separate block whose shape
+`docs/templates/domain-model-template.md` § 3.2 defines, and that template is the authority on it:
+
+```
+#### Rule: {RULE_NAME}[ ({Qualifier})]
+
+| Field | Value |
+|---|---|
+| Entities | {Entity1}, {Entity2} |
+| Predicate | {predicate} |
+```
+
+Two things vary and both are legitimate. The heading may carry a **parenthetical qualifier** naming
+the aggregate the rule is stated against - it disambiguates two rules that share a name across
+aggregates, and it is part of the rule's identity, so carry it into the Rule Classification table
+verbatim. And the `| Field | Value |` header plus its separator row sit **between** the heading and
+the `| Entities |` row; a pattern that expects `| Entities |` on the line after the heading matches
+nothing the template produces.
 
 **Regex pattern to find rule blocks:**
 ```
-#### Rule: ([A-Z_0-9]+)\n.*?\n\| Entities \| ([^\|]+) \|\n\| Predicate \| ([^\|]+) \|
+#### Rule: ([A-Z_0-9]+)(?: \(([^)]*)\))?[^\n]*\n(?:[^\n]*\n)*?\| Entities \|([^|]*)\|[^\n]*\n\| Predicate \|(.*)\|
 ```
 
 For each match:
 - `rule_name` = captured group 1
-- `entities` = captured group 2 (comma-separated aggregate/entity names)
-- `predicate` = captured group 3 (the condition)
+- `qualifier` = captured group 2 (the aggregate the rule is stated against; absent for most rules)
+- `entities` = captured group 3 (comma-separated aggregate/entity names)
+- `predicate` = captured group 4 (the condition)
 
-**Output:** List of tuples `{rule_name, entities, predicate}`.
+**Output:** List of tuples `{rule_name, qualifier, entities, predicate}`.
 
 **Ambiguity handling:** If parsing fails for a rule block (malformed table or missing fields), flag as `"Needs review — Rule {rule_name} has unusual format"` and continue. Do not halt.
 
@@ -174,17 +191,25 @@ From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on 
 - `snapshots_of` = the source entity name being cached (string, may contain `× N`)
 - `updated_on_event` = the events that refresh the cached copy, or `n/a` / `—` for none
 
-**Collection snapshots** — the "Snapshots of" value contains `× N`. Stored as a `@OneToMany` set of
-owned entities, and **always** get their own entity class plus a `{OwnedEntity}Dto.java`. A set needs
-an element type; there is nothing to collapse onto the aggregate.
+**Collection snapshots** — `× N` appears on the row, in **either** the "Aggregate" column or the
+"Snapshots of" column. Both forms are in use: `| Warehouse | Shipment × N | ... |` marks the
+collection on the source, while `| Warehouse / WarehouseSlot × N | Shipment | ... |` marks it on the
+owned entity that holds it. Scan both cells — a row whose `× N` sits in the "Aggregate" column is a
+collection snapshot exactly like any other, and reading only the "Snapshots of" cell silently
+misclassifies it as a single snapshot and drops its `Dto`.
+
+Collection snapshots are stored as a `@OneToMany` set of owned entities, and **always** get their own
+entity class plus a `{OwnedEntity}Dto.java`. A set needs an element type; there is nothing to collapse
+onto the aggregate.
 
 **Single snapshots** — no `× N`. Whether these get an owned-entity class depends on one thing only:
 
 > A single snapshot needs an `aggregate/{OwnedEntity}.java` class **iff it subscribes to events** —
-> its "Updated on event" cell names at least one event. The harness standardises the thing a
-> subscription is built from as an owned entity, so that every subscription — single or collection —
-> is constructed from a reference object of the same shape, and so that the service-layer ByEvent
-> discriminator has a stable object to match the incoming event against.
+> its "Updated on event" cell names at least one event. The subscription class is constructed from the
+> cached snapshot, which must supply the `(subscribedAggregateId, subscribedVersion)` pair, and the
+> harness standardises that carrier as an owned entity, so that every subscription — single or
+> collection — is constructed from a reference object of the same shape, and so that the
+> service-layer ByEvent discriminator has a stable object to match the incoming event against.
 >
 > This is a uniformity rule, not a framework constraint. `EventSubscription`'s constructor takes
 > `(Integer subscribedAggregateId, Long subscribedVersion, String eventType)` — plain scalars — so a
@@ -192,9 +217,14 @@ an element type; there is nothing to collapse onto the aggregate.
 > way: the two snapshot kinds would then need two different subscription shapes for no gain.
 >
 > A single snapshot whose "Updated on event" cell is `n/a` (or empty) subscribes to nothing, so no
-> subscription is ever constructed for it. It is cached **directly on the aggregate** as an id field
-> plus a version field, exactly as §1 of the domain model describes single references.
-> **Emit no class for it.**
+> subscription is ever constructed for it. It is cached **directly on the aggregate** as an id field,
+> exactly as §1 of the domain model describes single references. **Emit no class for it.**
+>
+> **No version field on an `n/a` row.** A cached version exists for exactly one purpose: to build the
+> `(subscribedAggregateId, subscribedVersion, eventType)` triple an `EventSubscription` needs. A row
+> that never subscribes never constructs one, so the version would be written, persisted and never
+> read. Add a version field **iff** the row's "Updated on event" cell names at least one event. An
+> application with no events therefore caches no versions at all.
 
 Single snapshots never need a separate Dto in either case.
 
@@ -317,9 +347,13 @@ Using edges from §3 (DAG):
 
 ---
 
-### Step 5.5: Detect Reverse P3 Dependencies (Deferred Guards)
+### Step 5.5: Detect Reverse Dependencies (Deferred Guards and Deferred Reads)
 
-After the topological sort, check for P3 DTO-check rules where the required data comes from an aggregate ordered _later_ than the aggregate that owns the guard. The topological sort is driven by P2 event-subscription edges only — P3 read-time edges are not DAG edges and do not affect ordering, but they create a runtime dependency that must be tracked explicitly.
+After the topological sort, check for **two** kinds of dependency that run backwards against it. The
+topological sort is driven by P2 event-subscription edges only; neither kind below is a DAG edge, so
+neither affects ordering, but both create a runtime dependency that must be tracked explicitly.
+
+**5.5a — Reverse P3 guards.** P3 DTO-check rules where the required data comes from an aggregate ordered _later_ than the aggregate that owns the guard.
 
 ```
 FOR each aggregate A at position i in sorted_aggregates:
@@ -334,11 +368,33 @@ FOR each aggregate A at position i in sorted_aggregates:
         "After completing 2.{j}.c, revisit {A} session 2.{i}.c to add the deferred {R.name} guard"
 ```
 
-**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the session-c agent discovers the gap mid-implementation with no guidance. Surfacing it as a ⚠️ DEFERRED marker lets the session-c agent apply the deferred-guard protocol from `session-c.md` immediately.
+**5.5b — Reverse reads.** A **read** functionality is not a rule and has no pattern, so 5.5a cannot
+see it. Apply the same test to §4 directly: any read functionality whose "Other Aggregates" cell names
+an aggregate ordered later than its own Primary Aggregate is unimplementable in its own session `b`.
 
-**Output:** For each detected reverse P3 dependency, plan.md must show:
-- In aggregate `A`'s cross-aggregate prerequisites: the ⚠️ DEFERRED marker with a pointer to the unblocking session.
-- In aggregate `B`'s section: a "revisit" note for session 2.{j}.c implementers.
+```
+FOR each read functionality F in §4:
+  A = F.primary_aggregate
+  FOR each B in F.other_aggregates:
+    IF position(B) > position(A):
+      Annotate F in A's read-functionality list as:
+        "⚠️ DEFERRED — reads {B}; implement in a revisit session after 2.{j}.c"
+      Add a note to B's aggregate section in plan.md:
+        "After completing 2.{j}.c, revisit {A} session 2.{i}.b to implement {F}"
+```
+
+A deferred read does **not** hold up the rest of session `b`: every other read for that aggregate is
+implemented normally and the session's checkbox is ticked. Only the marked functionality waits.
+
+**Why this matters:** Without this step, the dependency is silently invisible in plan.md and the
+implementing agent discovers the gap mid-session with no guidance — sending a command to a service
+that does not exist yet. Surfacing it as a ⚠️ DEFERRED marker lets a session-`c` agent apply the
+deferred-guard protocol from `session-c.md` immediately, and tells a session-`b` agent to skip the
+marked read rather than improvise one.
+
+**Output:** For each detected reverse dependency, plan.md must show:
+- In aggregate `A`'s cross-aggregate prerequisites (5.5a) or read-functionality list (5.5b): the ⚠️ DEFERRED marker with a pointer to the unblocking session.
+- In aggregate `B`'s section: a "revisit" note naming the session that must come back.
 
 ---
 
@@ -475,15 +531,27 @@ writes it and `Carrier` compares against it:
 For each aggregate, generate the full file list using the templates below (this skill is the
 authoritative source for the file-list shape; `docs/workflow.md` only points here):
 
-Unless noted otherwise, each path is relative to the aggregate's own package,
-`{src}microservices/{aggregate}/`.
+Paths in the tables below resolve against **three** roots, and the leading segment says which:
+
+- `commands/...`, `events/...`, and any path written with an explicit `{src}` prefix are rooted at the
+  **app source root**, `{src}`. Commands and events are shared across services and deliberately do
+  not live inside a microservice package - see `docs/workflow.md` § "Package layout" and
+  `docs/concepts/commands.md` § "File Location".
+- `sagas/...` paths are Groovy tests, rooted at the **app test root**, `{tgt-test}` as defined in
+  `.claude/skills/_shared/conventions.md` § "Resolve aggregate context".
+- Everything else is relative to the aggregate's own package, `{src}microservices/{aggregate}/`.
 
 **Session 2.N.a — Domain Layer:**
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `{src}microservices/exception/{AppClass}ErrorMessage.java` (edited), `{AppClass}SpockTest.groovy` (edited), `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
 ```
+
+> **`(edited)` entries** are files that already exist and are appended to, not created. Session `a`
+> appends one error-message constant per P1 rule and a `create{Aggregate}(...)` fixture helper; session
+> `b` appends the functionalities field to the same test base class. They are listed so the row does not
+> need amending on every aggregate.
 
 > **`{AppClass}DomainConstants.java` is conditional and shared.** List it in the 2.N.a row of every
 > aggregate whose Step 6.e sentinel list is non-empty, and only those - a *consuming* aggregate
@@ -504,6 +572,16 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 > `aggregate/{DomainEnum}.java`. Name the file after the type as written in §1. Enumerating them here
 > is what stops session `a` from discovering an unresolvable type mid-file.
 >
+> **An enum named by more than one aggregate is emitted once, at the app source root.** Scan §1 as a
+> whole before assigning enum paths. A type that only one aggregate's attributes name stays at
+> `aggregate/{DomainEnum}.java` in that aggregate's own package. A type that **two or more**
+> aggregates name is one domain concept, so emit `{src}enums/{DomainEnum}.java` and list that path in
+> the 2.N.a row of **every** aggregate that names it, suffixed `(shared)`. The earliest such session
+> creates the file; the later ones import it unchanged. Copying it into each aggregate package instead
+> would turn one concept into several mutually unassignable Java types, forcing a name-based
+> conversion wherever a value crosses an aggregate boundary and letting a value added to one copy
+> drift from the others.
+>
 > **Which §2 snapshots get a class** — apply the rule from Step 3.d:
 > - every `× N` collection snapshot → one `aggregate/{CollectionSnapshotEntity}.java` **and** one
 >   `aggregate/{CollectionSnapshotEntity}Dto.java`;
@@ -521,7 +599,7 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `{src}commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `{src}commands/{aggregate}/{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
+| 2.N.b | `service/{Aggregate}Service.java` (read methods), `messaging/{Aggregate}CommandHandler.java`, `{src}commands/{aggregate}/Get{Aggregate}ByIdCommand.java`, `{src}commands/{aggregate}/{Query}Command.java` (one per read op), `coordination/sagas/{Query}FunctionalitySagas.java` (one per read op), `coordination/functionalities/{Aggregate}Functionalities.java`, `{src}ServiceMapping.java` (add the `{AGGREGATE}` entry), `{AppClass}SpockTest.groovy` (edited), `sagas/{aggregate}/{Aggregate}ServiceTest.groovy` (read-method cases), `sagas/coordination/{aggregate}/{Query}Test.groovy` (one per read op) |
 ```
 
 > **`Get{Aggregate}ByIdCommand.java` is unconditional** — list it in every aggregate's 2.N.b row, whether or not §4 has any read functionality for that aggregate. Write sagas need it for their get-then-lock step, so it is infrastructure rather than a domain read, and session `b` is therefore never empty.
@@ -573,12 +651,22 @@ Unless noted otherwise, each path is relative to the aggregate's own package,
   name **only** to break an actual collision — another aggregate in §1 already claims that class name,
   or the name is already taken by an aggregate class. Prepending by reflex produces names that stutter
   when the §1 entity is already qualified.
-- `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus")
-- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Snapshot
-  entities are the standing exception to the verbatim rule: the bare source name always collides with
-  the source aggregate's own class, so qualify with the owning aggregate — a `Shipment × N` snapshot
-  cached by `Warehouse` becomes `WarehouseShipment`. Appears twice in 2.N.a, once for the entity class
-  and once for the Dto; omit if no `× N` rows exist for this aggregate.
+- `{DomainEnum}` → an enum-typed attribute's type name from §1, verbatim (e.g., "ShipmentStatus").
+  Rooted at `aggregate/` when one aggregate names it, at `{src}enums/` when several do - see the
+  2.N.a note above
+- `{CollectionSnapshotEntity}` → owned entity class name for each `× N` snapshot in §2. Which name
+  depends on which of the two row forms §2 uses:
+  - **`| {Aggregate} | {Source} × N | ... |`** — the row names only the source, so derive the class
+    name by qualifying it with the owning aggregate. Snapshot entities are the standing exception to
+    the verbatim rule here, because the bare source name collides with the source aggregate's own
+    class: a `Shipment × N` snapshot cached by `Warehouse` becomes `WarehouseShipment`.
+  - **`| {Aggregate} / {OwnedEntity} × N | {Source} | ... |`** — the row already names the owned
+    entity. Use that name **verbatim**; do not qualify it again. A `| Warehouse / WarehouseSlot × N |
+    Shipment |` row yields `WarehouseSlot`, never `WarehouseShipment` or `WarehouseWarehouseSlot`.
+
+  Cross-check the result against the §1 "Entities contained" column of the aggregate grouping, which
+  is authoritative: the class name you emit must appear there. Appears twice in 2.N.a, once for the
+  entity class and once for the Dto; omit if no `× N` rows exist for this aggregate.
 - `{SubscribingSnapshotEntity}` → same naming as above, for each single §2 snapshot with a non-empty
   "Updated on event"; omit if this aggregate has none
 - `{Operation}` → write operation name (PascalCase, e.g., "AddShipment")
@@ -658,7 +746,7 @@ Rows: one per aggregate (in sorted order from Step 5)
 For each aggregate in sorted order. **The heading must be `### {N}. {Aggregate}`, where `{N}` is the
 aggregate's ordinal from the Implementation Order table** — `_shared/conventions.md`
 § "Resolve aggregate context" locates the section by that exact shape and halts if it is absent, so
-every Phase 2/3/4 skill depends on the ordinal being present.
+every Phase 2 skill depends on the ordinal being present.
 
 ```markdown
 ### {N}. {Aggregate}

@@ -95,6 +95,12 @@ to check. Neither is in the set. If a future root file starts being read at runt
 Hold all four lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
 
+The second `find` covers **all** of `.claude`, not just `.claude/skills`. `AGENTS.md`
+§ "Harness evolution" defines the harness delta as `git log --oneline docs/ .claude/`, and
+`.claude/agents/aggregate-slice.md` is a harness file that `implement-aggregate-full` delegates to at
+runtime - `docs/workflow.md` § "Two entry points" calls it the contract for a slice. Enumerating only
+the skills tree leaves it unread by Step 2 and unscanned by Step 6.
+
 **Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
 
 ---

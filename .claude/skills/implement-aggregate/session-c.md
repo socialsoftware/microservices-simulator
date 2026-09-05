@@ -20,6 +20,10 @@ Load these files before writing any code:
    - § Method Patterns (Read / Create / Mutate / Mutate with event publication / Mutate with optional sub-collection parameter)
    - § Copy-on-Write Rule, § DTO Immutability (R7), § Exception-Throw Convention
    - § P3 Guard Placement — where own-table uniqueness checks and DTO field validation live
+   - **R1, R2, R3** - the service loads only its own aggregate type, injects only its own aggregate's
+     components plus shared infrastructure, and receives upstream state as DTOs rather than aggregate
+     instances (`docs/architecture.md` § R1-R3, restated in `service.md` § Injected Dependencies). This
+     session is where upstream DTOs assembled by preceding saga steps enter service method signatures.
    - § Partial-Data Owned Entities (only if the aggregate has owned sub-entities)
    - § Custom Repository — Latest-Active-Version Query (only if returning lists)
 
@@ -189,11 +193,11 @@ Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
 
 **Cite plan.md as the spec — do not author a parallel artifact.** The `plan.md` aggregate section for the target aggregate already contains the happy-path postconditions, the events-published list, and the P1/P3 rule list. That section *is* the spec; the test asserts it. See `docs/concepts/testing.md` § Spec-First Ordering.
 
-At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. Example:
+At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. The section is the `### {N}. {Aggregate}` heading as plan.md writes it - plan.md carries no `§n.n` numbering, so a `§3.5`-style citation is unsearchable. Example:
 
 ```groovy
 def "updateShipmentNotes: SHIPMENT_NOTES_REQUIRED violation"() {
-    // Spec: plan.md §3.5 Shipment / functionalities — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED
+    // Spec: plan.md § 5. Shipment - UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED
     given:
     ...
 }
@@ -213,8 +217,24 @@ that.
   - **Omit this case entirely when the functionality's own success makes its aggregate unresolvable** — a delete-shaped operation. `sagaStateOf` throws instead of returning a state, and both substitutes break another rule. See `docs/concepts/testing.md` § T4 — Functionality Test, "Exception — a functionality whose success makes its own aggregate unresolvable", which also states what covers the functionality instead. Leave a one-line comment in the T4 file naming that section.
   - For a **void-returning** coordinator there is no DTO to check, so the happy path reduces to the `sagaStateOf(...) == NOT_IN_SAGA` assertion alone. That is not the Fake smell: the assertion fails if the traversal aborts.
 - **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
-- **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., requester not registered in the warehouse)
+- **P4a prerequisite tests**: test what happens when the upstream fetch fails - the referenced
+  upstream aggregate does not exist, or has been soft-deleted. Where the rule is enforced by the
+  fetch itself (the case `docs/concepts/sagas.md` § Step Ordering describes as needing no service
+  guard), see the carve-out in the assertion rule below
 - **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
+  **Carve-out - a P4a rule enforced by the fetch:** a data-assembly step that enforces its rule by
+  letting the upstream read fail has no `{RULE_NAME}` constant of its own to assert - the rule names
+  a precondition, not an error message, and the exception that surfaces is whichever one the
+  upstream fetch already raises. Which one it is follows the fetch's own not-found path
+  (`docs/concepts/testing.md` § T2 - Not-Found Paths):
+  - **Path A - the step fetches by primary key.** The framework's `aggregateLoadAndRegisterRead`
+    raises `SimulatorException`. Assert `thrown(SimulatorException)` and nothing further.
+  - **Path B - the step fetches by a composite domain key.** The upstream service throws
+    `{AppClass}Exception` carrying *its own* `{NOT_FOUND_CONSTANT}`. Assert that constant, not the
+    rule name: the rule is enforced by the upstream miss, and minting a second constant named after
+    the rule would duplicate an error the upstream aggregate already owns.
+
+  Every other violation test, P3 guards included, keeps the rule above.
 - **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T4 functionality tests.
 - **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
   - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:` (the post-*acquire* state), call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:` (the traversal completes back to `NOT_IN_SAGA`).

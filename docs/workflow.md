@@ -27,6 +27,7 @@ applications/{app-name}/
     ├── main/java/pt/ulisboa/tecnico/socialsoftware/{app}/
     │   ├── commands/
     │   │   └── {aggregate}/           ← one subpackage per aggregate
+    │   ├── enums/                     ← domain enums named by more than one aggregate
     │   ├── events/                    ← shared event classes (published by any aggregate)
     │   └── microservices/
     │       ├── exception/             ← {App}Exception.java + {App}ErrorMessage.java
@@ -89,7 +90,7 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
 | T4 Read Functionality | `{Query}Test.groovy` | 2.N.b |
 | T4 Write Functionality | `{Operation}Test.groovy` | 2.N.c |
-| T4 Compensation | `{Operation}CompensationTest.groovy` | 2.N.c |
+| T4 Compensation | `{Operation}CompensationTest.groovy` - one per write op that holds a semantic lock across a later step | 2.N.c |
 
 ---
 
