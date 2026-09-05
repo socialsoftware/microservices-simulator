@@ -216,12 +216,21 @@ PLAN CONTEXT FOR THIS ITEM:
 
 VERIFY:
   cd applications/{app-name}
-  mvn -Ptest-sagas test -Dtest=<this slice's T4 test>,{Aggregate}ServiceTest
+  mvn -Ptest-sagas test -Dtest=<this slice's own test class(es)>,{Aggregate}ServiceTest
   echo "MAVEN_EXIT=$?"
   then the surefire aggregation script from _shared/conventions.md
 
 Return the block defined in .claude/agents/aggregate-slice.md.
 ```
+
+`<this slice's own test class(es)>` resolves per session type - only `b` and `c` produce a T4 test:
+
+| Session | Test class(es) for `-Dtest` |
+|---------|------------------------------|
+| `a` | `{Aggregate}IntraInvariantTest` (T1) |
+| `b` | `{Query}Test` (T4) for this slice's read op - omit when the aggregate has no read functionality (`session-b.md` produces no `{Query}Test.groovy` then), leaving `{Aggregate}ServiceTest` alone as the slice's verification |
+| `c` | `{Operation}Test` (T4) for this slice's write op, plus `{Operation}CompensationTest` when the slice has one |
+| `d` | `{Aggregate}InterInvariantTest` (T3) |
 
 For a whole-session (unsliced) run, `YOUR SLICE` names the session itself and the "only this item"
 sentence is dropped; everything else is unchanged.
@@ -236,15 +245,19 @@ These accumulate one member per item, which is why slices append and never rewri
 
 | Session | Shared files |
 |---------|--------------|
-| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java`, `{AppClass}SpockTest.groovy` (the `@Autowired` functionalities field and the `create{Aggregate}(...)` fixture helper) |
-| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}ErrorMessage.java` (P3 guard constants) |
+| `b` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `ServiceMapping.java`, `{AppClass}SpockTest.groovy` (the `@Autowired` functionalities field and the fixture-helper bodies session `b` writes) |
+| `c` | `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java`, `{Aggregate}Functionalities.java`, `{Aggregate}ServiceTest.groovy`, `{AppClass}SpockTest.groovy` (fixture-helper bodies only - see below), `{AppClass}ErrorMessage.java` (P3 guard constants) |
 | `d` | `{Aggregate}EventHandling.java` (one `@Scheduled` method per event), `{Aggregate}EventHandler.java` (one `instanceof` branch per event), `{Aggregate}EventProcessing.java` (one `process{Xxx}Event` method per event), `{Aggregate}Functionalities.java` (one `{operation}ByEvent` method per event), `{Aggregate}Service.java` (the ByEvent helper, only when no existing mutate method performs exactly this mutation), `{Aggregate}.java` (one `getEventSubscriptions()` subscription per subscribed event, inside the ACTIVE guard), `{AppClass}ErrorMessage.java` (constants for invariants event processing can violate), `{Aggregate}InterInvariantTest.groovy` |
 
 Session `a` produces one aggregate and is never sliced, so it has no shared-file hazard.
 
-Session `c` additionally has one file that is **replaced, not appended to**: the
-`create{Aggregate}()` helper body in `{AppClass}SpockTest.groovy`. It belongs to slice `c1`, the
-create functionality, which plan.md always orders first. No later slice may touch it.
+Session `c` additionally touches one file that is **replaced, not appended to**: the fixture-helper
+bodies in `{AppClass}SpockTest.groovy`, which session `b` wrote direct-on-aggregate and session `c`
+swaps for real functionality calls (`session-c.md` § "Update `{AppClass}SpockTest.groovy`"). Each
+body is owned by the slice named after the functionality it calls: `create{Aggregate}()` by slice
+`c1`, the create functionality plan.md always orders first, and each sibling helper by the slice
+implementing the write functionality it is named after. No slice may touch a body it does not own,
+and no slice may change any helper's signature or defaults.
 
 ### Aggregate-level files belong to slice `k=1`
 

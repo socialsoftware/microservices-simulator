@@ -10,7 +10,7 @@ An `Aggregate` is the unit of consistency in the simulator. Every write creates 
 |-------|------|---------|
 | `id` | `Integer` | JPA physical row PK (auto-generated) |
 | `aggregateId` | `Integer` | Logical identity — stable across versions |
-| `version` | `Integer` | Global monotonic version from `VersionService` |
+| `version` | `Long` | Global monotonic version, assigned by `SagaUnitOfWorkService.registerChanged` via `IVersionService.incrementAndGetVersionNumber()` |
 | `state` | `AggregateState` | `ACTIVE`, `INACTIVE`, or `DELETED` |
 | `prev` | `Aggregate` | Pointer to the previous version row |
 | `aggregateType` | `String` | Simple class name, set in subclass constructor |
@@ -92,14 +92,33 @@ Each aggregate has three repository artifacts:
 
 | File | Shape | Purpose |
 |------|-------|---------|
-| `aggregate/{Aggregate}Repository.java` | interface extending `AggregateRepository` (no type arguments) | Spring Data JPA repository; holds any JPQL `@Query` methods |
+| `aggregate/{Aggregate}Repository.java` | `@Repository @Transactional interface {Aggregate}Repository extends JpaRepository<{Aggregate}, Integer>` | Spring Data JPA repository; holds any JPQL `@Query` methods |
 | `aggregate/{Aggregate}CustomRepository.java` | plain Java interface, no annotations | Profile-agnostic contract the service injects; declares only the custom query signatures the service needs, and may be empty |
 | `sagas/repositories/{Aggregate}CustomRepositorySagas.java` | `@Service @Profile("sagas")` class **implementing** `{Aggregate}CustomRepository` | Sagas implementation; holds an `@Autowired {Aggregate}Repository` and delegates to it |
 
-`AggregateRepository` (`simulator/.../ms/aggregate/AggregateRepository.java`) is **not generic**: it
-is declared `interface AggregateRepository extends JpaRepository<Aggregate, Integer>`, so
-`{Aggregate}Repository` extends it bare. Any JPQL a subinterface adds is written against the
-concrete aggregate class (`select a from {Aggregate} a where ...`), not against a type parameter.
+**Type the repository against the concrete aggregate, never against the shared
+`AggregateRepository`.** `AggregateRepository`
+(`simulator/.../ms/aggregate/AggregateRepository.java`) is declared over the abstract
+`Aggregate`, and `Aggregate` uses `InheritanceType.TABLE_PER_CLASS`, so any query inherited from it
+is polymorphic and unions every aggregate's table: `findAll()` would return foreign aggregates, and
+the consumer that casts them to its own type fails with a `ClassCastException`. Extending
+`JpaRepository<{Aggregate}, Integer>` scopes every query to one physical table by construction.
+
+Because the repository does not inherit from `AggregateRepository`, redeclare both of its methods
+here, typed to `{Aggregate}`:
+
+```java
+@Query(value = "select a1 from {Aggregate} a1 where a1.aggregateId = :aggregateId AND a1.state = 'ACTIVE' AND a1.version = (select max(a2.version) from Aggregate a2 where a2.aggregateId = :aggregateId)")
+Optional<{Aggregate}> findLastAggregateVersion(Integer aggregateId);
+
+Optional<{Aggregate}> findTopByOrderByVersionDesc();
+```
+
+The subquery stays `from Aggregate a2` — the version counter is global across aggregate types, so
+narrowing it to one table would compare against the wrong maximum.
+
+Any further JPQL a subinterface adds is likewise written against the concrete aggregate class
+(`select a from {Aggregate} a where ...`), not against a type parameter.
 
 ```java
 @Service
@@ -108,10 +127,16 @@ public class {Aggregate}CustomRepositorySagas implements {Aggregate}CustomReposi
     @Autowired
     private {Aggregate}Repository {aggregate}Repository;
 
-    // One method per signature declared on {Aggregate}CustomRepository, each delegating
-    // to a @Query method on {Aggregate}Repository. Empty until a service method needs one.
+    @Override
+    public List<{Aggregate}> findAllLatestActive() {
+        return {aggregate}Repository.findAllLatestActive();
+    }
 }
 ```
+
+One method per signature declared on `{Aggregate}CustomRepository`, each a plain delegation to a
+`@Query` method of the same name on `{Aggregate}Repository` — the class holds no JPQL and no logic
+of its own. It stays empty until a service method needs a query.
 
 `{Aggregate}CustomRepositorySagas` does **not** extend `SagaAggregateRepository`. It is a Spring
 `@Service`, not a JPA repository interface.

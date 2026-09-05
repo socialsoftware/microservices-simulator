@@ -18,7 +18,8 @@ file(s) it produces (session → file, for file-generation purposes only):
 | `b` | T2 Service (read methods) | `{Aggregate}ServiceTest.groovy` |
 | `b` | T4 Functionality (reads) | `{Query}Test.groovy` |
 | `c` | T2 Service (write methods + event publication) | appended to `{Aggregate}ServiceTest.groovy` |
-| `c` | T4 Functionality (writes) | `{Op}Test.groovy`, `{Op}CompensationTest.groovy` |
+| `c` | T4 Functionality (writes) | `{Op}Test.groovy` |
+| `c` | T4 Compensation | `{Op}CompensationTest.groovy` |
 | `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` |
 
 > **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
@@ -99,8 +100,7 @@ If no unchecked Phase 2 session found, inform: "All Phase 2 sessions are complet
 
 Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
 `{pkg}`, `{AppClass}` from the plan.md path located in Step 1 (already found — do not re-run the
-`find`). Additionally, locally:
-- `{appClass}` = same as `{AppClass}` but first segment lowercase (e.g., `myApp`)
+`find`).
 
 From plan.md, find the aggregate details section for aggregate number `{N}`:
 - Section header pattern: `### {N}. {Aggregate}` or `### {N}. {AggregateName}`
@@ -189,8 +189,8 @@ Do not continue from memory of a previous read. It owns, in this order:
 | 5  | § "Tick the checkbox" |
 | 5b | § "Amend plan.md for omitted files" |
 | 6  | § "Report completion" |
+| 6b | § "Harness-log rows" |
 | 7  | § "Retro assembly" - use § "Single-agent mode", then § "Retro template" |
-| 7.d| § "Harness-log rows" (run before writing the retro file) |
 | 8  | § "Commit" |
 
 The retro template, the Semantic-Lock Coverage Audit commit-blocking rule and the commit message

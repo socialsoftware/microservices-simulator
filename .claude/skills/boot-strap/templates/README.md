@@ -23,6 +23,14 @@ tokens below, write it to the output path. There are no deletion rules, no keep-
 
 After substitution, no `{{` may remain anywhere under `applications/{app-name}/`.
 
+## `PLACEHOLDER` in `AppErrorMessage.java.template`
+
+`AppErrorMessage` ships with `public static final String PLACEHOLDER = "placeholder"` for one
+reason: a freshly bootstrapped app has no domain error constants yet, and the class must not be
+empty. It is the **one exception** to the "append constants, never remove existing ones" rule that
+sessions `a` and `c` state — once the first real domain constant lands, `PLACEHOLDER` may be
+removed. Nothing references it, so removing it is safe; leaving it is also harmless.
+
 ## Maintenance
 
 These templates pin against the `simulator` library. When the library changes, mirror it here:

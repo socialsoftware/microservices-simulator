@@ -20,6 +20,10 @@ repairing them, so the same mistake is never made twice. Every repair is recorde
 `applications/{app-name}/harness-log.md` and committed separately with a `harness:` prefix, so the
 harness delta of a run is exactly `git log --oneline docs/ .claude/`.
 
+That claim only holds if the log covers every commit, so: **every `harness:` commit carries at least
+one `harness-log.md` row**, and a commit closing N review findings carries either N rows or one row
+naming all N. A `harness:` commit with no row is a defect in the run's record, not a shortcut.
+
 Two kinds of friction, with different gates:
 
 **Type 1 - contradiction.** The harness contradicts the framework, contradicts itself, or names
@@ -32,6 +36,11 @@ gives one that cannot be followed without violating another stated principle. Yo
 the right answer, because there is not one yet - it is a design decision. **Halt and ask the human
 before writing the code**, since the answer determines the code. Then write both the harness fix and
 the implementation.
+
+A finding whose only defect is a missing example, a cross-reference the reader must follow, or
+imprecise wording is silence, not contradiction, however obvious the improvement looks - it is
+Type 2 and it halts. This is what `/review-artifacts` Check 3 ("Improvement Opportunities" and
+"Ambiguous Guidance") produces by construction; Checks 1, 2 and 4 produce Type 1 candidates.
 
 **`simulator/` is always Type 2**, with no Type 1 fast path. Docs are guidance *about* the system;
 `simulator/` *is* the system under study. A framework patch made to accommodate a wrong
@@ -82,7 +91,11 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | Module | Purpose                                                                                                       | Local context |
 |--------|---------------------------------------------------------------------------------------------------------------|---------------|
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/AGENTS.md`](simulator/AGENTS.md) |
-| `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/`, `reviews/` and `harness-log.md` live here | — |
+| `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/` and `harness-log.md` live here | — |
+
+Review reports are **not** per-application: `docs/reviews/` holds both kinds, `review-{date}.md`
+written by `/review-artifacts` and `harness-retro-{app-name}-{date}.md` written by
+`/harness-retrospective`.
 
 ---
 

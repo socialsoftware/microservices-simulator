@@ -50,6 +50,12 @@ Load these files before writing any code:
 
 Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files". The descriptions below explain what each file must contain.
 
+> **One required edit lives outside this section.** § "Update `{AppClass}SpockTest.groovy`" below
+> mandates replacing the `create{Aggregate}()` helper body with the real create functionality. It is
+> not a `###` subheading here, so a session that treats § Produce alone as its manifest ships a stale
+> placeholder helper and leaves session `b`'s read tests running against fixture-built aggregates
+> rather than the create path.
+
 > **Prerequisite — ServiceMapping**: The `{src}ServiceMapping.java` entry for `{AGGREGATE}` was added in session 2.{N}.b, which is where this aggregate's first commands were written. Verify it is present before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
 
 > **Prerequisite — Upstream count-manipulation commands**: If any saga for this aggregate sends an `Increment{Xxx}CountCommand` or `Decrement{Xxx}CountCommand` to an upstream aggregate's `CommandHandler`, verify that handler already routes the command. If the case is missing, add it before running tests — an unrouted command silently does nothing and will cause invariant violations or state corruption that are difficult to diagnose after the fact.
@@ -59,6 +65,7 @@ Produce every file listed in the plan.md `2.{N}.c` row. plan.md is a blueprint, 
 Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
 - Spring `@Service`. The class already exists from session 2.{N}.b — **append** the write methods, do not rewrite the file.
+- A write method touches **this aggregate only**: it loads no foreign aggregate, injects no foreign service or repository, holds no reference to a foreign aggregate's concrete class, and receives everything it needs about another aggregate as a saga-assembled DTO parameter (R1/R2/R3 - see `docs/concepts/service.md` § Injected Dependencies).
 - One method per write functionality listed in plan.md
 - Method signature: receives the command's fields + `UnitOfWork unitOfWork`
 - **P3 own-table uniqueness guards** (if listed in plan.md P3 rules): query the repository for duplicates before creating; throw `{AppClass}Exception` with the appropriate error message constant if found
@@ -73,6 +80,7 @@ Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 - **Soft-delete** (`remove()`): the same copy-on-write shape, with `copy.remove()` before
   `registerChanged`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
 - **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWorkService.registerEvent(new {Event}(...), unitOfWork)` at the end of the relevant service method
+- **Domain sentinels**: a write method that assigns a fixed literal named on plan.md's `**Domain sentinels:**` line reads it from `{src}microservices/domain/{AppClass}DomainConstants.java` - never inline the literal, and never declare a new constant here. Session `a` owns that file (`session-a.md` § "Domain sentinel constants"). If plan.md names a sentinel that session `a` did not emit, report it as Type 1 against the completed session; the placement is settled and is not a decision to re-make mid-session.
 
 > **Deferred P3 guards:** If a P3 DTO-check rule listed in plan.md cross-aggregate prerequisites requires data from an aggregate ordered _after_ this one in plan.md (because that later aggregate subscribes to this one's events), the guard cannot be implemented yet. Do the following:
 > 1. **Skip** the data-assembly saga step and the service guard — do not add stubs.
@@ -96,7 +104,8 @@ Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 
 ### One `{Op}{Aggregate}Command.java` per write functionality
 
-Path: `commands/{aggregate}/{Op}{Aggregate}Command.java`
+Path: `{src}commands/{aggregate}/{Op}{Aggregate}Command.java` — rooted at the **app source root**, not
+at `microservices/{aggregate}/`. See `docs/concepts/commands.md` § "File Location".
 
 - Implements `Command`
 - Fields: all parameters needed by the service method
@@ -123,11 +132,14 @@ Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Fu
 - Spring `@Service`. The class already exists from session 2.{N}.b with its read coordinator methods — **append** the write methods, do not rewrite the file.
 - One public method per write functionality (matching the saga class name)
 - Each method:
-  1. Derives `functionalityName` via `new Throwable().getStackTrace()[0].getMethodName()`
-  2. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork(functionalityName)`
-  3. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
-  4. Calls `executeWorkflow(uow)` on it
-  5. Returns the result DTO (or `void` for mutations)
+  1. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork("{operationName}")`, passing
+     the operation name as a **string literal** matching the method name — the same idiom session `b`
+     uses for the read coordinators in this file. Do not derive it reflectively from the stack trace:
+     both forms evaluate to the same string, but a session `c` that appends to a session-`b` file
+     would leave one class carrying two idioms for one thing.
+  2. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
+  3. Calls `executeWorkflow(uow)` on it
+  4. Returns the result DTO (or `void` for mutations)
 - Tests `@Autowired` this class and call its methods directly
 
 ### `{Aggregate}ServiceTest.groovy` (T2 — write-method cases)
@@ -153,15 +165,24 @@ Follow the template in `docs/concepts/testing.md` § T2 — Service Test. Invoke
 **Event-publication assertions (only if plan.md lists events published):** appended to the same
 `{Aggregate}ServiceTest.groovy` class as separate `def` methods (not folded into existing `then:`
 blocks — event-store facts and persisted-state facts stay separate assertions). Follow the
-template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService`. Trigger the
+template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService` - the field and
+its import are **class-scoped and added once**, so under slicing a slice appending event cases adds
+them only if absent; two slices of one session each declaring the field is a compile error. Trigger the
 publishing operation **via a direct service call** with a `UnitOfWork` (not via
 `{Aggregate}Functionalities`), then assert against the event store via the `EventService` bean.
 
 - **Per published event type** (from plan.md's Events published list): one case asserting the
   event exists with the correct type, `publisherAggregateId`, and **every payload field** —
   asserting only type/count is **Weak**.
-- **One negative case**: capture the event-store count before, run a service operation that must
-  *not* publish, assert the count is unchanged.
+- **One negative case per test class** — not per event type. Capture the **total** event-store count
+  before, run a write operation of this aggregate that publishes nothing at all, assert the total is
+  unchanged. A total-count assertion over a silent operation already proves that operation publishes
+  *none* of the aggregate's event types, so a per-type case adds a weaker assertion, not coverage.
+  Like the `EventService` field, the negative case is class-scoped and added **once**: under slicing,
+  a slice appending event cases adds it only if the class does not already have one.
+  - If every write operation of the aggregate publishes something, no totally silent operation
+    exists. Fall back to one case that filters the store by a single event type and runs an
+    operation publishing a *different* type, asserting that type's count is unchanged.
 - Consumers are out of scope here — they are covered by T3 subscription tests in session `d`.
 
 ### One `{Op}Test.groovy` per write functionality (T4)
@@ -184,6 +205,8 @@ def "updateShipmentNotes: SHIPMENT_NOTES_REQUIRED violation"() {
 
 If the implementation disagrees with the cited section, flag it as an impl deviation — do not adjust the cited rule to match.
 
+If the cited section is *silent* rather than in disagreement - plan.md specifies no behaviour for the input, such as a write method called with a target outside the aggregate's domain - apply `docs/concepts/rule-enforcement-patterns.md` § Decision Guide, Step 4, and cite the constant it has you add to plan.md's rule list.
+
 **Strict assertion ownership (testing.md § Assertion Ownership):** T4 functionality tests do **not**
 assert field-level persistence, uniqueness, or not-found — those belong in `{Aggregate}ServiceTest`
 (T2, above). They also do not re-assert event-store contents — `{Aggregate}ServiceTest` (T2) owns
@@ -191,6 +214,8 @@ that.
 
 - Extends `{AppClass}SpockTest`
 - **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`
+  - **Omit this case entirely when the functionality's own success makes its aggregate unresolvable** — a delete-shaped operation. `sagaStateOf` throws instead of returning a state, and both substitutes break another rule. See `docs/concepts/testing.md` § T4 — Functionality Test, "Exception — a functionality whose success makes its own aggregate unresolvable", which also states what covers the functionality instead. Leave a one-line comment in the T4 file naming that section.
+  - For a **void-returning** coordinator there is no DTO to check, so the happy path reduces to the `sagaStateOf(...) == NOT_IN_SAGA` assertion alone. That is not the Fake smell: the assertion fails if the traversal aborts.
 - **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
 - **P4a prerequisite tests**: test what happens when the upstream fetch fails - the referenced
   upstream aggregate does not exist, or has been soft-deleted. Where the rule is enforced by the
@@ -218,27 +243,39 @@ that.
 
 ### One `{Op}CompensationTest.groovy` per lock-holding write functionality (T4)
 
-Path: `{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy`
+Paths — **both files are produced**, and the test cannot fault without the second:
 
-Required by `docs/concepts/testing.md` § Compensation Test for every write functionality whose
-`setSemanticLock` step has a **dependent step after it** - that is the compensate transition of the
-saga's state machine, and no other session produces it. Skip it where that section says to skip:
-a functionality with no semantic lock, or one whose only step has no dependents.
+```
+{test}sagas/coordination/{aggregate}/{Op}CompensationTest.groovy
+applications/{app-name}/src/test/resources/groovy/{Op}CompensationTest/{Op}FunctionalitySagas.csv
+```
 
-Follow the template and the `ImpairmentService` mechanism in that section; do not re-derive either
-here. Two constraints it states are easy to miss and expensive to get wrong:
+The impairment CSV is selected by the **test class's simple name** (directory) and the **saga class's
+simple name** (file). A compensation test written without its CSV injects no fault, so the expected
+exception never arrives and the test fails for a reason unrelated to compensation.
 
-- **Its own file, never a `def` added to `{Op}Test.groovy`.** The fault-block index counts saga-class
-  instantiations since the last `cleanUpCounter()`, so the success cases need block 1 clean while the
-  compensation case needs block 1 faulty - the same block. See § "CRITICAL gotcha".
-- **The fault CSV is named after the saga class**, `{Op}FunctionalitySagas.csv`, and lives in
-  `applications/{app-name}/src/test/resources/groovy/{Op}CompensationTest/` - the lookup path keys on the *test* class's simple
-  name and the *saga* class's simple name, not on the package of either.
+After writing it, run the sanity check `docs/concepts/testing.md` § Compensation Test mandates:
+temporarily flip the faulted step's flag to `0`, re-run, and confirm from the log that the
+lock-acquiring step genuinely executes before the fault fires. A compensation test that has never
+been run in both configurations is not known to be testing compensation.
 
-Where the step after the lock throws unconditionally for a non-fault reason (an update step whose
-target fields are all P1 `final`, for instance), § Compensation Test directs you to add the
-`sagaStateOf(...) == GenericSagaState.NOT_IN_SAGA` assertion to the existing lock-acquisition case
-instead of writing this file. Record that choice in the session retro.
+Compensation tests are **core T4 scope**, not deferred. Follow `docs/concepts/testing.md`
+§ Compensation Test in full — it owns the shape, the `ImpairmentService` mechanism and the CSV
+format — and note in particular its § "CRITICAL gotcha — one saga class, one compensation test file":
+the case cannot live inside `{Op}Test.groovy`, because the two need opposite fault state in the same
+CSV block.
+
+**Applicability test:** required for every write functionality whose saga holds a semantic lock
+**across a later step** — a `setSemanticLock` step with a dependent step registered after it. Skip it
+for a functionality whose only step has no dependents (nothing to compensate), and for read
+functionalities, which acquire no lock.
+
+A create functionality has no compensation test: a single-step create acquires no lock. A
+mutate functionality that locks in a `get{Aggregate}Step` and mutates in a dependent step does have
+one.
+
+Whether each write functionality of this session needs the file is decided by the applicability test
+above, per functionality — not once for the session.
 
 ### Event classes (if this aggregate publishes events)
 
@@ -269,11 +306,25 @@ Path: `{src}microservices/{aggregate}/coordination/webapi/{Aggregate}Controller.
 
 ---
 
-## BeanConfigurationSagas — No Change Needed
+## BeanConfigurationSagas — No New Bean, But Check the Existing Ones
 
-The three beans this aggregate needs — `{Aggregate}Service`, `{Aggregate}CommandHandler` and `{Aggregate}Functionalities` — were registered in `{bean-config}` during session 2.{N}.b. This session appends methods to those existing classes, so no new bean is required. `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. **Do not add any `@Bean` method in this session.**
+The three beans this aggregate needs — `{Aggregate}Service`, `{Aggregate}CommandHandler` and `{Aggregate}Functionalities` — were registered in `{bean-config}` during session 2.{N}.b. This session appends methods to those existing classes, so no *new* bean is required. `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. **Do not add any `@Bean` method in this session.**
 
-If a bean's constructor needs a new collaborator to serve a write method, update that existing `@Bean` method's arguments in place rather than adding a second bean.
+**Existing `@Bean` methods do change.** A service takes every dependency through its constructor and
+declares no `@Autowired` field (`docs/concepts/service.md` § Injected Dependencies), so a write method
+needing a collaborator the service does not yet hold requires **two** edits, not one: widen
+`{Aggregate}Service`'s constructor and field list, **and** widen the matching
+`{aggregate}Service(...)` `@Bean` method's parameters and `new {Aggregate}Service(...)` call to pass
+it. Update that `@Bean` method in place; never add a second bean for the same class.
+
+**The widened constructor may only take this aggregate's own components** - its own factory, its own
+repositories, and framework-level services. A foreign service, a foreign repository or a foreign
+aggregate's concrete class is never a valid parameter, whatever the write method appears to need
+(R1/R2/R3 - see `docs/concepts/service.md` § Injected Dependencies). Cross-aggregate data reaches the
+method as a DTO the saga assembled, not as an injected collaborator.
+
+The usual case is `AggregateIdGeneratorService`: session `b` omits it when no read method mints an
+aggregate id, and this session's create method is the first to need it.
 
 ---
 
@@ -295,8 +346,36 @@ that session call this helper, and a signature change rewrites them for nothing.
 functionality genuinely cannot satisfy the existing signature, that is a real mismatch — take it to
 `SKILL.md` § "Step 3b: The Self-Healing Gate" rather than silently re-shaping the helper.
 
+Session 2.{N}.b may also have added **sibling fixture helpers** named after write functionalities its
+reads depended on - see session-b.md § "Fixture state a create cannot reach". Replace each of those
+bodies too, with a call to the functionality it is named after, under the same rule: signature and
+defaults unchanged, mismatches escalated rather than re-shaped.
+
+The replacement calls a functionality that fetches the foreign aggregate and runs its P3 guards, so a
+call site passing a synthetic foreign id now throws where the direct-on-aggregate body did not. Session
+`b` is required to mint that id from an upstream fixture helper in the state those guards demand, so
+this should not arise; where it does, repairing the offending call sites and adding any missing
+upstream helper belongs to the slice performing the swap, which owns this helper body exclusively.
+
+**A fixture *value* can break the same way, and this one is not avoidable by session `b`.** Where the
+create functionality **stamps a field from the clock** that a P1 invariant then orders against a
+caller-supplied field - `{Aggregate}.creationDate = DateHandler.now()` compared against a
+`{startField}` the caller passes in - a constant session `b` pinned to a fixed absolute instant is
+in the past by the time the real create path runs, and every call of the helper now throws that
+invariant's constant. The direct-on-aggregate body could not surface this: it passed the stamped
+field in as a constant too, so the two were consistent by construction.
+
+Repair it by re-pinning the offending `{AppClass}SpockTest.groovy` constants **relative to the same
+clock the create path reads** - `DateHandler.now().plusDays(n)`, keeping the ordering the invariant
+requires - not by changing the helper's signature and not by weakening the invariant. Session `b`
+had no way to choose better: it wrote its fixture before the create functionality existed, so the
+value repair belongs to this session. Keep the constant names: T1 already asserts against them, and
+renaming rewrites that file for nothing.
+
 Once replaced, the aggregate is created through the real saga, so 2.{N}.b's read tests exercise the
-production create path from here on. Re-run them and confirm they still pass.
+production create path from here on. Re-run them and confirm they still pass. A read test that
+asserted a clock-stamped field **equals** one of those constants was asserting the fixture, not the
+aggregate; it becomes a non-null assertion, since only the create path can now decide the value.
 
 Tests added this session use the same helper in their `setup:` block to satisfy prerequisites.
 
@@ -304,11 +383,8 @@ Tests added this session use the same helper in their `setup:` block to satisfy 
 
 ## Tick the Checkbox
 
-In plan.md, replace:
-```
-- [ ] 2.{N}.c — Write functionalities
-```
-with:
-```
-- [x] 2.{N}.c — Write functionalities
-```
+The session checkbox for this session is `- [ ] 2.{N}.c — Write functionalities`. Read
+`_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
+you have. It owns the whole rule, including how to anchor on the session line rather than doing a
+bare string replace, and what manager mode and single-agent mode each do about the slice
+sub-checkboxes underneath it.

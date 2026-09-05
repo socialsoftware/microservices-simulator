@@ -13,6 +13,8 @@ public class AddShipmentItemCommand extends Command {
     private Integer shipmentAggregateId;
     private WarehouseDto warehouseDto;
 
+    protected AddShipmentItemCommand() {}
+
     public AddShipmentItemCommand(UnitOfWork unitOfWork, String serviceName,
                                   Integer shipmentAggregateId, WarehouseDto warehouseDto) {
         super(unitOfWork, serviceName, shipmentAggregateId);
@@ -22,8 +24,16 @@ public class AddShipmentItemCommand extends Command {
 
     public Integer getShipmentAggregateId() { return shipmentAggregateId; }
     public WarehouseDto getWarehouseDto() { return warehouseDto; }
+
+    public void setShipmentAggregateId(Integer shipmentAggregateId) { this.shipmentAggregateId = shipmentAggregateId; }
+    public void setWarehouseDto(WarehouseDto warehouseDto) { this.warehouseDto = warehouseDto; }
 }
 ```
+
+> **The no-arg constructor and the setters are mandatory, not stylistic.** The test profile sets
+> `local.messaging.serialize: true` to mimic remote communication, so every command round-trips
+> through Jackson before it reaches its handler. A command with only a multi-arg constructor and
+> getters fails to deserialize at runtime, on the first command the application sends.
 
 `super(unitOfWork, serviceName, aggregateId)`:
 - `unitOfWork` — the active `SagaUnitOfWork` for this workflow execution.
@@ -53,6 +63,24 @@ Commands are plain data carriers — no business logic, no Spring beans.
 >
 > The converse still holds: a step that *does* declare a semantic lock or forbidden states must name
 > the aggregate whose lock lifecycle it participates in.
+
+It is the third `super(...)` argument that goes `null`, not a payload field:
+
+```java
+public Create{Aggregate}Command(UnitOfWork unitOfWork, String serviceName, {Aggregate}Dto {aggregate}Dto) {
+    super(unitOfWork, serviceName, null);  // rootAggregateId - the service mints the id
+    this.{aggregate}Dto = {aggregate}Dto;
+}
+```
+
+> A **bulk read filtered by a non-PK field** likewise has no single root aggregate. Pass `null`, for
+> the same reason: it declares no semantic lock and no forbidden states, so the handler never
+> dereferences it. Do **not** pass the filter value even when the filter is a foreign aggregate's
+> id - `rootAggregateId` names the aggregate whose lock lifecycle this command joins, and a
+> foreign aggregate that merely narrows the result set is not it.
+
+Same position, same argument: `super(unitOfWork, serviceName, null)`, with the filter value carried
+as an ordinary payload field beside it.
 
 ---
 
@@ -124,10 +152,18 @@ SagaStep addShipmentItemStep = new SagaStep("addShipmentItemStep", () -> {
             ServiceMapping.SHIPMENT.getServiceName(),
             shipmentAggregateId,
             this.warehouseDto);
-    cmd.setForbiddenStates(List.of(ShipmentSagaState.IN_UPDATE_SHIPMENT));
-    commandGateway.send(cmd);
+    List<SagaAggregate.SagaState> forbiddenStates = new ArrayList<>();
+    forbiddenStates.add(ShipmentSagaState.IN_UPDATE_SHIPMENT);
+    SagaCommand sagaCommand = new SagaCommand(cmd);
+    sagaCommand.setForbiddenStates(forbiddenStates);
+    commandGateway.send(sagaCommand);
 }, List.of(getWarehouseStep));
 ```
+
+`setForbiddenStates` is declared on `SagaCommand`, not on `Command`, and its parameter type is
+`List<SagaAggregate.SagaState>` — a `List.of(ShipmentSagaState.IN_UPDATE_SHIPMENT)` infers
+`List<ShipmentSagaState>` and will not convert. [`sagas.md`](sagas.md) § Semantic Locks in Practice
+owns both rules.
 
 **Commands travel upstream only (R8).** A saga may only send commands to aggregates it depends on, never to an aggregate that depends on it — downstream aggregates learn of changes through events, not commands. See [`sagas.md`](sagas.md) § Step Ordering.
 
@@ -140,6 +176,7 @@ Each aggregate has one `CommandHandler` that receives all commands for that aggr
 ```java
 @Component
 public class ShipmentCommandHandler extends CommandHandler {
+    private static final Logger logger = Logger.getLogger(ShipmentCommandHandler.class.getName());
 
     @Autowired
     private ShipmentService shipmentService;
@@ -154,7 +191,7 @@ public class ShipmentCommandHandler extends CommandHandler {
     public Object handleDomainCommand(Command command) {
         return switch (command) {
             case GetShipmentByIdCommand cmd -> shipmentService.getShipmentById(
-                    cmd.getAggregateId(), cmd.getUnitOfWork());
+                    cmd.getShipmentAggregateId(), cmd.getUnitOfWork());
             case AddShipmentItemCommand cmd -> {
                 shipmentService.addShipmentItem(
                         cmd.getShipmentAggregateId(), cmd.getWarehouseDto(), cmd.getUnitOfWork());
@@ -169,6 +206,9 @@ public class ShipmentCommandHandler extends CommandHandler {
     }
 }
 ```
+
+The `logger` declaration is part of the template: the base `CommandHandler` in `ms.messaging` declares
+no logger field, so the `default ->` branch above does not compile without it.
 
 `getAggregateTypeName()` returns a PascalCase name (e.g. `"Warehouse"`) used by `CommandHandlerDecorator` for decorator lookup — it is **not** the routing key.
 

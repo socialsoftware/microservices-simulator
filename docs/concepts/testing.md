@@ -54,8 +54,9 @@ security. This checklist is the authoritative smell list, consumed by
 - `then:` is only `noExceptionThrown()` with no field assertions — flag unless the scenario is explicitly "must not throw."
 - `then:` checks only non-null / non-empty, or a trivially true condition, never actual values.
 - `when:` does not call the method under test (bypasses it via a setup helper).
-- **T2:** happy path reads back through the **same** UnitOfWork instance used for the write — the assertion never exercises the load path. Read-back must use a second, fresh UnitOfWork.
+- **T2:** happy path reads back through the **same** UnitOfWork instance used for the write, or through a fresh one without calling `flushAndClear()` first — either way the persistence context still holds the managed write instance, so the assertion never exercises the load path. Read-back is `flushAndClear()` then a second, fresh UnitOfWork (§ T2 — Service Test).
 - **T3** "ignores unrelated": `originalValue` captured *after* the event was processed — the assertion is `x == x`. Capture in `given:`, before firing.
+- **T3 "reflects event" — carve-out, not a smell:** when the event payload re-affirms a value the consumer is already guaranteed to hold and no legal consumer state can differ from it, the payload assertion *is* trivially satisfied and is nonetheless required, paired with an assertion that the cached publisher version advanced. That pairing is the sanctioned form — flagging it as Fake is itself a Wrong finding. The reachable-contrary-state alternative comes first; see `.claude/skills/implement-aggregate/session-d.md` § `{Aggregate}InterInvariantTest.groovy`.
 
 ### Wrong — tests the wrong thing (implementation instead of spec, or a different code path)
 
@@ -69,7 +70,7 @@ security. This checklist is the authoritative smell list, consumed by
 ### Weak — real scenario, under-specified assertions
 
 - Happy-path `then:` asserts only fields already set in `setup:` — at least one asserted field must be a value the operation itself produces.
-- Removing `unitOfWorkService.registerChanged(aggregate)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
+- Removing `unitOfWorkService.registerChanged(aggregate, unitOfWork)` from the service would leave the test passing (kill-mutation thought experiment) — add an assertion readable only through the persisted aggregate.
 - Violation test asserts `thrown(<App>Exception)` without `ex.message == <RULE_NAME>` — passes on any unrelated bug of that type.
 - **T2:** asserts only that "an event exists" (type/count) without asserting the payload fields — a wrong-payload regression slips through.
 - Returned DTO assertions cover only a subset of the semantically important fields.
@@ -114,6 +115,40 @@ reads — e.g. `pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler.now()` (f
 `LocalDateTime.now()` (JVM default timezone). A mismatch between the two can silently fail to
 trigger the guard rather than throwing an obvious error.
 
+## Reaching a time-gated state
+
+The two cases above both **pin** an instant. A third case cannot: where the create path itself stamps
+a clock field - `DateHandler.now()` at creation, or a field derived from it under a P4b construction
+invariant - and a P1 invariant orders that field against a caller-supplied one, every aggregate the
+production path can build lies on one side of the clock. A state on the far side is **unreachable by
+construction**, not merely inconvenient to set up.
+
+A test that needs such a state - a window that has already elapsed, a deadline already passed -
+reaches it by **creating a short future window and waiting it out**:
+
+- Compute the window **inside the fixture helper**, immediately before the create call
+  (`start = DateHandler.now().plusSeconds(N)`), so the only race is the saga's own latency rather
+  than the time the rest of the test setup took.
+- Wait by **polling the same clock the production code reads** (`DateHandler.now().isAfter(end)`),
+  not by sleeping a fixed duration.
+- Give the far-side state its **own fixture helper** (`create{Adjective}{Aggregate}(...)`) that owns
+  both the window and the wait. The plain `create{Aggregate}` helper keeps the signature and defaults
+  its own session mandates - see `.claude/skills/implement-aggregate/session-c.md` § "Update
+  `{AppClass}SpockTest.groovy`".
+- Assert against the window the helper returns, not against a constant the test declared.
+
+Two shortcuts are **forbidden**:
+
+- **Back-dating a constant.** A `PAST_START_TIME` / `PAST_END_TIME` pair fed to the create path makes
+  the create throw the ordering invariant, and making it not throw means one of the two shortcuts
+  below.
+- **Weakening the invariant** - relaxing the P1 rule, or adding a parameter that lets the test supply
+  the stamped clock field - to make the unreachable state reachable. The invariant is the spec; a
+  test that has to break it to run is testing a state the application cannot be in.
+
+If the margin is chosen too small and a stall beats it, creation throws the ordering constant loudly.
+That is the intended failure mode: the test cannot pass for the wrong reason.
+
 ## Spec-First Ordering
 
 Before writing any test, locate the **`plan.md` aggregate section** for the target aggregate. Its
@@ -126,22 +161,30 @@ The section reference is the `### {N}. {Aggregate}` heading `classify-and-plan` 
 has no `§n.n` numbering, so a `§3.5`-style citation points at nothing.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
+When plan.md is instead *silent* - it specifies no behaviour for the input under test, such as a
+write method called with an out-of-domain target - see
+`docs/concepts/rule-enforcement-patterns.md` § Decision Guide, Step 4, which fixes the behaviour and
+requires the resulting constant to be added to plan.md's rule list before the test cites it.
 
 ## Directory Layout
 
 ```
-src/test/groovy/<pkg>/
-├── BeanConfigurationSagas.groovy     ← test configuration (infrastructure beans)
-├── SpockTest.groovy                  ← root Spock marker class
-├── <AppName>SpockTest.groovy         ← base class: @Autowired services + factory helpers
-└── sagas/
-    ├── coordination/
-    │   └── <aggregate>/              ← one dir per primary aggregate
-    │       └── <FunctionalityName>Test.groovy          (T4)
-    └── <aggregate>/                  ← one dir per aggregate
-        ├── <Aggregate>IntraInvariantTest.groovy        (T1)
-        ├── <Aggregate>ServiceTest.groovy               (T2)
-        └── <Aggregate>InterInvariantTest.groovy        (T3, consumers only)
+src/test/groovy/pt/ulisboa/tecnico/socialsoftware/
+├── SpockTest.groovy                      ← root Spock marker class; its package is the
+│                                            parent, not <pkg>
+└── <pkg>/
+    ├── BeanConfigurationSagas.groovy     ← test configuration (infrastructure beans)
+    ├── <AppName>SpockTest.groovy         ← base class: @Autowired services + factory helpers
+    └── sagas/
+        ├── coordination/
+        │   └── <aggregate>/              ← one dir per primary aggregate
+        │       ├── <FunctionalityName>Test.groovy             (T4)
+        │       └── <FunctionalityName>CompensationTest.groovy (T4, sibling — not a
+        │                                                       separate behaviour package)
+        └── <aggregate>/                  ← one dir per aggregate
+            ├── <Aggregate>IntraInvariantTest.groovy        (T1)
+            ├── <Aggregate>ServiceTest.groovy               (T2)
+            └── <Aggregate>InterInvariantTest.groovy        (T3, consumers only)
 ```
 
 ## T1 — Aggregate Test
@@ -186,8 +229,25 @@ class <Aggregate>IntraInvariantTest extends <AppName>SpockTest {
 its service methods, invoked directly on the `*Service` bean with a `UnitOfWork` — no saga
 workflow. No explicit commit is needed: in the sagas profile, `registerChanged` versions,
 invariant-checks, and merges the aggregate **inside the service call**; the workflow-level
-`commit(uow)` only resets `SagaState`. **Read-back must still use a fresh UnitOfWork** so the
-assertion goes through the load path — reading via the write UoW is Fake.
+`commit(uow)` only resets `SagaState`.
+
+**Every read-back calls `flushAndClear()` first, then reads through a fresh `UnitOfWork`.** Both
+halves are required, and neither substitutes for the other:
+
+- A fresh `UnitOfWork` alone is **not** enough. Under `@DataJpaTest` the whole test runs in one
+  transaction, so every `UnitOfWork` in it shares a single persistence context. Hibernate answers
+  the read from the first-level cache and hands back the very instance the write path put there —
+  the assertion then re-reads the object it just built in memory, which is Fake.
+- `flushAndClear()` (the `<AppName>SpockTest` helper: `EntityManager.flush()` then `clear()`) pushes
+  the pending writes to the database and detaches everything, so the next load constructs the
+  aggregate through Hibernate's own instantiation path.
+
+That path is what the read-back is actually there to prove. It is where `final` fields are set
+reflectively, where `@Convert` converters run, and where a mismatched column mapping or a missing
+no-arg constructor first becomes visible — none of which the managed instance would ever exercise.
+The rule is unconditional: applying it only to aggregates believed to have `final` fields makes the
+guard depend on a judgement made when the test was written, and it is silently lost the moment the
+aggregate changes.
 
 ```groovy
 class <Aggregate>ServiceTest extends <AppName>SpockTest {
@@ -197,7 +257,8 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
         when:
         def dto = <aggregate>Service.create<Aggregate>(/* args */,
                 unitOfWorkService.createUnitOfWork("create<Aggregate>"))
-        then: 'read back through a second, fresh UnitOfWork'
+        then: 'read back off a cleared persistence context, through a fresh UnitOfWork'
+        flushAndClear()
         def readBack = <aggregate>Service.get<Aggregate>ById(dto.aggregateId,
                 unitOfWorkService.createUnitOfWork("check"))
         readBack.<field> == <expectedValue>
@@ -253,10 +314,23 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
         event.<payloadField> == <expectedValue>   // every payload field from plan.md
     }
 
-    // Negative case: capture countBefore = eventService.getAllEvents().size() in given:,
-    // run the non-publishing service op, assert getAllEvents().size() == countBefore.
+    def "<nonPublishingOp> publishes no <Xxx>Event"() {
+        // Spec: plan.md §<n> <Aggregate> — <NonPublishingOp> is not in "Events published"
+        given:
+        def publisher = create<Aggregate>(/* fixture via base-class helper */)
+        def countBefore = eventService.getAllEvents().size()
+        when:
+        <aggregate>Service.<nonPublishingOp>(publisher.aggregateId, /* args */,
+                unitOfWorkService.createUnitOfWork("<nonPublishingOp>"))
+        then:
+        eventService.getAllEvents().size() == countBefore
+    }
 }
 ```
+
+`countBefore` is captured in `given:` **after** the fixture is built — fixture helpers commit
+operations that publish events of their own, so a count taken before them measures the fixture, not
+the operation under test.
 
 ### Not-Found Paths
 
@@ -276,8 +350,18 @@ unrelated event → state unchanged; deletion event → consumer deleted. `@Sche
 run in `@DataJpaTest` — call the polling method directly:
 `<consumer>EventHandling.handle<Xxx>Events()`. These tests trigger publication via a functionality
 but must not re-assert event-store contents (T2 owns that). If the consumer DTO does not expose a
-cached sub-entity field, load the aggregate via `aggregateLoadAndRegisterRead` and assert on
-`agg.<subEntity>.<cachedField>`.
+cached sub-entity field, load the aggregate with the `loadForCheck(aggregateId, type)` helper the
+scaffolded `<AppName>SpockTest` ships and assert on `agg.<subEntity>.<cachedField>`:
+
+```groovy
+def agg = loadForCheck(consumer.aggregateId, Saga<Consumer>)
+agg.<subEntity>.<cachedField> == <newValue>
+```
+
+`loadForCheck` creates the `"check"` unit of work and casts, so it is the read-back shape everywhere
+a test asserts through the aggregate rather than a DTO — in T3 and T4 alike. Call
+`unitOfWorkService.aggregateLoadAndRegisterRead` directly only where the test needs the unit of work
+itself, or registers the read on a unit of work it goes on to use.
 
 **Deletion events:** when processing calls `remove()` on the consumer, `aggregateLoadAndRegisterRead`
 filters out `DELETED` aggregates and throws `SimulatorException` — the load-and-assert pattern
@@ -301,7 +385,7 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
         and: 'consumer polls for the event'
         <consumer>EventHandling.handle<Xxx>Events()
         then: 'consumer cached field is updated'
-        <consumer>Service.get<Consumer>(consumer.aggregateId,
+        <consumer>Service.get<Consumer>ById(consumer.aggregateId,
                 unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
     }
 
@@ -375,36 +459,31 @@ class <FunctionalityName>Test extends <AppName>SpockTest {
 }
 ```
 
-### Soft-delete functionalities — the happy-path state assertion
+**Exception — a functionality whose success makes its own aggregate unresolvable.** A
+delete-shaped operation (one that soft-deletes the primary aggregate, or otherwise leaves it outside
+what the unit of work will resolve) has **no happy-path case**. `sagaStateOf(<aggregateId>)` loads
+through `aggregateLoadAndRegisterRead`, which throws rather than returning a state once the
+aggregate no longer resolves, so the assertion the template mandates cannot run. The substitutes are
+all worse: a persistence read-back belongs to T2 (§ Assertion Ownership), and a bare
+`noExceptionThrown()` is the Fake smell named in § Fake/Wrong/Weak.
 
-`sagaStateOf(id)` loads through `aggregateLoadAndRegisterRead`, which resolves only the latest
-**non-`DELETED`** version. A functionality whose whole purpose is the soft delete therefore leaves
-nothing for that call to load: the happy-path `sagaStateOf(id) == GenericSagaState.NOT_IN_SAGA`
-assertion throws `SimulatorException` instead of failing an equality, and no ordering of the test
-recovers it — the state it would read no longer exists by the time the operation has succeeded.
+Such a functionality is fully covered without one: the **lock-acquisition** case pins the acquire
+transition, the **compensation** case pins the compensate transition, and **T2** owns the assertion
+that the operation actually applied — the terminal state, any flag the owning aggregate's invariants
+require to move with it, and the published event's payload. Record the omission in the T4 file with
+a one-line comment naming this section, so a reader does not read the gap as missing coverage.
 
-For those functionalities only, the happy path substitutes the assertion that the delete actually
-landed. Put the load in an `and:` block so it sits inside the `when:` phase's exception-capture
-scope, exactly as § T3 does for deletion events:
+**`commandGateway` is not inherited.** Neither `SpockTest` nor `<AppName>SpockTest` declares it, so a
+lock-acquisition test that constructs its saga directly must declare the field itself:
 
 ```groovy
-def "delete<Aggregate>: success"() {
-    given:
-    def aggregateId = create<Aggregate>(/* args */)
-    when:
-    <primary>Functionalities.delete<Aggregate>(aggregateId)
-    and: 'attempt to load the now-deleted aggregate'
-    unitOfWorkService.aggregateLoadAndRegisterRead(
-            aggregateId, unitOfWorkService.createUnitOfWork("check"))
-    then: 'DELETED aggregate is not loadable'
-    thrown(SimulatorException)
-}
+@Autowired
+<Concrete>CommandGateway commandGateway
 ```
 
-Every other T4 case for the functionality is unaffected, and the substitution does **not** extend to
-them: the lock-acquisition case reads the state before the delete step runs, and the compensation
-case reads it after an abort left the aggregate `ACTIVE`. Both keep the `NOT_IN_SAGA` assertion, and
-the compensation case is where the lock lifecycle of a delete saga is actually pinned.
+Use the **concrete** gateway type registered by `BeanConfigurationSagas`, not the `CommandGateway`
+interface: the test profile registers more than one implementation, so injection by the interface type
+is ambiguous and fails at context startup.
 
 ### Compensation Test
 
@@ -426,8 +505,8 @@ then makes a three-part assertion: (1) the expected exception propagates — nor
 non-fault reason first (an update step whose target fields are P1 `final` always throws its
 immutability constant, for instance — no impairment is needed there, just an added
 `sagaStateOf(...) == NOT_IN_SAGA` assertion on the existing lock-acquisition test); (2)
-`sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3)
-read-back through the functionality's own getter shows the mutation never applied.
+`sagaStateOf(aggregateId) == GenericSagaState.NOT_IN_SAGA` (compensation actually ran); (3) a
+read-back through the aggregate's read surface shows the mutation never applied.
 
 ```groovy
 class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
@@ -458,6 +537,14 @@ class <FunctionalityName>CompensationTest extends <AppName>SpockTest {
     }
 }
 ```
+
+**The read-back uses whatever read coordinator the aggregate actually exposes.** The template shows
+a by-id getter because that is the common shape, but an aggregate may deliberately expose only a
+filtered list read - and the read surface is fixed by session 2.{N}.b, not by this test. In that
+case call the list coordinator and select the aggregate under test from the result by its id.
+Never add a read coordinator, a service method or a command to satisfy this template: an unplanned
+by-id read is a functionality the domain model did not ask for, and it ships to production code to
+serve a test.
 
 **The `ImpairmentService` mechanism** — read before writing any of these:
 
@@ -553,6 +640,6 @@ def "<functionality>: N concurrent invocations all succeed"() {
     participants.collect { p ->
         Thread.start { <primary>Functionalities.<functionalityName>(shared.aggregateId, p.aggregateId) }
     }*.join()
-    then: 'read back via a fresh UnitOfWork: <collection>.size() == N'
+    then: 'flushAndClear(), then read back via a fresh UnitOfWork: <collection>.size() == N'
 }
 ```
