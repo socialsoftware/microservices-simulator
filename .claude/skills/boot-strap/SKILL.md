@@ -1,7 +1,7 @@
 ---
 name: boot-strap
 description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap my-app).
-argument-hint: "<App Name>"
+argument-hint: "<App Name> [--self-healing]"
 ---
 
 # Boot-Strap Phase 0 Application
@@ -14,13 +14,18 @@ Every file is produced from a checked-in template under `.claude/skills/boot-str
 
 ## Input
 
-The skill is invoked as: `/boot-strap <App Name>`
+The skill is invoked as: `/boot-strap <App Name> [--self-healing]`
 
 Examples:
 - `/boot-strap my-app`
-- `/boot-strap train-ticket`
+- `/boot-strap train-ticket --self-healing`
 
 > **If no argument is provided**, ask the user: "What should the new application be named? (kebab-case, e.g. `my-app`)"
+
+`--self-healing` turns the run's self-healing mode ON. Absent, the mode is **off** - see
+`AGENTS.md` § "Harness evolution". This skill is the **sole declarer** of the mode for the whole run:
+it writes the mode into the `harness-log.md` header in Step 4b and nothing later rewrites that
+header. Do not infer the mode from anything else the invocation says; only the flag turns it on.
 
 ## Process
 
@@ -103,6 +108,32 @@ Phase 2` marker comments (Phase 2 relies on them as insertion points).
 
 Note that `SpockTest.groovy` lands in the **parent** package folder (`.../socialsoftware/`), not
 under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware`.
+
+### Step 4b: Create the Harness Log
+
+Create `applications/{app-name}/harness-log.md` with exactly this content - header only, no rows.
+Substitute `{app-name}`, and `on` or `off` for `{mode}` per the `--self-healing` flag from Step 1:
+
+```markdown
+# Harness Log - {app-name}
+
+**Self-healing:** {mode}
+
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
+
+| # | Session | Type | Artifact | Problem | Outcome | Ref |
+|---|---------|------|----------|---------|---------|-----|
+```
+
+If the file already exists, leave it **untouched** - it is append-only and may already carry rows and
+a declared mode from a partial run. Report that it was found rather than created, and report the mode
+its header declares, which is the mode in force from here on.
+
+Report the mode in the Step 6 confirmation either way. It changes what every later session may do,
+and a run whose mode nobody stated is a run whose record cannot be interpreted.
+
+Any friction this session encounters with the harness is appended here as a row with `Session` = `0`,
+under the gates in `AGENTS.md` § "Harness evolution", which apply from this session onward.
 
 ### Step 5: Give the New App the Machine-Local Maven Settings
 
@@ -204,8 +235,10 @@ fail for a reason unrelated to the scaffold. Never commit `applications/{app-nam
    from the `simulator` library: fix the **template**, then regenerate. Do not patch the generated
    app.
 
-3. Report that bootstrap completed successfully and list the full paths of all 9 created files.
-4. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
+3. Report that bootstrap completed successfully and list the full paths of all 9 created files, plus
+   `harness-log.md` from Step 4b and whether it was created or already present.
+4. State the run's self-healing mode, as declared in the `harness-log.md` header.
+5. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
 
 ### Step 7: Commit the Scaffold
 
@@ -213,8 +246,8 @@ Phase 0 output must be committed before Phase 1 starts. Left uncommitted, the fi
 commits of the run are not buildable from a clean checkout, and the run's history no longer shows
 where the application began.
 
-Stage the 9 generated files with explicit paths - never `git add -A` or `git add .`, which would
-sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
+Stage the 9 generated files and `applications/{app-name}/harness-log.md` with explicit paths - never
+`git add -A` or `git add .`, which would sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
 config and is **not** staged; Step 5 already excluded it.
 
 ```
@@ -229,6 +262,9 @@ apart from `.mvn/`, and report the commit sha.
 ## Notes
 
 - The skill does not create a `plan.md` — that is Phase 1's responsibility.
+- The skill **is** the sole creator of `harness-log.md` and the sole declarer of the self-healing
+  mode. `/classify-and-plan` halts if the file is absent rather than creating it, so a run that
+  skipped Phase 0 cannot acquire a mode by accident.
 - `{AppClass}Simulator.java` is **required**, not optional, even though nothing in Phase 0 runs it. Phase 2 test classes are annotated `@DataJpaTest`, which locates its context by searching for a `@SpringBootConfiguration` in the test's package and then upwards; `{AppClass}Simulator` in `pt.ulisboa.tecnico.socialsoftware.{pkg}` is the only class that search can find. It also supplies the `@EnableJpaRepositories` / `@EntityScan` over both `...{pkg}` and `...ms` that the simulator's entities and repositories need. Omit it and the first Phase 2 test fails with `Unable to find a @SpringBootConfiguration by searching packages upwards from the test`. The per-aggregate `{Aggregate}ServiceApplication` created in session 2.N.a does not substitute for it: it sits under `...{pkg}.microservices.{aggregate}`, which is not an ancestor of any test package, and is `@Profile`-gated.
 - All 9 files are ready for Phase 1 planning immediately after bootstrap completes.
 - `@PropertySource("classpath:application-test.properties")` in `BeanConfigurationSagas` resolves against `simulator/src/main/resources/application-test.properties` in the library jar, not against the new app. Leave it unchanged.

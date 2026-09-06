@@ -1,7 +1,7 @@
 ---
 name: implement-aggregate
 description: Phase 2 aggregate implementation for microservices-simulator. Auto-detects the next unchecked session in plan.md and delegates to the appropriate sub-file (session-a.md through session-d.md). Invoke with /implement-aggregate [session] (e.g., /implement-aggregate or /implement-aggregate 2.3.b).
-argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
+argument-hint: "[session] [--self-healing|--no-self-healing] (e.g. 2.3.b - session optional, auto-detects if omitted)"
 ---
 
 # Phase 2: Implement Aggregate
@@ -51,6 +51,8 @@ Invoked as:
 
 - **No argument** — auto-detect the next unchecked session across all `applications/*/plan.md` files.
 - **With session arg** (e.g., `2.3.b`) — target that specific session; skip the auto-detect scan.
+- **`--self-healing` / `--no-self-healing`** - override the run's declared self-healing mode for this
+  invocation only (Step 3b). The `harness-log.md` header is never rewritten.
 
 > If multiple applications have unchecked sessions and no argument was given, ask: "Multiple apps have unchecked sessions: {list}. Which should I work on?"
 
@@ -140,23 +142,35 @@ Implementation starts at Step 4. Before it does, load the gate, because this is 
 actually fires: read `AGENTS.md` § "Harness evolution" in full. It defines Type 1, Type 2 and
 `2-fw`; do not proceed on a remembered version of it.
 
+**Read the mode before anything else.** Open the `**Self-healing:**` line in the header of
+`applications/{app-name}/harness-log.md`. `on` or `off`; missing, unreadable or anything else means
+**off** (`.claude/skills/_shared/conventions.md` § "Harness log"). A `--self-healing` /
+`--no-self-healing` flag on this invocation overrides it for this session only, and is stated in the
+completion report and the retro rather than written to the header. State the mode in force, and
+whether it came from the header or a flag, in the completion report.
+
 Operationally, for every friction point hit between here and the end of the session:
 
 1. **Classify it first.** Can you demonstrate the harness wrong mechanically - a failing build, a
    symbol that does not exist, two harness files prescribing different things? That is Type 1.
-   Otherwise it is Type 2.
-2. **Type 1 - fix it on the spot.** Repair the `docs/` or `.claude/skills/` file, commit it alone
-   with a `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the session,
-   and do not work around it in the application code. The fix is written in the neutral vocabulary
-   of `.claude/skills/_shared/conventions.md` § "Neutral domain".
-3. **Type 2 - halt before writing any code.** The answer is a design decision and it determines the
-   code, so writing first and asking later produces code that has to be thrown away. State what the
-   harness says, what it does not settle, and the options; then wait.
-4. **Anything under `simulator/` is Type `2-fw` and always halts**, even when it looks mechanically
-   provable. There is no Type 1 fast path for the framework.
+   Otherwise it is Type 2. **Classification does not depend on the mode**; only what you do next
+   does.
+2. **Type 1, mode ON - fix it on the spot.** Repair the `docs/` or `.claude/skills/` file, commit it
+   alone with a `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the
+   session, and do not work around it in the application code. The fix is written in the neutral
+   vocabulary of `.claude/skills/_shared/conventions.md` § "Neutral domain".
+3. **Type 1, mode OFF - do not edit the harness, and do not halt.** Proceed on the most reasonable
+   reading, log the row with `Outcome` = `deferred` and `Ref` = `-`, and name it in the completion
+   report so the human can act on it between runs. Say in the report which reading you proceeded on;
+   that sentence is what makes the deferred row actionable later.
+4. **Type 2 - halt before writing any code, in both modes.** The answer is a design decision and it
+   determines the code, so writing first and asking later produces code that has to be thrown away.
+   State what the harness says, what it does not settle, and the options; then wait.
+5. **Anything under `simulator/` is Type `2-fw` and always halts**, in both modes, even when it looks
+   mechanically provable. There is no Type 1 fast path for the framework.
 
 Every one of these gets a row in `harness-log.md` at `_shared/session-completion.md`
-§ "Harness-log rows", whatever its outcome.
+§ "Harness-log rows", whatever the mode and whatever its outcome.
 
 ---
 

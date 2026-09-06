@@ -128,6 +128,10 @@ here; if it changes, edit the skill, not this file.
 base classes, all produced from the checked-in scaffold templates under
 `.claude/skills/boot-strap/templates/`.
 
+It also creates `applications/{app-name}/harness-log.md` and is the **sole declarer** of the run's
+self-healing mode, written into that file's header and never rewritten afterwards. `--self-healing`
+turns the mode on; absent, it is off (`AGENTS.md` § "Harness evolution").
+
 The full procedure — exact files read, every transformation applied, and the complete produced-file
 list — is authoritatively defined in
 [`.claude/skills/boot-strap/SKILL.md`](../.claude/skills/boot-strap/SKILL.md). Invoke it with
@@ -148,11 +152,10 @@ plan.md does not exist yet. Phase 1 creates it.
 - `docs/concepts/rule-enforcement-patterns.md` — the pattern taxonomy and classification flowchart
 
 ### Produces
-`applications/{app-name}/plan.md` and an empty `applications/{app-name}/harness-log.md` (header
-and schema per `.claude/skills/_shared/conventions.md` § "Harness log"), using the structure
-defined in
-`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above). The agent
-must:
+`applications/{app-name}/plan.md` only, using the structure defined in
+`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above).
+`harness-log.md` belongs to Phase 0: this phase **halts** if it is absent rather than creating one,
+because creating it here would create it without a declared mode. The agent must:
 
 1. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
 2. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
@@ -163,7 +166,8 @@ must:
 4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 
 ### Does not modify
-Any source file. Output is plan.md and harness-log.md only.
+Any source file, and not the `harness-log.md` header. Output is plan.md, plus any harness-log rows
+this session's own friction produced.
 
 ---
 
@@ -239,11 +243,18 @@ After the last session of aggregate `{N}` is committed and before the first sess
 aggregate boundary and tells the human to run it; it never runs it itself and never continues to
 `{N+1}`.
 
-The harness is self-healing (`AGENTS.md` § "Harness evolution"), so sessions repair `docs/` and
-`.claude/skills/` mid-run under the Type 1 gate. The artifacts therefore change while they are being
-read, and a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a` is about to follow. The
-boundary is the last moment that contradiction is cheap to find. It also runs the neutral-domain
-check that keeps this run's domain nouns out of the harness.
+Most of what it catches is application-side and mode-independent. Aggregate `{N}` is the first
+consumer of every pattern it exercised, so the boundary is where a misread doc shows up as a wrong
+implementation while only one aggregate has been built on it, rather than after five. It also runs
+the neutral-domain check that keeps this run's domain nouns out of the harness - the check that
+protects the *next* application the harness is pointed at, and the reason the boundary matters even
+on a run that changed nothing.
+
+Mid-run harness drift is a third reason, and it applies **only under self-healing ON**
+(`AGENTS.md` § "Harness evolution"). There, sessions repair `docs/` and `.claude/skills/` under the
+Type 1 gate, so the artifacts change while they are being read and a fix made in `2.{N}.c` can
+contradict a doc that `2.{N+1}.a` is about to follow. Under OFF no such drift exists, and the first
+two reasons still stand on their own.
 
 It reports; it does not repair. Act on its Critical and Major findings before starting `{N+1}`.
 

@@ -1,7 +1,7 @@
 ---
 name: implement-aggregate-full
 description: Phase 2 whole-aggregate implementation for microservices-simulator. Drives sessions 2.N.a through 2.N.d for one aggregate in a single run, delegating each slice to a fresh aggregate-slice subagent and owning the harness gate, the retros and the commits. Invoke with /implement-aggregate-full <N> or /implement-aggregate-full <Aggregate>.
-argument-hint: "<N> or <Aggregate> (e.g. 3 or Warehouse)"
+argument-hint: "<N> or <Aggregate> [--self-healing|--no-self-healing] (e.g. 3 or Warehouse)"
 ---
 
 # Phase 2: Implement a Whole Aggregate
@@ -55,16 +55,28 @@ conventions section resolves `{N}` from the header. If no argument was given, ha
 aggregate to run - do not auto-detect. This skill commits four sessions in a row; starting on the
 wrong aggregate is expensive.
 
-## Step 2: Load the gate
+## Step 2: Load the gate and read the mode
 
 Read `AGENTS.md` § "Harness evolution" in full. Do not proceed on a remembered version of it.
 
+**Read the run's self-healing mode.** Open the `**Self-healing:**` line in the header of
+`applications/{app-name}/harness-log.md`. `on` or `off`; missing, unreadable or anything else means
+**off** (`_shared/conventions.md` § "Harness log"). A `--self-healing` / `--no-self-healing` flag on
+this invocation overrides it for this run of the skill only, and is stated in the Step 6 report and
+in each session's retro rather than written to the header. Report the mode in force and where it came
+from. The slices are told nothing about it: they never had the authority the mode withholds, so their
+contract is identical in both modes.
+
 **The gate is yours exclusively.** Slices report friction; they never repair it. You:
 
-- make every Type 1 fix yourself, and commit it alone with a `harness:` prefix;
-- escalate every Type 2 and every `2-fw` to the human, verbatim, and wait;
+- own the mode, and the branch it selects for every Type 1 report;
+- escalate every Type 2 and every `2-fw` to the human, verbatim, and wait, in both modes;
 - own every row appended to `applications/{app-name}/harness-log.md`;
 - own every commit of the run.
+
+Under **ON** you additionally make every Type 1 fix yourself and commit it alone with a `harness:`
+prefix. Under **OFF** you make none: a Type 1 report becomes a `deferred` row and a note in the
+re-spawn brief, never a fix and never a `harness:` commit.
 
 The reason is single-writer: several slices independently repairing the same ambiguity would produce
 competing `harness:` commits and racing appends to an append-only log whose next `#` is read from its
@@ -122,13 +134,20 @@ For each unticked slice of the session, in the order plan.md lists them, one at 
 **c. On `STATUS: HALTED`:**
 
 - **Type 1** - triage it. Read the named harness file (this is the one lazy read you are allowed).
-  If the report holds, repair the file in neutral vocabulary, commit it **alone** with a `harness:`
-  prefix, and re-spawn the slice with the fix named in its brief. If the report does not hold, say
-  so in the re-spawn brief and re-spawn without a fix.
+  Then branch on the mode:
+  - **ON:** if the report holds, repair the file in neutral vocabulary, commit it **alone** with a
+    `harness:` prefix, and re-spawn the slice with the fix named in its brief. If the report does not
+    hold, say so in the re-spawn brief and re-spawn without a fix.
+  - **OFF:** repair nothing and commit nothing. If the report holds, decide the most reasonable
+    reading yourself - it is a contradiction, so it has a demonstrable answer and needs no human -
+    and re-spawn the slice with that reading in the brief under `HARNESS DEFERRED:`, naming the file,
+    the contradiction, and the reading to follow. Record it as a `deferred` row. If the report does
+    not hold, say so in the re-spawn brief exactly as under ON.
 - **Type 2 / `2-fw`** - surface the block to the human **verbatim**: the artifact, the problem, and
   the options as the slice stated them. Then **wait**. Do not answer it yourself, do not pick the
   option that looks obvious, and do not proceed with the rest of the session. When the human answers,
-  re-spawn the slice with the answer appended to its brief.
+  re-spawn the slice with the answer appended to its brief. **This is identical in both modes**: the
+  mode withholds unilateral repair, and a Type 2 was never repairable unilaterally.
 
 **d. On `STATUS: FAILED`:**
 
@@ -140,9 +159,11 @@ For each unticked slice of the session, in the order plan.md lists them, one at 
 build on earlier slices' state, so a green result from a slice that ran on top of a broken one means
 nothing. Stop the line.
 
-A `DONE` slice that reported Type 1 friction without halting still gets its fix: repair the harness
-file and commit it with a `harness:` prefix before spawning the next slice, so the next slice reads
-the corrected version.
+A `DONE` slice that reported Type 1 friction without halting is handled by the same branch. Under ON,
+repair the harness file and commit it with a `harness:` prefix **before** spawning the next slice, so
+the next slice reads the corrected version. Under OFF, record the `deferred` row and carry the
+reading forward in the next slice's brief; the file the next slice reads is unchanged, which is
+exactly what OFF buys.
 
 ### 5.2 Close the session
 
@@ -176,13 +197,14 @@ Report to the human:
 
 - sessions committed, with their commit shas;
 - slices run per session, and how many needed a re-spawn;
-- harness fixes made, with their `harness:` commit shas;
+- the self-healing mode in force, and whether it came from the header or an invocation flag;
+- under ON, harness fixes made, with their `harness:` commit shas; under OFF, every `deferred` row
+  with the reading you proceeded on, since those are the run's open harness findings;
 - Type 2 questions raised and how they were answered, plus any left open;
 - the instruction: **run `/review-artifacts` in a fresh session before starting aggregate {N+1}**.
 
-That checkpoint stays human-invoked and unchanged (`docs/workflow.md` § "Aggregate-boundary
-checkpoint"). The harness is self-healing, so the artifacts changed while this run was reading them,
-and the boundary is the last moment a contradiction introduced mid-aggregate is cheap to find.
+That checkpoint stays human-invoked and unchanged, in both modes (`docs/workflow.md`
+§ "Aggregate-boundary checkpoint").
 
 If the run halted early, report the same list plus the exact point it stopped and what unblocks it.
 
@@ -236,8 +258,9 @@ For a whole-session (unsliced) run, `YOUR SLICE` names the session itself and th
 sentence is dropped; everything else is unchanged.
 
 On a re-spawn, append one clearly-labelled section to the brief and change nothing else:
-`PREVIOUS ATTEMPT FAILED:` with the surefire output, or `HUMAN DECISION:` with the answer to the
-Type 2 question, or `HARNESS FIXED:` naming the file and what changed.
+`PREVIOUS ATTEMPT FAILED:` with the surefire output, `HUMAN DECISION:` with the answer to the Type 2
+question, `HARNESS FIXED:` naming the file and what changed (mode ON), or `HARNESS DEFERRED:` naming
+the file, the contradiction and the reading to proceed on (mode OFF).
 
 ### Shared files per session type
 

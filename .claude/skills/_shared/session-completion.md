@@ -11,6 +11,10 @@ harness-log rows, commit. Consumed via a blocking Read pointer by both Phase 2 e
 The two modes differ in exactly one place: § "Retro assembly". Everything else is identical, and the
 retro **file shape** is identical in both.
 
+Unqualified, "mode" in this file means that topology. The run's **self-healing mode**
+(`AGENTS.md` § "Harness evolution") is always named in full, and is orthogonal: either topology runs
+under either self-healing mode.
+
 Required context variables (already resolved by the calling skill): `{app-name}`, `{Aggregate}`,
 `{N}`, `{type}`.
 
@@ -76,9 +80,13 @@ After ticking the checkbox, output a concise structured report:
 3. **plan.md additions** — any files added to the plan.md file table during this session, and why
 4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that required inference or guessing beyond what the docs cover
 5. **Doc gaps** — any pattern that wasn't covered by the docs or skill and required inference or guessing; each gap is a candidate for a documentation improvement
-6. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
+6. **Self-healing mode** - the mode in force this session, and whether it came from the
+   `harness-log.md` header or an invocation flag. Under OFF, list every Type 1 friction point
+   deferred this session with the reading the session proceeded on; those are the run's open harness
+   findings and this report is where the human sees them.
+7. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
 
-In manager mode, add a seventh line: **Slices run** — the slice ids of this session, each with
+In manager mode, add an eighth line: **Slices run** — the slice ids of this session, each with
 `DONE` and the number of re-spawns it took.
 
 ---
@@ -258,6 +266,9 @@ adding to docs or skills.
 
 ## Harness Changes
 
+Self-healing mode in force this session, and its source (`harness-log.md` header, or an invocation
+flag overriding it for this session only): {mode} ({source})
+
 Rows appended to `applications/{app-name}/harness-log.md` this session: {row numbers, or "none"}
 
 For each `fixed` row, the `harness:` commit sha:
@@ -306,9 +317,15 @@ that was missing, wrong or ambiguous; a `.claude/skills/` instruction that faile
 
 - Read the last row of the file to get the next `#`. Append only; never rewrite or delete rows.
 - `Session` is this session's `{session-id}`.
-- `Ref` is the `harness:` commit sha for the Type 1 fixes already committed during the session.
-- If the file does not exist, halt: **"harness-log.md missing. It is created by
-  /classify-and-plan."**
+- **Rows are written in both self-healing modes.** The mode changes a row's `Outcome`, never whether
+  the row exists. A run under OFF produces the same record of where the harness failed; it simply did
+  not act on it mid-run.
+- `Outcome` under **ON**: `fixed` for a Type 1 repaired this session, with `Ref` = its `harness:`
+  commit sha. `Outcome` under **OFF**: `deferred` for every Type 1, with `Ref` = `-`. A `fixed` row
+  under OFF is a contradiction in the record - no `harness:` commit exists to point at.
+- Type 2 and `2-fw` rows are unaffected by the mode: `fixed` with a sha when the human's answer was
+  written into the harness, `declined` with `-` when the human decided the harness was right.
+- If the file does not exist, halt: **"harness-log.md missing. It is created by /boot-strap."**
 - Defects in the generated application are **not** harness friction. Fix them in this session.
 
 If there was none, append nothing and write "none" in `## Harness Changes`.
@@ -323,6 +340,45 @@ row.
 
 ## Commit
 
+### Under self-healing OFF, verify the harness is untouched
+
+OFF is **enforced here, not merely instructed**. Before staging anything, when the mode in force is
+`off`:
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+python3 - <<'EOF'
+import subprocess
+
+HARNESS = ("docs/", ".claude/", "AGENTS.md", "CLAUDE.md", "HARNESS.md")
+out = subprocess.run(["git", "status", "--porcelain"],
+                     capture_output=True, text=True, check=True).stdout
+def paths(line):                      # a rename line carries both sides; either one counts
+    return [p.strip('"') for p in line[3:].split(" -> ")]
+
+dirty = [l for l in out.splitlines()
+         if any(p.startswith(HARNESS) for p in paths(l))]
+print(f"harness-bucket paths dirty={len(dirty)}")
+for l in dirty:
+    print("  " + l)
+EOF
+```
+
+The paths are the Harness bucket of `AGENTS.md` § "What the harness is". The check runs through
+`python3` and not `git status | grep`, because its output decides a verdict
+(`conventions.md` § "Commands whose output feeds a verdict").
+
+**A non-zero count halts the commit.** Report each path and stop. Do not stage it, do not revert it
+silently, and do not commit around it: an edit reaching a harness file under OFF means either the
+gate was bypassed or the session mis-read the mode, and both are findings the human must see. The
+whole value of OFF is that the artifacts an agent was measured against are provably the ones it was
+given, and a single unnoticed edit destroys that for the entire run.
+
+This check is unnecessary under ON, where harness edits are expected and arrive in their own
+`harness:` commits.
+
+### Stage and commit
+
 Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
 - Every file created or modified (from the completion report)
 - The retro file written above
@@ -336,7 +392,8 @@ feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
 
 Example: `feat({app-name}): 2.2c ({Aggregate} Write Functionalities)`
 
-This is the **only** commit a session produces, in either mode. Slices never commit. `harness:`
-commits for Type 1 fixes are separate and are issued when the fix is made, not here.
+This is the **only** commit a session produces, in either topology. Slices never commit. Under
+self-healing ON, `harness:` commits for Type 1 fixes are separate and are issued when the fix is
+made, not here; under OFF a session produces no `harness:` commit at all.
 
 After the commit, output the commit hash and message as the final line of the session report.
