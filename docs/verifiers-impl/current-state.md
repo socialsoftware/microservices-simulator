@@ -1363,7 +1363,7 @@ do not explain this cohort.
 | --- | ---: | --- |
 | No relevant direct invocation found in the inspected tests, after separating event routes | 19 | Includes AnswerQuestion and ConcludeQuiz. Select useful user behavior and establish a working application test before expecting the verifier to extract an input. This is not proof of no coverage outside the inspected scope. |
 | Indirect event-consumer path identified | 12 | Includes removing a user from an attempt and updating a Tournament participant's answer. Static event routing shows how these paths can be reached, not that a test executed them. Qualification needs the producing event and the exact receiver's state. |
-| Direct invocation exists but no extracted input | 1 | The synchronous UpdateQuestionTopics call appears inside the benchmark loop in UpdateQuestionTopicsAsyncTest. Its asynchronous counterpart has an accepted input. Diagnose the missing extraction before adding a heuristic; its exact root cause is not yet established. |
+| Direct invocation exists but no extracted input | 1 | UpdateQuestionTopics occurs inside an `each` closure that the Groovy trace visitor does not traverse. The 2026-09-06 diagnosis below confirms loss before state/adapter filtering; executable support would also require loop-dependent setup and bindings. |
 
 These categories use event-route evidence first, then direct test calls, then absence
 of such calls. An event consumer can also lack a direct test call; the categories are
@@ -1385,6 +1385,75 @@ inputs (796 accepted, 90 rejected); the raw input file also includes four additi
 provider/prerequisite entries for already covered Sagas. Those entries do not alter
 the 36/32 partition or the 665 static-candidate result. There is no dynamic observation
 artifact in this static package, so the audit makes no runtime-coverage claim.
+
+### UpdateQuestionTopics closure diagnosis (2026-09-06)
+
+Reproduced against source revision `64a213d0acfa5edfc1dfb028909ecc865cfdcf5b`
+in an isolated source snapshot. The Java creation-site visitor discovers the exact
+`QuestionFunctionalities.updateQuestionTopics(Integer, List<Integer>)` facade and
+`question.coordination.sagas.UpdateQuestionTopicsFunctionalitySagas`; the Saga has three
+steps. Its misleadingly named `courseAggregateId` argument is passed to the Question
+lookup/update commands: the source value must remain the newly created Question's id.
+
+The Groovy source index includes both features in `UpdateQuestionTopicsAsyncTest`.
+An independent AST walk finds the direct async call at line 89 (closure depth zero),
+the sync call at line 113 and the benchmark async call at line 118 (both depth one).
+`GroovyConstructorInputTraceVisitor.traceExpression` receives the outer `each` method
+call. It tries event, facade, local-helper and workflow resolution, but never traverses
+its `ClosureExpression` argument. The range receiver is not a local `this` helper.
+Consequently, the two calls inside the closure never reach
+`ApplicationAnalysisState.groovyFullTraceResults`. The focused state probe retains only
+the direct async call. This happens **before** the scenario adapter and input policy;
+there is no rejected input row or per-call diagnostic for these unvisited calls.
+There is no benchmark-name exclusion explaining this result. The new
+`GroovyClosureBoundarySpec` uses the existing Dummyapp facade to verify two direct calls
+(with and without a benchmark name) and two absent closure calls (`each` and an unknown
+closure-taking receiver), all with identical literal arguments.
+
+Traversing a closure once would not make the actual input sound. The first `(1..10).each`
+creates Topics with interpolated names and appends their returned aggregate ids to
+`benchmarkTopicIds` using `<<`. The second `(1..3).each` creates fresh Questions with
+interpolated fields and invokes both variants. `syncQuestion` is closure-local and
+`idx` is iteration-dependent; the initially empty list is not the completed list of
+runtime ids. Correct setup would need bounded iteration semantics, ordered accumulation,
+result-property bindings and distinct occurrence identities per iteration. It must also
+account for earlier sync/async effects before selecting a later target. Existing
+straight-line feature-prefix setup does not authorize such replay. No arbitrary Groovy
+execution, cross-feature fixture substitution or invented id was added.
+
+Fresh generation produced the nine-file package
+`verifiers/target/update-question-topics-diagnosis/generated/quizzes-20260906-221628-290/`.
+It retains the 68-Saga, 36-with-input / 32-without-input partition. Exact synchronous Saga
+accounting is zero accepted, rejected, materializable and blocked inputs. The sole async
+input is `bc804a74c49af262c064bce7e12421dd3a3b268253838e44806f1dd301d849fb`,
+from `update question topics using async functionality`, not the benchmark. It is accepted
+but not materializable; its retained blocker reasons are `propertyReceiverNotReady`,
+`transformReceiverNotReady`, `unknownValue` and `unresolvedVariable`. Thus neither the
+missing sync input nor that blocked async input supplies a runtime qualification target.
+No Docker preflight or fault-free execution was attempted for them. No extraction or
+execution gain is claimed; production code was unchanged, so there is no before/after
+mechanism comparison.
+
+The next bounded option is a real direct synchronous application test with its own
+coherent supported preparation, followed by extraction and setup qualification. Reusing
+another feature's fixture would not qualify the existing benchmark. Alternatively,
+approve a separate contract for finite literal-range expansion, iteration limits,
+interpolation, collection mutation and occurrence/binding identity, with explicit
+rejection outside that subset. This is a scope proposal, not implemented support.
+
+Validation: 33 fresh Spock tests passed (the new characterization and the existing
+`GroovyConstructorInputTraceVisitorDummyappSpec`, zero failures/errors/skips). Reproduce
+from an isolated checkout with JDK 21 by running, in `verifiers`,
+`mvn -Dtest=GroovyClosureBoundarySpec,GroovyConstructorInputTraceVisitorDummyappSpec test`.
+Generation used `ScenarioGeneratorApplication`, Quizzes, `WRITE_WORKLOADS`, size one,
+`RESOLVED_OR_REPLAYABLE`, `SERIAL`, seed 1234, 10,000 input/workload caps, 20 schedules and
+one event consequence; dynamic enrichment was disabled. The package contains 966
+workloads and 2,601 fault scenarios across all Sagas, not new sync coverage. The local
+artifact root `verifiers/target/update-question-topics-diagnosis/` retains
+`TraceProbe.groovy`, `trace-probe.log`, `generation-command.json`,
+`generation.log`, `diagnosis.json`, fresh test XML/summary, source snapshot hashes and
+dependency hashes. Two initial invalid configurations are retained separately: zero
+allowed event consequences and then a zero input cap; neither is validation evidence.
 
 ### Bounded current dynamic smoke
 
