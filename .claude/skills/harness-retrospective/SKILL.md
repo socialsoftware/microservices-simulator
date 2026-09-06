@@ -1,6 +1,6 @@
 ---
 name: harness-retrospective
-description: End-of-run empirical evaluation of the self-healing harness. Reads a completed run's harness-log.md and all retros, measures whether harness edits converged, re-judges every Type 1 edit the agent made without asking, and produces a prioritised gap list. Runs once, after a run is finished. No arguments. Writes reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
+description: End-of-run empirical evaluation of the harness. Reads a completed run's harness-log.md and all retros and produces a prioritised gap list; under self-healing ON it also measures whether harness edits converged and re-judges every Type 1 edit the agent made without asking. Obligatory under ON, recommended under OFF. Runs once, after a run is finished. No arguments. Writes reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
