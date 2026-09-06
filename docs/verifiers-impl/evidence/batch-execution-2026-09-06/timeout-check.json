@@ -1,0 +1,11 @@
+{
+  "cleanup": {
+    "exitCode": 0,
+    "output": "batch-timeout-check-f9aab0a752cf\n"
+  },
+  "containerName": "batch-timeout-check-f9aab0a752cf",
+  "exitCode": null,
+  "retainedContainers": "",
+  "status": "TIMEOUT",
+  "wallSeconds": 2.163705083017703
+}

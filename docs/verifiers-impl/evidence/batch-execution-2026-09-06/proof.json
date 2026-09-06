@@ -1,0 +1,32 @@
+{
+  "additionalFinalRunnerChecks": 2,
+  "campaignAttempts": 36,
+  "integrity": "1014 current/copied source files, 2669 prepared-build files, manifest and 8 package artifacts, 306 Maven dependencies, image and launcher; before/after checks PASS. Cached simulator/verifier jars match prepared jars.",
+  "machine": {
+    "architecture": "linux/aarch64",
+    "cpu": "Apple M4",
+    "dockerCpuCount": 10,
+    "dockerMemoryBytes": 8218034176,
+    "hostCpuCount": 10,
+    "hostMemoryBytes": 17179869184
+  },
+  "measurementCodeNote": "The main campaign was already running while report-schema validation, launch-failure records and prepared-JAR compatibility checks were tightened. Its 36 reports were rechecked with the final validator; the final runner also completed a separate two-case smoke. Timing/launcher/selection/semantic expectations were unchanged.",
+  "preservedFiles": {
+    "docs/verifiers-impl/reunioes/2026-09-08.md": "fe7a7447fc3ecff16cb24bf6b6bd41c018f3520111f42918a3297d47f72cc205",
+    "note-04-09-2026.md": "fbb3d389e4e5ce6d930644f08a3deef2ede3dd0858f2ed147cb5289f548b2a83"
+  },
+  "python": "3.14.7",
+  "scriptHashes": {
+    "docker-compose.yml": "8fa3820cd0086f3775217f7e1021b607f9efec4350f7de0d05ef27f68c8a6329",
+    "verifiers/experiments/batch-execution/run.py": "cf1a2c7673ad4bf8ce305276397f92fc9e3457779cde9f3d16de44b9e3b0f364",
+    "verifiers/experiments/batch-execution/summarize.py": "93b44e24fb664f96f0dfa2f1027070ab68e62457e48302aec51320a74f11c951",
+    "verifiers/experiments/batch-execution/test_run.py": "d2299572f906ef75f9f085861ca1394169a997c72a22d80a29e9579b1c1a0b01",
+    "verifiers/experiments/impact-v2-broader/qualification.py": "e4ab4c51bcbf28456830181a1b6892835c456ef6c46438fda781209ac91d1bec",
+    "verifiers/experiments/impact-v2-broader/run-prepared.sh": "72bd9b72e0962c1bc8607827aed6e7cd0c2af1dbd1bd2fe392c55ca1f1522b17",
+    "verifiers/experiments/impact-v2-broader/validate_assessment.py": "8abdfaa55ef18885ca8cbec40d02bd22533918f35194490ed097799913e3a141"
+  },
+  "sourceRevisionBeforeChange": "4c852a055a97a8168a07e01ab101499ce24e81e1",
+  "status": "PASS",
+  "timeoutCheckIsScenarioExecution": false,
+  "validation": "12 Python tests pass; final report recheck passes for all 36 campaign attempts and 2 additional final-runner attempts. Real Docker timeout removes only its named container."
+}

@@ -1,0 +1,467 @@
+{
+  "artifactRecheck": "PASS",
+  "groups": [
+    {
+      "attempts": 18,
+      "attemptsPerHour": 312.43122368426384,
+      "concurrency": 1,
+      "medianAttemptSeconds": 11.342769999988377,
+      "statuses": {
+        "PASS": 18
+      },
+      "timings": {
+        "prerequisiteSetupSeconds": {
+          "count": 18,
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p95NearestRank": 0.0
+        },
+        "sourceSetupSeconds": {
+          "count": 18,
+          "max": 0.953540292,
+          "mean": 0.7383280651666667,
+          "median": 0.726457625,
+          "min": 0.662548292,
+          "p95NearestRank": 0.953540292
+        },
+        "springStartupSeconds": {
+          "count": 18,
+          "max": 9.22,
+          "mean": 8.489,
+          "median": 8.382000000000001,
+          "min": 8.101,
+          "p95NearestRank": 9.22
+        },
+        "wallSeconds": {
+          "count": 18,
+          "max": 12.597800624964293,
+          "mean": 11.514524960505595,
+          "median": 11.342769999988377,
+          "min": 11.137008458026685,
+          "p95NearestRank": 12.597800624964293
+        }
+      },
+      "validCompletePerHour": 312.43122368426384,
+      "wallSeconds": 207.40564670797903
+    },
+    {
+      "attempts": 18,
+      "attemptsPerHour": 373.7273179927848,
+      "concurrency": 2,
+      "medianAttemptSeconds": 19.228756249474827,
+      "statuses": {
+        "PASS": 18
+      },
+      "timings": {
+        "prerequisiteSetupSeconds": {
+          "count": 18,
+          "max": 0.0,
+          "mean": 0.0,
+          "median": 0.0,
+          "min": 0.0,
+          "p95NearestRank": 0.0
+        },
+        "sourceSetupSeconds": {
+          "count": 18,
+          "max": 1.641812625,
+          "mean": 1.205199188,
+          "median": 1.1520596465000001,
+          "min": 0.826554292,
+          "p95NearestRank": 1.641812625
+        },
+        "springStartupSeconds": {
+          "count": 18,
+          "max": 16.443,
+          "mean": 14.824944444444444,
+          "median": 14.7425,
+          "min": 13.568,
+          "p95NearestRank": 16.443
+        },
+        "wallSeconds": {
+          "count": 18,
+          "max": 21.76700875000097,
+          "mean": 19.231884770619217,
+          "median": 19.228756249474827,
+          "min": 17.399352625012398,
+          "p95NearestRank": 21.76700875000097
+        }
+      },
+      "validCompletePerHour": 373.7273179927848,
+      "wallSeconds": 173.38844895799411
+    }
+  ],
+  "plannedAttempts": 36,
+  "preparationSeconds": 3.56573120795656,
+  "retainedAttempts": 36,
+  "statuses": {
+    "PASS": 36
+  },
+  "timingBoundary": "Wall: Docker launch through process exit. Spring startup: existing log timer. Setup: existing report nanosecond timer. Remaining wall time mixes Docker/JVM overhead, package loading, target actions, assessment, report I/O and shutdown; it is not pure execution time. Compilation/generation reused and not measured here.",
+  "timingRows": [
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.953540292,
+      "springStartupSeconds": 9.22,
+      "status": "PASS",
+      "wallSeconds": 12.597800624964293
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.76027975,
+      "springStartupSeconds": 8.109,
+      "status": "PASS",
+      "wallSeconds": 11.277469167020172
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.756790625,
+      "springStartupSeconds": 8.488,
+      "status": "PASS",
+      "wallSeconds": 11.49888325005304
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.708077,
+      "springStartupSeconds": 8.255,
+      "status": "PASS",
+      "wallSeconds": 11.419611291959882
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.689121417,
+      "springStartupSeconds": 8.212,
+      "status": "PASS",
+      "wallSeconds": 11.261762791022193
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.735339375,
+      "springStartupSeconds": 8.892,
+      "status": "PASS",
+      "wallSeconds": 11.853090290969703
+    },
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.765425209,
+      "springStartupSeconds": 8.351,
+      "status": "PASS",
+      "wallSeconds": 11.259652416047174
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.807174959,
+      "springStartupSeconds": 8.101,
+      "status": "PASS",
+      "wallSeconds": 11.261432958010118
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.675112792,
+      "springStartupSeconds": 8.307,
+      "status": "PASS",
+      "wallSeconds": 11.291435250022914
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.675489209,
+      "springStartupSeconds": 8.163,
+      "status": "PASS",
+      "wallSeconds": 11.158879541035276
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.664825917,
+      "springStartupSeconds": 8.718,
+      "status": "PASS",
+      "wallSeconds": 11.732052792038303
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.736780751,
+      "springStartupSeconds": 8.531,
+      "status": "PASS",
+      "wallSeconds": 11.39410474995384
+    },
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.717575875,
+      "springStartupSeconds": 8.396,
+      "status": "PASS",
+      "wallSeconds": 11.27016041695606
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.703137959,
+      "springStartupSeconds": 8.368,
+      "status": "PASS",
+      "wallSeconds": 11.137008458026685
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.794160042,
+      "springStartupSeconds": 9.125,
+      "status": "PASS",
+      "wallSeconds": 12.086673917016014
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.773331042,
+      "springStartupSeconds": 8.226,
+      "status": "PASS",
+      "wallSeconds": 11.25340570800472
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.711194667,
+      "springStartupSeconds": 8.622,
+      "status": "PASS",
+      "wallSeconds": 11.931789625028614
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.662548292,
+      "springStartupSeconds": 8.718,
+      "status": "PASS",
+      "wallSeconds": 11.576236040971708
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 1.121633375,
+      "springStartupSeconds": 15.984,
+      "status": "PASS",
+      "wallSeconds": 19.78965575003531
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 1.137722418,
+      "springStartupSeconds": 16.003,
+      "status": "PASS",
+      "wallSeconds": 20.354147250007372
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 1.641812625,
+      "springStartupSeconds": 14.847,
+      "status": "PASS",
+      "wallSeconds": 19.941395707952324
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 1.139272126,
+      "springStartupSeconds": 13.568,
+      "status": "PASS",
+      "wallSeconds": 17.51476295798784
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 0.944401792,
+      "springStartupSeconds": 14.939,
+      "status": "PASS",
+      "wallSeconds": 19.474340292043053
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "sourceSetupSeconds": 1.368952751,
+      "springStartupSeconds": 14.166,
+      "status": "PASS",
+      "wallSeconds": 18.709848166035954
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.826554292,
+      "springStartupSeconds": 13.846,
+      "status": "PASS",
+      "wallSeconds": 17.399352625012398
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 0.877409125,
+      "springStartupSeconds": 14.875,
+      "status": "PASS",
+      "wallSeconds": 18.900459167023655
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 1.164847167,
+      "springStartupSeconds": 14.453,
+      "status": "PASS",
+      "wallSeconds": 19.07161416602321
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 1.514602543,
+      "springStartupSeconds": 13.909,
+      "status": "PASS",
+      "wallSeconds": 18.70960666699102
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 1.62710225,
+      "springStartupSeconds": 16.443,
+      "status": "PASS",
+      "wallSeconds": 21.76700875000097
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "sourceSetupSeconds": 1.405052917,
+      "springStartupSeconds": 14.638,
+      "status": "PASS",
+      "wallSeconds": 19.584158583020326
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 1.117993833,
+      "springStartupSeconds": 15.085,
+      "status": "PASS",
+      "wallSeconds": 19.287347832985688
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 0.974830126,
+      "springStartupSeconds": 14.348,
+      "status": "PASS",
+      "wallSeconds": 18.275943499989808
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 1.222825917,
+      "springStartupSeconds": 14.281,
+      "status": "PASS",
+      "wallSeconds": 18.74744541605469
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 1.345492167,
+      "springStartupSeconds": 14.569,
+      "status": "PASS",
+      "wallSeconds": 19.229256082966458
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 1.091117001,
+      "springStartupSeconds": 15.802,
+      "status": "PASS",
+      "wallSeconds": 20.189326541032642
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "sourceSetupSeconds": 1.171962959,
+      "springStartupSeconds": 15.093,
+      "status": "PASS",
+      "wallSeconds": 19.228256415983196
+    }
+  ],
+  "totalWallSeconds": 386.7947359159589,
+  "uniqueExecutionAttemptIds": 36,
+  "validation": "PASS"
+}

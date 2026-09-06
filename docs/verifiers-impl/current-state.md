@@ -600,6 +600,25 @@ Unsupported:
 
 The compensation/failure boundary is retained in [`decisions/2026-07-19-compensation-aware-fault-scenario-contract.md`](decisions/2026-07-19-compensation-aware-fault-scenario-contract.md). Event-consequence ownership and replay isolation are retained in [`decisions/2026-07-30-deterministic-event-consequence-replay.md`](decisions/2026-07-30-deterministic-event-consequence-replay.md).
 
+### Repeated execution and cost measurement
+
+The [prepared batch runner](../../verifiers/experiments/batch-execution/README.md) freezes
+an explicit selection and prior semantic expectations, then reuses the existing prepared
+Docker build/package and launcher. Every attempt still creates a fresh JVM and in-memory
+H2 database. Repetitions, a per-attempt timeout, and concurrency 1 or 2 are configurable;
+there is no global time-budget mechanism, automatic retry, same-process reset or search
+policy. Sources, prepared artifacts, package, Maven dependencies and image are checked
+for identity/compatibility, and reports retain exact scenario/attempt joins.
+
+Attempt directories retain logs, commands, timings and available reports, including
+process failures, timeouts and invalid reports with null runner score. Semantic divergence
+is explicit. Measured wall time includes launch through process exit; existing Spring
+startup logs and setup-report timers provide narrower observations. The remainder cannot
+be called pure action-execution time. Compilation/generation reuse predates this runner
+and is separate from repeated cost. The [dated results](../../verifiers/experiments/batch-execution/RESULTS.md)
+cover six previously known cases from one Quizzes fixture, not catalogue-wide runtime
+qualification or a general search throughput guarantee.
+
 ## ImpactV1
 
 The simulator emits a structured invariant event only when `SagaUnitOfWorkService.registerChanged` reaches the existing `Aggregate.verifyInvariants()` boundary and that verification throws. Instrumentation records context and rethrows the identical application exception; evidence recording must not replace domain behavior.

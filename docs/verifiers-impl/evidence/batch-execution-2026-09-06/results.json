@@ -1,0 +1,2654 @@
+{
+  "attempts": [
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "containerName": "batch-014c6e7aa0a3481f99bc8fc2d7ede21b",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-none",
+      "executionAttemptId": "a637aa11-4dac-480c-ae2d-1d51d4113e81",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "07b2cfd1e67e6c3bb946c5a34310db7853ce193c0d02e92e5f0a076315ef1ced",
+        "execution.json": "ecc787be89c51c472aa1a8c1143cffb6239ddfa7d8fc1f6ef64e0b6bd8e864ce",
+        "impact-v1.json": "82b274faaff64506b7fff8d81de5911faf9a3f1bd7e5331d27f6f611333f18b5"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 0.953540292,
+      "startedAt": "2026-09-06T21:48:37.987757+00:00",
+      "status": "PASS",
+      "wallSeconds": 12.597800624964293
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "containerName": "batch-922b874366d14f48bb28f242d0ef41aa",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-answer",
+      "executionAttemptId": "97db05ff-6ef3-4a8b-9e56-2c408d59a2ee",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "c8c0bffba9445fcbf29af5be7913e59ffc7bf30acf316f20b5583a2f2c2ab2d9",
+        "execution.json": "76124168909856be52c4e1955fb447f4b5f9e84b7afbf6c856a479835641e164",
+        "impact-v1.json": "8e09496248c6cd2533415164288e5032c31538f96341c0a6efd7792aadce37d8"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.76027975,
+      "startedAt": "2026-09-06T21:48:50.594128+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.277469167020172
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "containerName": "batch-5ea305d7b5024714b539b117a1d6d1c7",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-quiz",
+      "executionAttemptId": "9875b5f8-b895-4d53-b89e-ddb3965d799d",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "a58682e54a284b27737bc0bae36dd7ec3912e03d161d132e4bd6b59fc1168913",
+        "execution.json": "85b6265c147ab0e62e59b50a035e8a18a1e50b0997b6f2ef8b11be8df18807a1",
+        "impact-v1.json": "c1d0d6a82bc3779b3cffedd635524711a70bac147bb708800f7a0cb14fb002a8"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.756790625,
+      "startedAt": "2026-09-06T21:49:01.882845+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.49888325005304
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "containerName": "batch-3a4bc5d4c26a4f60ad5bdfa1ea02c6a2",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-answer-quiz",
+      "executionAttemptId": "0257d3ca-afba-4c23-9999-5eaa08ebbd14",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "8abf46a20f2be566428f2fa4fe561212194607a1f69e3d68f0a92b688e8b0228",
+        "execution.json": "6ffdf6c78f5394b97cc833d661d347af0de2b78557d78771ae34dfe47ae82b81",
+        "impact-v1.json": "f7c36c547776e2c4e16694419578ecdfbeded34865bffb1f706c9e1cd2105dc5"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.708077,
+      "startedAt": "2026-09-06T21:49:13.386552+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.419611291959882
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "containerName": "batch-63ad1df6732442978e40b90d15170403",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-quiz-answer",
+      "executionAttemptId": "9a2997c5-f213-435b-99fe-0ba88ae8c433",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "a96ce782b291452b740c5aac280aa1808f6d6b00c266b3c7a6fbfa76e4044f28",
+        "execution.json": "de338e456eba29114ac3b5ffcad6e4bb16a1692c4688b735f17eff8f28a4ad09",
+        "impact-v1.json": "f3f309dc40c69a41e0a89cc85f1a4b812e6b39bcf04ab742d5eb6a10a2413970"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.689121417,
+      "startedAt": "2026-09-06T21:49:24.813763+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.261762791022193
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "containerName": "batch-c474f1bc0d114c4689cae6b6473091bc",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r01-answer-quiz-trigger-fault",
+      "executionAttemptId": "6bfeb80e-9f5c-40a3-9e2f-d1ed7db54740",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "39f156f2e058866d6942e9cf390675646235577ebee50e6825694efb0477c9ad",
+        "execution.json": "43b1621e68eff27d064fa9d24f882ab79c68523c2acc92298f5b6a3b85cb6c28",
+        "impact-v1.json": "944ad49642a113ec3c721e90173c97411c383bf416ada9bd595309bb81898209"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.735339375,
+      "startedAt": "2026-09-06T21:49:36.085128+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.853090290969703
+    },
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "containerName": "batch-11535da946844f4d9aa0b08a05d22a93",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-none",
+      "executionAttemptId": "7c71cafd-52c7-44e7-8d7f-905b8d05d5be",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "5ebe85375006e843d5185e0f5d9448d2d4329352f13dd874b1894531d03afabe",
+        "execution.json": "87724357314d0f2dc271be77e4c40a0f5656be6db893e7c3b82fa79747dd6d61",
+        "impact-v1.json": "18089fc0fa1b355f760658f887ea3f1a612ba05d16772302c6f6fcc9cb537a1e"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 0.765425209,
+      "startedAt": "2026-09-06T21:49:47.946570+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.259652416047174
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "containerName": "batch-39f0f307028c47809cdb870efbdaa43b",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-answer",
+      "executionAttemptId": "f247e9e5-11ae-484f-82f2-95e4a3c7eb89",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "f3182b367680a1a72ff1648bab683e1f1bc58f72557e44a4d6321fe01a853dd8",
+        "execution.json": "3e7578e714d4640ac33f981782a8cf3a77285ab7b6dedd283f75d28993a03a73",
+        "impact-v1.json": "f3bf1d7559c8ee6f4460575c69b1340d84dbd8c17314a2ae618eaad536b337e2"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.807174959,
+      "startedAt": "2026-09-06T21:49:59.214588+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.261432958010118
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "containerName": "batch-5f7b8bc9497c45169fcb39385fb0dbe9",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-quiz",
+      "executionAttemptId": "09dba613-808a-4bf3-8db6-ba4ce890893e",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "4f678999d44d7a2a7e9166a99cfe64027ff2eab7ff0390a787e911e73cba03a0",
+        "execution.json": "278f2e645fc33e799b3018cb692b0ec38aa05f90b537348eb856b628b4107065",
+        "impact-v1.json": "3708f0e69dbeb68883a5e8bce4c788141fc26f79a6a92086fc5d77928d684a16"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.675112792,
+      "startedAt": "2026-09-06T21:50:10.484250+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.291435250022914
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "containerName": "batch-1e335d71795940389b77e8de45734d39",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-answer-quiz",
+      "executionAttemptId": "0266b465-bb06-4dda-b2f1-99e90d237330",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "650251b727721b982641d1c6242aec4e2021af5c08094c0afa7b59535368e9d2",
+        "execution.json": "3f912a2ed7e2613b3bd9622f456ecb8f98daf0eea367f86b5dcc83b00ec93917",
+        "impact-v1.json": "8fd6ba7b83d1af95c203d2026ec080b85af79f04f046e23fff7ee068a5130eef"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.675489209,
+      "startedAt": "2026-09-06T21:50:21.780365+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.158879541035276
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "containerName": "batch-a6c7628203a04c679ca2ba92ab67a58e",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-quiz-answer",
+      "executionAttemptId": "9ac7413e-ff31-4bbd-8507-8fee8edeae0b",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "ff4f4a45a914ff6d485d091c92699ade4b48c4322cf60d4f2de9d28c5ef1a40b",
+        "execution.json": "9fb95272a1083edfe5bd5702622079db7ca2fc5146986dab100e362fde700922",
+        "impact-v1.json": "cdb4166787180aa556ed2a730492ad54203fde34f678d11dbb23dce4e8bb814c"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.664825917,
+      "startedAt": "2026-09-06T21:50:32.950972+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.732052792038303
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "containerName": "batch-1e1c48b6952e43118ffd74e4162b7853",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r02-answer-quiz-trigger-fault",
+      "executionAttemptId": "8764071a-a6c4-4571-8444-a195189b5940",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "685c89252928f1fe5efdc60c5006f8c00268e919edc33b409a2e00f4b54afa92",
+        "execution.json": "1c7a941e5261f19cd4a9a4d08d72e5e20d72580cfe3d3014f0f1ef4abdf099c3",
+        "impact-v1.json": "87bc925b80c03002c7bbb4a5428af77ee3856e157c185ab603436ecac742e5b3"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.736780751,
+      "startedAt": "2026-09-06T21:50:44.688360+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.39410474995384
+    },
+    {
+      "caseId": "none",
+      "concurrency": 1,
+      "containerName": "batch-e7180401ed9e4e729915785879520908",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-none",
+      "executionAttemptId": "8595e707-29ac-4a91-adc1-ca8d456814c4",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "1be09e3dc2e54c2f48f14a3b0dc7fa9f63405019810c050b30f8808d75ded833",
+        "execution.json": "0986cc44d22450c7a4719b63302f9a7919afb469c8bb0d572a92f3eb295d693a",
+        "impact-v1.json": "28c52521cfa8b69647986c41c1dbb19cf55b27d0eaef4166ea6d7b79da992c49"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 0.717575875,
+      "startedAt": "2026-09-06T21:50:56.092856+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.27016041695606
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 1,
+      "containerName": "batch-49c50b2efa9a4601aa80b409b3d936fc",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-answer",
+      "executionAttemptId": "ab7d1c62-454b-4e6c-9043-1e10bcbf2ea2",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "dec59477fb22d142353a5c2c0816bc8fda3fc797d0e93baf4400bc0642698e7d",
+        "execution.json": "39e662f2c6bef34978564f943e300b426d7d4f000398f97e6320a6ac9a5c0e16",
+        "impact-v1.json": "f15f93b66d57d71c8aaa6466f4688c06098e1e6905004054bd17175c4c7f8715"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.703137959,
+      "startedAt": "2026-09-06T21:51:07.369987+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.137008458026685
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 1,
+      "containerName": "batch-b1dd521ec6ce496696caafead8d44c98",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-quiz",
+      "executionAttemptId": "90b7bba5-3b51-4466-8ac7-b2f88a399c12",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "a7e1649a68d8bf803e8c22cc684af84a3185f1820aea76b8a85d762e890136e2",
+        "execution.json": "a17c17a7859feb7fdc29a8552ea5f5edbab7f9fbd187029985fe1aa1b44fd8d3",
+        "impact-v1.json": "22b08378344edcb0df23c61f2490aace9f8e6853ad133f7193cf8665d46368e6"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.794160042,
+      "startedAt": "2026-09-06T21:51:18.514846+00:00",
+      "status": "PASS",
+      "wallSeconds": 12.086673917016014
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 1,
+      "containerName": "batch-60dee4b41a734ffcb9b216f0cadcd05e",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-answer-quiz",
+      "executionAttemptId": "a0b5b834-2107-4ec4-9eda-e6e38669b45d",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "d88c07b98389f78a4c18f38cbcf32c442a481fa0e4325d5cbdda74edfb1f0227",
+        "execution.json": "43d642bb7ad4f2a7d88b9f65f462e3892361cae590f0459427080d03ed68f19c",
+        "impact-v1.json": "b5f2d4497625f9070aa52bbfd75730af6aa72a05030028af2e494971c034ed9c"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.773331042,
+      "startedAt": "2026-09-06T21:51:30.609735+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.25340570800472
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 1,
+      "containerName": "batch-6850ac9830d84a49a068e0e28eae10e0",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-quiz-answer",
+      "executionAttemptId": "dc71d71f-f905-4459-aedf-f7e8890c642e",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "ce3bbf9b0931a6d76b80b03f0e82ceeb4805cd29fcd2606d8de9ab17f2d13a37",
+        "execution.json": "3965d3a19a3042bff9dc91852c7abad0ed23fc9338e43f7bbcbfc876dd156105",
+        "impact-v1.json": "686f22f3cc7f807fd6472d907a33b20f168030c0dd539b17fbd034c0eabdaef9"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.711194667,
+      "startedAt": "2026-09-06T21:51:41.868282+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.931789625028614
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 1,
+      "containerName": "batch-9aa8114176894db58862eead146ae09d",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c1/r03-answer-quiz-trigger-fault",
+      "executionAttemptId": "5b0be713-5f1f-4dfe-8651-98422269081e",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "720de2789044595da5d6372571e2d0eb092f841d4d0fb1a933c939ec71d3d537",
+        "execution.json": "dbb19e4417cadf23aebc27431b3ba3788bbcb1e47596928a2a04e67a26d19020",
+        "impact-v1.json": "a110e5ad7efd22105dae07a3c9adb5a8e0964c2e9da031a0827e5da492b8776b"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.662548292,
+      "startedAt": "2026-09-06T21:51:53.804518+00:00",
+      "status": "PASS",
+      "wallSeconds": 11.576236040971708
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "containerName": "batch-ad61a47f5ab5473c808484d9e6b04914",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-none",
+      "executionAttemptId": "a623f66a-1e48-4016-9241-e283d4fab5bf",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "24f8d7708b0863d338d36f3fdad03894e6f8bf5e6b8660016f56621a6542a156",
+        "execution.json": "3626a3ee1c93185914cd7b71d8e016567238c2b1c89706d668d55260f054be46",
+        "impact-v1.json": "ff08e89bb76d19aa72f678397bb1b9abee3d9b5a01e83eea99742b73635eb671"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 1.121633375,
+      "startedAt": "2026-09-06T21:52:05.395007+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.78965575003531
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "containerName": "batch-3e9bed9747824c57a84f45b17a50a7ba",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-answer",
+      "executionAttemptId": "d9b3efc5-a575-470a-99e5-944713e38a99",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "3572cc5f3078302d19ce210c5a8635b23714a48b1e6e952afd276f7a5f349195",
+        "execution.json": "e063fb0be5dba874e92dbb45b4dd180c2a88298f698dc9ce45a6eb0388247dc9",
+        "impact-v1.json": "5cd3f9d209c890fb00d860805e07f8cf91d60bcb2e0fef752bc80dcf9cfd1e8e"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.137722418,
+      "startedAt": "2026-09-06T21:52:05.394909+00:00",
+      "status": "PASS",
+      "wallSeconds": 20.354147250007372
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "containerName": "batch-7a5f1b04ab40453a9c3402c5edd31b77",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-quiz",
+      "executionAttemptId": "61bc726a-8e78-4a23-b578-967f79aef192",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "60626aa18c68eeaffc2056db0e6c3f637096a54d694ad580781ba868f0e456c2",
+        "execution.json": "575baa26a1d5f18a5c74e02af44d47e1019c2a9900ebbd3aab2c9c4baab53484",
+        "impact-v1.json": "41c74f801d5357200064cd02b8c853f4d0978987692d7ba5af142888113adce2"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.641812625,
+      "startedAt": "2026-09-06T21:52:25.190135+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.941395707952324
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "containerName": "batch-01f516526f514dc386ff333cba17389a",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-answer-quiz",
+      "executionAttemptId": "b7d6bb6c-ed2d-4700-a106-c5429acbd56a",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "67d95991ae44560d6b2d6cafbe226e9222a2f435a7703b8d15770de2b083f1d0",
+        "execution.json": "29e8053b48b807dfc660255215721278aaaae694850f4faae7efa85fa33c1965",
+        "impact-v1.json": "777d3a9a306c06f979e15c8469aff641a086102c4576f786b5eb77517fb3007f"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 1.139272126,
+      "startedAt": "2026-09-06T21:52:25.755335+00:00",
+      "status": "PASS",
+      "wallSeconds": 17.51476295798784
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "containerName": "batch-52db8a574cea46cd8f2353e255c89754",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-quiz-answer",
+      "executionAttemptId": "bde51af3-048c-4f92-bee6-146a173a73aa",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "5190b735d4e9df6f93841be27646948613e27b171d2f0b0d156df992a86733d5",
+        "execution.json": "7d16f3eb58cf7fd783a4d384f6131c81c593a8c2813ba02de01d9c87673aa4d5",
+        "impact-v1.json": "33febf8fc1b3b6efcaede2cd927947876bb6e55bae73b9fb5228b5ea9077efa7"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 0.944401792,
+      "startedAt": "2026-09-06T21:52:43.279650+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.474340292043053
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "containerName": "batch-39c1db1c8ce046249af5ab799dca88b6",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r01-answer-quiz-trigger-fault",
+      "executionAttemptId": "109704e4-3036-4cae-bb17-6586bca3a4f4",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 1,
+      "reportHashes": {
+        "execution.impact-v2.json": "159463e32fcbc3899e6dc4f635f16dd435c23fe67ba72f72f1efca07c67934b5",
+        "execution.json": "de4b2160946b935baa1e434ba409849f0df0032f096574c228827f9e0b617c5f",
+        "impact-v1.json": "0579a2b34e1bd5348c18e16a3e6401da82873a5fc8b0c60865d64e969f901c56"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.368952751,
+      "startedAt": "2026-09-06T21:52:45.137246+00:00",
+      "status": "PASS",
+      "wallSeconds": 18.709848166035954
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "containerName": "batch-a4b6869e4bf14282b38edfbf14dd3255",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-none",
+      "executionAttemptId": "1bf1ed30-68da-4a22-875a-e47c10dbbfbf",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "60f43e8dc04d1c5b809243c31020a7dadd0e2a730fad549b8f2e4d8302a9f39f",
+        "execution.json": "39bb73fa4fff3ecc646a6046ae5d9a38b2bbdc79b1253387a42938eb9cadca5f",
+        "impact-v1.json": "1bffd98dfa649ff748ac2510e3141fdc0010785ab4684c77c9097812215bb2a8"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 0.826554292,
+      "startedAt": "2026-09-06T21:53:02.771328+00:00",
+      "status": "PASS",
+      "wallSeconds": 17.399352625012398
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "containerName": "batch-52106baf21db48d2bc89864084104fb3",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-answer",
+      "executionAttemptId": "10b267d4-7fd3-4528-a3fa-3e4c4716688c",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "58145a431f2649f74fda098beae1f6f0420e31b035bccfc27499f34a6e66372c",
+        "execution.json": "2819009cee8159cb9e8bfb12696ca8b8fce9e909475825f5969281d5234b0e6a",
+        "impact-v1.json": "ab2d292e9de4781a35e6a5ae865727211938e77e9436f3fcaa9936af18ea70a5"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.877409125,
+      "startedAt": "2026-09-06T21:53:03.851472+00:00",
+      "status": "PASS",
+      "wallSeconds": 18.900459167023655
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "containerName": "batch-87bac8eafee542708b57ddc24e4c75bb",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-quiz",
+      "executionAttemptId": "60dcdbad-6ddf-47b1-bc1a-d24a288f7efe",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "842443994cf4e8b58edccda5ca8a2c2922f25ccba8da4096610f76d76681b878",
+        "execution.json": "6500ec9eb472351c8fecd373e57745daba52e1d60f2a41f1e52e2d94f2b1b0fb",
+        "impact-v1.json": "5cbecb3cecc1c749ae4f24686b95c078b703e1f851f5c19f7073eb4e320aff6b"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.164847167,
+      "startedAt": "2026-09-06T21:53:20.176130+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.07161416602321
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "containerName": "batch-9dc8c4e0842444689314b2c25ab32720",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-answer-quiz",
+      "executionAttemptId": "a68b4169-203a-4c52-b3b8-0052d09399ca",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "950b8a08b5f305ffd9762a85bcbfe717d0d6cc2edb9c8e49c664f4c9c3729989",
+        "execution.json": "0e95bd1503d91f5f2584ac101298b8bb2f55de78d5ca904dc00729952096470f",
+        "impact-v1.json": "2cb82b304648e3dbfb7441aea32368e4d8024dee12c2c3fbc725f793f10915ce"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 1.514602543,
+      "startedAt": "2026-09-06T21:53:22.755834+00:00",
+      "status": "PASS",
+      "wallSeconds": 18.70960666699102
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "containerName": "batch-9e840900aa5e47cab8236151e7bd57e9",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-quiz-answer",
+      "executionAttemptId": "1d9e9c28-77cb-4d75-9105-003be1562126",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "73f67d0bdbf644577316ae9cf7a337f039564407b1734191c7382c585257b871",
+        "execution.json": "7dae735b42eaff0bd814460e48f382b7122331fe265da0be27843cd093d6e167",
+        "impact-v1.json": "a84016dec033667edadfc21e7766bb0e1aee4d80b0d4d4ffbbdfe0fd0b4b00a0"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 1.62710225,
+      "startedAt": "2026-09-06T21:53:39.252431+00:00",
+      "status": "PASS",
+      "wallSeconds": 21.76700875000097
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "containerName": "batch-e073dedd40c24f2b83569dabcb189d29",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r02-answer-quiz-trigger-fault",
+      "executionAttemptId": "370573f7-4650-403c-8037-f3400d21d378",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 2,
+      "reportHashes": {
+        "execution.impact-v2.json": "e9f3571d34d95d946103fca148f3062afdc3ae6b323ed1bd6ff35d750365c4ba",
+        "execution.json": "550fcc40bd3857a98cf9b3ae108ba6eeb079f7ec97075579d883cf32150e68fc",
+        "impact-v1.json": "b7bcd668d8857c74729882dadc36d3f1f214b2040eb539d8f5190f159d8286ca"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.405052917,
+      "startedAt": "2026-09-06T21:53:41.469620+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.584158583020326
+    },
+    {
+      "caseId": "none",
+      "concurrency": 2,
+      "containerName": "batch-736c4464afaf4a67a19ee091d390c14b",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-none",
+      "executionAttemptId": "99478759-7c3b-4b94-bada-94009c3d5e3e",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "555ba8f1caf22876c084d958007aee03a2f80f2f69f38933a89231f4600c4e59",
+        "execution.json": "bedf049fc6127c785703f455fb11ea30e200c58faa2050bee9ab76c4c7d6218c",
+        "impact-v1.json": "ba1eaf0040a12b870f11bf99eef8e6e6943f454c91cdb472d5836b8324111d53"
+      },
+      "score": 2,
+      "sourceSetupSeconds": 1.117993833,
+      "startedAt": "2026-09-06T21:54:01.027479+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.287347832985688
+    },
+    {
+      "caseId": "answer",
+      "concurrency": 2,
+      "containerName": "batch-2d21af9719ec46fd9b2841c576449988",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-answer",
+      "executionAttemptId": "951b5411-1b7f-493c-b9c4-969b3d82d893",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "08a1ee8841fa2ace081e610698aab376f834003a6bfc5ef7f0253ad66a7acbcb",
+        "execution.json": "a6b83c4cc68f1c62d3a1a77e4429595520920e1ebfab18985a068387b9e22781",
+        "impact-v1.json": "ca01aad0987cbfb21799d2e4b63c4a709b8426f2f0c44ec173e953780e9dce01"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 0.974830126,
+      "startedAt": "2026-09-06T21:54:01.058371+00:00",
+      "status": "PASS",
+      "wallSeconds": 18.275943499989808
+    },
+    {
+      "caseId": "quiz",
+      "concurrency": 2,
+      "containerName": "batch-4b5cec782cce4c95bc099b6361524843",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-quiz",
+      "executionAttemptId": "fcf32341-01ef-4ffb-a94d-8e7c8a622e9b",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "ac1273df007666d6af9458dcbf90d4a3ffcc67db1098d51eaef95c56a5da5702",
+        "execution.json": "2bdaca94a875a73351b2dce83049ea7d61a59a78d5153d5ec2c7e1cb70ef9861",
+        "impact-v1.json": "d6d3263808504e08a069a4c24ce6c845712f66c4db75e75df7c8892fc9b8951a"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.222825917,
+      "startedAt": "2026-09-06T21:54:19.343016+00:00",
+      "status": "PASS",
+      "wallSeconds": 18.74744541605469
+    },
+    {
+      "caseId": "answer-quiz",
+      "concurrency": 2,
+      "containerName": "batch-8791c6f7516240c18356481dbeee3c34",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-answer-quiz",
+      "executionAttemptId": "ff0a7920-f582-4162-8b09-ac3f3c94a963",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "044920ade50e782554c9331ce4be0ea8664e5ec9d66ad074f949e9a1c27129bc",
+        "execution.json": "ffa23e503ef979ec8213d02e9aca8cfaa14af96af66a2d0172f2ee3269876014",
+        "impact-v1.json": "275ffae9d4c204d3eb4fd28b7921579b76200700d5e4a2b72dd40954f9c4d37d"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 1.345492167,
+      "startedAt": "2026-09-06T21:54:20.318218+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.229256082966458
+    },
+    {
+      "caseId": "quiz-answer",
+      "concurrency": 2,
+      "containerName": "batch-600bb6bd6afd46d7b60481e954684c62",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-quiz-answer",
+      "executionAttemptId": "c63e9d8d-b564-49a5-8824-6a4fce15da29",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "b257c58a980c867791b6690b228dc42afe2ba33c0a0cb32766195ce4e0b2909a",
+        "execution.json": "495297d2d9a0ead71f1138ad5c2440b78db144d8033621277bc6d52575e26f38",
+        "impact-v1.json": "220019fb5dd8ced8c6a1d3975cfe58043cb50a7db59a701bcae820577cc2d6cf"
+      },
+      "score": 0,
+      "sourceSetupSeconds": 1.091117001,
+      "startedAt": "2026-09-06T21:54:38.094999+00:00",
+      "status": "PASS",
+      "wallSeconds": 20.189326541032642
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "concurrency": 2,
+      "containerName": "batch-086b3f22f15649fab55de7e6db0ee551",
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/batch-execution/run-01/c2/r03-answer-quiz-trigger-fault",
+      "executionAttemptId": "0137cc25-d40e-4f91-8691-9fa8530ae6c3",
+      "exitCode": 0,
+      "observed": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "prerequisiteSetupSeconds": 0.0,
+      "repetition": 3,
+      "reportHashes": {
+        "execution.impact-v2.json": "46b4ed6500642e8e8214664e584d1a6cf5b2ca9f67c500d06b508a9df415b8e5",
+        "execution.json": "7b445b81a40d175572c0bd9f815f825da5d766c9370460d898ca836dcced6892",
+        "impact-v1.json": "92aeb86dc31448b9d7652e11009b9541bfff14c363e2c51214d3af21ab95f018"
+      },
+      "score": 1,
+      "sourceSetupSeconds": 1.171962959,
+      "startedAt": "2026-09-06T21:54:39.551295+00:00",
+      "status": "PASS",
+      "wallSeconds": 19.228256415983196
+    }
+  ],
+  "groups": [
+    {
+      "attempts": 18,
+      "attemptsPerHour": 312.43122368426384,
+      "concurrency": 1,
+      "medianAttemptSeconds": 11.342769999988377,
+      "statuses": {
+        "PASS": 18
+      },
+      "validCompletePerHour": 312.43122368426384,
+      "wallSeconds": 207.40564670797903
+    },
+    {
+      "attempts": 18,
+      "attemptsPerHour": 373.7273179927848,
+      "concurrency": 2,
+      "medianAttemptSeconds": 19.228756249474827,
+      "statuses": {
+        "PASS": 18
+      },
+      "validCompletePerHour": 373.7273179927848,
+      "wallSeconds": 173.38844895799411
+    }
+  ],
+  "integrityErrors": [],
+  "planSha256": "aefd7b262e834be733255ccadee8e446d813b1b7a40f8c4a888e123bf964cbe1",
+  "totalWallSeconds": 386.7947359159589,
+  "validation": "PASS"
+}

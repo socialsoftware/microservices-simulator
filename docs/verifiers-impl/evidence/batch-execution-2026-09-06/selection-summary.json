@@ -1,0 +1,457 @@
+{
+  "build": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/combined-event-deliveries/run-02/prepared-build",
+  "fullSelectionPath": "verifiers/target/batch-execution/run-01/selection.json",
+  "fullSelectionSha256": "fac4d6ccffa75a30270b28c34df3817b47d728cd5d942bffed1d16106c3fcba2",
+  "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/combined-event-deliveries/run-02/generated/quizzes-20260906-180214-888/scenario-catalog-manifest.json",
+  "note": "Compact evidence only; use the original full selection file for execution.",
+  "packageHashes": {
+    "accounting": "5e3a11a8489c437796fd94cbb03125e286236cd8454d52d82d6a7873f1d4851d",
+    "faultScenarios": "c9cc631fc5dbb1e2a64c3cf418bc798575c020d29c243ee468df9f0fa3b0f5f3",
+    "inputs": "9ec2345b8f8d1ebfd85118bceb5ffc3f41dcba0a4bf047bdd6b9ebd5916b6c83",
+    "interactions": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "manifest": "ff9f8c214d8c76abe6029d59d0f0455136e66b2967ff4deb9fac1ee8f444ee67",
+    "requests": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "sagas": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "setups": "0481cf8bc7b7c1ad23384e10b89e75131de632c7f51c8c5cd60a60f2ec915583",
+    "workloads": "01b992b65e16655ca852ddd51c4b188b7040abb7847cf0dd81cc197c8e593e94"
+  },
+  "preparedBuildFileCount": 2669,
+  "referenceRun": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/combined-event-deliveries/run-02",
+  "rows": [
+    {
+      "caseId": "none",
+      "cohort": "broader",
+      "deliveryOrder": [],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 2,
+        "conditions": {
+          "DELETED_DEPENDENCY": 2,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "faultScenarioId": "9c7422f427cca156e13a3d6243cd1010b566d761259a4be0827cff0142b5f3e9",
+      "faultVector": "000",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "a6c329195e88a8a38164d25031dba785cbb003930c26abec32e96812e6ced734",
+        "execution.json": "8a576126b54e4cf224f9542cf768ecda885ac1589f1c564bcbd47739f1f5fe1a",
+        "impact-v1.json": "08792c63c581fb5b463d287e84016741f5e1d4048ac601011a42f9e4bc819079"
+      },
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "81789d8c0f7b9ece3416090482ecc533bf54aa9f1b4247dcb2b06dbe86639301"
+    },
+    {
+      "caseId": "answer",
+      "cohort": "broader",
+      "deliveryOrder": [
+        "answer"
+      ],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "faultScenarioId": "da58e3ef69b0962f66917c0e0dbb2d34686b5453a1b91f850cfa48491aa61a38",
+      "faultVector": "000",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "7fe6d884595643462f665c7b0a8e26dc960768f835c8e8211244cc93ee05d6d2",
+        "execution.json": "dbd787f4f2c1063d7dc272e9b17019c32c1abfa66b8be24fffdf1d375f6691d0",
+        "impact-v1.json": "146e8c4776fb188de60687d68d1b28e63883d1c36593931220329bcb4d2afd05"
+      },
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "63799c6abca418040aefde68cf4e517046372dbf8ca5c964078a7a35e7bfd604"
+    },
+    {
+      "caseId": "quiz",
+      "cohort": "broader",
+      "deliveryOrder": [
+        "quiz"
+      ],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "faultScenarioId": "9c942a32287643ff8d8a25059b8408b3c95da7b29af650eb9e95631cc7986474",
+      "faultVector": "000",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "35f28881ee01f883d680154df4f1b2eb3f2f6ce0a87ee1482ef24b19f3420dad",
+        "execution.json": "5088d40792f380591d2a01f5a7bc717ff6dd34b3375cb78196e23411d91e6958",
+        "impact-v1.json": "1da9521e89847761881bc50a7c26e6878dffac021983228bf4d22cd7a92ec0a1"
+      },
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "2b4b0d635e762dbc8ee9dabbe866a790982f168c4b39e6780b2b7dfd3e97409f"
+    },
+    {
+      "caseId": "answer-quiz",
+      "cohort": "broader",
+      "deliveryOrder": [
+        "answer",
+        "quiz"
+      ],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "faultScenarioId": "b16c51234c68da3c6e26de05d0b8ee8ae03a2ea0f718309e0c1da33002832097",
+      "faultVector": "000",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "cb5dae3d3b06066a44bdfa980cc10793e40e2c33868dccfb0ab3792f8f4d2ccf",
+        "execution.json": "89cf4641084b12ffd0409ab6a432dfc1a9962ddd760b4dc1d42f120987dbaab3",
+        "impact-v1.json": "70714751109e1f953b4a7f06a506389b715b36d84feedec2a62745f8fc4da8f1"
+      },
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476"
+    },
+    {
+      "caseId": "quiz-answer",
+      "cohort": "broader",
+      "deliveryOrder": [
+        "quiz",
+        "answer"
+      ],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "SUCCEEDED"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 0,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 1,
+          "SagaExecution:DELETED": 1,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:INACTIVE": 1,
+          "SagaQuizAnswer:DELETED": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "faultScenarioId": "99ed9137375a616330cadf74d30277fe90c6e69e7985724b27dcca46a6dbe3c0",
+      "faultVector": "000",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "66a5e3f63dce129aef9ae5e5e296956856f7ec3dd885943000c42bb111ba7e94",
+        "execution.json": "6198b6f473a9afc9597484b3277cc2127aad661b75e6bd7de2e9744239e57aea",
+        "impact-v1.json": "40be0c597eb8f08044828caa29272909192a829fc8bc16d0e254f11d558c6e1b"
+      },
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee"
+    },
+    {
+      "caseId": "answer-quiz-trigger-fault",
+      "cohort": "broader",
+      "deliveryOrder": [
+        "answer",
+        "quiz"
+      ],
+      "expected": {
+        "actions": [
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "COMPLETED",
+            "SUCCEEDED",
+            "NOT_RUN"
+          ],
+          [
+            "FORWARD",
+            "ASSIGNED_FAULT",
+            "NOT_RUN",
+            "NOT_RUN"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "EVENT_CONSEQUENCE",
+            "MASKED_BY_TRIGGER_FAULT",
+            "NOT_RUN",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ],
+          [
+            "COMPENSATION",
+            "COMPENSATED",
+            "NOT_APPLICABLE",
+            "NOT_APPLICABLE"
+          ]
+        ],
+        "assessmentStatus": "COMPLETE",
+        "completeScore": 1,
+        "conditions": {
+          "DELETED_DEPENDENCY": 0,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 0
+        },
+        "finalLifecycleCounts": {
+          "SagaCourse:ACTIVE": 1,
+          "SagaExecution:ACTIVE": 2,
+          "SagaQuestion:ACTIVE": 1,
+          "SagaQuiz:ACTIVE": 1,
+          "SagaQuizAnswer:ACTIVE": 1,
+          "SagaTopic:ACTIVE": 1,
+          "SagaUser:ACTIVE": 1
+        },
+        "impactV1Score": 0,
+        "impactV1Status": "EVALUATED",
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "COMPENSATED"
+      },
+      "faultScenarioId": "ade6fcc5b4fdffdcf5c2a111c07e91b7b2dfc1e93b18982d84ec214dd72cc4ec",
+      "faultVector": "001",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "referenceReportHashes": {
+        "execution.impact-v2.json": "eff2097746dec00d1fc8c757178d78db37411f7fbdb3655ba09b31ba991b78e0",
+        "execution.json": "09fb6d8889507e45615075ca8bb4a8c26d05e9b4547e0ac9188fa7191d81048a",
+        "impact-v1.json": "0e6918ba6a6c1a1a5c03b8571873f73d73950f77d15a4b1a2352378bf8720581"
+      },
+      "role": "trigger-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "setupId": "setup-654acaf9d57124996c605c08",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476"
+    }
+  ],
+  "schema": "prepared-batch-selection.v1",
+  "selectionRule": "Explicit known cases and prior semantic expectations frozen before new outcomes.",
+  "sourceFileCount": 1014
+}
