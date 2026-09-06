@@ -300,5 +300,5 @@ Add the corresponding `import` statements. Place new beans after the write/read 
 The session checkbox for this session is `- [ ] 2.{N}.d — Event wiring`. Read
 `_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
 you have. It owns the whole rule, including how to anchor on the session line rather than doing a
-bare string replace, and what manager mode and single-agent mode each do about the slice
+bare string replace, and what the manager and single-agent topologies each do about the slice
 sub-checkboxes underneath it.

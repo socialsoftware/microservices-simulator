@@ -195,7 +195,7 @@ Read the sub-file now and follow its instructions exactly. The sub-file specifie
 
 ## Steps 5-8: Complete the Session
 
-Read `.claude/skills/_shared/session-completion.md` in full and follow it, in **single-agent mode**.
+Read `.claude/skills/_shared/session-completion.md` in full and follow it, in the **single-agent topology**.
 Do not continue from memory of a previous read. It owns, in this order:
 
 | Step | Section in `session-completion.md` |
@@ -204,9 +204,9 @@ Do not continue from memory of a previous read. It owns, in this order:
 | 5b | § "Amend plan.md for omitted files" |
 | 6  | § "Report completion" |
 | 6b | § "Harness-log rows" |
-| 7  | § "Retro assembly" - use § "Single-agent mode", then § "Retro template" |
+| 7  | § "Retro assembly" - use § "Single-agent topology", then § "Retro template" |
 | 8  | § "Commit" |
 
 The retro template, the Semantic-Lock Coverage Audit commit-blocking rule and the commit message
 format each live there and only there. `.claude/skills/implement-aggregate-full/SKILL.md` reads the
-same file in manager mode, which is what keeps the two entry points producing identical artifacts.
+same file in the manager topology, which is what keeps the two entry points producing identical artifacts.

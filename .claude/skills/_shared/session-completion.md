@@ -3,17 +3,15 @@
 The steps that close a Phase 2 session, once its files are produced: tick, amend, report, retro,
 harness-log rows, commit. Consumed via a blocking Read pointer by both Phase 2 entry points:
 
-| Skill | Mode | Who runs these steps |
+| Skill | Topology | Who runs these steps |
 |-------|------|----------------------|
-| `.claude/skills/implement-aggregate/SKILL.md` | **single-agent mode** | the one agent that implemented the whole session |
-| `.claude/skills/implement-aggregate-full/SKILL.md` | **manager mode** | the manager, after the last slice of the session returned `DONE` |
+| `.claude/skills/implement-aggregate/SKILL.md` | **single-agent topology** | the one agent that implemented the whole session |
+| `.claude/skills/implement-aggregate-full/SKILL.md` | **manager topology** | the manager, after the last slice of the session returned `DONE` |
 
-The two modes differ in exactly one place: § "Retro assembly". Everything else is identical, and the
-retro **file shape** is identical in both.
-
-Unqualified, "mode" in this file means that topology. The run's **self-healing mode**
-(`AGENTS.md` § "Harness evolution") is always named in full, and is orthogonal: either topology runs
-under either self-healing mode.
+The two topologies differ in exactly one place: § "Retro assembly". Everything else is identical,
+and the retro **file shape** is identical in both. The run's **self-healing mode**
+(`AGENTS.md` § "Harness evolution") is orthogonal: either topology runs under either self-healing
+mode.
 
 Required context variables (already resolved by the calling skill): `{app-name}`, `{Aggregate}`,
 `{N}`, `{type}`.
@@ -37,11 +35,11 @@ the form `- [ ] 2.{N}.{type}{k} {ItemName}`; `- [ ] 2.{N}.{type}` is a prefix of
 the session line (the one with no trailing digit after `{type}`) rather than doing a bare string
 replace.
 
-- **Manager mode:** the slice sub-checkboxes were already ticked one by one as their slices returned
-  `DONE`; this step ticks the parent session checkbox. Every sub-checkbox of the session must already
+- **Manager topology:** the slice sub-checkboxes were already ticked one by one as their slices
+  returned `DONE`; this step ticks the parent session checkbox. Every sub-checkbox of the session must already
   be ticked - if one is not, the session is not complete and this step must not run.
-- **Single-agent mode:** the whole session was implemented in one go, so tick the session checkbox
-  **and** every slice sub-checkbox under it. Leaving them unticked would make the session look
+- **Single-agent topology:** the whole session was implemented in one go, so tick the session
+  checkbox **and** every slice sub-checkbox under it. Leaving them unticked would make the session look
   half-done to the next reader.
 
 ---
@@ -59,15 +57,15 @@ with the session id and a one-line reason, so the amendment carries its own prov
 `aggregate/{DomainEnum}.java` (added 2.{N}.a - field `{field}` is typed as this enum)
 ```
 
-In manager mode the source for this list is the `FILES ADDED BEYOND plan.md` block of every slice
-return, unioned across the session's slices.
+In the manager topology the source for this list is the `FILES ADDED BEYOND plan.md` block of every
+slice return, unioned across the session's slices.
 
 Report every amendment in the completion report.
 
 If the **owning session** of a required file is genuinely unclear - it could belong to this session
 or to a later one - that is Type 2 friction: halt and ask before writing it (`AGENTS.md`
-§ "Harness evolution"). In manager mode the slice halts and the manager escalates; the manager never
-answers a Type 2 itself.
+§ "Harness evolution"). In the manager topology the slice halts and the manager escalates; the
+manager never answers a Type 2 itself.
 
 ---
 
@@ -86,8 +84,8 @@ After ticking the checkbox, output a concise structured report:
    findings and this report is where the human sees them.
 7. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
 
-In manager mode, add an eighth line: **Slices run** — the slice ids of this session, each with
-`DONE` and the number of re-spawns it took.
+In the manager topology, add an eighth line: **Slices run** — the slice ids of this session, each
+with `DONE` and the number of re-spawns it took.
 
 ---
 
@@ -96,8 +94,8 @@ In manager mode, add an eighth line: **Slices run** — the slice ids of this se
 Run § "Harness-log rows" first - the retro's `## Harness Changes` section cites the row numbers it
 appends.
 
-Both modes write the same file, `{retro-file}`, using the template in § "Retro template" below. They
-differ only in where the material comes from.
+Both topologies write the same file, `{retro-file}`, using the template in § "Retro template"
+below. They differ only in where the material comes from.
 
 **The retro is mandatory in both self-healing modes**, and it is where OFF pays for itself. Under ON
 a doc gap is often already repaired by the time the retro is written, and the retro records that it
@@ -105,7 +103,7 @@ happened. Under OFF the retro and the `deferred` rows beside it are the run's **
 where the harness failed, and the sole input a human has for repairing it between runs. A skipped
 retro under OFF loses the finding outright.
 
-### Single-agent mode
+### Single-agent topology
 
 This is a synthesis step — do NOT run filesystem audits, grep, or re-read files to reconstruct history. Use only what is already in the conversation context.
 
@@ -120,7 +118,7 @@ Answer these questions by reviewing what happened during the session:
 7. **Were any patterns observed that aren't yet documented anywhere?**
 8. **Were any files under `simulator/` modified?** If yes, list each one with: the exact diff (what was removed vs added), the root cause that required the change, and why the fix belongs in the framework rather than in application code.
 
-### Manager mode
+### Manager topology
 
 The manager has no slice's conversation context, and must not reconstruct one. The synthesis
 happened inside each slice, which emitted a `RETRO FRAGMENT` block as part of its return. The
@@ -296,14 +294,14 @@ Rows whose outcome is `declined` or `deferred` have no sha - write `-`.
 Create `{retro-dir}` if it does not already exist, then write the completed retro to `{retro-file}`.
 
 **Hard rules for the retro:**
-1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history. In manager mode this binds the merge too: the material is the slice fragments, not the working tree.
+1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history. In the manager topology this binds the merge too: the material is the slice fragments, not the working tree.
 2. **Never omit sections.** If a section has nothing to report, write "none".
 3. **Absolute paths in Files Produced.**
 4. **Any cross-application read is a violation** — record it as a harness-log row, naming the file read and the gap that drove it.
 5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
 6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
 7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Semantic-Lock Coverage Audit is mandatory for session-`c` retros.** A session-`c` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the commit below. For sessions `a`/`b`/`d` the section is still present with the literal value "n/a". In manager mode the table must cover **all** slices of the session, not just the last one.
+8. **Semantic-Lock Coverage Audit is mandatory for session-`c` retros.** A session-`c` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral rationale beneath the table), blocks the commit below. For sessions `a`/`b`/`d` the section is still present with the literal value "n/a". In the manager topology the table must cover **all** slices of the session, not just the last one.
 
 Do not print a separate retro completion report — the retro file path is included in the commit output.
 
@@ -336,7 +334,7 @@ that was missing, wrong or ambiguous; a `.claude/skills/` instruction that faile
 
 If there was none, append nothing and write "none" in `## Harness Changes`.
 
-**In manager mode the manager is the only writer of this file.** Its input is the `FRICTION` blocks
+**In the manager topology the manager is the only writer of this file.** Its input is the `FRICTION` blocks
 of every slice return, plus its own. One row per distinct friction point across the whole session:
 the same ambiguity reported by four slices is **one** row, whose `Problem` cell says so. Slices never
 append here, so there is no concurrent-append hazard even though the next `#` is read from the last

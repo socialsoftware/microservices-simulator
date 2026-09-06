@@ -195,9 +195,9 @@ After the last slice of the session returns `DONE`:
    brief. Same one-retry rule: if the repair slice fails twice, halt the aggregate.
 
 3. **If it is green** - read `.claude/skills/_shared/session-completion.md` in full and follow it in
-   **manager mode**: amend plan.md for omitted files, append the harness-log rows, assemble the
-   merged retro from the stored fragments, tick the session checkbox, and issue the single session
-   commit.
+   the **manager topology**: amend plan.md for omitted files, append the harness-log rows, assemble
+   the merged retro from the stored fragments, tick the session checkbox, and issue the single
+   session commit.
 
 Then move to the next session type.
 

@@ -305,7 +305,7 @@ Example: `applications/{app-name}/retros/retro-2.3.b-Shipment.md`
 A single commit covering the implementation files, the retro file and any `harness-log.md` rows is
 then issued automatically, in the message format defined in `session-completion.md` § "Commit".
 
-The retro template, both assembly modes and the commit step are owned by
+The retro template, both assembly topologies and the commit step are owned by
 [`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md).
 Under `/implement-aggregate` the retro is synthesised from the single agent's conversation context;
 under `/implement-aggregate-full` the manager merges the retro fragment each slice returned, which
