@@ -7,7 +7,8 @@ drives an AI coding agent to generate a complete simulator application from a wr
 aggregate by aggregate.
 
 This file is the user-facing guide to that harness. `AGENTS.md` is the agent-facing entry point; you
-do not need to read it to use the harness, and you will need it if you want to change one.
+do not need to read it to use the harness, and you will need it if you want to change the harness
+itself.
 
 ---
 
@@ -31,7 +32,13 @@ depends on it.
 
 ## 2. Requirements
 
-- **Claude Code.** The workflow is packaged as Claude Code skills and subagents (see § 3).
+- **An agent runtime with skill dispatch.** The workflow is packaged as skills invoked by name; it is
+  developed against Claude Code. Only `/implement-aggregate-full` needs more than that, namely
+  subagent spawning (see § 3).
+- **git.** Every Phase 2 session ends in one commit, and self-healing OFF is enforced by reading
+  `git status --porcelain` (§ 8). The harness assumes it is running inside a git worktree.
+- **Python 3 on `PATH`.** Any check whose output decides a verdict runs through `python3` rather
+  than a shell pipeline, so that a mangled or truncated stream cannot be mistaken for a pass.
 - **JDK 21.** The application poms set `<java.version>21</java.version>`; an older JDK fails at the
   first compile with `error: release version 21 not supported`, which reads like a scaffold bug and
   is not. `sdk use java 21.0.10-tem`, or set `JAVA_HOME` per command.
@@ -42,17 +49,36 @@ depends on it.
 
 ## 3. Portability
 
-**The content is agent-agnostic.** Everything under `docs/` is prose: architecture, concept docs,
-rule-enforcement patterns, the test taxonomy, the spec templates. Any capable coding agent can be
-pointed at it.
+**The instruction set is vendor-neutral; two things around it are not.** Everything under `docs/` is
+prose, and `.claude/skills/` uses the open Agent Skills format: a `SKILL.md` carrying `name` and
+`description` frontmatter, with no vendor-specific syntax in the body. The exceptions are
+`.claude/agents/`, whose two files use Claude Code's subagent frontmatter and would need
+re-expressing per runtime, and `/implement-aggregate-full`, which needs a runtime that can spawn a
+subagent per slice and read a structured return block from it. A runtime without that primitive still
+runs the whole pipeline through `/implement-aggregate`, which is the recommended default anyway.
 
-**The workflow is Claude Code only.** `.claude/skills/` and `.claude/agents/` use Claude Code's
-skill format, its slash-command invocation and its subagent spawning. `/implement-aggregate-full` in
-particular depends on subagents with their own context windows; there is no portable equivalent.
+Note that `docs/` and `.claude/` are not separable: the concept docs link into the skill tree by
+path, and the skills read `docs/` back. They port as one unit.
 
-**TODO - `.agents/` plus symlinks.** The agreed portability shape is a vendor-neutral `.agents/`
-directory with per-vendor symlinks into it, so the same instruction set serves more than one agent
-runtime. Not done. Until it is, treat "agent-agnostic" as a claim about the prose only.
+**Serving a second runtime is a symlink, in one direction only.** `.claude/` stays the real
+directory, and a per-vendor name symlinks to it:
+
+```bash
+ln -s .claude .agents
+```
+
+The reverse - a real `.agents/` with `.claude` symlinked into it - looks tidier and breaks the
+harness, because git tracks only the real path. Staging a harness file by its `.claude/` path, which
+is what every `harness:` commit does, fails outright with `pathspec is beyond a symbolic link`. The
+OFF-mode
+dirty check in `session-completion.md` tests for a `.claude/` prefix that `git status` would no
+longer emit, so it reports a clean harness however dirty the harness is. And the harness delta
+`git log --oneline docs/ .claude/ ...` matches only the symlink blob, so it comes back empty. Two of
+those three fail silently.
+
+**Untested, because there is no second runtime yet.** A clone with `core.symlinks=false` (Windows
+without developer mode) materializes the link as a plain text file and the second runtime finds
+nothing, and a skill scanner that does not follow directory symlinks will not see the tree either.
 
 ## 4. The pipeline
 
@@ -73,10 +99,17 @@ functionalities, `c` write functionalities, `d` event wiring (only when the aggr
 events). Aggregates are implemented in topological order of their event dependencies, so an
 aggregate is never built before something it caches from.
 
-**Run `/review-artifacts` at every aggregate boundary.** It is human-invoked in both topologies:
+**Run `/review-artifacts` on two occasions:** at every aggregate boundary during a run, and after
+any hand-edit to the harness (§ 10). It is human-invoked in both topologies:
 `/implement-aggregate-full` stops at the boundary and tells you to run it rather than running it
-itself. Act on its Critical and Major findings before starting the next aggregate. The full
-description of each phase is in [`docs/workflow.md`](docs/workflow.md).
+itself.
+
+**Who acts on its findings depends on the mode.** Under self-healing ON, act on the Critical and
+Major findings at the boundary, in their own `harness:` commits, before starting the next aggregate.
+Under OFF the harness bucket must stay clean for the whole run, and the next session's commit halts
+if it is not (§ 8), so the findings are recorded and carried to the end of the run: act on them
+between runs, not at the boundary. The full description of each phase is in
+[`docs/workflow.md`](docs/workflow.md).
 
 ## 5. Writing your spec pair
 
@@ -87,9 +120,9 @@ A run starts from two files under `applications/{app-name}/`:
 | `{app-name}-domain-model.md` | Entities, relationships, rules (§3.1 single-entity, §3.2 cross-entity), functionalities (§4) |
 | `{app-name}-aggregate-grouping.md` | Aggregate partitioning (§1), snapshots (§2), the event DAG (§3), events (§4) |
 
-Every later phase treats these as given. `/classify-and-plan` will not question an aggregate
-boundary, and no Phase 2 session will add a functionality §4 omitted. It is the highest-leverage
-artifact in the whole pipeline.
+Every later phase treats the pair as given. `/classify-and-plan` will not question an aggregate
+boundary, and no Phase 2 session will add a functionality §4 omitted. The spec pair is the
+highest-leverage artifact in the whole pipeline.
 
 Three things to write it with:
 
@@ -130,7 +163,33 @@ something, not how often you are asked to *decide* something: the halts are the 
 same friction, and they wait just as long. Reach for it when you would rather be interrupted once per
 aggregate than four times.
 
-## 7. Self-healing mode
+## 7. When a session fails
+
+A Phase 2 session is atomic in the record. Its `plan.md` checkbox is ticked and its commit made
+together, in the completion procedure, after the tests pass. A session that halts or fails partway
+therefore leaves no commit, an unticked checkbox, and possibly half-written files in the worktree.
+
+**Resume by re-invoking `/implement-aggregate`.** With no argument it auto-detects the next unticked
+session, which is the one that failed; name it explicitly (`/implement-aggregate 2.3.b`) to be sure.
+It refuses to silently redo a session whose box is already ticked. This works after a halt in either
+topology, so it is also how you resume by hand from a `/implement-aggregate-full` run.
+
+**Clear the partial work first.** `git status` shows what the failed attempt left behind. A re-run
+produces the files `plan.md` lists for that session, so leftovers it reaches are overwritten, but
+anything it did not reach is not: revert tracked files and delete untracked ones before resuming.
+
+**`/implement-aggregate-full` resumes at slice granularity.** Slice sub-checkboxes are ticked as each
+slice returns, so re-invoking it for the same aggregate skips every ticked session and every ticked
+slice, and restarts at the first unticked one.
+
+**Verify an aggregate yourself** at any point, from the application directory:
+
+```bash
+cd applications/{app-name}
+mvn clean -Ptest-sagas test
+```
+
+## 8. Self-healing mode
 
 The harness can repair itself mid-run. When a doc or a skill misleads an agent, the agent classifies
 the friction:
@@ -162,7 +221,7 @@ unreadable header reads as off. A single Phase 2 invocation can override it with
 `--no-self-healing`, which binds that invocation only and is reported rather than written to the
 header.
 
-## 8. What a run leaves behind
+## 9. What a run leaves behind
 
 ```
 applications/{app-name}/
@@ -171,6 +230,8 @@ applications/{app-name}/
 ├── plan.md                             the job queue, with every session ticked
 ├── harness-log.md                      every friction point: type, artifact, outcome
 ├── retros/retro-{session}-{Agg}.md     one per Phase 2 session
+├── pom.xml                             written by /boot-strap
+├── .mvn/maven.config                   untracked; points Maven at your settings.xml
 └── src/                                the generated application
 reviews/
 ├── review-{date}.md                    one per aggregate boundary
@@ -186,7 +247,7 @@ no edits has no convergence to measure.
 None of it is rewritten after the fact. `harness-log.md` is append-only, and a past retro is never
 edited to read better.
 
-## 9. Changing the harness yourself
+## 10. Changing the harness yourself
 
 Between runs, edit `docs/` and `.claude/` directly; that is what they are for. Run
 `/review-artifacts` afterwards to catch dangling paths and contradictions before an agent hits them.
