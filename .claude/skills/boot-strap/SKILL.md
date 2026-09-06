@@ -127,7 +127,11 @@ Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harne
 
 If the file already exists, leave it **untouched** - it is append-only and may already carry rows and
 a declared mode from a partial run. Report that it was found rather than created, and report the mode
-its header declares, which is the mode in force from here on.
+its header declares, which is the mode in force from here on. **The existing header always wins over
+a `--self-healing` / `--no-self-healing` flag on this invocation**: rewriting the header would make
+the rows already under it unreadable, since nobody could tell which mode each was logged under. When
+the flag disagrees with the header, say so in the Step 6 confirmation and state that the flag was
+ignored.
 
 Report the mode in the Step 6 confirmation either way. It changes what every later session may do,
 and a run whose mode nobody stated is a run whose record cannot be interpreted.

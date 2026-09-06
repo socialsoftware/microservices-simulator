@@ -155,8 +155,10 @@ Operationally, for every friction point hit between here and the end of the sess
    symbol that does not exist, two harness files prescribing different things? That is Type 1.
    Otherwise it is Type 2. **Classification does not depend on the mode**; only what you do next
    does.
-2. **Type 1, mode ON - fix it on the spot.** Repair the `docs/` or `.claude/skills/` file, commit it
-   alone with a `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the
+2. **Type 1, mode ON - fix it on the spot.** Repair the harness file that misled you - anything in
+   the Harness bucket of `AGENTS.md` § "What the harness is", which is `docs/`, `.claude/` and the
+   root files `AGENTS.md`, `CLAUDE.md` and `HARNESS.md` - commit that one file alone with a
+   `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the
    session, and do not work around it in the application code. The fix is written in the neutral
    vocabulary of `.claude/skills/_shared/conventions.md` § "Neutral domain".
 3. **Type 1, mode OFF - do not edit the harness, and do not halt.** Proceed on the most reasonable

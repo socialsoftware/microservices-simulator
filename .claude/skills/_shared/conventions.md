@@ -163,6 +163,12 @@ authoritative source; another application is a peer, not a specification.
 Reads **within** `applications/{app-name}/` are unrestricted, including sibling aggregates already
 implemented in earlier sessions.
 
+**A completed application kept as a worked example is exempt, read-only.** `/author-spec` reads
+`applications/trainticket/` for exactly this reason: a finished run cannot be led to its own answers,
+so consulting one for the *shape* of a spec pair is not a peer-as-specification read. The exemption
+covers reading only - importing an entity, rule or boundary from the example into the spec being
+written is still forbidden, and it never extends to the application currently being generated.
+
 If a cross-application read happens anyway, log it in `harness-log.md` naming the file read and the
 gap that drove it: Type 1 if a doc or skill demonstrably failed to supply what was needed, Type 2
 otherwise.

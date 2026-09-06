@@ -84,12 +84,24 @@ Additionally derive:
 
 If a report with that name already exists, append `-2`, `-3`, etc. rather than overwriting.
 
-**Read the run's self-healing mode** from the `**Self-healing:**` line in the header of
+**Read the run's self-healing mode**, which is the mode the run *executed* under, not merely the one
+its header declares. Start from the `**Self-healing:**` line in the header of
 `applications/{app-name}/harness-log.md`: `on` or `off`, with a missing, unreadable or unrecognised
-value meaning `off` (`.claude/skills/_shared/conventions.md` § "Harness log"). It decides which steps
-run - see § "Under self-healing OFF" above - and it is the first line of the report. There is no
-invocation flag here: this skill evaluates a finished run, and the mode that run executed under is a
-fact about it, not a choice available now.
+value meaning `off` (`.claude/skills/_shared/conventions.md` § "Harness log"). Then read the
+`## Harness Changes` mode line of every retro in `applications/{app-name}/retros/`
+(`.claude/skills/_shared/session-completion.md` § "Harness Changes"), which records the mode in force
+for that session and its source. A session driven by `/implement-aggregate` or
+`/implement-aggregate-full` may have overridden the header with `--self-healing` /
+`--no-self-healing` for that invocation only, so its retro, not the header, is the authority for it.
+A retro whose mode line is missing or unrecognised falls back to the header's value, which itself
+falls back to `off`.
+
+The **effective mode** is what governs from here: it decides which steps run - see § "Under
+self-healing OFF" above - and it is the first line of the report. When the header and one or more
+retros disagree, the report's first line states the header's declared mode, names the sessions that
+ran under an override, and treats each session under the mode that session actually ran under. There
+is no invocation flag on *this* skill: it evaluates a finished run, and the mode that run executed
+under is a fact about it, not a choice available now.
 
 ## Step 2: Precondition — the run must be complete
 
@@ -168,7 +180,7 @@ cd "$(git rev-parse --show-toplevel)"
 python3 - <<'EOF'
 import subprocess
 
-TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
+TREES = ["docs", ".claude", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
 PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):

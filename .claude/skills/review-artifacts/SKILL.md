@@ -1,14 +1,14 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/, .claude/skills/, .claude/agents/ and AGENTS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
+description: Static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
 # Review Artifacts
 
 Static pre-flight check over the harness itself: `docs/**`, `.claude/skills/**`,
-`.claude/agents/**` and `AGENTS.md`. It reads only those three trees and that one root file, checks
-them for internal consistency, and writes one dated report. Every check
+`.claude/agents/**`, `AGENTS.md` and `HARNESS.md`. It reads only those three trees and those two root
+files, checks them for internal consistency, and writes one dated report. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
 **When to run it:** at every **aggregate boundary** — after the last session of aggregate `{N}` is
@@ -73,7 +73,7 @@ Run:
 find docs -type f -name "*.md" | sort
 find .claude/skills -type f \( -name "*.md" -o -name "*.template" \) | sort
 find .claude/agents -type f -name "*.md" | sort
-ls AGENTS.md
+ls AGENTS.md HARNESS.md
 ```
 
 The `*.template` files under `.claude/skills/boot-strap/templates/` are part of the review set:
@@ -87,17 +87,25 @@ defines the scope, friction gate and return contract every slice obeys, and
 `implement-aggregate-full/SKILL.md` delegates to it at runtime; a stale rule or a leaked domain noun
 there reaches generated code exactly as one in a `session-*.md` would.
 
-`AGENTS.md` is in the review set for the same reason, one level up: it is repo-root markdown that a
-skill or agent contract **reads at runtime**. `implement-aggregate/SKILL.md`,
-`implement-aggregate-full/SKILL.md` and `.claude/agents/aggregate-slice.md` each instruct the agent
-to read `AGENTS.md` § "Harness evolution" *in full* before acting on friction, and that section
-defines the Type 1 / Type 2 / `2-fw` gate the whole self-healing loop turns on. A contradiction
-there reaches generated code exactly as one in a `session-*.md` would.
+`AGENTS.md` and `HARNESS.md` are in the review set for the same reason, one level up: they are
+repo-root markdown that a skill or agent contract **reads at runtime**.
+`implement-aggregate/SKILL.md`, `implement-aggregate-full/SKILL.md` and
+`.claude/agents/aggregate-slice.md` each instruct the agent to read `AGENTS.md`
+§ "Harness evolution" *in full* before acting on friction, and that section defines the
+Type 1 / Type 2 / `2-fw` gate the whole self-healing loop turns on. `HARNESS.md` is read the same
+way: `docs/workflow.md` § "Spec Authoring" delegates to `HARNESS.md` § 5 for the spec-pair detail. A
+contradiction in either reaches generated code exactly as one in a `session-*.md` would.
 
 That criterion — read at runtime by a skill or agent contract — is the whole test, and it is
 deliberately not a wildcard over repo-root `*.md`. `README.md` documents the framework for humans
 and no skill delegates to it; `CLAUDE.md` is a one-line `@AGENTS.md` include with nothing of its own
 to check. Neither is in the set. If a future root file starts being read at runtime, add it here.
+
+`CLAUDE.md` is nonetheless in Check 4's commit pathspec (Step 6). The two scopes answer different
+questions: the review set is the files whose *content* is checked for consistency, while Check 4
+scans the *commits* that make up the harness delta as `AGENTS.md` § "Harness evolution" defines it. A
+harness fix can land in `CLAUDE.md`, and a domain noun leaked there leaks whether or not the file has
+prose of its own worth reviewing.
 
 Hold all four lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
@@ -116,9 +124,9 @@ the skills tree leaves it unread by Step 2 and unscanned by Step 6.
 
 Read every file listed by Step 1.b (all `docs/**/*.md`, all
 `.claude/skills/**/*.md`, the `.claude/skills/boot-strap/templates/*.template` scaffolds, all
-`.claude/agents/**/*.md` and `AGENTS.md`) — this is the complete review set. Do not maintain a separate
-hard-coded list here: because the set is derived directly from Step 1.b, newly added files
-(e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
+`.claude/agents/**/*.md`, `AGENTS.md` and `HARNESS.md`) — this is the complete review set. Do not
+maintain a separate hard-coded list here: because the set is derived directly from Step 1.b, newly
+added files (e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
 or any future skill/doc) are picked up automatically without editing this skill.
 
 Read all files in parallel where possible.
@@ -470,8 +478,9 @@ Output to the conversation (not to the report file):
 3. **Never omit sections.** Write "nothing to report" in any section with no findings.
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
-5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**`, `.claude/agents/**` and
-   `AGENTS.md`. The single permitted
+5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**`, `.claude/agents/**`,
+   `AGENTS.md` and `HARNESS.md`; Check 4 additionally scans `CLAUDE.md` commits, per Step 1.b. The
+   single permitted
    read under `applications/**` is the `### {N}. {Aggregate}` header list in `plan.md`, for Check 4
    (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
    completed run belongs to `/harness-retrospective`.
