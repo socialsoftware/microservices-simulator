@@ -1,0 +1,26 @@
+test_arm_never_retries_or_skips_invalid_attempt (test_search.SearchTests.test_arm_never_retries_or_skips_invalid_attempt) ... scope/deterministic: first=None, positives=0
+ok
+test_bad_budget_duplicates_and_duplicate_seeds_rejected (test_search.SearchTests.test_bad_budget_duplicates_and_duplicate_seeds_rejected) ... ok
+test_bad_identity_still_fails_in_assessment_mode (test_search.SearchTests.test_bad_identity_still_fails_in_assessment_mode) ... c1 r1 case: INVALID_REPORT 0.02s
+ok
+test_fixed_workload_horizon_and_universe_cannot_be_changed (test_search.SearchTests.test_fixed_workload_horizon_and_universe_cannot_be_changed) ... ok
+test_frozen_plan_rejects_changed_orders_budgets_and_mixed_workloads (test_search.SearchTests.test_frozen_plan_rejects_changed_orders_budgets_and_mixed_workloads) ... ok
+test_incomplete_assessments_have_unavailable_search_score (test_search.SearchTests.test_incomplete_assessments_have_unavailable_search_score) ... c1 r1 case: PARTIAL 0.02s
+c1 r1 case: EXECUTION_INVALID 0.02s
+ok
+test_invalid_consumes_budget_and_zero_is_not_positive (test_search.SearchTests.test_invalid_consumes_budget_and_zero_is_not_positive) ... ok
+test_malformed_metadata_after_score_validation_cannot_remain_complete (test_search.SearchTests.test_malformed_metadata_after_score_validation_cannot_remain_complete) ... c1 r1 case: INVALID_REPORT 0.02s
+ok
+test_optional_source_setup_absence_is_valid_and_not_zero_duration (test_search.SearchTests.test_optional_source_setup_absence_is_valid_and_not_zero_duration) ... c1 r1 case: COMPLETE 0.02s
+ok
+test_orders_are_reproducible_without_replacement_and_ignore_outcomes (test_search.SearchTests.test_orders_are_reproducible_without_replacement_and_ignore_outcomes) ... ok
+test_partial_or_invalid_score_cannot_be_positive (test_search.SearchTests.test_partial_or_invalid_score_cannot_be_positive) ... ok
+test_snapshot_verification_ignores_checkout_drift_but_not_build_drift (test_search.SearchTests.test_snapshot_verification_ignores_checkout_drift_but_not_build_drift) ... ok
+test_unknown_outcome_needs_no_expectation_and_validates_positive (test_search.SearchTests.test_unknown_outcome_needs_no_expectation_and_validates_positive) ... c1 r1 case: COMPLETE 0.02s
+c1 r1 case: COMPLETE 0.02s
+ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.171s
+
+OK

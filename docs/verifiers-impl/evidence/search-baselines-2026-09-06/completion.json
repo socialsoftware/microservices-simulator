@@ -1,0 +1,29 @@
+{
+  "armDirectories": [
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/deterministic",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-11",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-29",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-47",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-71",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-101",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/deterministic",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-11",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-29",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-47",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-71",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-101",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/deterministic",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-11",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-29",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-47",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-71",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-101"
+  ],
+  "checkoutDifferencePolicy": "Informational; measured snapshot hashes remain authoritative.",
+  "checkoutSourceDifferencesFromSnapshot": [
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/visitor/GroovyClosureBoundarySpec.groovy"
+  ],
+  "completed": true,
+  "integrityErrors": [],
+  "wallSeconds": 1317.0216904589906
+}

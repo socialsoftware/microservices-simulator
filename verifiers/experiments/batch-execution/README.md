@@ -5,6 +5,10 @@ launcher. Each attempt has a new container/JVM and the `test,sagas,local` profil
 in-memory H2 database. This is a small measurement harness outside the Java pipeline,
 not a search algorithm or a catalogue qualification service.
 
+For candidates without expected outcomes, the separate
+[fixed-workload baseline harness](../search-baselines/README.md) calls this runner's
+explicit assessment primitive. This CLI keeps its existing regression defaults.
+
 ## Approved brief and execution route
 
 Direct implementation in the existing checkout was explicitly approved, including local

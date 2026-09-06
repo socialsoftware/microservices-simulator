@@ -206,7 +206,26 @@ def freeze(args):
     print(f'Frozen {len(rows)} cases: {args.output}', flush=True)
 
 
-def attempt(output, selection, row, repetition, concurrency, timeout):
+def assessment_result(execution, v2):
+    valid = execution['terminalStatus'] in ('SUCCESS', 'COMPENSATED', 'PARTIAL_COMPENSATED') \
+        and execution['scheduleConformance'] in ('EXACT', 'DEVIATED')
+    status = v2['assessmentStatus'] if valid else 'EXECUTION_INVALID'
+    return status, v2['completeScore'] if status == 'COMPLETE' else None
+
+
+def setup_seconds(execution, field):
+    setup = execution.get(field)
+    if setup is None:  # ScenarioExecutionReport omits null optional setup records.
+        return None
+    nanos = setup['durationNanos']
+    if type(nanos) is not int or nanos < 0:
+        raise ValueError('Invalid setup duration: ' + field)
+    return nanos / 1e9
+
+
+def attempt(output, selection, row, repetition, concurrency, timeout, mode='regression'):
+    if mode not in ('regression', 'assessment'):
+        raise ValueError('Unknown attempt mode')
     started = time.perf_counter()
     directory = output / f'c{concurrency}' / f'r{repetition:02d}-{row["caseId"]}'
     directory.mkdir(parents=True)
@@ -228,13 +247,20 @@ def attempt(output, selection, row, repetition, concurrency, timeout):
             execution, v1, v2 = reports(directory, row, Path(selection['manifest']))
             result['executionAttemptId'] = execution['executionAttemptId']
             result['observed'] = semantic(execution, v1, v2)
-            result['status'] = 'PASS' if result['observed'] == row['expected'] else 'SEMANTIC_DIVERGENCE'
-            result['score'] = v2['completeScore']
-            result['sourceSetupSeconds'] = execution['sourceSetup']['durationNanos'] / 1e9
-            result['prerequisiteSetupSeconds'] = execution['prerequisiteSetup']['durationNanos'] / 1e9
+            if mode == 'regression':
+                result['status'] = 'PASS' if result['observed'] == row['expected'] else 'SEMANTIC_DIVERGENCE'
+                result['score'] = v2['completeScore']
+            else:
+                result['status'], result['score'] = assessment_result(execution, v2)
+            result['sourceSetupSeconds'] = setup_seconds(execution, 'sourceSetup')
+            result['prerequisiteSetupSeconds'] = setup_seconds(execution, 'prerequisiteSetup')
     except Exception as failure:
         if result['status'] == 'RUNNING':
             result['status'] = 'INFRASTRUCTURE_FAILURE'
+        else:
+            result['status'] = 'INVALID_REPORT'
+        result['score'] = None
+        result.pop('observed', None)
         result['error'] = str(failure)
     result.setdefault('wallSeconds', time.perf_counter() - started)
     result['reportHashes'] = {name: digest(directory / name) for name in REPORTS if (directory / name).is_file()}
@@ -243,8 +269,8 @@ def attempt(output, selection, row, repetition, concurrency, timeout):
     return result
 
 
-def verify(selection):
-    if source_hashes() != selection['sourceHashes']:
+def verify(selection, check_checkout=True):
+    if check_checkout and source_hashes() != selection['sourceHashes']:
         raise ValueError('Source drift')
     if package(Path(selection['manifest']))['hashes'] != selection['packageHashes']:
         raise ValueError('Package drift')

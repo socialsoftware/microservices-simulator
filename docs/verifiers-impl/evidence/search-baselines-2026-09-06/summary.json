@@ -1,0 +1,1411 @@
+{
+  "arms": [
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 18.574635041004512,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 35.71549666597275,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 52.942073832964525,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 70.43948908295715,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 88.60195808298886,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 106.39746549999109,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 125.94279895897489,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 144.36223312601214,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 163.71365508402232,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 7,
+          "processWallSeconds": 182.88285550102592,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 8,
+          "processWallSeconds": 203.90042895899387,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 9,
+          "processWallSeconds": 224.2812079169671,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+        "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+        "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+        "36d82c493cfad36764aeafa3f0b3f7fa4f052b7f0bf80710faa2fc7b0d36648b",
+        "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+        "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+        "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+        "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+        "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/deterministic/results.json",
+      "firstPositiveAttempt": 4,
+      "firstPositiveProcessWallSeconds": 70.43948908295715,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": null,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "deterministic",
+      "wallSeconds": 224.33956208400195,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 18.16857587499544,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 34.736123292008415,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 51.78620500100078,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 69.04457775101764,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 87.47531829302898,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 104.98082658502972,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 124.83096050203312,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 142.61124191904673,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 162.52083404408768,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 184.15062512713484,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 205.11800808517728,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 226.2963667102158,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+        "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+        "36d82c493cfad36764aeafa3f0b3f7fa4f052b7f0bf80710faa2fc7b0d36648b",
+        "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+        "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+        "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-11/results.json",
+      "firstPositiveAttempt": 2,
+      "firstPositiveProcessWallSeconds": 34.736123292008415,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": 11,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "random",
+      "wallSeconds": 226.37313579197507,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 21.868758916971274,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 44.300884250958916,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 64.83317170897499,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 87.30475083400961,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 110.1192135430174,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 130.94282491802005,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 153.10150008503115,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 175.78176150203217,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 199.33230500202626,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 224.76352070999565,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 247.49511133495253,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 271.1395133349579,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "3d63089cd85c05cb3c3c140805530d21e4d0ac0d6fb16c6ff65a60c6bfb5f386",
+        "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+        "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+        "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+        "e8f09075302bfda868a3cc97fe169652cfcc6f488433fa7eca493becaae85cd3",
+        "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-29/results.json",
+      "firstPositiveAttempt": 3,
+      "firstPositiveProcessWallSeconds": 64.83317170897499,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": 29,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "random",
+      "wallSeconds": 271.2156982909655,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 20.81587191601284,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 43.31116812402615,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 64.31993108202005,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 84.40280683198944,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 106.69060066598468,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 130.20356524997624,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 152.45782991597662,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 175.3639765830012,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 198.05263520800509,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 220.35785733297234,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 243.90879204199882,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 267.6078252919833,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+        "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+        "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+        "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+        "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-47/results.json",
+      "firstPositiveAttempt": 1,
+      "firstPositiveProcessWallSeconds": 20.81587191601284,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": 47,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "random",
+      "wallSeconds": 267.67486016702605,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 23.37598504195921,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 45.856909000955056,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 70.75320737593574,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 98.5407287919079,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 124.13364545890363,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 149.34416320890887,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 175.39766066794982,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 200.5144606269314,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 224.90162216790486,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 7,
+          "processWallSeconds": 248.24979895993602,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 8,
+          "processWallSeconds": 274.0792867099517,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 9,
+          "processWallSeconds": 297.68079395993846,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+        "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+        "3d63089cd85c05cb3c3c140805530d21e4d0ac0d6fb16c6ff65a60c6bfb5f386",
+        "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+        "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+        "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+        "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+        "c598527b68d3c9e4c36cbdc24eab73d8f1131fa5c82f6df70b627c66332063ec",
+        "e8f09075302bfda868a3cc97fe169652cfcc6f488433fa7eca493becaae85cd3"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-71/results.json",
+      "firstPositiveAttempt": 1,
+      "firstPositiveProcessWallSeconds": 23.37598504195921,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": 71,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "random",
+      "wallSeconds": 297.7838063330273,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 12
+      },
+      "budget": 12,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 23.214302040985785,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 46.03927683195798,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 1,
+          "processWallSeconds": 71.18384462391259,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 95.24806270789122,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 5,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 120.30235658289166,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 6,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 149.48911104194121,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 7,
+          "distinctPositiveScenarios": 2,
+          "processWallSeconds": 172.5989290419384,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 8,
+          "distinctPositiveScenarios": 3,
+          "processWallSeconds": 197.87104487488978,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 9,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 222.0487840839196,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 10,
+          "distinctPositiveScenarios": 4,
+          "processWallSeconds": 248.67182554188184,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 11,
+          "distinctPositiveScenarios": 5,
+          "processWallSeconds": 273.5176710418891,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 12,
+          "distinctPositiveScenarios": 6,
+          "processWallSeconds": 298.1350682498887,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [
+        "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+        "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+        "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+        "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+        "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+        "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b"
+      ],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/benchmark/random-101/results.json",
+      "firstPositiveAttempt": 3,
+      "firstPositiveProcessWallSeconds": 71.18384462391259,
+      "firstPositiveResult": "FOUND",
+      "scope": "benchmark",
+      "seed": 101,
+      "statuses": {
+        "COMPLETE": 12
+      },
+      "strategy": "random",
+      "wallSeconds": 298.21022491704207,
+      "workloadId": "435ac86830d1ad7d778abe6dd4e046f728c9f3fd695106657aa430bc2d1710fc"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.934486332989763,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 48.974585374002345,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 72.91909649898298,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 98.02988616598304,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/deterministic/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": null,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "deterministic",
+      "wallSeconds": 98.05583387496881,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.38238475000253,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 48.54305408295477,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 73.19750499998918,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 97.27455554099288,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-11/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": 11,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "random",
+      "wallSeconds": 97.28941820800537,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 23.860754624998663,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 47.1176189170219,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 72.02770520903869,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 97.50085158401635,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-29/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": 29,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "random",
+      "wallSeconds": 97.53115766699193,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.224663458007853,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 47.90271691605449,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 73.08409520803252,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 97.53286858298816,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-47/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": 47,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "random",
+      "wallSeconds": 97.54827154200757,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.18443591700634,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 50.769143417011946,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 74.34039016702445,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 98.99350679200143,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-71/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": 71,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "random",
+      "wallSeconds": 99.0156530829845,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 4
+      },
+      "budget": 4,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.488888457999565,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 47.966503333009314,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 72.18910162505927,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 4,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 96.30548266705591,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/create-quiz/random-101/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "create-quiz",
+      "seed": 101,
+      "statuses": {
+        "COMPLETE": 4
+      },
+      "strategy": "random",
+      "wallSeconds": 96.32806716696359,
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 25.55143162503373,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 50.52710858301725,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 75.8286684990162,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/deterministic/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": null,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "deterministic",
+      "wallSeconds": 75.85349691699957,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 25.737869624979794,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 49.66709262499353,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 72.96470825001597,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-11/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": 11,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "random",
+      "wallSeconds": 72.97959112498211,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.901916457980406,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 50.41873391694389,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 74.80715716694249,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-29/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": 29,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "random",
+      "wallSeconds": 74.82807287498144,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 25.08215500001097,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 51.23574716702569,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 75.98594729206525,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-47/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": 47,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "random",
+      "wallSeconds": 75.99738145800075,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 25.340233167051338,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 53.402840459079016,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 77.98008604208007,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-71/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": 71,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "random",
+      "wallSeconds": 77.99725716694957,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    },
+    {
+      "assessments": {
+        "COMPLETE": 3
+      },
+      "budget": 3,
+      "curve": [
+        {
+          "attempts": 1,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 24.590617000008933,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 2,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 49.720801041985396,
+          "status": "COMPLETE"
+        },
+        {
+          "attempts": 3,
+          "distinctPositiveScenarios": 0,
+          "processWallSeconds": 73.81587966700317,
+          "status": "COMPLETE"
+        }
+      ],
+      "distinctPositiveScenarioIds": [],
+      "evidence": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/run-01/anonymize-event/random-101/results.json",
+      "firstPositiveAttempt": null,
+      "firstPositiveProcessWallSeconds": null,
+      "firstPositiveResult": "NOT_FOUND_WITHIN_BUDGET",
+      "scope": "anonymize-event",
+      "seed": 101,
+      "statuses": {
+        "COMPLETE": 3
+      },
+      "strategy": "random",
+      "wallSeconds": 73.83182216598652,
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b"
+    }
+  ],
+  "integrityErrors": [],
+  "meaning": "Distinct positive FaultScenarios within each fixed workload; not severity or distinct defects. All attempts are new online executions.",
+  "nonCompleteAttempts": 0,
+  "plannedAttempts": 114,
+  "repeatability": [
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "0146d3ba78e78832b7f0519998c9c9af3ec65c24d307d53747e6d2e95bd3eee9",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "66efce98f8bd977e95d373ee745bc5912afb5092dc817edb8c7513744e11755f",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "36d82c493cfad36764aeafa3f0b3f7fa4f052b7f0bf80710faa2fc7b0d36648b",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "e8f09075302bfda868a3cc97fe169652cfcc6f488433fa7eca493becaae85cd3",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "3d63089cd85c05cb3c3c140805530d21e4d0ac0d6fb16c6ff65a60c6bfb5f386",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 0,
+      "completeCount": 0,
+      "scenarioId": "9f78ee0fb48e553c69b3f493d232d620bf9a9480d26274bd8094e6ac81a43a65",
+      "scope": "benchmark",
+      "semanticVariants": 0,
+      "status": "UNOBSERVED"
+    },
+    {
+      "attemptCount": 1,
+      "completeCount": 1,
+      "scenarioId": "c598527b68d3c9e4c36cbdc24eab73d8f1131fa5c82f6df70b627c66332063ec",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "INSUFFICIENT_REPEATS"
+    },
+    {
+      "attemptCount": 0,
+      "completeCount": 0,
+      "scenarioId": "7f32e030e2c578e09ec3ebc6c55d704bfdbcd917f8eddc782550e300ba4aba9c",
+      "scope": "benchmark",
+      "semanticVariants": 0,
+      "status": "UNOBSERVED"
+    },
+    {
+      "attemptCount": 0,
+      "completeCount": 0,
+      "scenarioId": "870b149ec74e1d0170045f1c0629af3e011eff9511e5b5d233d0a728a70aeaa0",
+      "scope": "benchmark",
+      "semanticVariants": 0,
+      "status": "UNOBSERVED"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "8873c9fb8b5d7ea2db99a6a5053b8c2355444b15987995f67e9e274b7f84a0ff",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "d49fc103ab34768c63956bd10a204d557308207bf5134eb30a3e416118917bf8",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 4,
+      "completeCount": 4,
+      "scenarioId": "fc1a7626403c503b518283cf03172ecd6bb56277dcc5265b1f9b829c70deda4d",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "681f734146ec9a63a9dad1b922db1f60f209a18005257a200f3a10ee1c818897",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 1,
+      "completeCount": 1,
+      "scenarioId": "f002a127255ca13079d1b3a80c2d6a027ae66afa52344a4ebf64b66fb15c5be3",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "INSUFFICIENT_REPEATS"
+    },
+    {
+      "attemptCount": 2,
+      "completeCount": 2,
+      "scenarioId": "8e8ba414a239b47a493598e8db79fe59791711d6fd7d8e80fde783827e4be359",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 1,
+      "completeCount": 1,
+      "scenarioId": "a5c31d201c7c9bdaad2ab31e0d77ea0c99f83b7488a815d4f4c540094c0731de",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "INSUFFICIENT_REPEATS"
+    },
+    {
+      "attemptCount": 3,
+      "completeCount": 3,
+      "scenarioId": "bad032db214a1f6014dc3ae7a89bb3b953d1ce5b76c95d73f51b9b90d523419f",
+      "scope": "benchmark",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "5b2b66bcdaa1aebdbf5ac10f6a11963a2176b27544733eb33b7d246fc3266b44",
+      "scope": "create-quiz",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "6ac55f24e7b755f3c5ec566b271270c25b852b259cce17949a86ff707d202682",
+      "scope": "create-quiz",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "d09dc82c3045716b9eb99cd5da4870547c24ba8fd33c5944218752090e8c67e4",
+      "scope": "create-quiz",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "cf250c8d0c0e359bfaa1c604b8e11622313708a91c13618a6952cc149227de15",
+      "scope": "create-quiz",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "2efe7c5643a12f1ef0215853eaff1d8cd62e9bbfd4006cecf4971362cca8f588",
+      "scope": "anonymize-event",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "6f8e670510673c4a1a4907c50afa1c23ab743e9a0aa1ef5d217273da3ecb8c7d",
+      "scope": "anonymize-event",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    },
+    {
+      "attemptCount": 6,
+      "completeCount": 6,
+      "scenarioId": "b24615488182cc18f528d0187c6002d90f3b5022c375a1c00af48e94649ce59b",
+      "scope": "anonymize-event",
+      "semanticVariants": 1,
+      "status": "STABLE_COMPLETE"
+    }
+  ],
+  "retainedAttempts": 114,
+  "uniqueExecutionAttemptIds": 114,
+  "validation": "PASS",
+  "wallSeconds": 1317.0216904589906
+}

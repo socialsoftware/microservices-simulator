@@ -64,7 +64,7 @@ evidence, but is not the latest campaign. Scoring-policy changes are held for di
 | B. Prepare and report experiments correctly | Completed: validated worker failure reports, corrected selected prerequisites, and successful controls for all 30 selected pairs. | Reuse the qualification and reporting handoffs. A full latest-catalogue preflight remains a different, optional task. | No new repair assignment is pending. |
 | C. Broaden useful behavior coverage | The missing-input audit is complete; the current selected cohort is qualified. Choose another family only when it answers an evaluation question. | Exact reconstruction and runtime proof for that family, not a promise to make every static candidate executable. | Bounded implementation after selection. |
 | D. Make experiments reproducible and affordable | A small prepared-batch runner measures selected repeated execution; compilation/generation remain separate, and pure action timing is unavailable. | [Cost evidence and reuse command](../../verifiers/experiments/batch-execution/RESULTS.md), preserving fresh process/H2 state; broaden measurements when selecting search workloads. | Independent of the advisor-note writing. |
-| E. Evaluate search | Downstream: establish deterministic/random baselines using the implemented metric, then evaluate search. | Budget-matched discovery results with valid attempts and explicit coverage. Depends on A's methodological decisions and D's cost measurements. | Experiment design first, then bounded implementation. |
+| E. Evaluate search | A first fixed-workload deterministic/random baseline uses the existing COMPLETE ImpactV2 score and explicit attempt budgets. | [Online discovery evidence](../../verifiers/experiments/search-baselines/RESULTS.md), with failures retained, fixed observation horizons and seeded orders. Adaptive search and broader evaluation remain downstream. | No GA or cross-workload ranking is implemented. |
 
 Thesis/paper writing runs alongside all tracks: explain the domain and experimental
 question, record supported claims and limitations, and use measured results in the
@@ -580,17 +580,25 @@ A broad Quizzes refresh is not automatically a higher priority than the reduced 
 
 ## Outcome 6 — Local fault-vector search
 
+**Baseline implementation:** [fixed-workload search baselines](../../verifiers/experiments/search-baselines/README.md)
+execute real isolated attempts in stable or seeded-random order without prior score
+expectations. The bounded comparison declares 29/4/3 eligible scenarios and budgets
+12/4/3 for the known benchmark, CreateQuiz and AnonymizeStudent with a fixed event.
+One deterministic run and seeds 11, 29, 47, 71, 101 consume equal budgets per workload.
+This establishes the evaluation/reporting boundary, not superiority or adaptive search.
+See the dated results for actual validity, discovery, coverage and repeatability.
+
 ### Goal
 
 For one fixed useful WorkloadPlan, search persisted fault vectors under a finite execution budget and return high-impact distinct experiments.
 
 ### Entry conditions
 
-Do not start until:
+Before extending these baselines into adaptive search:
 
 - the chosen workload is setup-ready and repeatably executable;
 - environment reset is defined;
-- at least one vector produces a discriminating evaluated result under an approved versioned impact contract; the automatic source-derived benchmark's final-state rule is evidence for designing that contract, not yet the generic search reward;
+- the chosen fixed workload offers useful discrimination under the existing COMPLETE ImpactV2 contract; historical application-rule labels remain separate evidence;
 - arbitrary valid vectors can be persisted idempotently through the current on-demand path;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 
@@ -604,6 +612,12 @@ Do not start until:
 - Baseline: compare against eager all-zero/single-point vectors and a deterministic random or exhaustive bounded baseline before claiming benefit from a genetic algorithm.
 
 Do not commit prematurely to tournament selection, crossover, mutation, or population parameters. Choose an algorithm only after the executable vector space and reward distribution are measured.
+
+Before adding a GA, define how its genome selects both a valid fault vector and any
+recovery-schedule variant, how duplicate/equivalent requests consume budget, and how
+incomplete evaluations are handled without becoming zero fitness. Use the same fixed
+workload horizon and real evaluator as the baselines, with budget-matched seeded trials.
+The easy known benchmark and tiny additional spaces alone cannot establish GA benefit.
 
 ### Done when
 

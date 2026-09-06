@@ -1,0 +1,6 @@
+{
+  "validation": "PASS",
+  "scenarioCount": 29,
+  "comparison": "Exact scenario IDs and normalized recovery/forward actions match the corrected structural reference; no scores read.",
+  "referenceSelectionSha256": "f6b211ff0f71b58ae0d9e2bcf32da8d06d5aeca9107eddf5b1269055d158d1b1"
+}

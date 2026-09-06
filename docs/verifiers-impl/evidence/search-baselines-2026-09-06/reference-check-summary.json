@@ -1,0 +1,664 @@
+{
+  "checks": [
+    {
+      "executionAttemptId": "791daa3e-d12d-403f-aa4e-b216a72b7bae",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "4a639cb6-8861-4066-96c9-ef123c1dec53",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "0146d3ba78e78832b7f0519998c9c9af3ec65c24d307d53747e6d2e95bd3eee9",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "772e54cb-f007-4850-8b02-cc3886c7bec2",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "66efce98f8bd977e95d373ee745bc5912afb5092dc817edb8c7513744e11755f",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "d93dcfdc-de80-4528-8102-61ac735a3a72",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "abfd2b7c-bc2b-441d-92e2-487e4819c2c7",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "650ae941-8463-4648-b0bf-17595cf30ae0",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "c16e7510-f29d-4be1-aa3b-a7940b8947f8",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "ce171133-df4d-48ce-a71d-26786ae6bd58",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "12385a7c-6788-4ae2-85c9-f2cd39d47f96",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "96f128c5-44f6-4666-8dfc-57c93fa94647",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "38636e9b-9a15-432f-9123-79ffc2a24620",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "e331cc33-c711-4e2e-9ab1-5b96d85352ec",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "36d82c493cfad36764aeafa3f0b3f7fa4f052b7f0bf80710faa2fc7b0d36648b",
+      "strategy": "deterministic"
+    },
+    {
+      "executionAttemptId": "055cf298-6c97-4edb-9174-ab9a7d07fa49",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "8e8ba414a239b47a493598e8db79fe59791711d6fd7d8e80fde783827e4be359",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "3e5e1c63-d84f-4d95-976d-ceffc13311e2",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "f16dc5e5-338f-488e-b663-3fe2cbf41874",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "c7e24dee-3fa2-4e21-a763-9e4c646cfecc",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "36d82c493cfad36764aeafa3f0b3f7fa4f052b7f0bf80710faa2fc7b0d36648b",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "b8bfc9ea-c408-46cf-bb9a-e2ffa6c4e1ff",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "ac0bceaf-4464-4188-9203-8b20a99a287f",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "950927ff-5d8d-4e96-9517-24e270989ffe",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "8873c9fb8b5d7ea2db99a6a5053b8c2355444b15987995f67e9e274b7f84a0ff",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "6e93a368-0454-4c62-aa78-4c9464b5df74",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fc1a7626403c503b518283cf03172ecd6bb56277dcc5265b1f9b829c70deda4d",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "082b690f-decc-4d7f-b558-9f5a558b75f0",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "08bea1a6-98d2-42aa-9d7d-5c51a23f591e",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "884aeed8-c0f0-4b3e-ab6d-7f3ffaf233a9",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "a89603a1-aa16-48c2-b72b-c5515d120488",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "0146d3ba78e78832b7f0519998c9c9af3ec65c24d307d53747e6d2e95bd3eee9",
+      "strategy": "random-11"
+    },
+    {
+      "executionAttemptId": "fd232b10-22ba-4aa3-9f9d-b21bb6c0fc35",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "d49fc103ab34768c63956bd10a204d557308207bf5134eb30a3e416118917bf8",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "8b7586ea-2e20-47f9-8111-40376c54f232",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "bad032db214a1f6014dc3ae7a89bb3b953d1ce5b76c95d73f51b9b90d523419f",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "fada837b-8dad-4389-8d12-8c9041da41b0",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "2031a5b1-2596-4b48-98f9-979cd5dbf013",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fc1a7626403c503b518283cf03172ecd6bb56277dcc5265b1f9b829c70deda4d",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "e84ba5b2-7799-4ff7-853a-a9510b20190c",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "7b2db0c9-6f10-4b49-a6cc-bc5b30f34275",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "138d1d24-6280-4795-97f4-2c5aa9625043",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "2f479f3a-353e-4975-8c4c-9dac20c4f827",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "681f734146ec9a63a9dad1b922db1f60f209a18005257a200f3a10ee1c818897",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "f902240e-3ee8-4acc-99d0-2b8788f651f6",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "e8f09075302bfda868a3cc97fe169652cfcc6f488433fa7eca493becaae85cd3",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "87c28166-fa7c-481f-9dff-c74bae2b6c65",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "8873c9fb8b5d7ea2db99a6a5053b8c2355444b15987995f67e9e274b7f84a0ff",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "7f71f9e8-90a2-4911-bc33-46b4e5666a20",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "6f3a4fdc-d68f-4352-a09a-440644819e07",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "3d63089cd85c05cb3c3c140805530d21e4d0ac0d6fb16c6ff65a60c6bfb5f386",
+      "strategy": "random-29"
+    },
+    {
+      "executionAttemptId": "79204047-3f9e-4af4-9c16-f6497243cc32",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "b312f4f6-2e56-4618-bec1-c522f7ddb063",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "ff398693-8bfe-412e-a7c2-bd1b383dbf0f",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "d49fc103ab34768c63956bd10a204d557308207bf5134eb30a3e416118917bf8",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "f65058eb-9a1f-40a9-80ad-b4f5f03c3775",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "a5c31d201c7c9bdaad2ab31e0d77ea0c99f83b7488a815d4f4c540094c0731de",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "1c0f02b9-7158-4528-9311-d26a8b9f19c5",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fc1a7626403c503b518283cf03172ecd6bb56277dcc5265b1f9b829c70deda4d",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "1e272b04-0dca-427c-842b-e610f71a4f3f",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "bad032db214a1f6014dc3ae7a89bb3b953d1ce5b76c95d73f51b9b90d523419f",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "289e6bdf-3e5e-4938-b7b6-54d06f1e95a9",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "681f734146ec9a63a9dad1b922db1f60f209a18005257a200f3a10ee1c818897",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "b46cfdc4-07b0-41f0-a345-8f631c67f195",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "e40b701e-8f01-45cb-a5c5-a3532fd95082",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "8f2759f2-a40c-41fd-a5e3-57a3cd2c9d8f",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "07fae1d2-cd14-4c16-bb83-d77416c01a84",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "8873c9fb8b5d7ea2db99a6a5053b8c2355444b15987995f67e9e274b7f84a0ff",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "b83d7825-3e8c-4b5e-b00f-2a00656868fc",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+      "strategy": "random-47"
+    },
+    {
+      "executionAttemptId": "b9c20f64-0a29-4de1-8ce2-b69d9a6c7c34",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "3d63089cd85c05cb3c3c140805530d21e4d0ac0d6fb16c6ff65a60c6bfb5f386",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "737cb8e9-c22d-4651-a25e-4261860dc46b",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "d49fc103ab34768c63956bd10a204d557308207bf5134eb30a3e416118917bf8",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "409df821-6cb4-4387-9ca5-0cb7ba43a861",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "46e946bc-a0ad-434d-9945-180189b4e92e",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "20f4d4eb-1017-476d-824a-7a239e9f51b1",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "3a68ef3c-0643-41d7-95fb-5a7c65df2370",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "c598527b68d3c9e4c36cbdc24eab73d8f1131fa5c82f6df70b627c66332063ec",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "a98f61db-1a28-4dec-831a-6875c670be9f",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "16e3557d09f431179c38969c6ede2bea3206546c9f611e879f065298fb2f15bc",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "1bc0943a-21bb-4094-b961-2b56831f0f8c",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "bad032db214a1f6014dc3ae7a89bb3b953d1ce5b76c95d73f51b9b90d523419f",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "889aabbe-ca68-403a-9159-e5e322cdcdf8",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "8e8ba414a239b47a493598e8db79fe59791711d6fd7d8e80fde783827e4be359",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "50a37a74-ae0c-4168-a1cb-7247c5b8369e",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "89d6b152-75e8-42ac-8620-c03c06dae888",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "8c234535-84a8-406b-8863-9648c458165c",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "e8f09075302bfda868a3cc97fe169652cfcc6f488433fa7eca493becaae85cd3",
+      "strategy": "random-71"
+    },
+    {
+      "executionAttemptId": "c4df9dd2-977f-4bff-adba-9fd39a9e055e",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "98fab123-4b5a-4f49-9209-c2bfcade1ab2",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fc1a7626403c503b518283cf03172ecd6bb56277dcc5265b1f9b829c70deda4d",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "7a766cfb-bb9d-4bd6-840f-3df104986027",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "34bfe0334ff91b9a7da328b579105ff046600a44aaaf4f1a48a34c9d9372b45b",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "bbfcc2c8-e296-482d-af34-632b9978b5b5",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "26bc914c-fbb3-4260-a5d3-ff98d307ce10",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "f002a127255ca13079d1b3a80c2d6a027ae66afa52344a4ebf64b66fb15c5be3",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "5f6d43e6-5c79-43a0-8405-8953f6b862e1",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "681f734146ec9a63a9dad1b922db1f60f209a18005257a200f3a10ee1c818897",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "df278c49-2e5d-4e59-907d-4c5b7e65d680",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "4c0f2399-97b5-4a1e-925b-84abd37d74bb",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "a021b10b677b60c75a05aa9b014e70b66f7a08a3f8f505ecf1cdd3d9985da2c1",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "ca2b9c98-2e2b-42c2-bdf6-266b1367763c",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "6363dadb237dc061e28d17433cf19a8a971f39d11d9cbf3f3b123bac8639ff01",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "fd156ac0-9074-4345-a72d-24be3c7dbfac",
+      "historicalScore": 0,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 0,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "66efce98f8bd977e95d373ee745bc5912afb5092dc817edb8c7513744e11755f",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "a7d309f9-3702-4906-82e9-65aed119f997",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "strategy": "random-101"
+    },
+    {
+      "executionAttemptId": "4cba63b0-09f7-4a36-b85a-cbeb4bb64e65",
+      "historicalScore": 2,
+      "matchesHistoricalSemanticResult": true,
+      "onlineScore": 2,
+      "onlineStatus": "COMPLETE",
+      "scenarioId": "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+      "strategy": "random-101"
+    }
+  ],
+  "comparedOnlineAttempts": 72,
+  "fullReferenceCheckPath": "verifiers/target/search-baselines/run-01/reference-check.json",
+  "fullReferenceCheckSha256": "f826dbc6ff8032e4eb595da70aa852dab4880e7332771b131cdd62df152da793",
+  "kind": "POST_RUN_HISTORICAL_CROSSCHECK",
+  "mismatches": 0,
+  "newExecutions": 0,
+  "referenceCandidates": 29,
+  "referenceScoreCounts": {
+    "0": 14,
+    "2": 15
+  },
+  "scope": "Known corrected benchmark only. No candidate selection/order or online count comes from this cross-check."
+}

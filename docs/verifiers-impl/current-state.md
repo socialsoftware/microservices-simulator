@@ -619,6 +619,38 @@ and is separate from repeated cost. The [dated results](../../verifiers/experime
 cover six previously known cases from one Quizzes fixture, not catalogue-wide runtime
 qualification or a general search throughput guarantee.
 
+### Fixed-workload search baselines
+
+The [search baseline harness](../../verifiers/experiments/search-baselines/README.md)
+reuses the batch attempt primitive in explicit assessment mode, without prior expected
+scores. Default regression mode still compares known outcomes. Assessment mode validates
+report identity, execution/conformance and completeness; only a valid COMPLETE ImpactV2
+report supplies an available search score. PARTIAL, invalid and unavailable attempts keep
+their evidence and consume budget with null search score.
+
+Each comparison freezes one WorkloadPlan, setup, ordered observation horizon and all
+eligible persisted FaultScenarios. One stable `(faultVector, scenarioId)` order and five
+seeded permutations execute equal attempt budgets without replacement inside each run.
+Orders never read scores, and each selected candidate runs in a fresh process/H2 state.
+Independent seed runs are actual executions, not offline permutations of cached results.
+
+A positive means COMPLETE score greater than zero. Reports show the first-positive
+attempt or explicit not-found-within-budget, cumulative distinct positive scenario IDs,
+cost, assessment status and repeatability. Distinct scenarios need not expose distinct
+conditions or defects. Workloads with different setups/event horizons are not ranked
+together. The [bounded evaluation](../../verifiers/experiments/search-baselines/RESULTS.md)
+uses the corrected 29-scenario benchmark plus creation and fixed-event update workloads;
+it is a baseline, with no GA or adaptive fitness policy. Frozen source/build hashes own
+measurement provenance; concurrent checkout changes are informational when the measured
+snapshot remains unchanged.
+
+The first comparison completed 114/114 COMPLETE assessments (111 EXACT, three supported
+DEVIATED) with 114 distinct execution IDs. Benchmark prefixes covered 26/29 candidates;
+three were unobserved and three seen once. All seven additional candidates had six
+stable COMPLETE zero results each. The historical 14-zero/15-two landscape is a separate
+post-run reference check, not a newly executed complete 29-row landscape. These results
+qualify the bounded evaluation path and expose flat additional spaces, not GA benefit.
+
 ## ImpactV1
 
 The simulator emits a structured invariant event only when `SagaUnitOfWorkService.registerChanged` reaches the existing `Aggregate.verifyInvariants()` boundary and that verification throws. Instrumentation records context and rethrows the identical application exception; evidence recording must not replace domain behavior.

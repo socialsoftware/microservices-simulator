@@ -1,0 +1,66 @@
+{
+  "additionalFinalRunnerChecks": 2,
+  "attemptWallSeconds": {
+    "max": 29.186754459049553,
+    "median": 23.661227729025995,
+    "min": 16.567547417012975
+  },
+  "checkoutRevisionAfterCampaign": "3f331bde1f0f0205778c8e58e2f1f0fd7561b3b0",
+  "checkoutRevisionAtLaunch": "64a213d0acfa5edfc1dfb028909ecc865cfdcf5b",
+  "conformanceCounts": {
+    "DEVIATED": 3,
+    "EXACT": 111
+  },
+  "contextPath": "verifiers/target/search-baselines/run-01/context.json",
+  "contextSha256": "e8a43b1b06ce0717af5833c52d0147e528b98ec4da6a3a7ce7c2da356b1d68f7",
+  "finalBatchRunnerSha256": "516018e02e9c84a4f9095ace498ef772a65422054b55f7683f84bef29673584a",
+  "historicalComparisonNewExecutions": 0,
+  "historicalComparisons": 72,
+  "historicalMismatches": 0,
+  "legacyHarnessMetadataDiagnostics": 72,
+  "measuredScriptHashes": {
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/batch-execution/run.py": "fecec9c01328cd4193f532c141cae616d9b6dca3220ee3cae0b84a867e712570",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/impact-v2-broader/run-prepared.sh": "72bd9b72e0962c1bc8607827aed6e7cd0c2af1dbd1bd2fe392c55ca1f1522b17",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/impact-v2-broader/validate_assessment.py": "8abdfaa55ef18885ca8cbec40d02bd22533918f35194490ed097799913e3a141",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/search-baselines/search.py": "df553125079754c519600cac09cd64df9730aa071554c1dec487897e17474b4b"
+  },
+  "measuredSourceArchives": {
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/batch-execution/run.py": "verifiers/target/search-baselines/measurement-code/batch-run.py"
+  },
+  "metadataRecheckAttempts": 114,
+  "nonCompleteAttempts": 0,
+  "onlineAttempts": 114,
+  "onlineWallSeconds": 1317.0216904589906,
+  "postCampaignCorrection": "The 72 provider-backed reports legally omit optional sourceSetup (NON_NULL report serialization). The measured wrapper retained a metadata diagnostic after valid score assessment. Final code handles absent setup records as unavailable and rejects malformed present metadata without retaining score/complete claims. All 114 original scores and reports revalidate unchanged. Two additional fresh provider/source checks passed separately from the comparison.",
+  "preparedSeconds": 14.37614983401727,
+  "pythonTests": {
+    "regression": 12,
+    "search": 13
+  },
+  "scopeCoverage": {
+    "anonymize-event": {
+      "eligible": 3,
+      "observed": 3,
+      "randomDistinctOrders": 3
+    },
+    "benchmark": {
+      "eligible": 29,
+      "observed": 26,
+      "randomDistinctOrders": 5
+    },
+    "create-quiz": {
+      "eligible": 4,
+      "observed": 4,
+      "randomDistinctOrders": 5
+    }
+  },
+  "snapshotIntegrity": "Package, build, Maven dependencies, image and measured runner/validator hashes unchanged; cached simulator/verifier jars match prepared jars.",
+  "sourceSetupLegallyAbsentReports": 72,
+  "status": "PASS",
+  "terminalCounts": {
+    "COMPENSATED": 68,
+    "PARTIAL_COMPENSATED": 34,
+    "SUCCESS": 12
+  },
+  "uniqueExecutionAttemptIds": 114
+}

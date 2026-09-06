@@ -1,0 +1,139 @@
+[
+  {
+    "caseId": "0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+    "concurrency": 1,
+    "containerName": "batch-5de0b16761dd45a1b1affd6c4f3c1ece",
+    "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/final-runner-check/benchmark/c1/r01-0fe00915b0ce5dfc100c7b9826273564e240d79f950c1fa16cfe114471d6f63b",
+    "executionAttemptId": "b0b7892c-41d5-4559-ab7f-32462301877f",
+    "exitCode": 0,
+    "observed": {
+      "actions": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "FAILED",
+          "FAILED",
+          "NOT_RUN"
+        ]
+      ],
+      "assessmentStatus": "COMPLETE",
+      "completeScore": 0,
+      "conditions": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "finalLifecycleCounts": {
+        "SagaCourse:ACTIVE": 1,
+        "SagaExecution:ACTIVE": 1,
+        "SagaQuestion:ACTIVE": 2,
+        "SagaQuiz:DELETED": 1,
+        "SagaTopic:ACTIVE": 2,
+        "SagaTournament:DELETED": 1,
+        "SagaUser:ACTIVE": 1
+      },
+      "impactV1Score": 0,
+      "impactV1Status": "EVALUATED",
+      "scheduleConformance": "DEVIATED",
+      "terminalStatus": "PARTIAL_COMPENSATED"
+    },
+    "prerequisiteSetupSeconds": 0.996494334,
+    "repetition": 1,
+    "reportHashes": {
+      "execution.impact-v2.json": "c327c7b38bdfd6a857f89fce195fead7cd6d78a9d3893e115bb685c5208220a9",
+      "execution.json": "d83904ea81224947b03946aa263f73bbf0d61d40611ac399a99d6de8710ad632",
+      "impact-v1.json": "261ea8aca49dd7091d47761c31dc8746471840f6b48b19b5dad423e0b7db6ccb"
+    },
+    "scope": "benchmark",
+    "score": 0,
+    "sourceSetupSeconds": null,
+    "startedAt": "2026-09-06T22:47:14.714284+00:00",
+    "status": "COMPLETE",
+    "wallSeconds": 19.184063000022434
+  },
+  {
+    "caseId": "5b2b66bcdaa1aebdbf5ac10f6a11963a2176b27544733eb33b7d246fc3266b44",
+    "concurrency": 1,
+    "containerName": "batch-72da934765ec46a0b96e442e5a3a75a8",
+    "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/search-baselines/final-runner-check/create-quiz/c1/r01-5b2b66bcdaa1aebdbf5ac10f6a11963a2176b27544733eb33b7d246fc3266b44",
+    "executionAttemptId": "c0f4b683-5cae-4ae4-9475-79ff9eedda3f",
+    "exitCode": 0,
+    "observed": {
+      "actions": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ]
+      ],
+      "assessmentStatus": "COMPLETE",
+      "completeScore": 0,
+      "conditions": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "finalLifecycleCounts": {
+        "SagaCourse:ACTIVE": 1,
+        "SagaExecution:ACTIVE": 1,
+        "SagaQuestion:ACTIVE": 1,
+        "SagaQuiz:ACTIVE": 1,
+        "SagaTopic:ACTIVE": 1,
+        "SagaUser:ACTIVE": 1
+      },
+      "impactV1Score": 0,
+      "impactV1Status": "EVALUATED",
+      "scheduleConformance": "EXACT",
+      "terminalStatus": "SUCCESS"
+    },
+    "prerequisiteSetupSeconds": 0.0,
+    "repetition": 1,
+    "reportHashes": {
+      "execution.impact-v2.json": "3705a4a7f2d38d98832021c23c73cc0a46a7db02aeedd1d40d5a0c2c17af4dd2",
+      "execution.json": "880f35aee4de38c8a0f787b3a51becc383ce625eb7b48de2a84742e423e7f5f1",
+      "impact-v1.json": "b8300600a71a23637a4145927b162eb20aa7ba5d57ec51d998c8ce31a41733c8"
+    },
+    "scope": "create-quiz",
+    "score": 0,
+    "sourceSetupSeconds": 0.814121167,
+    "startedAt": "2026-09-06T22:47:14.714513+00:00",
+    "status": "COMPLETE",
+    "wallSeconds": 19.163554708007723
+  }
+]
