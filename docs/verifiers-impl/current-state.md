@@ -517,7 +517,7 @@ Each delivery is one atomic normal action, placed after its trigger among outer 
 steps. It adds no fault bit or recovery checkpoint; the consumer's internal steps are
 not independently interleaved with outer actions. A completed scenario is the end of
 that selected action schedule, not proof that every possible listener has run. See the
-[Portuguese event example](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-combinacoes-limitadas)
+[Portuguese event example](reunioes/2026-09-08.md#32-a-remocao-termina-mas-falta-avisar-os-objetos-dependentes)
 for isolated and combined horizons and explicit invalid preparation.
 
 An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay supports multiple selected routes of one event, with one exact local subscriber per route—no automatic multi-object fan-out within a route, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
@@ -556,7 +556,7 @@ verifiers/target/combined-event-deliveries/NEW_RUN` from the repository root.
 Full evidence is in `verifiers/target/combined-event-deliveries/run-02/`; the initial
 `run-01` generation launcher failure occurred before any scenario and remains recorded.
 [Retained report copies](evidence/combined-events-2026-09-06/README.md) and the
-[Portuguese explanation](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-combinacoes-limitadas)
+[Portuguese explanation](reunioes/2026-09-08.md#32-a-remocao-termina-mas-falta-avisar-os-objetos-dependentes)
 provide the current result and its limits.
 
 ### Report
@@ -632,7 +632,7 @@ access traces identify objects and access modes but do not generically identify 
 returned read version or copied value. ImpactV2's three checks do not classify dirty
 reads, lost updates, write skew, or serializability; completeness is relative to those
 checks. A multi-writer residual candidate remains unknown rather than being assigned to
-one writer. The [Portuguese methodological discussion](reunioes/2026-09-08.md#46-e-as-anomalias-de-concorrencia-mudamos-a-direcao-da-tese)
+one writer. The [Portuguese methodological discussion](reunioes/2026-09-08.md#as-anomalias-explicam-interacoes-que-esta-metrica-nao-cobre)
 explains why persistent-effect measurement was prioritized and what causal analysis
 would additionally require. This is an explicit current scope boundary, not evidence
 that concurrency-anomaly detection is unsuitable for the thesis.
