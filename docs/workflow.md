@@ -121,6 +121,24 @@ here; if it changes, edit the skill, not this file.
 
 ---
 
+## Spec Authoring
+
+**Before Phase 0.** The pipeline starts from the spec pair listed under § "Required Inputs", written
+into `applications/{app-name}/`. Every later phase treats the pair as given: Phase 1 does not
+question an aggregate boundary, and no Phase 2 session adds a functionality the domain model omitted.
+
+Write it with [`docs/templates/domain-model-template.md`](templates/domain-model-template.md) and
+[`docs/templates/aggregate-grouping-template.md`](templates/aggregate-grouping-template.md), which
+define the section numbers and table shapes the harness parses; `/author-spec <pointer to the
+application being modelled>`, which interviews you through the design tree and writes the pair; and
+`applications/trainticket/`, a finished pair kept as a worked example. `HARNESS.md` § 5 and the
+templates own the detail.
+
+### Does not update
+plan.md does not exist yet. Phase 1 creates it.
+
+---
+
 ## Phase 0 — Bootstrap
 
 **One session. No plan.md exists yet.** Produces the Maven scaffold, exception classes,
