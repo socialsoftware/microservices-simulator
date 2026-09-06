@@ -36,7 +36,7 @@ Load these files before writing any code:
    - `Saga{Aggregate}.java`: the full class (needed by EventProcessing to load and mutate the aggregate)
 
 4. **For each event in the "Events subscribed" list**: read the source files of the aggregate that publishes it. Specifically:
-   - The event class itself (`{src}events/{Event}.java`) — to know the payload fields
+   - The event class itself (`{src}events/{Event}Event.java`) — to know the payload fields
    - The publishing aggregate's domain class — to understand what the payload fields represent and how they map to the cached snapshot fields in *this* aggregate
 
 ---
@@ -194,9 +194,9 @@ public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer war
 }
 ```
 
-The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Always advance the cached publisher version", which owns the rule.
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Every cached publisher version is a `Long`", which owns the rule.
 
-This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Always advance the cached publisher version", and the redelivery backlog it bounds.
+This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Advance the cached publisher version", and the redelivery backlog it bounds.
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 

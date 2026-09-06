@@ -416,9 +416,9 @@ For each aggregate in sorted order:
 
 ```
 write_functionalities = [f for f in all_functionalities 
-                        if f.primary_aggregate == agg AND f.operation_type == write]
+                        if f.primary_aggregate == agg AND f.operation_type == 'Write']
 read_functionalities = [f for f in all_functionalities 
-                       if f.primary_aggregate == agg AND f.operation_type == read]
+                       if f.primary_aggregate == agg AND f.operation_type == 'Read']
 ```
 
 #### 6.b: Extract published and subscribed events
@@ -468,11 +468,12 @@ Nothing else contributes:
 - **`NOT_IN_SAGA` is never declared.** It is `GenericSagaState.NOT_IN_SAGA`, supplied by the
   framework.
 
-```
-saga_states[agg] = ['IN_' + screaming_snake(f.name)
-                    for f in write_functionalities[agg]
-                    if f.operation_type != create]
-```
+So the constant list for an aggregate is `IN_` + `screaming_snake(f.name)` for each `f` in
+`write_functionalities[agg]`, minus those exclusions. The exclusion is stated in prose and not in
+pseudo-code deliberately: `operation_type` holds only `Write` or `Read` (Step 2.c), so no parsed
+field distinguishes a create. A write functionality is a create when it brings its primary aggregate
+into existence rather than mutating one that already exists (`sagas.md` § Create Functionality
+Sagas) - a judgement about the functionality, not a value the §4 table carries.
 
 For each constant, record a one-line origin: the saga that acquires it, plus any **foreign** saga
 that guards on it, which Step 6.c's cross-aggregate prerequisites already identify. The origin is
@@ -559,9 +560,9 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 ```
 
 > **`(edited)` entries** are files that already exist and are appended to, not created. Session `a`
-> appends one error-message constant per P1 rule and a `create{Aggregate}(...)` fixture helper; session
-> `b` appends the functionalities field to the same test base class. They are listed so the row does not
-> need amending on every aggregate.
+> appends one error-message constant per P1 rule and the T1 domain constants; session `b` appends the
+> functionalities field and the `create{Aggregate}(...)` fixture helper to the test base class; session
+> `c` replaces that helper's body. They are listed so the row does not need amending on every aggregate.
 
 > **`{AppClass}DomainConstants.java` is conditional and shared.** List it in the 2.N.a row of every
 > aggregate whose Step 6.e sentinel list is non-empty, and only those - a *consuming* aggregate
