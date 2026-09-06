@@ -314,7 +314,7 @@ predates `/boot-strap`, which `conventions.md` § "Harness evolution" explicitly
 **Proposed fix:** In § Step 3.a.i, replace "every commit in the listing must be referenced by some
 row" with a three-way partition: commits referenced by a log row; commits belonging to the
 `/review-artifacts` lane, identified by falling after the run's last session commit or by being named
-in a `docs/reviews/review-*.md` Action Items table; and commits predating the `/boot-strap` commit.
+in a `reviews/review-*.md` Action Items table; and commits predating the `/boot-strap` commit.
 Only a commit in none of the three is an unrecorded edit and a finding. As written, the check
 produces 25 false findings on a normal, well-run session and trains the reader to skip the section.
 
@@ -426,7 +426,7 @@ The confounds below were observed by this retrospective and constrain what it ca
   including three findings the review rated Critical.
 - **The aggregate-boundary checkpoint was skipped for seven of eight boundaries.**
   `docs/workflow.md` § "Aggregate-boundary checkpoint" and `review-artifacts/SKILL.md` both require
-  `/review-artifacts` after the last session of every aggregate. `docs/reviews/` contains only two
+  `/review-artifacts` after the last session of every aggregate. `reviews/` contains only two
   reports for this run (`review-2026-08-23.md`, `review-2026-08-23-2.md`), both written after session
   `2.8.c`. Between them they found three Critical defects and produced 22 `harness:` commits -
   guidance that was wrong and uncorrected for the entire run. The convergence curve above therefore
