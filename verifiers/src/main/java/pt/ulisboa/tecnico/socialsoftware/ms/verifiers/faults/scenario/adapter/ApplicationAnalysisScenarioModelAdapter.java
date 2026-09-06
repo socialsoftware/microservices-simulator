@@ -29,7 +29,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Step
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceOccurrence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
@@ -201,7 +203,8 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             LinkedHashMap<String, Integer> counts) {
         SetupPlanMapper mapper = new SetupPlanMapper();
         ScenarioExecutorReadinessEvaluator readinessEvaluator = new ScenarioExecutorReadinessEvaluator();
-        LinkedHashMap<String, SourceSetupPlanBinding> bindings = new LinkedHashMap<>();
+        List<SourceSetupPlanBinding> bindings = new ArrayList<>();
+        Map<String, Set<String>> setupOnlyCoverageByClass = new LinkedHashMap<>();
         Set<String> setupSourceClasses = state.groovyFacadeSetupActionTraces.stream()
                 .filter(trace -> "setup".equals(trace.callContextMethodName()))
                 .map(trace -> trace.sourceClassFqn())
@@ -211,68 +214,303 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 .collect(Collectors.toMap(InputVariant::deterministicId, input -> input,
                         (left, right) -> left, LinkedHashMap::new));
         for (String sourceClassFqn : setupSourceClasses.stream().sorted().toList()) {
-            List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace> traces =
+            List<GroovyFacadeSetupActionTrace> traces =
                     state.groovyFacadeSetupActionTraces.stream()
                             .filter(trace -> Objects.equals(trace.sourceClassFqn(), sourceClassFqn))
                             .filter(trace -> "setup".equals(trace.callContextMethodName()))
+                            .sorted(Comparator.comparingInt(trace -> trace.occurrence() == null
+                                    ? Integer.MAX_VALUE : trace.occurrence().orderIndex()))
                             .toList();
             if (traces.isEmpty()) continue;
+
+            Map<String, GroovyFacadeSetupActionTrace> setupActionByOccurrence = traces.stream()
+                    .filter(trace -> trace.sourceOccurrence() != null)
+                    .collect(Collectors.toMap(GroovyFacadeSetupActionTrace::sourceOccurrence,
+                            trace -> trace, (left, right) -> left, LinkedHashMap::new));
+            Map<String, List<AdaptedTrace>> nestedSetupTargetsByInputId = adaptedTraces.stream()
+                    .filter(adaptedTrace -> Objects.equals(adaptedTrace.trace().sourceClassFqn(), sourceClassFqn))
+                    .filter(adaptedTrace -> "setup".equals(adaptedTrace.trace().callContextMethodName()))
+                    .filter(adaptedTrace -> hasNestedSourceReference(
+                            adaptedTrace.trace().constructorArguments()))
+                    .collect(Collectors.groupingBy(AdaptedTrace::inputVariantId,
+                            LinkedHashMap::new, Collectors.toList()));
+            Map<String, List<AdaptedTrace>> setupTargetsByInputId = nestedSetupTargetsByInputId.entrySet().stream()
+                    .filter(entry -> entry.getValue().stream().allMatch(adaptedTrace ->
+                            adaptedTrace.trace().occurrence() != null
+                                    && setupActionByOccurrence.containsKey(
+                                    adaptedTrace.trace().occurrence().occurrenceId())))
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
+                            (left, right) -> left, LinkedHashMap::new));
+            nestedSetupTargetsByInputId.entrySet().stream()
+                    .filter(entry -> !setupTargetsByInputId.containsKey(entry.getKey()))
+                    .forEach(entry -> diagnostics.add("blocked setup-derived target for "
+                            + sourceClassFqn + " input " + entry.getKey()
+                            + ": missing exact target occurrence metadata"));
+            Set<String> setupTargetInputIds = nestedSetupTargetsByInputId.keySet();
 
             LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligibleParticipants = new LinkedHashMap<>();
             adaptedTraces.stream()
                     .filter(adaptedTrace -> Objects.equals(adaptedTrace.trace().sourceClassFqn(), sourceClassFqn))
+                    .filter(adaptedTrace -> !setupTargetInputIds.contains(adaptedTrace.inputVariantId()))
                     .forEach(adaptedTrace -> {
                         GroovyFullTraceResult trace = adaptedTrace.trace();
                         InputVariant input = inputsById.get(adaptedTrace.inputVariantId());
                         if (input == null || eligibleParticipants.containsKey(input.deterministicId())) return;
                         SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
                                 input.deterministicId(), trace.constructorArguments());
-                        var participantPlan = mapper.map(traces, List.of(participant));
-                        Set<Integer> boundArguments = participantPlan.participantBindings().stream()
-                                .filter(binding -> Objects.equals(binding.inputVariantId(), input.deterministicId()))
-                                .map(binding -> binding.argumentIndex())
-                                .collect(Collectors.toSet());
-                        boolean independentlyReady = input.inputRecipe() != null
-                                && input.inputRecipe().arguments().stream()
-                                .filter(argument -> !boundArguments.contains(argument.index()))
-                                .allMatch(argument -> readinessEvaluator.evaluate(argument).materializable());
-                        if (boundArguments.isEmpty() && !independentlyReady) {
-                            return;
+                        if (eligibleForSetup(input, participant, traces, mapper, readinessEvaluator,
+                                diagnostics, sourceClassFqn)) {
+                            eligibleParticipants.put(input.deterministicId(), participant);
                         }
-                        SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(participantPlan);
-                        if (!validation.valid()) {
-                            diagnostics.add("blocked source setup for " + sourceClassFqn + " input "
-                                    + input.deterministicId() + ": " + validation.diagnostics());
-                            return;
-                        }
-                        if (!independentlyReady) {
-                            diagnostics.add("blocked source setup for " + sourceClassFqn + " input "
-                                    + input.deterministicId() + ": incomplete setup-dependent argument coverage");
-                            return;
-                        }
-                        eligibleParticipants.put(input.deterministicId(), participant);
                     });
-            if (eligibleParticipants.isEmpty()) continue;
-
-            List<SetupPlanMapper.ParticipantSource> participants = eligibleParticipants.values().stream()
-                    .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
-                    .toList();
-            var plan = mapper.map(traces, participants);
-            SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
-            if (!validation.valid()) {
-                diagnostics.add("blocked source setup for " + sourceClassFqn + ": " + validation.diagnostics());
-                continue;
+            LinkedHashSet<String> coveredInputIds = new LinkedHashSet<>();
+            if (!eligibleParticipants.isEmpty()) {
+                List<SetupPlanMapper.ParticipantSource> participants = eligibleParticipants.values().stream()
+                        .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
+                        .toList();
+                var plan = mapper.map(traces, participants);
+                SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
+                if (!validation.valid()) {
+                    diagnostics.add("blocked source setup for " + sourceClassFqn + ": " + validation.diagnostics());
+                } else {
+                    List<String> inputVariantIds = participants.stream()
+                            .map(SetupPlanMapper.ParticipantSource::inputVariantId)
+                            .toList();
+                    bindings.add(new SourceSetupPlanBinding(inputVariantIds, plan));
+                    coveredInputIds.addAll(inputVariantIds);
+                }
             }
-            List<String> inputVariantIds = participants.stream()
-                    .map(SetupPlanMapper.ParticipantSource::inputVariantId)
-                    .toList();
-            bindings.put(sourceClassFqn, new SourceSetupPlanBinding(inputVariantIds, plan));
+
+            LinkedHashMap<String, Integer> setupActionOrders = new LinkedHashMap<>();
+            traces.stream().filter(trace -> trace.occurrence() != null).forEach(trace ->
+                    setupActionOrders.put(trace.sourceOccurrence(), trace.occurrence().orderIndex()));
+            setupTargetsByInputId.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+                List<AdaptedTrace> distinctTargets = entry.getValue().stream()
+                        .collect(Collectors.toMap(
+                                target -> target.trace().occurrence().occurrenceId(),
+                                target -> target,
+                                (left, right) -> left,
+                                LinkedHashMap::new))
+                        .values().stream().toList();
+                if (distinctTargets.size() != 1) {
+                    diagnostics.add("blocked setup-derived target for " + sourceClassFqn + " input "
+                            + entry.getKey() + ": ambiguous target source occurrences "
+                            + distinctTargets.stream().map(target -> target.trace().occurrence().occurrenceId())
+                            .sorted().toList());
+                    return;
+                }
+                AdaptedTrace target = distinctTargets.getFirst();
+                String targetOccurrence = target.trace().occurrence().occurrenceId();
+                int targetOrder = target.trace().occurrence().orderIndex();
+                List<GroovyFacadeSetupActionTrace> prefix = traces.stream()
+                        .filter(trace -> trace.occurrence() != null)
+                        .filter(trace -> trace.occurrence().orderIndex() < targetOrder)
+                        .toList();
+                if (prefix.isEmpty()) return;
+                InputVariant input = inputsById.get(entry.getKey());
+                if (input == null) return;
+                SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
+                        input.deterministicId(), target.trace().constructorArguments());
+                if (!eligibleForSetup(input, participant, prefix, mapper, readinessEvaluator,
+                        diagnostics, sourceClassFqn + "#setup-before-" + targetOccurrence)) {
+                    return;
+                }
+                var plan = mapper.map(prefix, List.of(participant));
+                SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
+                if (!validation.valid()) {
+                    diagnostics.add("blocked setup-derived target for " + sourceClassFqn + " input "
+                            + input.deterministicId() + ": " + validation.diagnostics());
+                    return;
+                }
+                bindings.add(new SourceSetupPlanBinding(List.of(input.deterministicId()), plan,
+                        sourceClassFqn, "setup", Map.of(input.deterministicId(), List.of(targetOccurrence)),
+                        targetOccurrence, Map.of(input.deterministicId(), targetOrder), setupActionOrders));
+                coveredInputIds.add(input.deterministicId());
+            });
+            if (!coveredInputIds.isEmpty()) {
+                setupOnlyCoverageByClass.put(sourceClassFqn, Set.copyOf(coveredInputIds));
+            }
         }
+
+        Map<FeatureContext, List<AdaptedTrace>> featureTraces = adaptedTraces.stream()
+                .filter(adaptedTrace -> adaptedTrace.trace().occurrence() != null)
+                .filter(adaptedTrace -> isFeatureContext(adaptedTrace.trace().callContextMethodName()))
+                .collect(Collectors.groupingBy(adaptedTrace -> new FeatureContext(
+                                adaptedTrace.trace().sourceClassFqn(),
+                                adaptedTrace.trace().callContextMethodName()),
+                        LinkedHashMap::new, Collectors.toList()));
+        featureTraces.entrySet().stream()
+                .sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> adaptFeatureSetupBindings(entry.getKey(), entry.getValue(), state,
+                        inputsById, setupOnlyCoverageByClass, mapper, readinessEvaluator,
+                        diagnostics, bindings));
+
         counts.put("sourceSetupPlanBindings", bindings.size());
         if (!setupSourceClasses.isEmpty() && bindings.isEmpty()) {
             diagnostics.add("observed setup contexts had no extractable straight-line setup plan");
         }
-        return List.copyOf(bindings.values());
+        return bindings.stream().distinct().toList();
+    }
+
+    private boolean hasNestedSourceReference(List<GroovyTraceArgument> arguments) {
+        return arguments != null && arguments.stream().filter(Objects::nonNull)
+                .filter(argument -> argument.producerReference() == null)
+                .map(GroovyTraceArgument::recipe)
+                .anyMatch(recipe -> recipe != null && recipe.sourceReference() == null
+                        && containsSourceReferenceBelowRoot(recipe));
+    }
+
+    private boolean containsSourceReferenceBelowRoot(GroovyValueRecipe recipe) {
+        if (recipe == null) return false;
+        if (recipe.sourceReference() != null) return true;
+        if (recipe.children().stream().anyMatch(this::containsSourceReferenceBelowRoot)) return true;
+        return recipe.metadata() != null && recipe.metadata().assignments().stream()
+                .filter(Objects::nonNull)
+                .map(assignment -> assignment.valueRecipe())
+                .anyMatch(this::containsSourceReferenceBelowRoot);
+    }
+
+    private void adaptFeatureSetupBindings(
+            FeatureContext context,
+            List<AdaptedTrace> adaptedTraces,
+            ApplicationAnalysisState state,
+            Map<String, InputVariant> inputsById,
+            Map<String, Set<String>> setupOnlyCoverageByClass,
+            SetupPlanMapper mapper,
+            ScenarioExecutorReadinessEvaluator readinessEvaluator,
+            LinkedHashSet<String> diagnostics,
+            List<SourceSetupPlanBinding> bindings) {
+        Map<String, List<AdaptedTrace>> tracesByInput = adaptedTraces.stream()
+                .collect(Collectors.groupingBy(AdaptedTrace::inputVariantId,
+                        LinkedHashMap::new, Collectors.toList()));
+        LinkedHashMap<String, AdaptedTrace> uniqueTraces = new LinkedHashMap<>();
+        tracesByInput.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
+            List<AdaptedTrace> distinct = entry.getValue().stream()
+                    .filter(trace -> trace.trace().occurrence() != null)
+                    .collect(Collectors.toMap(
+                            trace -> trace.trace().occurrence().occurrenceId(),
+                            trace -> trace,
+                            (left, right) -> left,
+                            LinkedHashMap::new))
+                    .values().stream().toList();
+            if (distinct.size() == 1) {
+                uniqueTraces.put(entry.getKey(), distinct.get(0));
+            } else if (distinct.size() > 1) {
+                diagnostics.add("blocked feature-derived setup for " + context.sourceClassFqn()
+                        + "#" + context.featureMethodName() + " input " + entry.getKey()
+                        + ": ambiguous target source occurrences " + distinct.stream()
+                        .map(trace -> trace.trace().occurrence().occurrenceId()).sorted().toList());
+            }
+        });
+        if (uniqueTraces.isEmpty()) return;
+
+        List<GroovyFacadeSetupActionTrace> setupActions = state.groovyFacadeSetupActionTraces.stream()
+                .filter(trace -> Objects.equals(trace.sourceClassFqn(), context.sourceClassFqn()))
+                .filter(trace -> "setup".equals(trace.callContextMethodName()))
+                .sorted(Comparator.comparingInt(trace -> trace.occurrence() == null
+                        ? Integer.MAX_VALUE : trace.occurrence().orderIndex()))
+                .toList();
+        List<GroovyFacadeSetupActionTrace> featureActions = state.groovyFacadeSetupActionTraces.stream()
+                .filter(trace -> Objects.equals(trace.sourceClassFqn(), context.sourceClassFqn()))
+                .filter(trace -> Objects.equals(trace.callContextMethodName(), context.featureMethodName()))
+                .filter(trace -> trace.occurrence() != null && trace.occurrence().initialPreparationPhase())
+                .sorted(Comparator.comparingInt(trace -> trace.occurrence().orderIndex()))
+                .toList();
+
+        uniqueTraces.values().stream()
+                .map(AdaptedTrace::trace)
+                .map(GroovyFullTraceResult::occurrence)
+                .filter(GroovySourceOccurrence::initialPreparationPhase)
+                .sorted(Comparator.comparingInt(GroovySourceOccurrence::orderIndex))
+                .distinct()
+                .forEach(frontier -> {
+                    List<GroovyFacadeSetupActionTrace> actions = new ArrayList<>(setupActions);
+                    featureActions.stream()
+                            .filter(action -> action.occurrence().orderIndex() < frontier.orderIndex())
+                            .forEach(actions::add);
+                    if (actions.isEmpty()) return;
+
+                    LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligible = new LinkedHashMap<>();
+                    uniqueTraces.entrySet().stream()
+                            .filter(candidate -> candidate.getValue().trace().occurrence().initialPreparationPhase())
+                            .filter(candidate -> candidate.getValue().trace().occurrence().orderIndex()
+                                    >= frontier.orderIndex())
+                            .forEach(candidate -> {
+                                InputVariant input = inputsById.get(candidate.getKey());
+                                if (input == null) return;
+                                SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
+                                        input.deterministicId(), candidate.getValue().trace().constructorArguments());
+                                if (eligibleForSetup(input, participant, actions, mapper, readinessEvaluator,
+                                        diagnostics, context.sourceClassFqn() + "#" + context.featureMethodName())) {
+                                    eligible.put(input.deterministicId(), participant);
+                                }
+                            });
+                    if (eligible.isEmpty()
+                            || setupOnlyCoverageByClass.getOrDefault(context.sourceClassFqn(), Set.of())
+                            .containsAll(eligible.keySet())) {
+                        return;
+                    }
+
+                    List<SetupPlanMapper.ParticipantSource> participants = eligible.values().stream()
+                            .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
+                            .toList();
+                    var plan = mapper.map(actions, participants);
+                    if (!new SetupPlanValidator().validate(plan).valid()) return;
+                    LinkedHashMap<String, List<String>> targets = new LinkedHashMap<>();
+                    LinkedHashMap<String, Integer> targetOrders = new LinkedHashMap<>();
+                    eligible.keySet().forEach(inputId -> targets.put(inputId, List.of(
+                            uniqueTraces.get(inputId).trace().occurrence().occurrenceId())));
+                    eligible.keySet().forEach(inputId -> targetOrders.put(inputId,
+                            uniqueTraces.get(inputId).trace().occurrence().orderIndex()));
+                    LinkedHashMap<String, Integer> featureActionOrders = new LinkedHashMap<>();
+                    featureActions.forEach(action -> featureActionOrders.put(
+                            action.occurrence().occurrenceId(), action.occurrence().orderIndex()));
+                    bindings.add(new SourceSetupPlanBinding(eligible.keySet().stream().sorted().toList(),
+                            plan, context.sourceClassFqn(), context.featureMethodName(), targets,
+                            frontier.occurrenceId(), targetOrders, featureActionOrders));
+                });
+
+        uniqueTraces.values().stream()
+                .filter(trace -> !trace.trace().occurrence().initialPreparationPhase())
+                .forEach(trace -> diagnostics.add("blocked feature-derived setup for "
+                        + context.sourceClassFqn() + "#" + context.featureMethodName() + " input "
+                        + trace.inputVariantId() + ": target follows assertion, control-flow, or workflow barrier"));
+    }
+
+    private boolean eligibleForSetup(InputVariant input,
+                                     SetupPlanMapper.ParticipantSource participant,
+                                     List<GroovyFacadeSetupActionTrace> actions,
+                                     SetupPlanMapper mapper,
+                                     ScenarioExecutorReadinessEvaluator readinessEvaluator,
+                                     LinkedHashSet<String> diagnostics,
+                                     String context) {
+        var participantPlan = mapper.map(actions, List.of(participant));
+        Set<Integer> boundArguments = participantPlan.participantBindings().stream()
+                .filter(binding -> Objects.equals(binding.inputVariantId(), input.deterministicId()))
+                .map(binding -> binding.argumentIndex())
+                .collect(Collectors.toSet());
+        boolean independentlyReady = input.inputRecipe() != null
+                && input.inputRecipe().arguments().stream()
+                .filter(argument -> !boundArguments.contains(argument.index()))
+                .allMatch(argument -> readinessEvaluator.evaluate(argument).materializable());
+        if (boundArguments.isEmpty() && !independentlyReady) return false;
+        SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(participantPlan);
+        if (!validation.valid()) {
+            diagnostics.add("blocked source setup for " + context + " input "
+                    + input.deterministicId() + ": " + validation.diagnostics());
+            return false;
+        }
+        if (!independentlyReady) {
+            diagnostics.add("blocked source setup for " + context + " input "
+                    + input.deterministicId() + ": incomplete setup-dependent argument coverage");
+            return false;
+        }
+        return true;
+    }
+
+    private boolean isFeatureContext(String methodName) {
+        return methodName != null && !"setup".equals(methodName) && !"setupSpec".equals(methodName)
+                && !methodName.startsWith("field:") && !JAVA_IDENTIFIER.matcher(methodName).matches();
     }
 
     private List<EventConsequenceDefinition> adaptEventConsequences(ApplicationAnalysisState state,
@@ -1025,6 +1263,18 @@ public final class ApplicationAnalysisScenarioModelAdapter {
     }
 
     private record AdaptedTrace(GroovyFullTraceResult trace, String inputVariantId) {
+    }
+
+    private record FeatureContext(String sourceClassFqn, String featureMethodName)
+            implements Comparable<FeatureContext> {
+        @Override
+        public int compareTo(FeatureContext other) {
+            int sourceComparison = Comparator.nullsFirst(String::compareTo)
+                    .compare(sourceClassFqn, other.sourceClassFqn);
+            return sourceComparison != 0 ? sourceComparison
+                    : Comparator.nullsFirst(String::compareTo)
+                    .compare(featureMethodName, other.featureMethodName);
+        }
     }
 
     private record AdaptedInputs(List<InputVariant> inputVariants,

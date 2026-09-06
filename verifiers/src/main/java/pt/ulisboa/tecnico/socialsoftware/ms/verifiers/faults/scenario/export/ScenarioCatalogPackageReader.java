@@ -179,8 +179,9 @@ public final class ScenarioCatalogPackageReader {
         };
         List<InputRecipeArgument> args = new ArrayList<>();
         for (JsonNode arg : input.path("arguments")) {
+            InputRecipeNode node = currentInputNode(arg.path("value"));
             args.add(new InputRecipeArgument(arg.path("index").asInt(), textOrNull(arg, "expectedType"), resolution,
-                    input.path("materializable").asBoolean(), List.of(), textOrNull(arg, "sourceExpression"), currentInputNode(arg.path("value"))));
+                    node.executorReady(), node.blockers(), textOrNull(arg, "sourceExpression"), node));
         }
         InputRecipe recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, input.path("materializable").asBoolean(),
                 List.of(), args);
@@ -208,7 +209,7 @@ public final class ScenarioCatalogPackageReader {
             case "property" -> "property_access"; case "transform" -> "local_transform";
             case "relativeDateTime" -> "relative_date_time";
             case "runtime" -> "runtime"; default -> kind;
-        }).executorReady(!"unresolved".equals(kind));
+        }).executorReady(currentInputNodeExecutorReady(value));
         if (value.has("value")) builder.value(currentScalar(value.get("value"))).literalKind(value.get("value").isNumber() ? "number" : "string");
         if (value.has("targetType")) builder.targetTypeFqn(value.path("targetType").asText());
         if (value.has("type")) builder.expectedTypeFqn(value.path("type").asText());
@@ -230,7 +231,12 @@ public final class ScenarioCatalogPackageReader {
         }
         if (value.has("arguments")) {
             List<InputRecipeArgument> args = new ArrayList<>(); int index = 0;
-            for (JsonNode child : value.path("arguments")) args.add(new InputRecipeArgument(index++, null, InputResolutionStatus.RESOLVED, true, List.of(), null, currentInputNode(child)));
+            for (JsonNode child : value.path("arguments")) {
+                InputRecipeNode childNode = currentInputNode(child);
+                args.add(new InputRecipeArgument(index++, null,
+                        childNode.executorReady() ? InputResolutionStatus.RESOLVED : InputResolutionStatus.UNRESOLVED,
+                        childNode.executorReady(), childNode.blockers(), null, childNode));
+            }
             builder.arguments(args);
         }
         if (value.has("fields")) {
@@ -238,7 +244,9 @@ public final class ScenarioCatalogPackageReader {
             var fields = value.path("fields").fields();
             while (fields.hasNext()) {
                 var entry = fields.next();
-                assignments.add(new InputRecipeAssignment("property", entry.getKey(), entry.getKey(), index++, null, true, List.of(), currentInputNode(entry.getValue())));
+                InputRecipeNode fieldNode = currentInputNode(entry.getValue());
+                assignments.add(new InputRecipeAssignment("property", entry.getKey(), entry.getKey(), index++, null,
+                        fieldNode.executorReady(), fieldNode.blockers(), fieldNode));
             }
             builder.assignments(assignments);
         }
@@ -250,6 +258,40 @@ public final class ScenarioCatalogPackageReader {
             builder.entries(entries);
         }
         return builder.build();
+    }
+
+    private boolean currentInputNodeExecutorReady(JsonNode value) {
+        if (value == null || value.isMissingNode() || value.isNull()) return false;
+        String kind = value.path("kind").asText("unresolved");
+        if ("unresolved".equals(kind) || "call".equals(kind) || "call_result".equals(kind)) return false;
+        if ("constructor".equals(kind)) {
+            if (!value.hasNonNull("targetType") || value.path("targetType").asText().isBlank()) return false;
+            for (JsonNode argument : value.path("arguments")) {
+                if (!currentInputNodeExecutorReady(argument)) return false;
+            }
+            var fields = value.path("fields").fields();
+            while (fields.hasNext()) {
+                if (!currentInputNodeExecutorReady(fields.next().getValue())) return false;
+            }
+            return true;
+        }
+        if ("collection".equals(kind)) {
+            for (JsonNode element : value.path("elements")) {
+                if (!currentInputNodeExecutorReady(element)) return false;
+            }
+            for (JsonNode entry : value.path("entries")) {
+                if (!currentInputNodeExecutorReady(entry.path("key"))
+                        || !currentInputNodeExecutorReady(entry.path("value"))) return false;
+            }
+            return true;
+        }
+        if ("property".equals(kind) || "transform".equals(kind)) {
+            return currentInputNodeExecutorReady(value.path("receiver"));
+        }
+        if ("helper_result".equals(kind)) {
+            return currentInputNodeExecutorReady(value.path("result"));
+        }
+        return true;
     }
 
     private Object currentScalar(JsonNode value) {

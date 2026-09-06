@@ -1,0 +1,66 @@
+{
+  "CreateCourseExecution-basic": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.CreateCourseExecutionTest",
+      "method": "create course execution successfully",
+      "call": "courseExecutionFunctionalities.createCourseExecution(new CourseExecutionDto([name:COURSE_EXECUTION_NAME, type:COURSE_EXECUTION_TYPE, acronym:(NEW_ + COURSE_EXECUTION_ACRONYM), academicTerm:COURSE_EXECUTION_ACADEMIC_TERM, ... ]))"
+    },
+    "reason": "Use existing successful distinct-acronym feature instead of duplicate-acronym negative test"
+  },
+  "FindQuiz-basic": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentTest",
+      "method": "find the tournament quiz by its created identity",
+      "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+    },
+    "reason": "Use actual setup-created Quiz identity instead of unbound literal"
+  },
+  "SolveQuiz-basic": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+      "method": "sequential solve quiz and anonymize user",
+      "call": "tournamentFunctionalities.solveQuiz(tournamentDto.aggregateId, userDto.getAggregateId())"
+    },
+    "reason": "Use source setup with required Tournament participation"
+  },
+  "SolveQuizAsync-basic": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.SolveQuizAsyncTest",
+      "method": "solve quiz using async functionality",
+      "call": "tournamentFunctionalities.solveQuizAsync(tournamentDto.getAggregateId(), userDto.getAggregateId())"
+    },
+    "reason": "Use source setup with required Tournament participation"
+  },
+  "AnonymizeStudent-events": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+      "method": "AnonymizeStudentEvent updates the student name in the quiz answer",
+      "call": "courseExecutionFunctionalities.anonymizeStudent(courseExecutionDto.getAggregateId(), userDto.getAggregateId())"
+    },
+    "reason": "Use source fixture with eligible QuizAnswer receiver"
+  },
+  "RemoveCourseExecution-events": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.RemoveCourseExecutionQuizAnswerReceiverTest",
+      "method": "RemoveCourseExecution event route has an eligible quiz answer receiver",
+      "call": "courseExecutionFunctionalities.removeCourseExecution(courseExecutionDto.aggregateId)"
+    },
+    "reason": "Use source fixture with eligible QuizAnswer, second offering and prior disenrollment"
+  },
+  "RemoveStudentFromCourseExecution-events": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+      "method": "RemoveStudentFromCourseExecution event route has an eligible quiz answer receiver",
+      "call": "courseExecutionFunctionalities.removeStudentFromCourseExecution(courseExecutionDto.aggregateId, userDto.aggregateId)"
+    },
+    "reason": "Use source fixture with eligible QuizAnswer receiver"
+  },
+  "UpdateStudentName-events": {
+    "source": {
+      "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+      "method": "UpdateStudentName event route has an eligible tournament receiver",
+      "call": "courseExecutionFunctionalities.updateStudentName(courseExecutionDto.aggregateId, userDto.aggregateId, completeUserDto)"
+    },
+    "reason": "Preserve selected Tournament name-update handler; provide setup Tournament and participant after DTO repair exposed missing receiver"
+  }
+}

@@ -16,6 +16,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Faul
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceMode
@@ -144,6 +146,36 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
             assert steps[stepName].forwardAnalysisComplete()
             assert steps[stepName].compensationEvidence() == null
         }
+        ['semanticLockReadStep', 'semanticLockClearingStep'].each { stepName ->
+            assert steps[stepName].footprints()*.accessMode() == [AccessMode.READ, AccessMode.WRITE]
+            assert steps[stepName].compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
+        }
+        ['forbiddenStateReadStep', 'postDispatchLockStep'].each { stepName ->
+            assert steps[stepName].footprints()*.accessMode() == [AccessMode.READ]
+            assert steps[stepName].forwardAnalysisComplete()
+            assert steps[stepName].compensationEvidence() == null
+        }
+        steps.uncertainWrapperConfigurationStep.footprints()*.accessMode() == [AccessMode.READ]
+        !steps.uncertainWrapperConfigurationStep.forwardAnalysisComplete()
+        steps.uncertainWrapperConfigurationStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
+    }
+
+    def 'semantic-lock status write participates in ordinary conflict analysis'() {
+        given:
+        def semanticStep = saga(COMPENSATION_SAGA).steps().find { it.name() == 'semanticLockReadStep' }
+        def readFootprint = semanticStep.footprints().find { it.accessMode() == AccessMode.READ }
+        def peerStep = new StepDefinition('peer::read#0', 'peer::read', 'read', 0, [], [readFootprint], [])
+        def peerSaga = new SagaDefinition('peer', [peerStep], [])
+
+        when:
+        def graph = ConflictGraphBuilder.build([saga(COMPENSATION_SAGA), peerSaga], strictConfig())
+
+        then:
+        graph.conflictCandidates().any { candidate ->
+            candidate.leftStep().name() == 'semanticLockReadStep' &&
+                    candidate.leftFootprint().accessMode() == AccessMode.WRITE &&
+                    candidate.rightFootprint().accessMode() == AccessMode.READ
+        }
     }
 
     def 'dummyapp real parser shapes keep materialized workloads bounded and preserve recovery checkpoints'() {
@@ -182,16 +214,22 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 [compensationInput],
                 materializedConfig)
         def plan = compensationResult.workloadPlans()[0]
-        def recovery = RecoveryScheduleGenerator.generate(plan, '00000000001', 20)
+        def recovery = RecoveryScheduleGenerator.generate(
+                plan, ('0' * (plan.faultSlots().size() - 1)) + '1', 20)
 
         then:
-        plan.faultSlots().size() == 11
-        plan.compensationCheckpoints().size() == 9
+        plan.faultSlots().size() == 16
+        plan.compensationCheckpoints().size() == 12
+        plan.compensationCheckpoints().findAll {
+            it.runtimeStepName() in ['semanticLockReadStep', 'semanticLockClearingStep']
+        }*.evidenceClass().toSet() == [CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK] as Set
         recovery.uncappedScheduleCount() == BigInteger.ONE
         recovery.faultScenarios().size() == 1
         recovery.faultScenarios()[0].actions()
                 .findAll { it.kind() == FaultScenarioActionKind.COMPENSATION }
-                *.sourceCompensationCheckpointId() == plan.compensationCheckpoints().reverse()*.deterministicId()
+                *.sourceCompensationCheckpointId() == plan.compensationCheckpoints()
+                .findAll { it.sourceScheduledStepId() != plan.faultSlots().last().scheduledStepId() }
+                .reverse()*.deterministicId()
     }
 
     def 'dummyapp eager baseline tracks the ready capped selection and helper-built input vectors'() {
@@ -226,10 +264,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         helperEager.computedVectors()*.assignedVector() == ['00', '10', '01']
         helperEager.faultScenarios()*.assignedVector() == ['00', '10', '01']
 
-        and: 'the fixed cap exports eager vectors only for the statically ready subset'
-        eager.workloadPlans().size() == 7
+        and: 'the fixed cap includes the nested-path rename inputs but exports only ready vectors'
+        eager.workloadPlans().size() == 9
         eager.workloadMaterializability().count { it.materializable() } == 6
-        eager.workloadMaterializability().count { !it.materializable() } == 1
+        eager.workloadMaterializability().count { !it.materializable() } == 3
         eager.computedVectors().size() == eager.workloadPlans().findAll { plan ->
             eager.workloadMaterializability().find { it.workloadPlanId() == plan.deterministicId() }.materializable()
         }.sum { it.faultSlots().size() + 1 }
@@ -305,10 +343,10 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
                 model.inputVariants(), model.aggregateKeyInputEvidence(), config, result.workloadPlans().size())
 
         then:
-        result.workloadPlans().size() == 7
-        accounting.inputBoundScenarioSpace().allInputBound().total() == '7'
-        accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '7'
-        accounting.inputBoundScenarioSpace().catalogWritten().total() == '7'
+        result.workloadPlans().size() == 9
+        accounting.inputBoundScenarioSpace().allInputBound().total() == '9'
+        accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '9'
+        accounting.inputBoundScenarioSpace().catalogWritten().total() == '9'
         accounting.groupedSagaSets()*.sagaSetSize().unique() == [1]
     }
 
@@ -546,9 +584,9 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
         then:
         result.workloadPlans().isEmpty()
         accounting.inputBoundScenarioSpace().catalogWritten().total() == '0'
-        accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '0'
-        accounting.inputBoundScenarioSpace().allInputBound().total() == '150'
-        accounting.groupedSagaSets().size() == 4
+        accounting.inputBoundScenarioSpace().selectedByGenerator().total() == '18'
+        accounting.inputBoundScenarioSpace().allInputBound().total() == '508'
+        accounting.groupedSagaSets().size() == 10
 
         and:
         accounting.typeLevelCoverage().sagasWithoutAcceptedInputs().contains(DEPENDENCY_GRAPH_SAGA)

@@ -4,8 +4,11 @@ import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioSetupActionDispatcher;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
@@ -30,17 +33,29 @@ public final class QuizzesSourceSetupActionDispatcher implements ScenarioSetupAc
     public static final String ADD_STUDENT = key(
             ExecutionFunctionalities.class, "addStudent",
             Integer.class.getName() + "," + Integer.class.getName(), void.class);
+    public static final String REMOVE_STUDENT = key(
+            ExecutionFunctionalities.class, "removeStudentFromCourseExecution",
+            Integer.class.getName() + "," + Integer.class.getName(), void.class);
     public static final String CREATE_TOPIC = key(
             TopicFunctionalities.class, "createTopic",
             Integer.class.getName() + "," + TopicDto.class.getName(), TopicDto.class);
     public static final String CREATE_QUESTION = key(
             QuestionFunctionalities.class, "createQuestion",
             Integer.class.getName() + "," + QuestionDto.class.getName(), QuestionDto.class);
+    public static final String CREATE_QUIZ = key(
+            QuizFunctionalities.class, "createQuiz",
+            Integer.class.getName() + "," + QuizDto.class.getName(), QuizDto.class);
+    public static final String START_QUIZ = key(
+            QuizAnswerFunctionalities.class, "startQuiz",
+            Integer.class.getName() + "," + Integer.class.getName() + "," + Integer.class.getName(), void.class);
     public static final String CREATE_TOURNAMENT = key(
             TournamentFunctionalities.class, "createTournament",
             Integer.class.getName() + "," + Integer.class.getName()
                     + ",java.util.List<java.lang.Integer>," + TournamentDto.class.getName(),
             TournamentDto.class);
+    public static final String ADD_PARTICIPANT = key(
+            TournamentFunctionalities.class, "addParticipant",
+            Integer.class.getName() + "," + Integer.class.getName() + "," + Integer.class.getName(), void.class);
 
     private final Map<String, SetupMethod> methods;
 
@@ -48,6 +63,8 @@ public final class QuizzesSourceSetupActionDispatcher implements ScenarioSetupAc
                                               UserFunctionalities users,
                                               TopicFunctionalities topics,
                                               QuestionFunctionalities questions,
+                                              QuizFunctionalities quizzes,
+                                              QuizAnswerFunctionalities quizAnswers,
                                               TournamentFunctionalities tournaments) {
         LinkedHashMap<String, SetupMethod> configured = new LinkedHashMap<>();
         configured.put(CREATE_COURSE_EXECUTION, method(CREATE_COURSE_EXECUTION,
@@ -64,18 +81,38 @@ public final class QuizzesSourceSetupActionDispatcher implements ScenarioSetupAc
                     argument(arguments, 1, Integer.class));
             return null;
         }));
+        configured.put(REMOVE_STUDENT, voidMethod(REMOVE_STUDENT, arguments -> {
+            executions.removeStudentFromCourseExecution(argument(arguments, 0, Integer.class),
+                    argument(arguments, 1, Integer.class));
+            return null;
+        }));
         configured.put(CREATE_TOPIC, method(CREATE_TOPIC, TopicDto.class,
                 arguments -> topics.createTopic(argument(arguments, 0, Integer.class),
                         argument(arguments, 1, TopicDto.class))));
         configured.put(CREATE_QUESTION, method(CREATE_QUESTION, QuestionDto.class,
                 arguments -> questions.createQuestion(argument(arguments, 0, Integer.class),
                         argument(arguments, 1, QuestionDto.class))));
+        configured.put(CREATE_QUIZ, method(CREATE_QUIZ, QuizDto.class,
+                arguments -> quizzes.createQuiz(argument(arguments, 0, Integer.class),
+                        argument(arguments, 1, QuizDto.class))));
+        configured.put(START_QUIZ, voidMethod(START_QUIZ, arguments -> {
+            quizAnswers.startQuiz(argument(arguments, 0, Integer.class),
+                    argument(arguments, 1, Integer.class),
+                    argument(arguments, 2, Integer.class));
+            return null;
+        }));
         configured.put(CREATE_TOURNAMENT, method(CREATE_TOURNAMENT, TournamentDto.class,
                 arguments -> tournaments.createTournament(
                         argument(arguments, 0, Integer.class),
                         argument(arguments, 1, Integer.class),
                         integerList(arguments, 2),
                         argument(arguments, 3, TournamentDto.class))));
+        configured.put(ADD_PARTICIPANT, voidMethod(ADD_PARTICIPANT, arguments -> {
+            tournaments.addParticipant(argument(arguments, 0, Integer.class),
+                    argument(arguments, 1, Integer.class),
+                    argument(arguments, 2, Integer.class));
+            return null;
+        }));
         methods = Map.copyOf(configured);
     }
 

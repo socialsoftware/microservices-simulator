@@ -9,6 +9,8 @@ import com.github.javaparser.ast.body.MethodDeclaration;
 import com.github.javaparser.ast.body.Parameter;
 import com.github.javaparser.ast.body.VariableDeclarator;
 import com.github.javaparser.ast.expr.Expression;
+import com.github.javaparser.ast.expr.AssignExpr;
+import com.github.javaparser.ast.expr.ConditionalExpr;
 import com.github.javaparser.ast.expr.LambdaExpr;
 import com.github.javaparser.ast.expr.MethodCallExpr;
 import com.github.javaparser.ast.expr.NameExpr;
@@ -21,6 +23,9 @@ import com.github.javaparser.ast.stmt.ExpressionStmt;
 import com.github.javaparser.ast.stmt.ExplicitConstructorInvocationStmt;
 import com.github.javaparser.ast.stmt.ForEachStmt;
 import com.github.javaparser.ast.stmt.ForStmt;
+import com.github.javaparser.ast.stmt.IfStmt;
+import com.github.javaparser.ast.stmt.SwitchEntry;
+import com.github.javaparser.ast.stmt.TryStmt;
 import com.github.javaparser.ast.stmt.WhileStmt;
 import com.github.javaparser.ast.visitor.VoidVisitorAdapter;
 import org.slf4j.Logger;
@@ -46,6 +51,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.util.TypeUtils;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
@@ -248,6 +254,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
         LambdaExpr lambda = operation.asLambdaExpr();
         Set<ObjectCreationExpr> recognizedCommandCreations = new LinkedHashSet<>();
         Set<VariableDeclarator> recognizedCommandVariables = new LinkedHashSet<>();
+        Map<ObjectCreationExpr, StepDispatchFootprint> dispatchByCommandCreation = new LinkedHashMap<>();
         Set<MethodCallExpr> unresolvedAggregateKeyCalls = new LinkedHashSet<>();
         lambda.findAll(ObjectCreationExpr.class).forEach(creation -> {
             String commandTypeFqn;
@@ -273,7 +280,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
             if (Command.class.getName().equals(commandTypeFqn) && phase == DispatchPhase.COMPENSATION) {
                 resolveGenericCompensation(creation, state, sagaDeclaration).ifPresentOrElse(
                         target -> {
-                            stepBlock.addDispatch(new StepDispatchFootprint(
+                            StepDispatchFootprint dispatch = new StepDispatchFootprint(
                                     stepKey,
                                     commandTypeFqn,
                                     target.aggregateName(),
@@ -283,7 +290,9 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                     target.aggregateKey().text(),
                                     target.aggregateKey().confidence(),
                                     target.aggregateKey().sagaConstructorArgumentIndex(),
-                                    target.aggregateKey().propertyPath()));
+                                    target.aggregateKey().propertyPath());
+                            stepBlock.addDispatch(dispatch);
+                            dispatchByCommandCreation.put(creation, dispatch);
                             recognizeCommandCreation(creation, recognizedCommandCreations,
                                     recognizedCommandVariables);
                         },
@@ -311,6 +320,7 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                 aggregateKey.sagaConstructorArgumentIndex(),
                                 aggregateKey.propertyPath());
                         stepBlock.addDispatch(dispatch);
+                        dispatchByCommandCreation.put(creation, dispatch);
                         recognizeCommandCreation(creation, recognizedCommandCreations,
                                 recognizedCommandVariables);
                         if (aggregateKey.text() == null) {
@@ -349,7 +359,12 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
                                 : "cannot resolve SagaCommand payload";
                         stepBlock.markDispatchAnalysisIncomplete(phase, code, message);
                         logger.warn("{} (step: {})", message, stepKey);
+                        return;
                     }
+
+                    resolveRecognizedCommandDispatch(wrapper.getArgument(0), dispatchByCommandCreation)
+                            .ifPresent(payloadDispatch -> addSemanticLockWriteForDispatchedWrapper(
+                                    lambda, wrapper, payloadDispatch, stepBlock));
                 });
 
         lambda.findAll(MethodCallExpr.class).stream()
@@ -397,6 +412,219 @@ public class WorkflowFunctionalityVisitor extends VoidVisitorAdapter<Application
         return expression.isObjectCreationExpr()
                 ? recognizedCreations.contains(expression.asObjectCreationExpr())
                 : resolvesToRecognizedCommandVariable(expression, recognizedVariables);
+    }
+
+    private Optional<StepDispatchFootprint> resolveRecognizedCommandDispatch(
+            Expression expression,
+            Map<ObjectCreationExpr, StepDispatchFootprint> dispatchByCommandCreation) {
+        Expression source = unwrap(expression);
+        if (source.isObjectCreationExpr()) {
+            return Optional.ofNullable(dispatchByCommandCreation.get(source.asObjectCreationExpr()));
+        }
+        return dispatchByCommandCreation.entrySet().stream()
+                .filter(entry -> resolvesToCreation(source, entry.getKey()))
+                .map(Map.Entry::getValue)
+                .findFirst();
+    }
+
+    private void addSemanticLockWriteForDispatchedWrapper(
+            LambdaExpr operation,
+            ObjectCreationExpr wrapper,
+            StepDispatchFootprint payloadDispatch,
+            SagaStepBuildingBlock stepBlock) {
+        Set<ObjectCreationExpr> wrapperCreations = Set.of(wrapper);
+        Set<VariableDeclarator> wrapperVariables = wrapper.findAncestor(VariableDeclarator.class)
+                .filter(variable -> variable.getInitializer().map(initializer -> initializer == wrapper).orElse(false))
+                .map(Set::of)
+                .orElseGet(Set::of);
+        List<MethodCallExpr> sends = operation.findAll(MethodCallExpr.class).stream()
+                .filter(call -> isSupportedCommandGatewayDispatch(call, wrapperCreations, wrapperVariables))
+                .toList();
+        if (sends.isEmpty()) {
+            return;
+        }
+        if (!isExactFrameworkSagaCommandConstruction(wrapper)) {
+            markUnresolvedSagaCommandConfiguration(payloadDispatch, stepBlock);
+            return;
+        }
+
+        List<MethodCallExpr> semanticLockSetters = operation.findAll(MethodCallExpr.class).stream()
+                .filter(call -> isExactSagaCommandCall(call, wrapper, "setSemanticLock", 1))
+                .toList();
+        boolean writesSemanticState = false;
+        boolean uncertainConfiguration = false;
+        for (MethodCallExpr send : sends) {
+            List<MethodCallExpr> precedingSetters = semanticLockSetters.stream()
+                    .filter(setter -> occursBefore(setter, send))
+                    .toList();
+            if (!sameBoundedExecutionContext(operation, wrapper, send)
+                    || hasWrapperAssignmentBefore(operation, wrapper, send)
+                    || hasWrapperAliasBefore(operation, wrapper, send)
+                    || precedingSetters.stream().anyMatch(setter ->
+                    !sameBoundedExecutionContext(operation, setter, send))) {
+                uncertainConfiguration = true;
+                continue;
+            }
+            boolean occurrenceWrites = precedingSetters.stream()
+                    .reduce((left, right) -> occursBefore(left, right) ? right : left)
+                    .map(setter -> !unwrap(setter.getArgument(0)).isNullLiteralExpr())
+                    .orElse(false);
+            writesSemanticState = writesSemanticState || occurrenceWrites;
+        }
+        if (uncertainConfiguration) {
+            markUnresolvedSagaCommandConfiguration(payloadDispatch, stepBlock);
+        }
+        if (!writesSemanticState) {
+            return;
+        }
+
+        stepBlock.addDispatch(new StepDispatchFootprint(
+                payloadDispatch.stepKey(),
+                SagaCommand.class.getName(),
+                payloadDispatch.aggregateName(),
+                AccessPolicy.WRITE,
+                payloadDispatch.phase(),
+                payloadDispatch.multiplicity(),
+                payloadDispatch.aggregateKeyText(),
+                payloadDispatch.aggregateKeyConfidence(),
+                payloadDispatch.aggregateKeyConstructorArgumentIndex(),
+                payloadDispatch.aggregateKeyPropertyPath()));
+    }
+
+    private boolean isExactFrameworkSagaCommandConstruction(ObjectCreationExpr wrapper) {
+        if (wrapper.getAnonymousClassBody().isPresent()) {
+            return false;
+        }
+        try {
+            return wrapper.getType().resolve().describe().equals(SagaCommand.class.getName());
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private void markUnresolvedSagaCommandConfiguration(StepDispatchFootprint payloadDispatch,
+                                                        SagaStepBuildingBlock stepBlock) {
+        String message = "cannot resolve SagaCommand configuration for exact dispatched wrapper";
+        stepBlock.markDispatchAnalysisIncomplete(payloadDispatch.phase(),
+                "UNRESOLVED_SAGA_COMMAND_CONFIGURATION", message);
+        logger.warn("{} (step: {})", message, payloadDispatch.stepKey());
+    }
+
+    private boolean hasWrapperAssignmentBefore(LambdaExpr operation,
+                                               ObjectCreationExpr wrapper,
+                                               MethodCallExpr send) {
+        return operation.findAll(AssignExpr.class).stream()
+                .filter(assignment -> occursBefore(assignment, send))
+                .anyMatch(assignment -> resolvesToCreation(assignment.getTarget(), wrapper)
+                        || resolvesToCreation(assignment.getValue(), wrapper));
+    }
+
+    private boolean hasWrapperAliasBefore(LambdaExpr operation,
+                                          ObjectCreationExpr wrapper,
+                                          MethodCallExpr send) {
+        return operation.findAll(VariableDeclarator.class).stream()
+                .filter(variable -> occursBefore(variable, send))
+                .filter(variable -> variable.getInitializer().isPresent())
+                .filter(variable -> unwrap(variable.getInitializer().orElseThrow()) != wrapper)
+                .anyMatch(variable -> resolvesToCreation(variable.getInitializer().orElseThrow(), wrapper));
+    }
+
+    private boolean sameBoundedExecutionContext(LambdaExpr operation, Node left, Node right) {
+        List<ExecutionContext> leftContexts = boundedExecutionContexts(operation, left);
+        List<ExecutionContext> rightContexts = boundedExecutionContexts(operation, right);
+        if (leftContexts.size() != rightContexts.size()) {
+            return false;
+        }
+        for (int index = 0; index < leftContexts.size(); index++) {
+            if (leftContexts.get(index).owner() != rightContexts.get(index).owner()
+                    || leftContexts.get(index).branch() != rightContexts.get(index).branch()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private List<ExecutionContext> boundedExecutionContexts(LambdaExpr operation, Node source) {
+        List<ExecutionContext> contexts = new ArrayList<>();
+        Node child = source;
+        Optional<Node> parent = source.getParentNode();
+        while (parent.isPresent() && parent.orElseThrow() != operation) {
+            Node owner = parent.orElseThrow();
+            if (isBoundedControlContext(owner)
+                    || owner instanceof LambdaExpr) {
+                Node branch = owner instanceof SwitchEntry ? owner : child;
+                contexts.add(new ExecutionContext(owner, branch));
+            }
+            child = owner;
+            parent = owner.getParentNode();
+        }
+        return contexts;
+    }
+
+    private boolean isBoundedControlContext(Node node) {
+        return node instanceof IfStmt
+                || node instanceof ConditionalExpr
+                || node instanceof ForStmt
+                || node instanceof ForEachStmt
+                || node instanceof WhileStmt
+                || node instanceof DoStmt
+                || node instanceof SwitchEntry
+                || node instanceof TryStmt;
+    }
+
+    private record ExecutionContext(Node owner, Node branch) { }
+
+    private boolean isExactSagaCommandCall(MethodCallExpr call,
+                                           ObjectCreationExpr wrapper,
+                                           String methodName,
+                                           int argumentCount) {
+        if (!call.getNameAsString().equals(methodName)
+                || call.getArguments().size() != argumentCount
+                || call.getScope().isEmpty()
+                || !resolvesToCreation(call.getScope().orElseThrow(), wrapper)) {
+            return false;
+        }
+        try {
+            return call.resolve().declaringType().getQualifiedName().equals(SagaCommand.class.getName());
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean resolvesToCreation(Expression expression, ObjectCreationExpr creation) {
+        Expression source = unwrap(expression);
+        if (source.isObjectCreationExpr()) {
+            return source == creation;
+        }
+        if (!source.isNameExpr()) {
+            return false;
+        }
+        try {
+            Optional<Node> declaration = source.asNameExpr().resolve().toAst();
+            Optional<VariableDeclarator> owner = creation.findAncestor(VariableDeclarator.class);
+            if (owner.isEmpty()) {
+                return false;
+            }
+            if (declaration.filter(VariableDeclarator.class::isInstance).isPresent()) {
+                return sameDeclaration(owner.orElseThrow(),
+                        (VariableDeclarator) declaration.orElseThrow());
+            }
+            return declaration.filter(VariableDeclarationExpr.class::isInstance)
+                    .map(VariableDeclarationExpr.class::cast)
+                    .map(variableDeclaration -> variableDeclaration.getVariables().stream()
+                            .filter(variable -> variable.getNameAsString()
+                                    .equals(source.asNameExpr().getNameAsString()))
+                            .anyMatch(variable -> sameDeclaration(owner.orElseThrow(), variable)))
+                    .orElse(false);
+        } catch (Exception exception) {
+            return false;
+        }
+    }
+
+    private boolean occursBefore(Node left, Node right) {
+        return left.getBegin().flatMap(leftBegin -> right.getBegin()
+                        .map(rightBegin -> leftBegin.compareTo(rightBegin) < 0))
+                .orElse(false);
     }
 
     private boolean isSupportedCommandGatewayDispatch(MethodCallExpr call,

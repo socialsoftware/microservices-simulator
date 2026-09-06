@@ -10,20 +10,29 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 
 /** Maps only the closed value forms supported by source-derived setup. */
 final class SetupPlanMapper {
     SetupPlan map(List<GroovyFacadeSetupActionTrace> traces,
                   List<ParticipantSource> participants) {
         LinkedHashMap<String, GroovyFacadeSetupActionTrace> traceByOccurrence = new LinkedHashMap<>();
+        LinkedHashSet<String> ambiguousOccurrences = new LinkedHashSet<>();
         if (traces != null) {
-            traces.stream().filter(Objects::nonNull).forEach(trace ->
-                    traceByOccurrence.putIfAbsent(trace.sourceOccurrence(), trace));
+            traces.stream().filter(Objects::nonNull).forEach(trace -> {
+                GroovyFacadeSetupActionTrace existing = traceByOccurrence.putIfAbsent(
+                        trace.sourceOccurrence(), trace);
+                if (existing != null && !existing.equals(trace)) {
+                    ambiguousOccurrences.add(trace.sourceOccurrence());
+                }
+            });
         }
         List<GroovyFacadeSetupActionTrace> ordered = List.copyOf(traceByOccurrence.values());
         LinkedHashMap<String, String> actionIdByOccurrence = new LinkedHashMap<>();
         List<SetupAction> actions = new ArrayList<>();
         LinkedHashSet<String> planBlockers = new LinkedHashSet<>();
+        ambiguousOccurrences.forEach(occurrence ->
+                planBlockers.add("AMBIGUOUS_SETUP_SOURCE_OCCURRENCE:" + occurrence));
         for (int order = 0; order < ordered.size(); order++) {
             GroovyFacadeSetupActionTrace trace = ordered.get(order);
             String actionId = "setup-action-" + (order + 1);
@@ -46,14 +55,18 @@ final class SetupPlanMapper {
             for (ParticipantSource participant : participants) {
                 for (GroovyTraceArgument argument : participant.arguments().stream()
                         .sorted(Comparator.comparingInt(GroovyTraceArgument::index)).toList()) {
-                    GroovySourceValueReference reference = argument.producerReference() != null
-                            ? argument.producerReference()
-                            : argument.recipe() == null ? null : argument.recipe().sourceReference();
-                    if (reference == null || !actionIdByOccurrence.containsKey(reference.occurrenceId())) {
-                        continue;
+                    List<GroovySourceValueReference> references = sourceReferences(argument);
+                    if (references.isEmpty()) continue;
+                    SetupValueRecipe value = invalidParticipantReference(references,
+                            traceByOccurrence, actionIdByOccurrence,
+                            ambiguousOccurrences, nestedReferenceBinding(argument),
+                            argument.expectedTypeFqn());
+                    if (value == null) {
+                        value = argument.producerReference() == null
+                                ? mapValue(argument.recipe(), argument.expectedTypeFqn(), actionIdByOccurrence)
+                                : referenceValue(argument.producerReference(),
+                                argument.expectedTypeFqn(), actionIdByOccurrence);
                     }
-                    SetupValueRecipe value = referenceValue(reference,
-                            argument.expectedTypeFqn(), actionIdByOccurrence);
                     bindings.add(new SetupParticipantBinding(participant.inputVariantId(), argument.index(),
                             argument.expectedTypeFqn(), value, value.blockers()));
                 }
@@ -62,12 +75,71 @@ final class SetupPlanMapper {
         return new SetupPlan(SetupPlan.SCHEMA_VERSION, actions, bindings, List.copyOf(planBlockers));
     }
 
+    private List<GroovySourceValueReference> sourceReferences(GroovyTraceArgument argument) {
+        if (argument == null) return List.of();
+        List<GroovySourceValueReference> references = new ArrayList<>();
+        if (argument.producerReference() != null) {
+            references.add(argument.producerReference());
+        } else {
+            collectSourceReferences(argument.recipe(), references);
+        }
+        return references;
+    }
+
+    private void collectSourceReferences(GroovyValueRecipe source,
+                                         List<GroovySourceValueReference> references) {
+        if (source == null) return;
+        if (source.sourceReference() != null) {
+            references.add(source.sourceReference());
+            return;
+        }
+        source.children().forEach(child -> collectSourceReferences(child, references));
+        if (source.metadata() != null) {
+            source.metadata().assignments().stream().filter(Objects::nonNull)
+                    .forEach(assignment -> collectSourceReferences(assignment.valueRecipe(), references));
+        }
+    }
+
+    private SetupValueRecipe invalidParticipantReference(List<GroovySourceValueReference> references,
+                                                         Map<String, GroovyFacadeSetupActionTrace> traceByOccurrence,
+                                                         Map<String, String> actionIdByOccurrence,
+                                                         Set<String> ambiguousOccurrences,
+                                                         boolean nestedReferenceBinding,
+                                                         String expectedType) {
+        LinkedHashSet<String> blockers = new LinkedHashSet<>();
+        for (GroovySourceValueReference reference : references) {
+            String occurrence = reference == null ? null : reference.occurrenceId();
+            if (occurrence == null || occurrence.isBlank()
+                    || !actionIdByOccurrence.containsKey(occurrence)) {
+                blockers.add("UNRESOLVED_SETUP_SOURCE_REFERENCE:" + occurrence);
+            } else if (ambiguousOccurrences.contains(occurrence)) {
+                blockers.add("AMBIGUOUS_SETUP_SOURCE_REFERENCE:" + occurrence);
+            } else if (!Objects.equals(reference.producerMethodName(),
+                    traceByOccurrence.get(occurrence).methodName())) {
+                blockers.add("MISMATCHED_SETUP_SOURCE_REFERENCE:" + occurrence);
+            } else if (nestedReferenceBinding && !reference.propertyPath().isEmpty()) {
+                blockers.add("UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:" + reference.propertyPath());
+            }
+        }
+        if (blockers.isEmpty()) return null;
+        return recipe(SetupValueKind.LITERAL, expectedType, "blocked", null, null,
+                List.of(), List.of(), List.of(), null, null, null, List.copyOf(blockers));
+    }
+
+    private boolean nestedReferenceBinding(GroovyTraceArgument argument) {
+        return argument != null && argument.producerReference() == null
+                && argument.recipe() != null && argument.recipe().sourceReference() == null;
+    }
+
     private SetupValueRecipe mapArgument(GroovyTraceArgument argument,
                                          Map<String, String> actionIdByOccurrence) {
         if (argument == null) return blocked("MISSING_SETUP_ARGUMENT", null);
-        if (argument.producerReference() != null
-                && actionIdByOccurrence.containsKey(argument.producerReference().occurrenceId())) {
-            return referenceValue(argument.producerReference(), argument.expectedTypeFqn(), actionIdByOccurrence);
+        if (argument.producerReference() != null) {
+            if (actionIdByOccurrence.containsKey(argument.producerReference().occurrenceId())) {
+                return referenceValue(argument.producerReference(), argument.expectedTypeFqn(), actionIdByOccurrence);
+            }
+            return blocked("UNRESOLVED_SETUP_SOURCE_REFERENCE:"
+                    + argument.producerReference().occurrenceId(), argument.expectedTypeFqn());
         }
         return mapValue(argument.recipe(), argument.expectedTypeFqn(), actionIdByOccurrence);
     }
@@ -75,9 +147,12 @@ final class SetupPlanMapper {
     private SetupValueRecipe mapValue(GroovyValueRecipe source,
                                       String expectedType,
                                       Map<String, String> actionIdByOccurrence) {
-        if (source != null && source.sourceReference() != null
-                && actionIdByOccurrence.containsKey(source.sourceReference().occurrenceId())) {
-            return referenceValue(source.sourceReference(), expectedType, actionIdByOccurrence);
+        if (source != null && source.sourceReference() != null) {
+            if (actionIdByOccurrence.containsKey(source.sourceReference().occurrenceId())) {
+                return referenceValue(source.sourceReference(), expectedType, actionIdByOccurrence);
+            }
+            return blocked("UNRESOLVED_SETUP_SOURCE_REFERENCE:"
+                    + source.sourceReference().occurrenceId(), expectedType);
         }
         if (source == null || source.kind() == null) return blocked("MISSING_SETUP_VALUE", expectedType);
         return switch (source.kind()) {
@@ -195,6 +270,9 @@ final class SetupPlanMapper {
         }
         if (reference.propertyPath().size() == 1 && reference.propertyPath().get(0) != null) {
             return SetupValueRecipe.actionProperty(actionId, reference.propertyPath().get(0), expectedType);
+        }
+        if (reference.propertyPath().equals(List.of("quiz", "aggregateId"))) {
+            return SetupValueRecipe.actionProperty(actionId, "quiz.aggregateId", expectedType);
         }
         return blocked("UNSUPPORTED_SETUP_PROPERTY_PATH:" + reference.propertyPath(), expectedType);
     }

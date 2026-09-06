@@ -14,9 +14,13 @@ import java.util.regex.Pattern;
 
 /** The single static authority for the closed source-derived setup contract. */
 public final class SetupPlanValidator {
-    private static final Set<String> RESULT_PROPERTIES = Set.of("aggregateId", "courseAggregateId");
+    private static final Set<String> RESULT_PROPERTIES = Set.of("aggregateId", "courseAggregateId", "quiz.aggregateId");
     private static final Pattern METHOD_KEY = Pattern.compile("^([^#]+)#([^#(]+)\\(([^)]*)\\):(.+)$");
     private static final Map<String, Map<String, String>> DTO_PROPERTIES = Map.of(
+            "com.example.dummyapp.item.aggregate.ItemDto", Map.of(
+                    "aggregateId", "java.lang.Integer", "name", "java.lang.String",
+                    "price", "java.lang.Integer", "orderId", "java.lang.Integer",
+                    "quiz", "com.example.dummyapp.item.aggregate.ItemDto"),
             "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto", Map.of(
                     "name", "java.lang.String", "type", "java.lang.String", "acronym", "java.lang.String",
                     "academicTerm", "java.lang.String", "endDate", "java.lang.String"),

@@ -1,0 +1,34 @@
+{
+  "ordinary_single": {
+    "total": 796,
+    "with_source_setup": 576,
+    "ready_without_setup": 1,
+    "blocked": 219,
+    "unique_source_setup_ids": 475
+  },
+  "dispatcher": {
+    "baseline_allowed_rows": 551,
+    "baseline_unsupported_rows": 25,
+    "current_allowed_rows": 576,
+    "current_unsupported_rows": 0,
+    "new_methods": {
+      "createQuiz": {"candidate_rows": 24, "occurrences": 24, "source_setup_ids": 19},
+      "startQuiz": {"candidate_rows": 15, "occurrences": 15, "source_setup_ids": 12, "subset_of_createQuiz_rows": true},
+      "addParticipant": {"candidate_rows": 1, "occurrences": 1, "source_setup_ids": 1}
+    }
+  },
+  "disjoint_blocker_buckets": {
+    "nested_dto_producer_binding": {"count": 88, "components": {"CreateQuestion": 85, "CreateQuiz": 3}},
+    "tournament_setup_helper_multi_producer_binding": {"count": 23},
+    "event_or_bridge_placeholder": {"count": 28, "explicit_event_payload": 26, "additional_bridge_service": 2},
+    "control_flow_transform_or_assignment": {"count": 10, "loop_dependent_mutation": 7, "unsupported_transform": 1, "unmaterializable_assignment": 2},
+    "feature_or_second_order_control_flow": {"count": 70}
+  },
+  "create_quiz_blocked_ids": [
+    "010e1d7074088643dd0a8ec5b40b8075dc9b366ece056e4075ac09d464626326",
+    "df5ddb6614028d507eb7822bfeba23484e73dfa7f0c7248cf38474f9b94ca621",
+    "a7191c8130c3fbd4d8c94ab1233865550629753d5ad8b46f2587dd522cab513c"
+  ],
+  "representative_create_question_id": "a196ed593fa3f127c4fd460f8bb26e090d013608822bc2c3ab03976e5b07c8d9",
+  "artifact": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/astra-event-receiver/generated/quizzes-20260904-222711-381"
+}

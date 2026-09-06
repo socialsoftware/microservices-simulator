@@ -1,0 +1,4045 @@
+{
+  "summary": {
+    "selectedBroaderAttempts": 60,
+    "selectedPairs": 30,
+    "completePairsWithSuccessfulExactControl": 30,
+    "selectedAssessmentCounts": {
+      "COMPLETE": 60
+    },
+    "selectedScores": {
+      "0": 52,
+      "1": 7,
+      "2": 1
+    },
+    "positiveSuccessfulControls": [
+      "RemoveCourseExecution-events"
+    ],
+    "positiveFaults": [
+      {
+        "pair": "CreateCourseExecution-basic",
+        "controlScore": 0,
+        "faultScore": 1
+      },
+      {
+        "pair": "RemoveCourseExecution-basic",
+        "controlScore": 0,
+        "faultScore": 1
+      },
+      {
+        "pair": "RemoveCourseExecution-events",
+        "controlScore": 1,
+        "faultScore": 1
+      },
+      {
+        "pair": "CreateQuestion-basic",
+        "controlScore": 0,
+        "faultScore": 1
+      },
+      {
+        "pair": "RemoveTournament-basic",
+        "controlScore": 0,
+        "faultScore": 2
+      },
+      {
+        "pair": "SolveQuizAsync-basic",
+        "controlScore": 0,
+        "faultScore": 1
+      },
+      {
+        "pair": "SolveQuiz-basic",
+        "controlScore": 0,
+        "faultScore": 1
+      }
+    ],
+    "retainedAttemptCount": 93,
+    "retainedAssessmentCounts": {
+      "COMPLETE": 91,
+      "INVALID": 2
+    },
+    "selectionProvenance": "29 broader pairs from run-01; UpdateStudentName-events pair from run-03. Both invalid controls in run-01/run-02 and their paired fault attempts are retained. Benchmark29 from run-01."
+  },
+  "pairs": [
+    {
+      "pairId": "StartQuiz-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "AddStudent-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "AnonymizeStudent-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "AnonymizeStudent-events",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CreateCourseExecution-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 1,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "GetCourseExecutionById-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "GetCourseExecutionsByUser-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "GetCourseExecutions-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "RemoveCourseExecution-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 1,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "RemoveCourseExecution-events",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 1,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "RemoveStudentFromCourseExecution-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "RemoveStudentFromCourseExecution-events",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "UpdateStudentName-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CreateQuestion-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 1,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "FindQuestionByAggregateId-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CreateQuiz-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "FindQuiz-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CreateTopic-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "AddParticipantAsync-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "AddParticipant-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CancelTournament-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "FindTournament-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "LeaveTournament-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "RemoveTournament-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 2,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 2,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "SolveQuizAsync-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 1,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "SolveQuiz-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 1,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 1,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "ActivateUser-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "CreateUser-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "DeactivateUser-basic",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    },
+    {
+      "pairId": "UpdateStudentName-events",
+      "controlStatus": "COMPLETE",
+      "controlExecution": "SUCCESS",
+      "controlScore": 0,
+      "faultStatus": "COMPLETE",
+      "faultExecution": "COMPENSATED",
+      "faultScore": 0,
+      "bothComplete": true,
+      "controlSuccessfulExact": true,
+      "scoreDifference": 0,
+      "interpretation": "Observed score comparison; no causal claim from subtraction alone"
+    }
+  ],
+  "rows": [
+    {
+      "caseId": "StartQuiz-basic-control",
+      "cohort": "broader",
+      "pairId": "StartQuiz-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "9d88a745146b8fe289d235bb0cdaecd3947b14cc5e6cff605bf49cc054971487",
+      "faultScenarioId": "d43bb9ce9d31bbb2ab1c858ce757de5ce7d23567c8a1646440329e13b7c41c10",
+      "faultVector": "000",
+      "eventCount": 0,
+      "setupActionCount": 7,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "babb6588-8271-433b-af87-9c53e7b9c034",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 4,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "d833af26763da0e3bfd567e1d1277a08304dc2c01bd3b71b3d76945a77c277c0",
+        "v1": "270ae753b08d85736ffce26fe808185b96bdf7419328b87bc2c2b3a07dd2f00b",
+        "v2": "e6dd2cfafb8603864f2634fc70e2caf6ec16352e4d3c707dd31a6cb18b75de34"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "StartQuiz-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "StartQuiz-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "9d88a745146b8fe289d235bb0cdaecd3947b14cc5e6cff605bf49cc054971487",
+      "faultScenarioId": "171d473ee4e103f6c7eaa1a646d36b2391fa0294803e098b4564d2efc002492a",
+      "faultVector": "001",
+      "eventCount": 0,
+      "setupActionCount": 7,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "c8ad61c3-d97b-49e8-ba87-d429b9efc60b",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 3,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "20d6142517b12f6fef12cc75c79f0b474bad355be4f30497dc004b37539c8ef4",
+        "v1": "7f45d0725f39c6effaea4a43cfcf10c5b912288e416c36690658d4e3fca85e8a",
+        "v2": "a89de2e3401a49a31592e1617b6eea8c2c76b9bb94f0bb6142ea5a52508e860c"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddStudent-basic-control",
+      "cohort": "broader",
+      "pairId": "AddStudent-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "37d54544c8d653ab13e0c3feaf1504f599155d7a519c88c3a9c83eb73c114aac",
+      "faultScenarioId": "6e5ecf6bf8bd3c3a4b67d75306329d96378293f36f54addd483b1eac1cb61aba",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 3,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "6af7dea8-7788-43af-af62-e17f6633715e",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "85a0917c7b4806e8c2544520ba85b9fd7cb874616ccc1acddcf91ee4e7c1ba7f",
+        "v1": "84c11c6638bd5250d1153dbc02340c450880e3e08c2eb13fc1bbb515a3885e09",
+        "v2": "a05e6732f74045b0bdc0e33ebbb3ad5733f198902524296cb258e8bdea905535"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddStudent-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "AddStudent-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "37d54544c8d653ab13e0c3feaf1504f599155d7a519c88c3a9c83eb73c114aac",
+      "faultScenarioId": "2149f8c1b4feaaf479fdd1f9df32f7dd260aebb30ee77bdbea9eefb97022d2bb",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 3,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "f1ecd777-19c5-4c75-9a7d-bd3e266ae5c8",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "f43fa57816cf328c2746d0d39cdbde84313450f302538a8535a8d61547bc63ce",
+        "v1": "5049d95de3f114add753e3bca4b8a963cc3f371b8d71817a05cd6964fbc4607e",
+        "v2": "c1c472c52f5daf255f0375f5d7a92f23c9e5b53e9e07c8417e405808192c9212"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AnonymizeStudent-basic-control",
+      "cohort": "broader",
+      "pairId": "AnonymizeStudent-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "bd2b9e9cdbce18ba69c778d4ab0c435781a833e599f6bba487ce2713301a102b",
+      "faultScenarioId": "555c86fdcdec5597865b6605da22462f7fa75f56b90088fbf716efd5f3cd96cb",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "f6bc49e9-b304-42fe-b1c4-15fe1730a5cd",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "17d53f16dec854894adfcedf4a2bd98f7eecdb748838e37c57400dfc0e2f7b0a",
+        "v1": "191cfa56c3def883b0bc47765940ebd495871b9ec6813cd46a5464b98f1889c0",
+        "v2": "3fbe28b40af1f30a74ffd5922ec97560a4f661faeacb14d14002ff69bdc5232d"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AnonymizeStudent-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "AnonymizeStudent-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "bd2b9e9cdbce18ba69c778d4ab0c435781a833e599f6bba487ce2713301a102b",
+      "faultScenarioId": "f4c298f654ba9bbc7a72f2e221c18f66f1f9e6741b3b9befc47add825ea4985b",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "484317a8-7b07-46ba-a74a-842b85b08d0f",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "008da70c54e2d43810788e1a047b0e35dba9fa9cd518215f31dceb6118baf2bc",
+        "v1": "15af6571b74921d51291cf2b8cb377a33658a44dade564f9cc1ff7d648943449",
+        "v2": "206fc29b9c05f1c9afc9c7e356983a0de17ba5114bd79c3a48ee84e51f2d499f"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AnonymizeStudent-events-control",
+      "cohort": "broader",
+      "pairId": "AnonymizeStudent-events",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b",
+      "faultScenarioId": "2efe7c5643a12f1ef0215853eaff1d8cd62e9bbfd4006cecf4971362cca8f588",
+      "faultVector": "00",
+      "eventCount": 1,
+      "setupActionCount": 8,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "a4f1634c-ac34-498f-9b17-e65bf51cdb42",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 4,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "e9a6c816f41f6d51237b10319f287c7392e395a198cb520ea1521c7e8f034f59",
+        "v1": "441b5326bdeb88a75fa60c0a4b16708b2d03688523b9194580404baa986ccd64",
+        "v2": "129011608952e49406ffb619552a279c873d65a054414d130d8a84c2ed4387c0"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AnonymizeStudent-events-late-fault",
+      "cohort": "broader",
+      "pairId": "AnonymizeStudent-events",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "c2559b797958f4f0c185007cedcc1da6a2eb1b76ef558a593d12d699dec9f60b",
+      "faultScenarioId": "6f8e670510673c4a1a4907c50afa1c23ab743e9a0aa1ef5d217273da3ecb8c7d",
+      "faultVector": "01",
+      "eventCount": 1,
+      "setupActionCount": 8,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "b0fe3a52-a8a8-4128-b9a7-8a4feed42bb6",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 4,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "2765a52855fd3f015bcec078558498143aa53c0ec5220318eb5c79e7232f0b5b",
+        "v1": "48c3733f986c532db0dffc38ebee306a622d0eec384fe352d9784d8361e83f10",
+        "v2": "973832111fa12aa9ea481e83a7dbcb0172760eee8c73bfade73be54cda87981e"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateCourseExecution-basic-control",
+      "cohort": "broader",
+      "pairId": "CreateCourseExecution-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.CreateCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "6f9cb6581c750960beb7740adc3a0f73329917c39bf0b8324b05a2f2aa6c9298",
+      "faultScenarioId": "2b3e1120aea20fed88891c0ee8074303abcb2e1d15d12dbea63da96d41cdabeb",
+      "faultVector": "0000",
+      "eventCount": 0,
+      "setupActionCount": 1,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "a21d6bf2-3009-4bff-9963-864f5d1fb879",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "e3035a84f02d723d72302837e1d2e67d5c12a0b4a012a676940359dbc53ee465",
+        "v1": "fcafe720b64448ce471a4a6464b1f7ae614be1e3c94ee3dbe7a35ba7d543fb39",
+        "v2": "40088d87027cd7e78694832f05bcaad989a4bcee4683b65a50e59c626b76f21b"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateCourseExecution-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CreateCourseExecution-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.CreateCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "6f9cb6581c750960beb7740adc3a0f73329917c39bf0b8324b05a2f2aa6c9298",
+      "faultScenarioId": "7a4eca7ed4870133c35ee68aa275a8d624b4d457220cf2512df2330010fb358d",
+      "faultVector": "0001",
+      "eventCount": 0,
+      "setupActionCount": 1,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "e3539fad-dd67-4e1d-9d04-33b2cfe637b7",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaExecution",
+                "aggregateId": 3
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "51c7fa1a9ef38a7f7e4ed49d070c371fc175313482f17257f7680a1de11abf18",
+                "94b3c6ec54cb89f388bb3f14c063a77fe24e4a50b88689b5c73b249c9c92c6c2"
+              ],
+              "versions": [
+                4,
+                5
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "e251316e339d7f7ae5a643a21a26ac5e668fc40e88a7c739f8962ccdf85fa77e",
+        "v1": "945695f937f0444b447d11cabdbad364b11e4bcd00dd54899b2a26e39d18b65d",
+        "v2": "6bcfd171384b1e5298c0927dc9f47e276f4b04931598e6f5ae1967de581c9f37"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutionById-basic-control",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutionById-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0b2786abe8a807ce84628aa1fa055d9337c46e43d042954a9bf75623870373d9",
+      "faultScenarioId": "ef87da1a114036c83a48bca0f0219f1ad9f46069f554f5ef3afd3faa1ba9bd88",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 3,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "8e74bc31-63c0-47ba-a2ca-e7e43941f19d",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "56e014537c467e54a9bee43b176375feaf58182962ce91183cc8393beef3173a",
+        "v1": "35dec6b3615572eb6f69ff916717768894279f8bd25aa14dfa48d001dcd6f887",
+        "v2": "33868e3e5d5f77de734fb7e5b90828880c490f8d96ffe3b63ec344697e8a8b94"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutionById-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutionById-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0b2786abe8a807ce84628aa1fa055d9337c46e43d042954a9bf75623870373d9",
+      "faultScenarioId": "fa9039ffcfe2bebc3175ce6939d456436fcd8a3f458676daee5a29087c5fbb2c",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 3,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "cda7c409-657b-46aa-ad37-abef463adb08",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "22ef68d6d546c7f4ac46072c2d093f7635f275c54a1ddc6e30a6fa983d8f499a",
+        "v1": "88a3b76934acd2d96d6dfd1fe881105e657828d0720d58cc6ccab710bdeab9d6",
+        "v2": "827aa7cf6b592d4d7c553e80ebe1276ab415dfb448d75fd50d6f7aee614958bb"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutionsByUser-basic-control",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutionsByUser-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "05d13734d130eb30b7562241d061e4183ee18c6b0421eba2996fab099d9e7299",
+      "faultScenarioId": "0c4037f18dd1a6100af73073982490d5193ddc59d1f4e2ece81ba7cd9fa50ab6",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "25196737-4b5a-4c5c-8d91-22c661c28520",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "e4e413b64bcb819c712b804062729c45c598de90316287fc67af9a2fda57b3c3",
+        "v1": "a0e8d0456bcba76f4bc1fb51e3a30fb4046c66a29292cff6e9a111b259c2cb3a",
+        "v2": "f3e717368389c4b656754512ddee21f38efaa7aa6caea0b7aa251d7d16d13780"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutionsByUser-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutionsByUser-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "05d13734d130eb30b7562241d061e4183ee18c6b0421eba2996fab099d9e7299",
+      "faultScenarioId": "94e2a4a310b3efaabeb5dc0b57a5b29801ca26cd36bf1233cd2013eb6d5cb296",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "2c1bb2a5-04e4-4df2-a259-5c0bc1629369",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "7fee449b03824a5ca36251dfc47ae490215b3315ca6a88207f410016a2e2b456",
+        "v1": "02f9fd2252327b82bab4f7e3320c4bc58afaabcbed3e9f7d28a9d3192d18fc83",
+        "v2": "2e52441e032c2aebd30aac44d651d9c0b2dd82d853ac05f40436396b058c89ad"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutions-basic-control",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutions-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "3862b219324d76693cd5fefbc97654bbdd4b4579544588a8034c23994139c124",
+      "faultScenarioId": "7c890851afaf1adb1b402bfc8fc68cf2edac8f5f554df65357ba88b169f3be5b",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "e815fd2a-12f7-4840-9525-515e84b7c177",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "ca394158ad2be05b4a0d8b66af6a5805eac9f83e188542621279325239798050",
+        "v1": "48d84834539c8ee76f5c58b3682763c06eccf6539b72fee13e293cf59c22e2f6",
+        "v2": "b3bb3107b89a88f05adbb020d5b9e2e1479d67a894d3d7c1410c2f2c5746e949"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "GetCourseExecutions-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "GetCourseExecutions-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "3862b219324d76693cd5fefbc97654bbdd4b4579544588a8034c23994139c124",
+      "faultScenarioId": "7fc340256231128466805d9daf9521ba5259446f0fb18780264f5e126f211bc6",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "f05fd3a2-26fa-4461-a8d4-33bb703c68f2",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "79b0631d83f1f88e12fb989f13119f0f4dd41af9165e6b88533259f9d0ac1706",
+        "v1": "98641ea17c531307d30259c7068c3a2eb4a17a37d0fb396d1877627e27d8b2ec",
+        "v2": "da53c8a6957e283fe41613412d88dba7aaaf04916fbf2985f9ce6a43e92623d9"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveCourseExecution-basic-control",
+      "cohort": "broader",
+      "pairId": "RemoveCourseExecution-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "5c584c51baddfd016f9e5779236d62ccb05cb86b2b4309a3ec929419e6ae19d2",
+      "faultScenarioId": "0c862870f8731e76fa434c89b53d2cb6b16bdb66cb6a9767752f626edd2dce70",
+      "faultVector": "000",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "03f43516-a355-4f05-a337-2796c17bc906",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "5d6b78063feb760c1fe201385b0e1f24167a40b70312191c3946fe7a86d45fda",
+        "v1": "35e08272e52fe49cfee999b151220013feb5762cddd330c7fb87711bda389bfc",
+        "v2": "78c1d4904525dd29881b34dc100618cdd077eafe1dc4749e05ce6cad54170d43"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveCourseExecution-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "RemoveCourseExecution-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "5c584c51baddfd016f9e5779236d62ccb05cb86b2b4309a3ec929419e6ae19d2",
+      "faultScenarioId": "6fd8b0f48a7c1d09e49f6b316a0e094e3aba313bf3ff10dbb9616273c4598a4c",
+      "faultVector": "001",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "b4f36ec3-7262-4448-83c7-24955d66e730",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaCourse",
+                "aggregateId": 1
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77"
+              ],
+              "versions": [
+                3,
+                5
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "9ae7a5bed1ea9486d0470d000339538f446893581b9777cbeba6a87f725f7686",
+        "v1": "a2ced8b122a55c1ea7c7e38f9c7d19879905f9f673d3a9a1df951e55765cc50c",
+        "v2": "cf927fb98400e395c898c4b6b4a64fd03f275a8976395f6701a3c4498048e360"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveCourseExecution-events-control",
+      "cohort": "broader",
+      "pairId": "RemoveCourseExecution-events",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "63799c6abca418040aefde68cf4e517046372dbf8ca5c964078a7a35e7bfd604",
+      "faultScenarioId": "da58e3ef69b0962f66917c0e0dbb2d34686b5453a1b91f850cfa48491aa61a38",
+      "faultVector": "000",
+      "eventCount": 1,
+      "setupActionCount": 10,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "94a13ffe-05ac-45c2-baec-2cb9c1079e8b",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 2,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "DELETED_DEPENDENCY",
+              "reason": "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+              "affectedObject": {
+                "aggregateType": "SagaQuiz",
+                "aggregateId": 6
+              },
+              "relatedObject": {
+                "aggregateType": "SagaExecution",
+                "aggregateId": 2
+              },
+              "eventId": null,
+              "actionIds": [
+                "51c7fa1a9ef38a7f7e4ed49d070c371fc175313482f17257f7680a1de11abf18"
+              ],
+              "versions": [
+                15,
+                18
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "cb3943b675606c95f73822b613c4fa94d2ab840851f02520d1d625685c658c62",
+        "v1": "0edba46db4eeb6764e7676b5a1f9cc43dbc3bead3bb756a341e7878f27ea1b98",
+        "v2": "0c60c3f9322c16d0672ebb6cb9f269db1c68c71ca3689e350c8925541abd6ccd"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveCourseExecution-events-late-fault",
+      "cohort": "broader",
+      "pairId": "RemoveCourseExecution-events",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "63799c6abca418040aefde68cf4e517046372dbf8ca5c964078a7a35e7bfd604",
+      "faultScenarioId": "1e6d142d1e2f9bead7f9288186208ac0e1173dfbd21e0cf8457e049991711908",
+      "faultVector": "001",
+      "eventCount": 1,
+      "setupActionCount": 10,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "7285c232-eb43-4fa2-8fca-a164b992f5f3",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 3,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaCourse",
+                "aggregateId": 1
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77"
+              ],
+              "versions": [
+                14,
+                17
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "57d9fec2289c7c0b5d0603bb092665dd451725f15ad71e074add000a0289ac31",
+        "v1": "0febcca8a5b48988a59e813f5a1bf72a0d180574dce8d6960f8203fb7d52ca34",
+        "v2": "bc9c4c38930ed80fe51cd3209befe12d7c99fb109b1f469ef1c425622961a489"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-basic-control",
+      "cohort": "broader",
+      "pairId": "RemoveStudentFromCourseExecution-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0ede8eebf6a104d714f3f5e8296a6036c1b19f2aa7c49fd9ea354239fd9dfb27",
+      "faultScenarioId": "8437fa24d86804b01f12fca31ed6c2e3e403ff2de48effe2a54bf56857836116",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "3ccefda4-2e96-4f8e-9691-d544ce4f4b7d",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "be84fb47e9584a0a24e29f1b49a47dd9fdf4826657e003e1ce0c58364dca647b",
+        "v1": "3006e30df6aa9179ca08e9cb5cae6b1b73554b1365c89dc1883b49b9e441f10a",
+        "v2": "5f7b9e8a532e9752f2e5bde290e36becd90ccf9f915d7b0e699a56da21280a95"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "RemoveStudentFromCourseExecution-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0ede8eebf6a104d714f3f5e8296a6036c1b19f2aa7c49fd9ea354239fd9dfb27",
+      "faultScenarioId": "91254c16ee4dc6fa92684178626b3cff8ed7a2aaabfb5aecde72d1a48755d943",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "40b445d4-fda1-45cd-90ad-405c1d1f3528",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "e1177df080fdc98543cd732468e551462fec54c6146d68a396127c7ce065d957",
+        "v1": "fa816be495f01089b58c3db99bf9d6f4a0f1d4a0693ed58a9b66db9b60f61ed9",
+        "v2": "b8739562ba7601e4582aa90807e2afd25be47398e2122708d5d457a8c2862b85"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-events-control",
+      "cohort": "broader",
+      "pairId": "RemoveStudentFromCourseExecution-events",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "9b36807327efcdfe41e0384e5939c1580afc74f2cc11b8225b47e75255436eba",
+      "faultScenarioId": "49f77d1258e0cbf8152e18b1efd4f773690edde7778adebc84223ef735ba67c8",
+      "faultVector": "00",
+      "eventCount": 1,
+      "setupActionCount": 8,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "46a29819-8dd3-45eb-8e65-f2b6fe3ef302",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 2,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "23bd1f00c2f72b3f9885da72a602176ef2fd8cd6d5a280a9bb2b4fec0810146f",
+        "v1": "c25b734ec69fdc2c3f5808276c0f381de97fd3637aed2bcd9b2e12dce65bad59",
+        "v2": "9271bc407ff9184ee0e33b88e21309fcd0823340cfe34d7ba13884e723824b73"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-events-late-fault",
+      "cohort": "broader",
+      "pairId": "RemoveStudentFromCourseExecution-events",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "9b36807327efcdfe41e0384e5939c1580afc74f2cc11b8225b47e75255436eba",
+      "faultScenarioId": "b9553d05f0c92a472535171b473cce795d5b282b2c27c11bce0cda223415bd3d",
+      "faultVector": "01",
+      "eventCount": 1,
+      "setupActionCount": 8,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "7bc19fd6-abda-4653-a43b-16308b3bea2b",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 4,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "6bbb28bf81aa8c569153b1dae6fcdd0564c0893669900a53741de571a6af25b4",
+        "v1": "869c5f343c520152c2462452443141d01fc67b6e307ccdb6ba4add643f7834ff",
+        "v2": "71e8b86cbd259d25ef28123df050c0a4479e2a4d73ccf6aba0f9c4c2d6124313"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "UpdateStudentName-basic-control",
+      "cohort": "broader",
+      "pairId": "UpdateStudentName-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0c9938c6721248311ec89d5a1b15623ecbe4a9c3fe099647a2639efed61f744c",
+      "faultScenarioId": "0f7ed5dee5e8464c3dc0464c42637fb332798711516f25e8156de3e005575dac",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "6e25b853-cb49-40d6-9933-e51c305c2000",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "d8af4f4be93e68b149a7679d3effed937cb91f8d7cb6ea8f0386026aee14baba",
+        "v1": "5d84a671ec4ea9fb73bc522b64d9a9d3c555df68e485ce9fba25da8a5275c55c",
+        "v2": "2d32bafbdcdb0a343942ea83cc55624b7b5c2c1b392b2e60057d3006f7219520"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "UpdateStudentName-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "UpdateStudentName-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "0c9938c6721248311ec89d5a1b15623ecbe4a9c3fe099647a2639efed61f744c",
+      "faultScenarioId": "f8b723ae98c456d74042f2602d5974ad7b70b3f40e06a9407fe8191f82951007",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "0583c179-2e6f-4bd6-9f8e-39b80e7485f9",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "57225d85685a2afc2ac54b81f69467099bfccfda80eea3a84905561ce6b589ff",
+        "v1": "abee8d085ff57aef8f4632f7a8e44ddb75fb2ca6e5b6cb46b4cb434feb638bb6",
+        "v2": "019b562d1be092d0fe1a6667c86281c3bca898ca5da030d1b8de5f56476e1dac"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateQuestion-basic-control",
+      "cohort": "broader",
+      "pairId": "CreateQuestion-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "e640c76a9a1bc779eb1ecb33860943aedc59325cd12c43ed13aa31985aa321b5",
+      "faultScenarioId": "bd4bdace3659db221e425cabc8062308cc5d5368c7d3b27389b01abb3fc5a634",
+      "faultVector": "0000",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "20460515-c369-4561-a6bb-38d8d7a817a5",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "1e782b3d8950f0de918aee7200dd4d933792c31c3b2cfd57641cd8b67dd95a4a",
+        "v1": "c41f7f1a58561dcd119cb972416171c59b9f19bfe0b587a6582e6ebfee56de75",
+        "v2": "81ebe83887e03614e13a42b522610050c01721ccdf2a1fb8879cdc1cfe110f80"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateQuestion-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CreateQuestion-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "e640c76a9a1bc779eb1ecb33860943aedc59325cd12c43ed13aa31985aa321b5",
+      "faultScenarioId": "59593d1b1b47692d044b8ce33b258ab060d6070120d9ca0e8c5acdd7483c28d6",
+      "faultVector": "0001",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "cb3a2d65-d11c-4715-b4a4-c88ee52edb62",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaQuestion",
+                "aggregateId": 4
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "51c7fa1a9ef38a7f7e4ed49d070c371fc175313482f17257f7680a1de11abf18"
+              ],
+              "versions": [
+                5
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "18612dd9c0a9682b3493923bac22a786a3bad2d4c4628a21bcc6af2a5b124422",
+        "v1": "f5fccb4959b322f3069423c89a453e27d8b5ac8008ef79c7df5e7d5bc9475a6b",
+        "v2": "e08cd166be76528ee870da7b9aa797e04994725a5806c3e39db2663f87173c0e"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindQuestionByAggregateId-basic-control",
+      "cohort": "broader",
+      "pairId": "FindQuestionByAggregateId-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionByAggregateIdFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "faultScenarioId": "76c3780a6cc8ece2c7c6968b3805a1a9637d2a4c16589e536c37396e509f25ab",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 5,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "0b910afa-1023-49c3-bd4e-6280546c9c16",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "173a0f52d125df210b2e19a382c1f1560eb749351734446b15baca9de3fd3769",
+        "v1": "29e9abace75bf927c88d63327832dbb1cb01a873a13992abe85dd79bb55b2b0a",
+        "v2": "37f37b16caf29348c3558b80f7038b0e9411292732a3883f4495c043df077b19"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindQuestionByAggregateId-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "FindQuestionByAggregateId-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionByAggregateIdFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "faultScenarioId": "1ceb7209385232bdcefe35bec3894f9143f8a5df0cb5ff7dfae799b06dcb0292",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 5,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "eec110e0-40eb-43e6-bbc0-9808f8b1abda",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "24aefd104e27c988953f09076fe9f6d7ced19ce3a754748ee933d29a53e46717",
+        "v1": "401c5625f789b134821cc717bf80326264f426d7eae66da27b8d23f2a00a1a5e",
+        "v2": "2754f33623b93df1662df03ef993d81525e76b7c9d6bcaca78689f7c590bcfe9"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateQuiz-basic-control",
+      "cohort": "broader",
+      "pairId": "CreateQuiz-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7",
+      "faultScenarioId": "5b2b66bcdaa1aebdbf5ac10f6a11963a2176b27544733eb33b7d246fc3266b44",
+      "faultVector": "000",
+      "eventCount": 0,
+      "setupActionCount": 6,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "3bcdeac1-5afb-4af4-a6fb-76647dfc1a53",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 3,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "edc839b3148b04026d9877bedaf4116a2412ef94580a606b879b46c3e5cdfa06",
+        "v1": "a2ed5515533780f399ab2b788aed73f80f554c7414f54caaa78690f85d94b638",
+        "v2": "030b0f89a2cb6de700e0b453b37be637bd75684157088c12bfcd519bd1043a42"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateQuiz-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CreateQuiz-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "a8aa42c2fc0d5b41eb5e644a6fda8fbcba2ff3b199223cc549106b5ef896e5c7",
+      "faultScenarioId": "6ac55f24e7b755f3c5ec566b271270c25b852b259cce17949a86ff707d202682",
+      "faultVector": "001",
+      "eventCount": 0,
+      "setupActionCount": 6,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "bb09dafb-7deb-4e72-af6d-b77cf937b454",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 2,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b7b1595dfbeef3af5a442bd42d281d784c9ac00acf41176cf926ada2379e02f9",
+        "v1": "60b632153bd4cff68c9ca49b9be9dc9181920c09742bcadf9c563ca38e6bf0fa",
+        "v2": "ca3d5884b0b943912482ff32af42e59c76ad07b9fc1a55a36d42f90089c3c927"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindQuiz-basic-control",
+      "cohort": "broader",
+      "pairId": "FindQuiz-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "dfa17026918524381855da806ec6136e0746dfd04df41a498748eead9110b85c",
+      "faultScenarioId": "1f201f0f16d9109ad00a53b71044993108732a220862cc13da1de6a0bf59e70b",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 14,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "42f94bdd-5c41-4053-8602-71847f5c15b2",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "cb3b8a8fd953e9c4790a8b5f549fa0f459a6e7d661b7bb8eb514257b184871b1",
+        "v1": "1bcde1804257442dc8467caa222d3edf6e6c8e4431e141aa37f9708807883962",
+        "v2": "d97796341db4e8110b871bfa0f406b21d54f771c79c901a3345c32eea10b7e59"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindQuiz-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "FindQuiz-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "dfa17026918524381855da806ec6136e0746dfd04df41a498748eead9110b85c",
+      "faultScenarioId": "93c7b81ce410fd27d6390756271a45f33e0754bff5341f8abd3f25387b45a2ad",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 14,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "ac999e7d-565c-4356-b36e-eeed3210f7b0",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b37ab096907773e7502a3920afcb5d6274029f8a35c6f850e673979b91d5d484",
+        "v1": "5c34d2f8ca37428ccadc28883644a06cbb5cb6340040800696caee794f744a0b",
+        "v2": "645b2039fa8dd7b34cc3bad5b86002690bf159f2be7666ac7d6f4d37c601327d"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateTopic-basic-control",
+      "cohort": "broader",
+      "pairId": "CreateTopic-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "b7e632e154c634a5d46fbf4a3229fe86858ba7580b7efb25a07066fa6b2216d8",
+      "faultScenarioId": "a0a971fc7538d376032a94377109a79c45135286889b1d8667d7b84578b876f3",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "340a6f6e-96e0-4b8b-b00b-f3949fbf37ac",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "d86537886560676c88e0af53955c40ad5b58e32219c841e4e5f458e9f96f5c2c",
+        "v1": "e2661bdeb4cafeca3b4c50146c79dbb58c32722e0c0ce5f0a0167c8ef07b0c6a",
+        "v2": "25a90e2f6f9b933a5827f42ecc926d36971f4b49e3c1b7363e245e204217bd3e"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateTopic-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CreateTopic-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "b7e632e154c634a5d46fbf4a3229fe86858ba7580b7efb25a07066fa6b2216d8",
+      "faultScenarioId": "59d6837bcafe2a14cc38c307a3d7cd79a77e9b724218d9004e8e18b662cdf994",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "f8035cb2-5cec-4981-bc6d-1fae89f6c4c7",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "6b5e284d8acbb1c33745f5a6c5ce50fccd4acd86f84621a1615d9a2e00eb6cd1",
+        "v1": "f9342a19ea87cf254703cccad6e339fbc134ca282eb758766694689e7af3ea70",
+        "v2": "720b6f029590d894a37e94ff534eac5d7fd7e406df78709779fcad81951fbdc8"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddParticipantAsync-basic-control",
+      "cohort": "broader",
+      "pairId": "AddParticipantAsync-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "1318b8117530af497133fe753383bc0e33e79c7f4ad4c99faaa0579ac44f1e6e",
+      "faultScenarioId": "78f17c1ff342d302ed802b835853d04012277972bfa7a165f0080e4f7e807471",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 17,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "040a4b2a-770c-4ed4-a7ee-a14d19ec108c",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "816d962a5fe749884e647f89c073b6a7b88b3c74925747a8de94bcb42ac49327",
+        "v1": "35404845553892093dc23fb4dbfb55a8accdbd9250f9eb4987029e8fed562505",
+        "v2": "bd88a77a28f6d2b78af0b4075cdd311a9206aa9befc6e278ddf2b66712504314"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddParticipantAsync-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "AddParticipantAsync-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "1318b8117530af497133fe753383bc0e33e79c7f4ad4c99faaa0579ac44f1e6e",
+      "faultScenarioId": "b590e053849fd06614306dde8e95ce23a04f1a906b0eb6a8d66494e9e4c3a160",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 17,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "d95878b2-2894-49c1-9e70-9cae6bbe74c3",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "cee5ab40e481f223632cc0710b4f3e00f05d4e604ceba2ec6e8b668a434b52c2",
+        "v1": "82671e3ef6e58db3d13785e9b9a8160dee6b54cb27d3c7f8db4837834c75d4c8",
+        "v2": "2f77bba0ebc45ff3a6ae53fb13102b72d9211f046c9362f29e32f795b235e98c"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddParticipant-basic-control",
+      "cohort": "broader",
+      "pairId": "AddParticipant-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "127988638c2428454b0054374391a734ba618e1b38ca6c96ab97c188fc870f39",
+      "faultScenarioId": "7d911566ee083c3fb6c201206a3f68daf71fe60b0fbe6c5ae51571f7cfd177d6",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "29b5174d-25c6-48ad-8afc-2f886925dbab",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 5,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "026a5bd18e14c991e4c13fc13c88fc49abe039a639a0d5622f54c5f04c14e2f3",
+        "v1": "eca3b469c8b9305d9983f1230fd7aaeed494f963f2d9bbec64532ae63687e078",
+        "v2": "f3090b700451add30a6546d81be37a4a3dd901e8b0eeb0777f99debf20651e8b"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "AddParticipant-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "AddParticipant-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "127988638c2428454b0054374391a734ba618e1b38ca6c96ab97c188fc870f39",
+      "faultScenarioId": "bb75837efbf37377526360904bf6511cf1802636473e0033796d91e5a7bad425",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "ccd002f0-b09e-4092-ad6c-ec81f9ad05ee",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 5,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "c32126ccfb5ca5de924289a6e72270e0210c3c747bdffd94cda9c7dd04cfe0f6",
+        "v1": "e3b607f7716ec50b6f8aa04b1073bbe4f50f3725c91920760fd341b609e7b54b",
+        "v2": "29b31d477a7bca7a27d334f4748ebe420cad4bcdc5edf43cbd05b4b67d6faac4"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CancelTournament-basic-control",
+      "cohort": "broader",
+      "pairId": "CancelTournament-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "ead13a70a28f479fae6b403175177b1b176952ac099de94c12cdbc1301a54544",
+      "faultScenarioId": "a6ff3863edae3c751a19b841877fb4587dda3075663790f85d4046b56d7a0da9",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 14,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "62e19afe-ba61-4fa4-8988-2a807251c68f",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "4302418c8299ae35ec3fde6e31a90319c89b633ec396472b7cc03f8eb3042821",
+        "v1": "167b934a5fada83000fa37339c40814ff478043238d8b32625282ade29b4f4a1",
+        "v2": "8d3dc4daab3643d3b96203fed52462b50a7c79713f341c27a96b59e3028ab8d3"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CancelTournament-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CancelTournament-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "ead13a70a28f479fae6b403175177b1b176952ac099de94c12cdbc1301a54544",
+      "faultScenarioId": "2c881a32d2a690612dbf8fda5d6181a895323040cf9ad419458516410963ffa2",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 14,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "afb6b60f-f3c8-4a40-8394-8c004d7c003a",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b78bc3df1f6a89db5f12c50cedb62ce8d03409585e4363c6382b58e3d639f83b",
+        "v1": "a9b5d16ac2f7517ff32f054126517edd586eef8b4488b05f06f30cc4efc4053a",
+        "v2": "8e8660823a951acecd8f804b09aec51632d273715f9568bbe08f140344fd3e47"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindTournament-basic-control",
+      "cohort": "broader",
+      "pairId": "FindTournament-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "26265b11a04f09e72f6d66eb71c8ccaff403411de8a33bb9287c359ef5003d04",
+      "faultScenarioId": "ffdbeca507e7a76e3948bd52d9e1e44c404b33b1652f751c27f2d5443d0d88a5",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "4f186396-eadb-4c46-a37d-344da17cc384",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 5,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b640543208d88699dfe60b98cc1436ac2a9359942528a1411ed5c1faebd03204",
+        "v1": "866a3b7186599c28047010d29d5510acc060dd6674184c3e6fdaa26b8c62951f",
+        "v2": "6e0754fd0bb0aa362511affdba544f30d1b6358f135dfd6d09a793833f56ba8b"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "FindTournament-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "FindTournament-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "26265b11a04f09e72f6d66eb71c8ccaff403411de8a33bb9287c359ef5003d04",
+      "faultScenarioId": "303b5422a1e7780133bf902f6f61ab0d8a6ab8591a0edcebd7ce7390bfd44ba8",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "7fa6e68c-b85a-4328-9a29-f244bdb62d7a",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 5,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "0624d172c3db9566e97e1835ab5382b38e306157e597b3ac8594da934ddec803",
+        "v1": "b16c1d58f4421363ddeb30b4758c8d68624e35b6ba4898bc085f8176397e4804",
+        "v2": "2b1e5298ef4b3b9f4f711da6ca53d0f5b84864af20d2dfefaffdb1892ccaaf09"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "LeaveTournament-basic-control",
+      "cohort": "broader",
+      "pairId": "LeaveTournament-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "faultScenarioId": "36ef464e050faec30cc6a755ad5bcbb72580d64a2eb1f99cbdca9804ffe93da3",
+      "faultVector": "00",
+      "eventCount": 0,
+      "setupActionCount": 18,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "ac97489b-742f-45bb-8792-f160b3346e01",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b73c0f00145a1d8f31457955749312a7c37758147c41af54eec83be7590ce883",
+        "v1": "e8c2f2c00bd05a68364797e70b846fd7252bc7718a3c741cd64897ef0a16db11",
+        "v2": "213a506a4fad9252e06d6265195906c8f9381a581e2e7f49c40192175c3c4a7d"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "LeaveTournament-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "LeaveTournament-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "faultScenarioId": "2abf854433d79727e2587213ff71af12f0dcf40221772733bc9d16641d5265d8",
+      "faultVector": "01",
+      "eventCount": 0,
+      "setupActionCount": 18,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "cfbb3be3-9d7e-4ca0-92e0-7f6281c62262",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "218a6e395c654ca7655ee774e9e48be2fb4782e884a868350ed8250e6080c83f",
+        "v1": "ee3eb491ed24956a4ba4b93f5658d6566078b57e9dc5385e56911abb70e3f56b",
+        "v2": "39486c98fe5c5d080c7fdf3b9cf0377ab76b57423c038437ee3b657739cea944"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveTournament-basic-control",
+      "cohort": "broader",
+      "pairId": "RemoveTournament-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "120aafb9cb9e79c0081d5d2c02f5dd6107097fed43cd6088fbef1bead6f10079",
+      "faultScenarioId": "adde0037f862d97d45ea89c87aba82f6d4c0ee55573853a9f04fe6e58973fbf3",
+      "faultVector": "000",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "22315747-b80c-4929-99ae-360019208169",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 3,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "4accaee5da1e45142a068f62554aa8b2547f4344430ffcd36b689f48c6894011",
+        "v1": "e1e9f16a35bc52eb8864e8a1cc7317a07d7686dfe69f1a56df69eca7773f6772",
+        "v2": "5eb05743995e8920de61ea762fa82594c24c13c2869953e9e5a9c5ba665dda99"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "RemoveTournament-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "RemoveTournament-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "120aafb9cb9e79c0081d5d2c02f5dd6107097fed43cd6088fbef1bead6f10079",
+      "faultScenarioId": "04a3bdf3c4a5c17a8892c8b1f264a1e5f16157a1c552ca69d5a05d718818d10e",
+      "faultVector": "001",
+      "eventCount": 0,
+      "setupActionCount": 12,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "0bc88a6d-337d-45f7-b379-f817a2bcbdb9",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 2,
+      "impactV2ObservedLowerBound": 2,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 4,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "DELETED_DEPENDENCY",
+              "reason": "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+              "affectedObject": {
+                "aggregateType": "SagaTournament",
+                "aggregateId": 10
+              },
+              "relatedObject": {
+                "aggregateType": "SagaQuiz",
+                "aggregateId": 9
+              },
+              "eventId": null,
+              "actionIds": [
+                "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77"
+              ],
+              "versions": [
+                18,
+                20
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaQuiz",
+                "aggregateId": 9
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77"
+              ],
+              "versions": [
+                18,
+                20
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "ad83e7dd1376456c92770adf3a3dd04fbc24da54db2ee87b86134f86f8d760c2",
+        "v1": "823c7b3b68066b9b6279e373738344cbc94bfa00ab4e7cf73db24c0fa9c5d359",
+        "v2": "5be545be0e3c21654462162b19cc7e140568835e14ed102b4bb87dfd9cf69b97"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "SolveQuizAsync-basic-control",
+      "cohort": "broader",
+      "pairId": "SolveQuizAsync-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "2a3e669416da7ac41ebcd99e811d503b548131dddb92efd18337e3a25b80e51f",
+      "faultScenarioId": "6152ebe48e631ebfa445df2aa92632026206e38f5466e8a6f405d9ebbfc2ba90",
+      "faultVector": "0000000",
+      "eventCount": 0,
+      "setupActionCount": 18,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "bfd05b5d-54a0-42b7-872d-9d44118999f1",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 7,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "aef843d1f6007a011a93a921a85d286980bf25d76874506e109494ef44135a98",
+        "v1": "83a8dc34cf816ed6468da355d12e9796987c8ba737782e184f255dcee863d0c1",
+        "v2": "3a99ac145949731e46a2c5d6bfe45c35ef5524c4bcf1c63df0d1bf7cf37dfbc5"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "SolveQuizAsync-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "SolveQuizAsync-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "2a3e669416da7ac41ebcd99e811d503b548131dddb92efd18337e3a25b80e51f",
+      "faultScenarioId": "c4a308e24782cd37f56033230402ac558f3a167c93be373b9125e53bc99961ac",
+      "faultVector": "0000001",
+      "eventCount": 0,
+      "setupActionCount": 18,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "9c3a8ce3-2b8d-44a4-b291-bb451bfadd8d",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaQuizAnswer",
+                "aggregateId": 14
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "b72638d124a1206db135bf3075eb6e3a4ad8daccad49fcee4831f326ca21d853",
+                "f5a49f48286fe480454ea5321da7099a5690a7b6adf792830c110e72d8aa1df3"
+              ],
+              "versions": [
+                28,
+                29
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "ea35e411d779f00208a8eb41cb0cf8c561a8a56c1df8af93c727f27a288cea76",
+        "v1": "8a3d5bcebd6c6614916c7f9eafde3f5e2af1caf07c9b87a87d5e42a6dfb48244",
+        "v2": "f7c78e3c1ba049487fa09dbf403ba2c4191998690a4ed0e05d353817c9209ca1"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "SolveQuiz-basic-control",
+      "cohort": "broader",
+      "pairId": "SolveQuiz-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "ee3ffa284f5f02a5a9c45ed0ad4a6ab3aea84ff74e33808f88c086d2d7c2e31c",
+      "faultScenarioId": "b903b7d365f2e4f03b4a4628940f9e4960fbb05d7b346120e065a2d7d7493a50",
+      "faultVector": "0000000",
+      "eventCount": 0,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "8ca98c95-23fc-4c96-a0d5-dffb0c2ba5b9",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 7,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "a300d28524e179bee7bbcb1c814d05e44f1dbe2fc6c03dea2f157b41e5db9f0c",
+        "v1": "cf8512677526a3cad66a85ded51d79605179f326f4c974cbdfd68f87d91ea318",
+        "v2": "c15a33a90aa1fabfa0db14181ea8d236723fa66dd98ab641803687ab91bb1ef4"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "SolveQuiz-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "SolveQuiz-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "ee3ffa284f5f02a5a9c45ed0ad4a6ab3aea84ff74e33808f88c086d2d7c2e31c",
+      "faultScenarioId": "07313acaa741f5e5254e59b65d29e11a670fff5636f9c8863741fde36db8df68",
+      "faultVector": "0000001",
+      "eventCount": 0,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "52ee17d4-2cd3-4682-8e39-876d84bcb6dc",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 1,
+      "impactV2ObservedLowerBound": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 1,
+          "findings": [
+            {
+              "category": "FAILED_OPERATION_RESIDUAL",
+              "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+              "affectedObject": {
+                "aggregateType": "SagaQuizAnswer",
+                "aggregateId": 13
+              },
+              "relatedObject": null,
+              "eventId": null,
+              "actionIds": [
+                "b72638d124a1206db135bf3075eb6e3a4ad8daccad49fcee4831f326ca21d853",
+                "f5a49f48286fe480454ea5321da7099a5690a7b6adf792830c110e72d8aa1df3"
+              ],
+              "versions": [
+                25,
+                26
+              ]
+            }
+          ],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "9cdadbeefff32c2576558f5752886d7c44cde49ac7f267575ec6e481155de8ea",
+        "v1": "b790c2b0ef54d1b8ebed6feddc53c681c457ac7089715ca08b3f5f5ce16e52b0",
+        "v2": "1f930b57c23a1b88f6dd2233aa5ca07452f0ba8b519824cb9f2446e3b8882050"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "ActivateUser-basic-control",
+      "cohort": "broader",
+      "pairId": "ActivateUser-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "faultScenarioId": "0a72a2537f19f2f4fb7110c3cd304a109c2281b7dabf219cc144061461a7132c",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "1a2d3314-fb96-4de5-b53d-735dd46e3e23",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "f7ae475b37806b685f4fa08f649a13c944f5f1d35db928c07ee9ab5560964700",
+        "v1": "418d832de66d7fe20af5000975d7f024929ef237a88f35f1e6add23886521ef1",
+        "v2": "9df56e26a823ad02db5263bd6d7717f8777843ad8e939e9129abbaa18438cbd6"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "ActivateUser-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "ActivateUser-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "faultScenarioId": "68604c96502e2414904c34d13d4be7e68ac0bf57a37d0040fa3024a10aebeea9",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "5ccbc5b1-e384-43e9-8b5a-156f29e46187",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "ea811d03b58de8c9cc122157fcbebf39485f1ccc40c85ec228143d3dd12ac2d0",
+        "v1": "5ae264e5d551db6873bf2e5b8a2db757b0a3d9334039593a20f130a80c995b2d",
+        "v2": "252c90a14aa3f78500343a57b3f9f6220ee2e103b0d0c74ab680e11abd25e867"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateUser-basic-control",
+      "cohort": "broader",
+      "pairId": "CreateUser-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "5ec00f8b5607878d6eb3a304e36cc3f1826a56db8f9e1901da793acc6843a62c",
+      "faultScenarioId": "3235ecadaa4426e2ccfebbc7f9486bb5cac21e1d7546adf74c84b2e2537c5c43",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "e110c83e-c454-454b-bc8c-8ec7c8bc36fb",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "2e60a8c161f677d4b9c883c29de3f5718763919fd7cbd603aff36b94d8551aa4",
+        "v1": "9ca45160b637c96c91c608aa108f0618c136597421e679bd0dfdc7418ec53787",
+        "v2": "9a18c4e6412f5044eeb39f82fc96da0a3b627dd1051ec6bcf26c894e55a9d9df"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "CreateUser-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "CreateUser-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "5ec00f8b5607878d6eb3a304e36cc3f1826a56db8f9e1901da793acc6843a62c",
+      "faultScenarioId": "efae3bad36ffd0180608f71458a8f6352f8cb98a722287b5173f4c243128a4f9",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 2,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "0b11d446-4da1-4a96-863f-bcd23396716f",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "232dc646aaea22c64f035e502af428b1af356a629f0cc42f7e3964093afd4779",
+        "v1": "295e5dfb97c332b2d5a0260ddad1158d7b922ae8320ec787349ecb2a61d9cd5a",
+        "v2": "34e19ba9d86ccf4ebb40aa76b7c77b0034264d851842f313dbaecb936ca62101"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "DeactivateUser-basic-control",
+      "cohort": "broader",
+      "pairId": "DeactivateUser-basic",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "faultScenarioId": "d7ea583be89977fffd4a281e1556eaa4dd0beef919b7834a27d2bd170b58124c",
+      "faultVector": "0",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "deb17082-d200-4899-a192-d8be9551908d",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "b1ce436e6f736ffd194ac40ad6932b8cfc08082b20f20f419ff7effb786c2295",
+        "v1": "b18c84ee4d683e98fcd15c6921d2031d660dccf0bfd5378a013a4095f1236371",
+        "v2": "aa225e01eb65f567e63231330cf89947019f539d9d62c0f0eea359cb6f581fe9"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "DeactivateUser-basic-late-fault",
+      "cohort": "broader",
+      "pairId": "DeactivateUser-basic",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas",
+      "shape": "basic",
+      "workloadId": "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "faultScenarioId": "3e03d35c5c229272dbe72848f35be904a06e42a9177dba02b37fd2c694532b2f",
+      "faultVector": "1",
+      "eventCount": 0,
+      "setupActionCount": 4,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "12eabdcf-735e-4c10-932b-d3799e14b21f",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "988441539cab0c84b9dc7bd928f684897e1154e84ad65b5527cdf2fce09db79b",
+        "v1": "3e18d969a601ba560027a259052a848f4fd30a1efd971f194e6b380ac96f1708",
+        "v2": "24836ca3fb5673a88f5212b2c710d421ff8435dffdb64913593299a55620367e"
+      },
+      "selectedRun": "run-01"
+    },
+    {
+      "caseId": "UpdateStudentName-events-control",
+      "cohort": "broader",
+      "pairId": "UpdateStudentName-events",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "4beddc06499429db7ab95f6c1c3f16f968489b2ca97141965ac1da5aa667c9da",
+      "faultScenarioId": "e4adf1b55ee9370cf0afb648aac2a20a9960227c849f9e6cc2af691e684ef9af",
+      "faultVector": "0",
+      "eventCount": 1,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "f5337022-ab2a-47bf-9c00-4bd01e079793",
+      "executionTerminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 1,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "a5649f10ab62acb59e0c73ea24be5dc19f05c6f1b2f50d2634444726ba087c27",
+        "v1": "f0338faa755eca9ea71d7ff9b81772f4c8ce20b7b8b198cf0d62b6aee1f7c74a",
+        "v2": "a6c101d69eab33318040d5721948f8704a62f012c6ade3f6dd453df90b5f3c32"
+      },
+      "selectedRun": "run-03"
+    },
+    {
+      "caseId": "UpdateStudentName-events-late-fault",
+      "cohort": "broader",
+      "pairId": "UpdateStudentName-events",
+      "role": "late-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+      "shape": "events",
+      "workloadId": "4beddc06499429db7ab95f6c1c3f16f968489b2ca97141965ac1da5aa667c9da",
+      "faultScenarioId": "f08728e387e09af8e71c48774852d0830f73069967451effb10f499185a8a282",
+      "faultVector": "1",
+      "eventCount": 1,
+      "setupActionCount": 15,
+      "recoverySchedulesAvailable": 1,
+      "reportAvailability": "PRESENT",
+      "executionAttemptId": "c5666610-a523-4b5c-8471-024abd0a6541",
+      "executionTerminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "sourceSetupStatus": "SUCCEEDED",
+      "blockers": [],
+      "impactV1Status": "EVALUATED",
+      "impactV1Score": 0,
+      "impactV2Status": "COMPLETE",
+      "impactV2Reason": null,
+      "impactV2CompleteScore": 0,
+      "impactV2ObservedLowerBound": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": {
+          "status": "COMPLETE",
+          "candidates": 6,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "status": "COMPLETE",
+          "candidates": 0,
+          "positiveObjects": 0,
+          "findings": [],
+          "unknownReasons": []
+        }
+      },
+      "coverageGaps": [],
+      "actionFailures": [],
+      "artifactSha256": {
+        "execution": "a60c038decea5b73a14582cc907db078d9481009067d5e84d23a88291efa22e5",
+        "v1": "9d30b36424ebc5227644bc7da8c3462568d75ac5c2498349a5234838e370efb3",
+        "v2": "005591ed28080af54094c955181b6d0eac7000cec230c33d5ffc07b171e96144"
+      },
+      "selectedRun": "run-03"
+    }
+  ]
+}

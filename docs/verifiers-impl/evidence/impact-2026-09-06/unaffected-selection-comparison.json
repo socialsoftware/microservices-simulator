@@ -1,0 +1,300 @@
+{
+  "unchangedExecutableBroaderRows": 58,
+  "unchangedBenchmarkRows": 29,
+  "opaqueIdChangesOnly": [
+    "SolveQuiz-basic-control",
+    "SolveQuiz-basic-late-fault"
+  ],
+  "proof": [
+    {
+      "caseId": "StartQuiz-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "StartQuiz-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddStudent-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddStudent-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AnonymizeStudent-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AnonymizeStudent-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AnonymizeStudent-events-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AnonymizeStudent-events-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateCourseExecution-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateCourseExecution-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutionById-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutionById-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutionsByUser-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutionsByUser-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutions-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "GetCourseExecutions-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveCourseExecution-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveCourseExecution-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveCourseExecution-events-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveCourseExecution-events-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-events-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveStudentFromCourseExecution-events-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "UpdateStudentName-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "UpdateStudentName-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateQuestion-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateQuestion-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindQuestionByAggregateId-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindQuestionByAggregateId-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateQuiz-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateQuiz-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindQuiz-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindQuiz-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateTopic-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateTopic-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddParticipantAsync-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddParticipantAsync-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddParticipant-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "AddParticipant-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CancelTournament-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CancelTournament-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindTournament-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "FindTournament-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "LeaveTournament-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "LeaveTournament-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveTournament-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "RemoveTournament-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "SolveQuizAsync-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "SolveQuizAsync-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "SolveQuiz-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": true
+    },
+    {
+      "caseId": "SolveQuiz-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": true
+    },
+    {
+      "caseId": "ActivateUser-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "ActivateUser-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateUser-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "CreateUser-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "DeactivateUser-basic-control",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    },
+    {
+      "caseId": "DeactivateUser-basic-late-fault",
+      "sameExecutableRecipesAndActions": true,
+      "opaqueIdsChanged": false
+    }
+  ]
+}

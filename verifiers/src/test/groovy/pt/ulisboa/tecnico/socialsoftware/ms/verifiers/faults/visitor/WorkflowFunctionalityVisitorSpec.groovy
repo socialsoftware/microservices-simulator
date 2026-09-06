@@ -298,6 +298,157 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
         }
     }
 
+    def "exact dispatched SagaCommand semantic locks add status writes while read-only forms stay reads"() {
+        given:
+        def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
+        def steps = saga.steps.collectEntries { [(it.name): it] }
+
+        expect: 'an arbitrary semantic state and NOT_IN_SAGA both persist state on the payload aggregate and key'
+        ['semanticLockReadStep', 'semanticLockClearingStep'].each { stepName ->
+            def dispatches = steps[stepName].dispatches.findAll { it.phase() == DispatchPhase.FORWARD }
+            assert dispatches*.accessPolicy() == [AccessPolicy.READ, AccessPolicy.WRITE]
+            assert dispatches*.aggregateName().toSet() == ['Item'] as Set
+            assert dispatches*.aggregateKeyText().toSet() == ['itemDto.getAggregateId()'] as Set
+            assert dispatches.last().commandTypeFqn() ==
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand'
+            assert steps[stepName].analysisDiagnostics.isEmpty()
+        }
+
+        and: 'forbidden-state verification retains the payload read without inventing a write'
+        steps.forbiddenStateReadStep.dispatches*.accessPolicy() == [AccessPolicy.READ]
+        steps.forbiddenStateReadStep.analysisDiagnostics.isEmpty()
+
+        and: 'a setter after the send does not affect the earlier occurrence'
+        steps.postDispatchLockStep.dispatches*.accessPolicy() == [AccessPolicy.READ]
+        steps.postDispatchLockStep.analysisDiagnostics.isEmpty()
+
+        and: 'configuration hidden behind a helper cannot become confidently effect-free'
+        steps.uncertainWrapperConfigurationStep.dispatches*.accessPolicy() == [AccessPolicy.READ]
+        !steps.uncertainWrapperConfigurationStep.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+        steps.uncertainWrapperConfigurationStep.analysisDiagnostics*.code() == ['UNRESOLVED_COMMAND_DISPATCH']
+    }
+
+    def "semantic lock on a different undispatched wrapper does not affect the sent occurrence"() {
+        given:
+        def saga = analyzeSyntheticSaga('ExactWrapperOccurrenceSaga', '''
+            private CommandGateway gateway;
+
+            public ExactWrapperOccurrenceSaga(SagaUnitOfWorkService service,
+                    CommandGateway gateway, Integer itemAggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep step = new SagaStep("exactWrapperStep", () -> {
+                    GetItemCommand lockedPayload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand lockedWrapper = new SagaCommand(lockedPayload);
+                    lockedWrapper.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    GetItemCommand sentPayload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand sentWrapper = new SagaCommand(sentPayload);
+                    gateway.send(sentWrapper);
+                });
+            }
+        ''')
+        def step = saga.steps.find { it.name == 'exactWrapperStep' }
+
+        expect:
+        step.dispatches*.accessPolicy() == [AccessPolicy.READ, AccessPolicy.READ]
+        step.dispatches.every { it.commandTypeFqn().endsWith('.GetItemCommand') }
+        step.analysisDiagnostics.isEmpty()
+    }
+
+    def "branch and alias wrapper configuration remain conservative"() {
+        given:
+        def saga = analyzeSyntheticSaga('UncertainWrapperShapeSaga', '''
+            private CommandGateway gateway;
+
+            public UncertainWrapperShapeSaga(SagaUnitOfWorkService service,
+                    CommandGateway gateway, Integer itemAggregateId, boolean clear,
+                    SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep branchStep = new SagaStep("branchStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    wrapper.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    if (clear) {
+                        wrapper.setSemanticLock(null);
+                    }
+                    gateway.send(wrapper);
+                });
+                SagaStep aliasStep = new SagaStep("aliasStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    SagaCommand alias = wrapper;
+                    alias.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    gateway.send(wrapper);
+                });
+                SagaStep assignedAliasStep = new SagaStep("assignedAliasStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    SagaCommand alias;
+                    alias = wrapper;
+                    alias.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    gateway.send(wrapper);
+                });
+                SagaStep loopReuseStep = new SagaStep("loopReuseStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload);
+                    for (int index = 0; index < 2; index++) {
+                        gateway.send(wrapper);
+                        wrapper.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    }
+                });
+            }
+        ''')
+
+        expect:
+        ['branchStep', 'aliasStep', 'assignedAliasStep', 'loopReuseStep'].each { stepName ->
+            def step = saga.steps.find { it.name == stepName }
+            assert step.dispatches*.accessPolicy() == [AccessPolicy.READ]
+            assert !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+            assert step.analysisDiagnostics*.code() == ['UNRESOLVED_SAGA_COMMAND_CONFIGURATION']
+        }
+    }
+
+    def "SagaCommand subtype and anonymous constructor configuration remain conservative"() {
+        given:
+        def saga = analyzeSyntheticSaga('ConstructedWrapperConfigurationSaga', '''
+            private CommandGateway gateway;
+
+            private static class CustomSagaCommand extends SagaCommand {
+                CustomSagaCommand(Command payload) {
+                    super(payload);
+                    setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                }
+            }
+
+            public ConstructedWrapperConfigurationSaga(SagaUnitOfWorkService service,
+                    CommandGateway gateway, Integer itemAggregateId, SagaUnitOfWork unitOfWork) {
+                this.service = service;
+                this.gateway = gateway;
+                SagaStep subtypeStep = new SagaStep("subtypeStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    CustomSagaCommand wrapper = new CustomSagaCommand(payload);
+                    gateway.send(wrapper);
+                });
+                SagaStep anonymousStep = new SagaStep("anonymousStep", () -> {
+                    GetItemCommand payload = new GetItemCommand(unitOfWork, "Item", itemAggregateId);
+                    SagaCommand wrapper = new SagaCommand(payload) {{
+                        setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+                    }};
+                    gateway.send(wrapper);
+                });
+            }
+        ''')
+
+        expect:
+        ['subtypeStep', 'anonymousStep'].each { stepName ->
+            def step = saga.steps.find { it.name == stepName }
+            assert step.dispatches*.accessPolicy() == [AccessPolicy.READ]
+            assert !step.isDispatchAnalysisComplete(DispatchPhase.FORWARD)
+            assert step.analysisDiagnostics*.code() == ['UNRESOLVED_SAGA_COMMAND_CONFIGURATION']
+        }
+    }
+
     def "method-reference forward analysis remains structurally unresolved"() {
         given:
         def saga = state.sagas.find { it.fqn.contains('CreateItemCompensationFunctionalitySagas') }
@@ -667,7 +818,7 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
 
         expect:
         saga != null
-        saga.constructorSignatures.size() == 3
+        saga.constructorSignatures.size() == 4
         saga.constructorSignatures*.parameterTypeFqns == [
                 [
                         'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
@@ -679,6 +830,14 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
                         'java.util.Set<java.lang.Integer>',
                         'java.lang.Integer',
                         'java.lang.Integer'
+                ],
+                [
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
+                        'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork',
+                        'java.util.List<com.example.dummyapp.item.aggregate.ItemDto>',
+                        'java.lang.Integer',
+                        'java.lang.Integer',
+                        'boolean'
                 ],
                 [
                         'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService',
@@ -715,6 +874,7 @@ class WorkflowFunctionalityVisitorSpec extends VisitorTestSupport {
             import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
             import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
             import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+            import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
             import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;

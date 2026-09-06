@@ -1,0 +1,100 @@
+{
+  "validation": "PASS",
+  "attempts": 29,
+  "statusCounts": {
+    "COMPLETE": 29
+  },
+  "scores": {
+    "2": 15,
+    "0": 14
+  },
+  "implicitTournamentRollbackAttempts": 23,
+  "sameExecutionOutcomesAndRollbacksAsPrevious": true,
+  "priorCompleteScoresUnchanged": true,
+  "completedFormerPartials": [
+    {
+      "scenarioId": "fd1a9acafd2f42b6a4467a6dfbe35f08ca2ed17344ac3ccd1de9ac549994254b",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "10189e529ce20ee3ede9b6168047b44bb732fc05abef304c28e4ff64fea6439d",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "646f5d222b1163be2c960a0a62db92b6dd38177c2033a0e33cacd8ed0821c89a",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "cf0454f78cd21504cda49ddbe02af6e53e0d74a003660adb7636c5f2774c1b26",
+      "vector": "01000",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 0,
+      "newScore": 0
+    },
+    {
+      "scenarioId": "aa8dd36929c7660168adf7cbf36b62ad59cd03e818bc2a96b107b67c167b3b58",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "870b149ec74e1d0170045f1c0629af3e011eff9511e5b5d233d0a728a70aeaa0",
+      "vector": "01000",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 0,
+      "newScore": 0
+    },
+    {
+      "scenarioId": "7f32e030e2c578e09ec3ebc6c55d704bfdbcd917f8eddc782550e300ba4aba9c",
+      "vector": "01000",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 0,
+      "newScore": 0
+    },
+    {
+      "scenarioId": "82e16465a3ab633698026d814a17c464d29f6e466bae32f00b6be4c021856745",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "59ef14fad2da70ef40a407f18bc78d21e8b114074b5995323f654246799b43b1",
+      "vector": "00100",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 1,
+      "newScore": 2
+    },
+    {
+      "scenarioId": "8e8ba414a239b47a493598e8db79fe59791711d6fd7d8e80fde783827e4be359",
+      "vector": "10000",
+      "oldStatus": "PARTIAL",
+      "oldLowerBound": 0,
+      "newScore": 0
+    }
+  ],
+  "countsByVector": {
+    "00101": 6,
+    "01010": 2,
+    "00000": 1,
+    "00110": 3,
+    "00100": 6,
+    "10001": 1,
+    "01001": 3,
+    "01000": 3,
+    "00001": 1,
+    "00010": 1,
+    "10000": 1,
+    "10010": 1
+  }
+}

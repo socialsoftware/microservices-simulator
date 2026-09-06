@@ -1,0 +1,12 @@
+--- a/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateTournamentFunctionalitySagas.java
++++ b/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/UpdateTournamentFunctionalitySagas.java
+@@ -71,8 +71,7 @@
+         }, new ArrayList<>(Arrays.asList(getTopicsStep)));
+ 
+         updateTournamentStep.registerCompensation(() -> {
+-            UpdateTournamentCommand updateTournamentCommand = new UpdateTournamentCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), originalTournamentDto, originalTournamentDto.getTopics());
+-            commandGateway.send(updateTournamentCommand);
++            // Controlled research mutant: preserve the checkpoint but suppress its restoring write.
+         }, unitOfWork);
+ 
+         SagaStep findQuestionsByTopicIds = new SagaStep("findQuestionsByTopicIds", () -> {

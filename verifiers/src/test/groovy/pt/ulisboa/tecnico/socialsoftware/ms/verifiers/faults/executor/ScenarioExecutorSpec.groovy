@@ -17,6 +17,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.TraceManager
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEvent
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNoopRecorder
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserver
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
@@ -64,6 +68,7 @@ class ScenarioExecutorSpec extends Specification {
 
     def cleanup() {
         FaultVectorProviderHolder.clear()
+        System.clearProperty(ImpactV2EvidenceCollector.ENABLED_PROPERTY)
     }
 
     def 'all-zero persisted scenario replays every action and commits each participant at its own final forward action'() {
@@ -108,6 +113,16 @@ class ScenarioExecutorSpec extends Specification {
         json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v5'
         json.path('plannedActions').size() == 4
         json.path('actualActions').size() == 4
+        def impactV2Output = output.resolveSibling('execution-report.impact-v2.json')
+        Files.isRegularFile(impactV2Output)
+        def impactV2 = MAPPER.readTree(impactV2Output.toFile())
+        impactV2.path('schemaVersion').asText() == 'microservices-simulator.scenario-impact-v2-assessment.v1'
+        impactV2.path('executionAttemptId').asText() == report.executionAttemptId()
+        impactV2.path('collectionStatus').asText() == 'UNAVAILABLE'
+        impactV2.path('collectionReason').asText() == 'OBSERVER_UNAVAILABLE'
+        impactV2.path('assessmentStatus').asText() == 'UNAVAILABLE'
+        impactV2.path('completeScore').isNull()
+        impactV2.path('observedAffectedObjectCount').isNull()
     }
 
     def 'ImpactV1 sidecar counts invariant signals in capture order and isolates sequential attempts'() {
@@ -161,6 +176,105 @@ class ScenarioExecutorSpec extends Specification {
         secondImpact.path('impactScore').asInt() == 0
         secondImpact.path('findings').isEmpty()
         packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'ordinary execution writes observed ImpactV2 evidence after setup'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'observed.json')
+        def observer = mock(PersistentStateObserver)
+        def identity = new ImpactEvidence.AggregateIdentity('Fixture', 4)
+        def baseline = new ImpactEvidence.AggregateSnapshot(identity, 1L, 'ACTIVE', 'Fixture', [name: 'before'], [])
+        def finalState = new ImpactEvidence.AggregateSnapshot(identity, 2L, 'ACTIVE', 'Fixture', [name: 'after'], [])
+        when(observer.snapshotAll()).thenReturn(
+                new ImpactEvidence.SnapshotBatch([baseline], []),
+                new ImpactEvidence.SnapshotBatch([finalState], []))
+        def service = new TrackingSagaUnitOfWorkService()
+        def runtime = new TrackingRuntimeContext(service, [(PersistentStateObserver): observer])
+
+        when:
+        def execution = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId()), runtime)
+        def evidence = MAPPER.readTree(output.resolveSibling('observed.impact-v2.json').toFile())
+
+        then:
+        execution.terminalStatus() == 'SUCCESS'
+        evidence.path('schemaVersion').asText() == 'microservices-simulator.scenario-impact-v2-assessment.v1'
+        evidence.path('assessmentStatus').asText() == 'COMPLETE'
+        evidence.path('collectionStatus').asText() == 'OBSERVED'
+        evidence.path('baseline').get(0).path('applicationData').path('name').asText() == 'before'
+        evidence.path('finalState').get(0).path('applicationData').path('name').asText() == 'after'
+        evidence.path('completeScore').asInt() == 0
+        evidence.path('observedAffectedObjectCount').asInt() == 0
+        evidence.path('categoryResults')*.path('coverageStatus')*.asText().unique() == ['COMPLETE']
+    }
+
+    def 'ImpactV2 collection opt-out does not access persistent state'() {
+        given:
+        System.setProperty(ImpactV2EvidenceCollector.ENABLED_PROPERTY, 'false')
+        def runtime = Mock(ScenarioRuntimeContext)
+        def collector = new ImpactV2EvidenceCollector('attempt', 'workload', 'scenario')
+
+        when:
+        collector.start(runtime)
+
+        then:
+        !collector.started()
+        0 * runtime._
+    }
+
+    def 'ImpactV2 collector retains a callback failure as a coverage gap'() {
+        given:
+        def collector = new ImpactV2EvidenceCollector('attempt', 'workload', 'scenario')
+        def failingObserver = Stub(ImpactEvidenceObserver) {
+            isEnabled() >> true
+            committedWrite(_, _) >> { throw new IllegalStateException('observer failed') }
+        }
+        def scope = ImpactEvidenceObserverHolder.install(failingObserver)
+
+        when:
+        try {
+            ImpactEvidenceObserverHolder.committedWrite(null, null)
+        } finally {
+            scope.close()
+        }
+        collector.recordObserverFailures(scope)
+        def execution = mock(ScenarioExecutionReport)
+        when(execution.terminalStatus()).thenReturn('SUCCESS')
+        when(execution.scheduleConformance()).thenReturn('EXACT')
+        when(execution.actualActions()).thenReturn([])
+        when(execution.participants()).thenReturn([])
+        when(execution.lifecycleEvents()).thenReturn([])
+        def evidence = collector.report(execution)
+
+        then:
+        evidence.collectionStatus() == 'PARTIAL'
+        evidence.coverageGaps()*.reason() == ['OBSERVER_CALLBACK_FAILED']
+    }
+
+    def 'ImpactV2 collector marks mismatched writer attribution partial'() {
+        given:
+        def collector = new ImpactV2EvidenceCollector('attempt', 'workload', 'scenario')
+        def snapshot = new ImpactEvidence.AggregateSnapshot(
+                new ImpactEvidence.AggregateIdentity('Fixture', 1), 1L, 'ACTIVE', 'Fixture', [:], [])
+        def writer = new ImpactEvidence.Writer(
+                'SAGA', 'prior-attempt', 'other-workload', 'participant', 'action', 'FORWARD', null, null, null)
+        def execution = mock(ScenarioExecutionReport)
+        when(execution.terminalStatus()).thenReturn('SUCCESS')
+        when(execution.scheduleConformance()).thenReturn('EXACT')
+        when(execution.actualActions()).thenReturn([])
+        when(execution.participants()).thenReturn([])
+        when(execution.lifecycleEvents()).thenReturn([])
+
+        when:
+        collector.committedWrite(snapshot, writer)
+        def evidence = collector.report(execution)
+
+        then:
+        evidence.collectionStatus() == 'PARTIAL'
+        evidence.coverageGaps()*.reason() == ['WRITER_IDENTITY_UNAVAILABLE']
     }
 
     def 'ImpactV1 collector rejects missing mismatched and delayed prior-attempt signals'() {
@@ -242,6 +356,89 @@ class ScenarioExecutorSpec extends Specification {
         impact.path('invariantViolationCount').asInt() == 0
         impact.path('impactScore').asInt() == 0
         impact.path('findings').isEmpty()
+    }
+
+    def 'omitted recovery is incomplete even when every planned action finished'() {
+        given:
+        def shape = [['solo', 'first'], ['solo', 'second'], ['solo', 'third']]
+        def workload = workload(['solo'], shape, null, null, 'solo:first')
+        def scenario = scenarios(workload, vector)[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'incomplete.json')
+        def service = new TrackingSagaUnitOfWorkService()
+        FixtureWorkflow.recordImplicitState('solo', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
+        def impact = MAPPER.readTree(output.resolveSibling('incomplete.impact-v2.json').toFile())
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.blockers()*.reason() == ['PENDING_RUNTIME_RECOVERY']
+        report.blockers()[0].message().contains('first')
+        report.participants()*.finalState() == ['ABORTED']
+        report.lifecycleEvents()*.type() == ['ABORTED', 'RECOVERY_INCOMPLETE']
+        FixtureWorkflow.COMPENSATIONS == expectedCompensations
+        service.implicitRollbacks.empty
+        service.recoveryCheckpointsForExecutor(FixtureWorkflow.UNIT_OF_WORKS['solo'])*.sourceStepName() == ['first']
+        impact.path('assessmentStatus').asText() == 'INVALID'
+        impact.path('completeScore').isNull()
+        impact.path('observedAffectedObjectCount').isNull()
+
+        where:
+        vector | expectedCompensations
+        '010'  | []
+        '001'  | ['solo:second']
+    }
+
+    def 'complete recovery plan clears explicit and implicit work before declaring compensated'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
+        def scenario = scenarios(workload, '01')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        FixtureWorkflow.recordImplicitState('solo', 'first')
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, null, scenario.deterministicId()), runtime(service))
+
+        then:
+        report.terminalStatus() == 'COMPENSATED'
+        report.scheduleConformance() == 'EXACT'
+        report.blockers().empty
+        report.lifecycleEvents()*.type() == ['ABORTED', 'COMPENSATED']
+        FixtureWorkflow.COMPENSATIONS == ['solo:first']
+        service.implicitRollbacks == ['p1:first']
+        service.recoveryCheckpointsForExecutor(FixtureWorkflow.UNIT_OF_WORKS['solo']).empty
+        report.actualActions().last().recoverySubOutcomes()*.kind() == ['EXPLICIT_COMPENSATION', 'IMPLICIT_SAGA_ROLLBACK']
+        report.actualActions().last().recoverySubOutcomes()*.status() == ['SUCCEEDED', 'SUCCEEDED']
+    }
+
+    def 'recovery completion discovery failure stops execution without scoring'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '1')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'discovery-failed.json')
+        def service = new TrackingSagaUnitOfWorkService(failRecoveryDiscovery: true)
+
+        when:
+        def report = new ScenarioExecutor().execute(
+                options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
+        def impact = MAPPER.readTree(output.resolveSibling('discovery-failed.impact-v2.json').toFile())
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.blockers()*.reason() == ['RECOVERY_CHECKPOINT_DISCOVERY_FAILED']
+        report.lifecycleEvents()*.type() == ['ABORTED', 'RECOVERY_INCOMPLETE']
+        FixtureWorkflow.BODIES.empty
+        FixtureWorkflow.COMPENSATIONS.empty
+        impact.path('assessmentStatus').asText() == 'INVALID'
+        impact.path('completeScore').isNull()
     }
 
     def 'setup failure is not evaluated by ImpactV1'() {
@@ -511,6 +708,124 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWorkflow.constructorCalls == 2
         FixtureWorkflow.BODIES.isEmpty()
         packageChecksums(packageFixture.directory) == before
+    }
+
+    def 'nested quiz id binds the retained child result and null or missing getters stop before startup'() {
+        given:
+        def base = sourceSetupWorkload()
+        def bindings = base.setupPlan().participantBindings().collect { binding ->
+            new SetupParticipantBinding(binding.inputVariantId(), binding.argumentIndex(),
+                    binding.expectedTypeFqn(), SetupValueRecipe.actionProperty(
+                    mode == 'MISSING_GETTER' ? 'setup-action-1' : 'setup-action-12',
+                    'quiz.aggregateId', Integer.name), [])
+        }
+        def workload = reidentifyWorkload(base, base.acceptedInputs(), null,
+                new SetupPlan(SetupPlan.SCHEMA_VERSION, base.setupPlan().actions(), bindings, []))
+        def scenario = scenarios(workload, '00')[0]
+        def fixture = writePackage(workload, [scenario])
+        def checksums = packageChecksums(fixture.directory)
+        def service = new TrackingSagaUnitOfWorkService()
+        def dispatcher = new FixtureSourceSetupDispatcher(1000, service.fixtureEventService, mode)
+        def runtime = new TrackingRuntimeContext(service, [:], [], [dispatcher])
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().preflightIsolatedAttempt(
+                    new ScenarioSetupPreflightOptions(fixture.manifest, null), runtime,
+                    [fixture.workloads[0].deterministicId()] as Set<String>)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        def result = report.workloads()[0]
+        if (mode == 'NORMAL') {
+            assert result.status() == 'SETUP_READY'
+            assert result.sourceSetup().participantBindings()*.propertyName().unique() == ['quiz.aggregateId']
+            assert result.sourceSetup().participantBindings()*.resolvedValue().unique() == ['11007']
+            assert FixtureWorkflow.CONSTRUCTOR_PARTICIPANTS == [11007, 11007]
+            assert dispatcher.tournamentCreations == 1
+        } else {
+            assert result.status() != 'SETUP_READY'
+            assert result.sourceSetup().failureReason() == expectedReason
+            assert FixtureWorkflow.constructorCalls == 0
+            if (mode == 'MISSING_GETTER') assert dispatcher.invocationCount == 0
+        }
+        FixtureWorkflow.BODIES.isEmpty()
+        packageChecksums(fixture.directory) == checksums
+
+        where:
+        mode             | expectedReason
+        'NORMAL'         | null
+        'NULL_QUIZ'      | 'SETUP_NULL_RESULT_PROPERTY'
+        'MISSING_GETTER' | 'UNSUPPORTED_SETUP_RESULT_PROPERTY'
+    }
+
+    def 'nested getter signatures are checked before any dispatch even inside an untyped collection'() {
+        given:
+        def base = sourceSetupWorkload()
+        String create = "fixture.Closed#create():${rootType.name}".toString()
+        String consume = 'fixture.Closed#consume(java.util.List):void'
+        def nested = SetupValueRecipe.actionProperty('setup-action-1', 'quiz.aggregateId', null)
+        def list = new SetupValueRecipe(SetupValueKind.LIST, 'java.util.List', null, null,
+                null, [], [], [nested], null, null, null, [])
+        def actions = [setupAction(1, create, [], rootType.name),
+                       setupAction(2, consume, [list], 'void')]
+        def plan = new SetupPlan(SetupPlan.SCHEMA_VERSION, actions, [], [])
+        def workload = reidentifyWorkload(base, base.acceptedInputs(), null, plan)
+        int calls = 0
+        def methods = [(create): new ScenarioSetupActionDispatcher.SetupMethod(create, rootType.name, false,
+                               { args -> calls++; null } as ScenarioSetupActionDispatcher.Invocation),
+                       (consume): new ScenarioSetupActionDispatcher.SetupMethod(consume, 'void', true,
+                               { args -> calls++; null } as ScenarioSetupActionDispatcher.Invocation)]
+        def dispatcher = { methods } as ScenarioSetupActionDispatcher
+        def runtime = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService(), [:], [], [dispatcher])
+
+        when:
+        def result = new ScenarioSetupRunner().run(workload, null, 'bad-nested-signature', runtime)
+
+        then:
+        !result.success()
+        result.status() == reason
+        calls == 0
+
+        where:
+        rootType                      | reason
+        FixtureWrongNestedLeafRootDto | 'SETUP_VALUE_TYPE_MISMATCH'
+        FixtureWrongNestedRootDto     | 'UNSUPPORTED_SETUP_RESULT_PROPERTY'
+    }
+
+    def 'nested result property contract rejects unapproved paths roots and final types'() {
+        given:
+        def base = sourceSetupWorkload()
+        def binding = base.setupPlan().participantBindings()[0]
+        def recipe = SetupValueRecipe.actionProperty('setup-action-12', path, expectedType)
+        def actions = new ArrayList<>(base.setupPlan().actions())
+        if (rootType != null) {
+            def a = actions[11]
+            actions[11] = new SetupAction(a.actionId(), a.orderIndex(), a.sourceOccurrence(),
+                    a.methodKey().replace(a.declaredResultTypeFqn(), rootType), a.arguments(), rootType,
+                    false, a.blockers())
+        }
+        def plan = new SetupPlan(SetupPlan.SCHEMA_VERSION, actions,
+                [new SetupParticipantBinding(binding.inputVariantId(), binding.argumentIndex(),
+                        expectedType, recipe, [])], [])
+
+        expect:
+        !new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator().validate(plan).valid()
+
+        where:
+        path                     | rootType    | expectedType
+        'quiz.aggregateId'       | String.name | Integer.name
+        'quiz.aggregateId'       | null        | String.name
+        'quiz'                   | null        | Integer.name
+        'quiz.courseAggregateId' | null        | Integer.name
+        'quiz.aggregateId.value' | null        | Integer.name
+        'quiz..aggregateId'      | null        | Integer.name
+        'class.classLoader'      | null        | Integer.name
     }
 
     def 'in-process batch preflight rejects source setup before cross-candidate persistent state can be mutated'() {
@@ -1694,19 +2009,25 @@ class ScenarioExecutorSpec extends Specification {
         def packageFixture = writePackage(workload, [successScenario])
         def before = packageChecksums(packageFixture.directory)
         def service = new TrackingSagaUnitOfWorkService()
-        def handling = new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS')
+        def receiverIdentity = new ImpactEvidence.AggregateIdentity('FixtureReceiver', 99)
+        def receiver = new ImpactEvidence.AggregateSnapshot(
+                receiverIdentity, 1L, 'ACTIVE', 'FixtureReceiver', [:], [])
+        def stateObserver = new FixturePersistentStateObserver(receiver)
+        def handling = new FixtureEventHandling(service.fixtureEventService, 1, 'SUCCESS', stateObserver)
         def runtime = new TrackingRuntimeContext(service, [
                 (FixtureEventHandling): handling,
-                (AlternateFixtureEventHandling): new AlternateFixtureEventHandling()
+                (AlternateFixtureEventHandling): new AlternateFixtureEventHandling(),
+                (PersistentStateObserver): stateObserver
         ])
         FixtureWorkflow.emitEvents('solo', 'first', 1)
         def gate = activateEventReplay()
+        def successOutput = outsidePackageOutput(packageFixture, 'event-success.json')
 
         when:
         def report
         try {
             report = new ScenarioExecutor().execute(
-                    options(packageFixture.manifest, outsidePackageOutput(packageFixture, 'event-success.json'),
+                    options(packageFixture.manifest, successOutput,
                             successScenario.deterministicId()), runtime)
         } finally {
             gate.close()
@@ -1725,6 +2046,9 @@ class ScenarioExecutorSpec extends Specification {
         report.actualActions()[1].eventEvidence().subscriberAggregateId() == 99
         FixtureEventHandling.ORDER == ['handler-start', 'downstream-saga-complete', 'handler-return']
         FixtureEventHandling.BOUNDARIES == [null]
+        MAPPER.readTree(successOutput.resolveSibling('event-success.impact-v2.json').toFile())
+                .path('eventDeliveries').get(0).path('writer').path('actionId').asText() ==
+                report.actualActions()[1].actionId()
         AlternateFixtureEventHandling.INVOCATIONS == 0
         packageChecksums(packageFixture.directory) == before
 
@@ -2507,10 +2831,18 @@ class ScenarioExecutorSpec extends Specification {
         private final String mode
 
         FixtureEventHandling(EventService eventService, int subscriberCount, String mode) {
+            this(eventService, subscriberCount, mode, null)
+        }
+
+        FixtureEventHandling(EventService eventService, int subscriberCount, String mode,
+                             PersistentStateObserver stateObserver) {
             this.subscriberCount = subscriberCount
             this.mode = mode
             this.eventApplicationService = new EventApplicationService()
             ReflectionTestUtils.setField(this.eventApplicationService, 'eventService', eventService)
+            if (stateObserver != null) {
+                ReflectionTestUtils.setField(this.eventApplicationService, 'persistentStateObserver', stateObserver)
+            }
         }
 
         void handleFixtureEvents() {
@@ -2520,6 +2852,43 @@ class ScenarioExecutorSpec extends Specification {
         static void reset() {
             ORDER.clear()
             BOUNDARIES.clear()
+        }
+    }
+
+    static class FixturePersistentStateObserver extends PersistentStateObserver {
+        private final ImpactEvidence.AggregateSnapshot receiver
+
+        FixturePersistentStateObserver(ImpactEvidence.AggregateSnapshot receiver) {
+            super(mock(EntityManager))
+            this.receiver = receiver
+        }
+
+        @Override
+        ImpactEvidence.SnapshotBatch snapshotAll() {
+            new ImpactEvidence.SnapshotBatch([], [])
+        }
+
+        @Override
+        PersistentStateObserver.EligibilityObservation observeEligibility(
+                Integer aggregateId,
+                pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event,
+                String stage) {
+            new PersistentStateObserver.EligibilityObservation(
+                    new ImpactEvidence.Projection(receiver, []), true)
+        }
+
+        @Override
+        PersistentStateObserver.EligibilityObservation observeEligibility(
+                ImpactEvidence.AggregateIdentity identity,
+                pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event,
+                String stage) {
+            new PersistentStateObserver.EligibilityObservation(
+                    new ImpactEvidence.Projection(receiver, []), false)
+        }
+
+        @Override
+        PersistentStateObserver.HorizonObservation observeAtHorizon(ImpactEvidence.EventDelivery delivery) {
+            new PersistentStateObserver.HorizonObservation(delivery, [])
         }
     }
 
@@ -2579,9 +2948,24 @@ class ScenarioExecutorSpec extends Specification {
     }
 
     static class FixtureTournamentDto extends FixtureSetupDto {
+        FixtureSetupDto quiz
+
         FixtureTournamentDto(Integer aggregateId) {
             super(aggregateId)
+            this.quiz = new FixtureSetupDto(aggregateId + 10000)
         }
+    }
+
+    static class FixtureWrongNestedLeafRootDto {
+        FixtureWrongNestedLeafDto getQuiz() { null }
+    }
+
+    static class FixtureWrongNestedLeafDto {
+        String getAggregateId() { 'not-an-id' }
+    }
+
+    static class FixtureWrongNestedRootDto {
+        String getQuiz() { 'not-a-dto' }
     }
 
     private static class FixtureSourceSetupDispatcher implements ScenarioSetupActionDispatcher {
@@ -2638,7 +3022,9 @@ class ScenarioExecutorSpec extends Specification {
                                 tournamentCreations++
                                 if (mode == 'NULL_RESULT') return null
                                 if (mode == 'WRONG_TYPE') return 'not-a-tournament'
-                                new FixtureTournamentDto(nextRuntimeId++)
+                                def result = new FixtureTournamentDto(nextRuntimeId++)
+                                if (mode == 'NULL_QUIZ') result.quiz = null
+                                result
                             } as Invocation)
             ]
             if (mode == 'UNAUTHORIZED') methods.remove(CREATE_TOURNAMENT)
@@ -2766,6 +3152,7 @@ class ScenarioExecutorSpec extends Specification {
         String failCommitPlainSimulatorFor
         String failCommitInfrastructureFor
         String failImplicitFor
+        boolean failRecoveryDiscovery
 
         TrackingSagaUnitOfWorkService(Map values = [:]) {
             def versionService = mock(IVersionService)
@@ -2780,6 +3167,13 @@ class ScenarioExecutorSpec extends Specification {
             this.failCommitPlainSimulatorFor = values.failCommitPlainSimulatorFor
             this.failCommitInfrastructureFor = values.failCommitInfrastructureFor
             this.failImplicitFor = values.failImplicitFor
+            this.failRecoveryDiscovery = values.failRecoveryDiscovery ?: false
+        }
+
+        @Override
+        List<pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpoint> recoveryCheckpointsForExecutor(SagaUnitOfWork unitOfWork) {
+            if (failRecoveryDiscovery) throw new IllegalStateException('fixture recovery discovery failure')
+            super.recoveryCheckpointsForExecutor(unitOfWork)
         }
 
         @Override

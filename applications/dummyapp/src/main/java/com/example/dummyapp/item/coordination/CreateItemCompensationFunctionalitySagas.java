@@ -8,10 +8,15 @@ import com.example.dummyapp.item.commands.UpdateItemCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+
+import java.util.List;
 
 public class CreateItemCompensationFunctionalitySagas extends WorkflowFunctionality {
 
@@ -94,6 +99,41 @@ public class CreateItemCompensationFunctionalitySagas extends WorkflowFunctional
             commandGateway.send(getItemCommand);
         });
 
+        SagaStep semanticLockReadStep = new SagaStep("semanticLockReadStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            SagaCommand sagaCommand = new SagaCommand(getItemCommand);
+            sagaCommand.setSemanticLock(DummyItemSagaState.LOCKED);
+            commandGateway.send(sagaCommand);
+        });
+
+        SagaStep semanticLockClearingStep = new SagaStep("semanticLockClearingStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            SagaCommand sagaCommand = new SagaCommand(getItemCommand);
+            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
+            commandGateway.send(sagaCommand);
+        });
+
+        SagaStep forbiddenStateReadStep = new SagaStep("forbiddenStateReadStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            SagaCommand sagaCommand = new SagaCommand(getItemCommand);
+            sagaCommand.setForbiddenStates(List.of(DummyItemSagaState.LOCKED));
+            commandGateway.send(sagaCommand);
+        });
+
+        SagaStep postDispatchLockStep = new SagaStep("postDispatchLockStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            SagaCommand sagaCommand = new SagaCommand(getItemCommand);
+            commandGateway.send(sagaCommand);
+            sagaCommand.setSemanticLock(DummyItemSagaState.LOCKED);
+        });
+
+        SagaStep uncertainWrapperConfigurationStep = new SagaStep("uncertainWrapperConfigurationStep", () -> {
+            GetItemCommand getItemCommand = new GetItemCommand(unitOfWork, "Item", itemDto.getAggregateId());
+            SagaCommand sagaCommand = new SagaCommand(getItemCommand);
+            configureSemanticLock(sagaCommand);
+            commandGateway.send(sagaCommand);
+        });
+
         workflow.addStep(createItemStep);
         workflow.addStep(explicitWithoutRecognizedDispatchStep);
         workflow.addStep(implicitWriteStep);
@@ -105,6 +145,11 @@ public class CreateItemCompensationFunctionalitySagas extends WorkflowFunctional
         workflow.addStep(mismatchedCommandBindingStep);
         workflow.addStep(inlineReadOnlyStep);
         workflow.addStep(readOnlyStep);
+        workflow.addStep(semanticLockReadStep);
+        workflow.addStep(semanticLockClearingStep);
+        workflow.addStep(forbiddenStateReadStep);
+        workflow.addStep(postDispatchLockStep);
+        workflow.addStep(uncertainWrapperConfigurationStep);
     }
 
     private Integer getAndUpdateItemKey(SagaUnitOfWork unitOfWork) {
@@ -121,9 +166,17 @@ public class CreateItemCompensationFunctionalitySagas extends WorkflowFunctional
         // Method-reference bodies are intentionally outside the visitor's local analysis boundary.
     }
 
+    private void configureSemanticLock(SagaCommand sagaCommand) {
+        sagaCommand.setSemanticLock(DummyItemSagaState.LOCKED);
+    }
+
     public ItemDto getItemDto() {
         return itemDto;
     }
+}
+
+enum DummyItemSagaState implements SagaAggregate.SagaState {
+    LOCKED
 }
 
 class OverloadedItemCommandGateway extends CommandGateway {

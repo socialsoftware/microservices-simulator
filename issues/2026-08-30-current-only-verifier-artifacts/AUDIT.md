@@ -1,7 +1,10 @@
 # Current-only verifier artifact audit
 
-Working notes from our artifact-by-artifact review. These will become the basis
-for the short spec and plan after we finish the audit.
+Evidence from the completed artifact review and subsequent dated qualifications.
+The historical rankings below describe their original checkpoints, not current task
+status. The active grouped queue is owned by
+`docs/verifiers-impl/roadmap.md#current-next-work`; completed findings are not outstanding
+work merely because their diagnosis is retained here.
 
 ## What we have agreed
 
@@ -201,7 +204,7 @@ Completed follow-up:
    input evidence, wrapper handling, compensation footprints, focused limitations, and
    size-1/2/3 accounting are now covered by fresh Quizzes evidence.
 
-Ranked remaining follow-up by evaluation validity and executable coverage:
+Ranking recorded at that qualification checkpoint (superseded by the canonical roadmap):
 
 1. **Finish setup-result binding.** Setup translation and exact result references raised
    the single-input static result from 267 of 794 to 560 of 796. The remaining 236 inputs are
@@ -210,10 +213,10 @@ Ranked remaining follow-up by evaluation validity and executable coverage:
    landscape still has flat ImpactV1 and remains downstream of reliable identity and
    executable input coverage.
 
-## Open follow-up list — 2026-09-04
+## Findings recorded on 2026-09-04
 
-These are the confirmed problems and missing measurements found after the artifact
-reshape and workload-driven setup work.
+These record the problems and missing measurements found after the artifact
+reshape and workload-driven setup work. Consult the canonical roadmap for current status.
 
 ### 1. Exact event route identity — resolved 2026-09-04
 
@@ -279,10 +282,14 @@ zero setup-to-input bindings because the setup prepares application state withou
 supplying a Saga argument, while the parent currently requires every source setup to
 have at least one binding.
 
-Next change: remove that incorrect non-empty-binding assumption while retaining the
-checks that setup actions, any bindings that do exist, materialization, and startup all
-succeeded. Then rerun the same preflight; the current evidence indicates 402 runtime
-successes, but the published result must remain 395/402 until the report is corrected.
+Resolved parent bug: explicit empty binding arrays now pass when setup actions,
+cleanup/baseline, materialization, startup, and isolation checks succeed; missing, null,
+and malformed binding arrays remain rejected before deserialization. A fresh Docker
+subset rerun of exactly the seven formerly rejected workloads passed 7/7 in 109.23 seconds
+with unchanged package hashes (`verifiers/target/astra-qualification/state-only-preflight.json`).
+The full historical report remains 395/402: this was a targeted regression rerun, not a
+new complete preflight. The newer setup-translation package still needs its own runtime
+qualification.
 
 ### 5. One fresh process per scenario is too slow for broad execution or search
 
@@ -382,3 +389,20 @@ found. The largest remaining problem is therefore no longer translating the setu
 is connecting every setup result needed by one input, especially calls made in the test
 method before the target Saga call. Three rejected plans also need a two-property result
 path such as `quiz.aggregateId`, while the current binding stores one property.
+
+The bounded nested-property repair subsequently resolved those three rejected plans:
+the unchanged 796 accepted singles now divide into 562 with setup, one without setup,
+and 233 blocked. All three newly covered FindQuiz inputs passed selected Docker preflight
+through the real parent/worker boundary. The exact `quiz.aggregateId` path reuses the
+existing property string with closed pre-dispatch getter/type checks. These inspection
+inputs establish reconstruction/startup coverage only; whole-test replay and harmful
+behavior are not implied. Partial/missing feature-local bindings remain the next slice
+in `issues/2026-09-04-complete-source-derived-setup/`.
+
+The completed feature-prefix slice preserves same-feature action order, exact target
+cutoffs, and pre-call DTO mutations. Final ordinary single-input coverage is 576 with
+source setup, one without setup, and 219 blocked: 577/796 static candidates. It adds 17
+feature-prefix inputs after the nested-path gain of three, while removing three old
+CreateQuiz false positives whose DTO mutations expose unresolved question references.
+This replaces the intermediate 580 count. Remaining runtime method-authority and
+failed-worker diagnostic limits are recorded in the new issue's `RUNTIME-FOLLOWUPS.md`.

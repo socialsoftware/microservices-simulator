@@ -86,6 +86,9 @@ class SolveQuizAsyncTest extends QuizzesSpockTest {
 
         and: 'a tournament created by first user'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()])
+
+        and: 'the async solving user is a tournament participant'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
     }
 
     @Transactional
@@ -105,9 +108,6 @@ class SolveQuizAsyncTest extends QuizzesSpockTest {
     }
 
     def 'solve quiz using async functionality'() {
-        given: 'a participant in tournament'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
-
         when: 'student solves quiz with async variant'
         QuizDto quizDto = tournamentFunctionalities.solveQuizAsync(tournamentDto.getAggregateId(), userDto.getAggregateId())
 

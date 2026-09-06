@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.InvalidateQuizEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.functionalities.QuizAnswerFunctionalities
@@ -70,6 +71,22 @@ class QuizAnswerEventHandlingTest extends QuizzesSpockTest {
 
         then:
         quizAnswerRepository.findLatestQuizAnswer().get().getStudent().getName() == ANONYMOUS
+    }
+
+    def "RemoveStudentFromCourseExecution event route has an eligible quiz answer receiver"() {
+        when:
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(
+                courseExecutionDto.aggregateId, userDto.aggregateId)
+
+        then:
+        def event = eventRepository.findAll().find {
+            it instanceof DisenrollStudentFromCourseExecutionEvent &&
+                    it.publisherAggregateId == courseExecutionDto.aggregateId
+        }
+        event != null
+        quizAnswerRepository.findLatestQuizAnswer().orElseThrow().eventSubscriptions.any {
+            it.subscribesEvent(event)
+        }
     }
 
     def "InvalidateQuizEvent removes the quiz answer"() {

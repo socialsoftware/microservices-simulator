@@ -3,15 +3,18 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentRepository
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto
@@ -31,6 +34,10 @@ class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
 
     @Autowired
     private TournamentEventHandling tournamentEventHandling
+    @Autowired
+    private TournamentRepository tournamentRepository
+    @Autowired
+    private EventRepository eventRepository
 
     private CourseExecutionDto courseExecutionDto
     private UserDto userCreatorDto, userDto
@@ -62,6 +69,9 @@ class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
 
         and: 'a tournament where the first user is the creator'
         tournamentDto = createTournament(TIME_1, TIME_3, 2, userCreatorDto.getAggregateId(),  courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(),topicDto2.getAggregateId()])
+
+        and: 'the solving user is a tournament participant'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
     }
 
     def cleanup() {
@@ -71,7 +81,6 @@ class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
     def 'sequential solve quiz and anonymize user'() {
         
         given: 'a quiz is solved for a user'
-        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
         tournamentFunctionalities.solveQuiz(tournamentDto.aggregateId, userDto.getAggregateId())
 
         when: 'the user is anonymized after starting the quiz'
@@ -86,6 +95,28 @@ class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
         def unitOfWork = unitOfWorkService.createUnitOfWork("getQuizAnswerDtoByQuizIdAndUserId")
         def quizAnswerResult = quizAnswerService.getQuizAnswerDtoByQuizIdAndUserId(tournamentDto.quiz.aggregateId, userDto.getAggregateId(), unitOfWork)
         quizAnswerResult.getStudentName() == userDto.getName()
+    }
+
+    def 'UpdateStudentName event route has an eligible tournament receiver'() {
+        given:
+        def completeUserDto = new UserDto()
+        completeUserDto.setName(USER_NAME_3)
+
+        when:
+        courseExecutionFunctionalities.updateStudentName(
+                courseExecutionDto.aggregateId, userDto.aggregateId, completeUserDto)
+
+        then:
+        def event = eventRepository.findAll().find {
+            it instanceof UpdateStudentNameEvent &&
+                    it.publisherAggregateId == courseExecutionDto.aggregateId &&
+                    it.studentAggregateId == userDto.aggregateId
+        }
+        event != null
+        tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId)
+                .orElseThrow().eventSubscriptions.any {
+            it.subscribesEvent(event)
+        }
     }
 
     @TestConfiguration

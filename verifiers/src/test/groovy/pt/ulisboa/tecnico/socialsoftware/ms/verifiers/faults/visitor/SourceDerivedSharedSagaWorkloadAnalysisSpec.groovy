@@ -9,12 +9,12 @@ import com.github.javaparser.symbolsolver.resolution.typesolvers.JavaParserTypeS
 import com.github.javaparser.symbolsolver.resolution.typesolvers.ReflectionTypeSolver
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.ApplicationsFileTreeParser
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EagerFaultScenarioGenerator
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleCap
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorConfig
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioIdGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.SetupPlanValidator
-import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FaultScenarioActionKind
@@ -56,10 +56,16 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest'
     private static final String START_QUIZ =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas'
+    private static final String CREATE_QUESTION =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas'
+    private static final String CREATE_QUIZ =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas'
     private static final String FIND_TOURNAMENT_TEST =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest'
     private static final String FIND_TOURNAMENT =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas'
+    private static final String ADD_PARTICIPANT_FEATURE_TEST =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest'
 
     def 'unmodified Remove Add test proves one shared Tournament producer with semantic key footprints'() {
         given:
@@ -117,6 +123,10 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             it.phase() == DispatchPhase.COMPENSATION &&
                     it.commandTypeFqn() == 'pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command'
         }
+        def semanticStateWrites = state.sagas*.steps.flatten()*.dispatches.flatten().findAll {
+            it.commandTypeFqn() ==
+                    'pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand'
+        }
         def genericCompensationSignatures = genericCompensations.collect {
             "${it.stepKey()}|${it.aggregateName()}|${it.aggregateKeyText()}".toString()
         } as Set
@@ -127,7 +137,7 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         targetTraces.every { it.sourceBindingName in ['remove', 'add'] }
 
         and: 'every Tournament command footprint maps its aggregate key to zero-based constructor argument 1'
-        tournamentDispatches.size() == 3
+        tournamentDispatches.size() == 4
         tournamentDispatches.every { it.aggregateKeyConstructorArgumentIndex() == 1 }
 
         and: 'both participant arg-1 records retain the exact same createTournament occurrence and aggregateId path'
@@ -180,6 +190,19 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         genericCompensations.every {
             it.aggregateKeyConfidence()?.name() == 'SYMBOLIC'
         }
+
+        and: 'each exact semantic-lock setter contributes a same-target write regardless of state enum value'
+        semanticStateWrites.size() == 64
+        semanticStateWrites.count { it.phase() == DispatchPhase.FORWARD } == 38
+        semanticStateWrites.count { it.phase() == DispatchPhase.COMPENSATION } == 26
+        semanticStateWrites.every {
+            it.accessPolicy().name() == 'WRITE' && it.aggregateName() && it.aggregateKeyText()
+        }
+        removeSaga.steps.find { it.name == 'getTournamentStep' }.dispatches*.accessPolicy()*.name() ==
+                ['READ', 'WRITE']
+        targetDefinitions.find { it.sagaFqn() == REMOVE }.steps()
+                .find { it.name() == 'getTournamentStep' }.compensationEvidence().name() ==
+                'IMPLICIT_SAGA_ROLLBACK'
 
         and: 'the non-identical ANSWER service token follows its handler to QuizAnswer rather than capitalization'
         Files.readString(applicationRoot.resolve(
@@ -234,20 +257,45 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         }
         new SetupPlanValidator().validate(setup).valid()
 
-        and: 'executor-rejected unbound arguments do not enter a source setup candidate'
-        def readinessEvaluator = new ScenarioExecutorReadinessEvaluator()
+        and: 'an unrelated nested-property participant remains outside whole-result binding scope'
         def coveredSetupInputIds = adapted.sourceSetupPlanBindings()*.inputVariantIds().flatten() as Set
         def rejectedUnboundInput = adapted.inputVariants().find {
             it.sourceClassFqn() == START_QUIZ_TEST && it.sagaFqn() == START_QUIZ
         }
         rejectedUnboundInput != null
-        rejectedUnboundInput.inputRecipe().arguments().any { argument ->
-            argument.executorReady() && !readinessEvaluator.evaluate(argument).materializable()
-        }
         !(rejectedUnboundInput.deterministicId() in coveredSetupInputIds)
-        adapted.diagnostics().any { diagnostic ->
-            diagnostic.contains(rejectedUnboundInput.deterministicId()) &&
-                    diagnostic.contains('incomplete setup-dependent argument coverage')
+
+        and: 'all accepted nested setup targets use exact pre-target prefixes'
+        def inputsById = adapted.inputVariants().collectEntries { [(it.deterministicId()): it] }
+        def nestedTargetBindings = adapted.sourceSetupPlanBindings().findAll {
+            it.featureDerived() && it.featureMethodName() == 'setup'
+        }
+        def nestedSetupCohorts = [
+                (CREATE_QUESTION): nestedTargetBindings.findAll { binding ->
+                    binding.inputVariantIds().any { inputsById[it]?.sagaFqn() == CREATE_QUESTION }
+                },
+                (CREATE_QUIZ): nestedTargetBindings.findAll { binding ->
+                    binding.inputVariantIds().any { inputsById[it]?.sagaFqn() == CREATE_QUIZ }
+                }
+        ]
+        nestedSetupCohorts[CREATE_QUESTION]*.inputVariantIds().flatten().toSet().size() == 88
+        nestedSetupCohorts[CREATE_QUIZ]*.inputVariantIds().flatten().toSet().size() == 4
+        nestedSetupCohorts.every { saga, bindings ->
+            bindings*.inputVariantIds().flatten().toSet().count { inputId ->
+                inputsById[inputId].sagaFqn() == saga &&
+                        inputsById[inputId].sourceClassFqn() ==
+                        'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.RemoveCourseExecutionQuizAnswerReceiverTest'
+            } == 1
+        }
+        nestedSetupCohorts.values().flatten().every { binding ->
+            def inputId = binding.inputVariantIds().first()
+            new SetupPlanValidator().validate(binding.setupPlan()).valid() &&
+                    binding.targetOccurrencesByInputVariantId()[inputId]?.size() == 1 &&
+                    !binding.setupPlan().actions()*.sourceOccurrence().contains(
+                            binding.targetOccurrencesByInputVariantId()[inputId].first()) &&
+                    binding.setupPlan().participantBindings().findAll {
+                        it.inputVariantId() == inputId
+                    }*.value().any { value -> referencedActionIds([value]) }
         }
 
         and: 'all setup and participant result references point backward to the exact producers'
@@ -291,6 +339,60 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         !adapted.diagnostics().any {
             it.contains('UNSUPPORTED_LOCAL_DATE_EXPRESSION:Arrays.asList')
         }
+
+        and: 'an exact feature prefix supplies the later add-participant target without replaying it'
+        def addParticipantFeature = 'create add participant successfully'
+        def addParticipantInput = adapted.inputVariants().find {
+            it.sourceClassFqn() == ADD_PARTICIPANT_FEATURE_TEST &&
+                    it.callContextMethodName() == addParticipantFeature && it.sagaFqn() == ADD &&
+                    it.stableSourceText().startsWith('tournamentFunctionalities.addParticipant(')
+        }
+        assert addParticipantInput != null
+        def addParticipantTrace = state.groovyFullTraceResults.find {
+            it.sourceClassFqn() == ADD_PARTICIPANT_FEATURE_TEST &&
+                    it.callContextMethodName() == addParticipantFeature && it.sagaClassFqn() == ADD &&
+                    it.sourceExpressionText().startsWith('tournamentFunctionalities.addParticipant(')
+        }
+        def featureBinding = adapted.sourceSetupPlanBindings().find {
+            it.featureDerived() && it.sourceClassFqn() == ADD_PARTICIPANT_FEATURE_TEST &&
+                    it.featureMethodName() == addParticipantFeature &&
+                    it.frontierOccurrenceId() == addParticipantTrace.occurrence().occurrenceId() &&
+                    addParticipantInput.deterministicId() in it.inputVariantIds()
+        }
+        assert featureBinding != null: adapted.diagnostics().findAll {
+            it.contains(ADD_PARTICIPANT_FEATURE_TEST) && it.contains(addParticipantFeature)
+        }
+        featureBinding.setupPlan().actions()*.methodKey()*.split('#')*.last()*.split('\\(')*.first().takeRight(3) ==
+                ['createUser', 'activateUser', 'addStudent']
+        def featureCreateUser = featureBinding.setupPlan().actions().takeRight(3).first()
+        featureCreateUser.arguments().first().value().assignments()*.propertyName() ==
+                ['name', 'username', 'role']
+        featureCreateUser.arguments().first().value().assignments()*.value()*.literalValue() ==
+                ['NewUser', 'NewUsername', 'STUDENT']
+        !featureBinding.setupPlan().actions()*.sourceOccurrence()
+                .contains(addParticipantTrace.occurrence().occurrenceId())
+        featureBinding.targetOccurrencesByInputVariantId()[addParticipantInput.deterministicId()] ==
+                [addParticipantTrace.occurrence().occurrenceId()]
+        def actionTraceByOccurrence = state.groovyFacadeSetupActionTraces.collectEntries {
+            [(it.sourceOccurrence()): it]
+        }
+        featureBinding.setupPlan().actions().every {
+            actionTraceByOccurrence[it.sourceOccurrence()].callContextMethodName() in ['setup', addParticipantFeature]
+        }
+        def foreignFeatureAction = state.groovyFacadeSetupActionTraces.find {
+            it.sourceClassFqn() != ADD_PARTICIPANT_FEATURE_TEST &&
+                    it.methodName() == 'createUser' && it.callContextMethodName() != 'setup'
+        }
+        foreignFeatureAction != null
+        !featureBinding.setupPlan().actions()*.sourceOccurrence().contains(foreignFeatureAction.sourceOccurrence())
+        def featureParticipantBinding = featureBinding.setupPlan().participantBindings().find {
+            it.inputVariantId() == addParticipantInput.deterministicId() && it.argumentIndex() == 3
+        }
+        featureParticipantBinding.value().kind() == SetupValueKind.ACTION_RESULT_PROPERTY
+        featureParticipantBinding.value().propertyName() == 'aggregateId'
+        ScenarioGenerator.setupPlanFor(new InputTupleJoiner.InputTuple(
+                [addParticipantInput], addParticipantInput.deterministicId(), []),
+                adapted.sourceSetupPlanBindings()) == featureBinding.setupPlan()
 
         when: 'ordinary deterministic enumeration is given all ten dependency-preserving orders'
         def selectedInputIds = [

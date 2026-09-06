@@ -346,6 +346,52 @@ class InputTupleSelectionSpec extends Specification {
                 == accounting.path('workloads').path('selected').path('inputBoundTotal').bigIntegerValue()
     }
 
+    def 'feature setup selection requires the exact observed target frontier'() {
+        given:
+        def later = readyInput('A', 'later')
+        def earlyPlan = setupPlan('prepare-early')
+        def exactPlan = setupPlan('prepare-exact')
+        def early = featureBinding([later.deterministicId()], earlyPlan,
+                [(later.deterministicId()): ['target-later']], 'target-earlier',
+                [(later.deterministicId()): 4], ['target-earlier': 2, 'target-later': 4])
+        def exact = featureBinding([later.deterministicId()], exactPlan,
+                [(later.deterministicId()): ['target-later']], 'target-later',
+                [(later.deterministicId()): 4], ['target-later': 4])
+
+        expect:
+        ScenarioGenerator.setupPlanFor(tuple(later), [early, exact]) == exactPlan
+    }
+
+    def 'feature setup rejects target replay collapsed occurrences and omitted inter-target effects'() {
+        given:
+        def left = readyInput('A', 'left')
+        def right = readyInput('B', 'right')
+        def plan = setupPlan('prepare')
+        def targets = [
+                (left.deterministicId()) : ['target-left'],
+                (right.deterministicId()): ['target-right']
+        ]
+        def orders = [(left.deterministicId()): 2, (right.deterministicId()): 4]
+        def coherent = featureBinding([left.deterministicId(), right.deterministicId()], plan,
+                targets, 'target-left', orders, ['target-left': 2, 'target-right': 4])
+        def omittedEffect = featureBinding([left.deterministicId(), right.deterministicId()], plan,
+                targets, 'target-left', orders, ['target-left': 2, 'unselected-effect': 3, 'target-right': 4])
+        def collapsed = featureBinding([left.deterministicId(), right.deterministicId()], plan,
+                targets + [(left.deterministicId()): ['target-left', 'target-left-again']],
+                'target-left', orders, ['target-left': 2, 'target-right': 4])
+        def replayPlan = new SetupPlan(SetupPlan.SCHEMA_VERSION,
+                [new SetupAction('setup-1', 0, 'target-left',
+                        'demo.Fixture#prepare():java.lang.String', [], String.name, false, [])], [], [])
+        def replay = featureBinding([left.deterministicId(), right.deterministicId()], replayPlan,
+                targets, 'target-left', orders, ['target-left': 2, 'target-right': 4])
+
+        expect:
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [coherent]) == plan
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [omittedEffect]) == null
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [collapsed]) == null
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [replay]) == null
+    }
+
     private static boolean selected(List<InputVariant> inputs,
                                     ConflictGraphBuilder.Result graph,
                                     InputTupleSelection.Mode mode,
@@ -426,6 +472,26 @@ class InputTupleSelectionSpec extends Specification {
     private static InputVariant inputWithRecipe(String saga, String id, InputRecipe recipe) {
         InputVariantNormalizer.normalizeForArtifact(new InputVariant(id, saga, 'Spec', id, 'saga',
                 InputResolutionStatus.RESOLVED, 'new Saga()', 'source', [], [:], [], recipe))
+    }
+
+    private static InputTupleJoiner.InputTuple tuple(InputVariant... inputs) {
+        new InputTupleJoiner.InputTuple(inputs.toList(), inputs*.deterministicId().join('|'), [])
+    }
+
+    private static SetupPlan setupPlan(String occurrence) {
+        new SetupPlan(SetupPlan.SCHEMA_VERSION,
+                [new SetupAction('setup-1', 0, occurrence,
+                        'demo.Fixture#prepare():java.lang.String', [], String.name, false, [])], [], [])
+    }
+
+    private static SourceSetupPlanBinding featureBinding(List<String> inputIds,
+                                                         SetupPlan plan,
+                                                         Map<String, List<String>> targets,
+                                                         String frontier,
+                                                         Map<String, Integer> targetOrders,
+                                                         Map<String, Integer> actionOrders) {
+        new SourceSetupPlanBinding(inputIds, plan, 'Spec', 'feature name', targets,
+                frontier, targetOrders, actionOrders)
     }
 
     private static SourceAggregateKeyInputEvidence source(InputVariant input,

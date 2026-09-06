@@ -1,7 +1,5 @@
 # Verifier current state
 
-Last updated: 2026-09-04
-
 This is the canonical handbook for verifier and fault-analysis scenario work. It owns the current conceptual model, terminology, supported operations, latest representative evidence, reproduction commands, and limitations. [`roadmap.md`](roadmap.md) owns future direction. [`decisions/`](decisions/index.md) explains the few design choices whose rationale is not obvious from current behavior.
 
 ## The short version
@@ -17,6 +15,7 @@ Java application code + Groovy/Spock tests
   -> prerequisite-provider or source-derived ordered setup
   -> setup preflight or one-scenario execution
   -> optional invariant-impact result
+  -> automatic potential-impact evidence sidecar
 ```
 
 The verifier does **not** prove that an application is correct. It currently answers narrower questions:
@@ -26,29 +25,32 @@ The verifier does **not** prove that an application is correct. It currently ans
 3. Which generated inputs are static setup candidates, and which can actually start in the current Saga/local runtime?
 4. What happened when one persisted FaultScenario was replayed?
 5. Did that attempt trigger an observed aggregate-invariant rejection?
-6. For the bounded Quizzes RemoveTournament–AddParticipant benchmark, did final state satisfy its explicit broken-reference rule?
+6. Which of the three implemented potential-impact conditions hold, for which aggregate identities, and with what observation coverage?
 
-The fresh final-code Quizzes qualification reports:
+The earlier explicit Quizzes broken-reference benchmark rule is retained as separate
+application-specific evidence; it is not the generic ImpactV2 definition.
 
-```text
-discovered Sagas:                    68
-Sagas with / without accepted input: 36 / 32
-accepted / rejected inputs:          796 / 90
-materializable / blocked inputs:     153 / 643
-strict connected Saga sets (2 / 3):  382 / 3594
-strict sets with positive input tuples: 35 / 42
-selected workloads (sizes 1–3):      76,913
-with setup / without setup:          57,293 / 1
-blocked workloads:                   19,619
-```
+The retained ordinary single-input count analysis has **665 static setup candidates out of
+796 accepted inputs**: 664 with source setup, one without setup, and 131 blocked.
+Exact earlier setup results now survive inside participant DTOs and collections.
+Four representative inputs from the latest extension completed fault-free Docker
+execution with exact persisted identities. This does not qualify all 665 at runtime.
 
-A bounded workload-writing qualification contains 1,620 ordinary Quizzes WorkloadPlans;
-1,338 reference a source-derived setup, including 210 singles, 444 pairs, and 684 triples.
-These new records have static validation but have not yet been broadly preflighted. Two
-earlier representative workloads—one natural triple and the existing
-RemoveTournament/AddParticipant pair—passed isolated Docker setup preflight. A separate
-focused package retains the pair's 14-scenario execution evidence. These are bounded
-qualification facts, not generic execution coverage.
+ImpactV2 is integrated into ordinary Saga/local execution. It counts distinct objects
+with deleted dependencies, residual effects of failed operations, or an unresolved
+selected event delivery, with explicit completeness and invalid-attempt reporting.
+The latest selected qualification has **29 COMPLETE benchmark assessments** (14 score 0,
+15 score 2) and **30 broader control/fault pairs** (60 COMPLETE: 52 score 0, seven score 1,
+one score 2). All 30 controls succeed with exact conformance; one has a positive score.
+These are potential-effect observations, not severity or universal domain-harm judgments.
+
+Start with the [Portuguese advisor note](reunioes/2026-09-08.md) for the domain and a
+step-by-step example. [ImpactV2](#impactv2-assessment) owns the checking contract and
+[the latest qualification](#owned-cycle-coverage-and-control-requalification) owns current
+campaign results. The [four-run investigation](#understanding-impact-through-quizzes)
+explains the earlier methodological choices; its counts are not the current benchmark.
+The 665-input count snapshot predates the final qualification fixture additions and is
+not a new full-catalogue count for this checkout.
 
 ## Reading order
 
@@ -60,6 +62,7 @@ Use this page by question:
 - [What the accounting metrics mean](#how-to-read-accounting)
 - [What dynamic enrichment contributes](#optional-dynamic-evidence)
 - [How setup preflight and execution differ](#scenarioexecutor)
+- [The Quizzes domain, four runs, and impact interpretation](#understanding-impact-through-quizzes)
 - [What ImpactV1 measures](#impactv1)
 - [Latest commands and evidence](#current-evidence)
 - [Current limitations](#current-limitations)
@@ -120,15 +123,33 @@ These are intentionally separate:
 
 A compensated execution can be exact. A failed execution can be incomplete. These fields are not aliases.
 
+### Potential-impact evidence
+
+**Potential-impact evidence** is the attempt-scoped, read-only persistent-state record
+collected after successful setup for ImpactV2 checks. It contains normalized
+baseline/final aggregate projections, transaction-confirmed writes, writer/action phase,
+subscription-declared dependencies, and exact selected-event receiver observations.
+Coverage gaps and invalid or unavailable measurement remain explicit. The ordinary
+executor preserves these facts in the assessment sidecar alongside derived findings.
+
 ### Impact
 
-**ImpactV1** is the first narrow domain-impact model:
+**ImpactV1** is the existing invariant-rejection metric:
 
 ```text
 ImpactV1 = invariantViolationCount
 ```
 
 It counts structured `INVARIANT_VIOLATION` events emitted when the existing Saga aggregate-write boundary rejects a change through `Aggregate.verifyInvariants()`. It does not infer harm from an assigned fault, abort, or compensation alone.
+
+**ImpactV2** assesses explicit potential-impact conditions from
+persisted state and execution evidence, counting distinct affected aggregate identities
+within a declared check scope. Its first categories are subscription-declared
+dependencies on deleted objects, residual data after failure/recovery without competing
+writers, and unresolved event progress.
+It is an extent measure, not a business-harm or severity oracle. Coverage gaps and invalid
+attempts remain distinct from an evaluated zero. Partial reports retain an observed
+affected-object lower bound while their complete score remains null.
 
 ### Benchmark observation
 
@@ -207,7 +228,39 @@ Each input fact owns its compact constructor-argument recipes. WorkloadPlans ref
 - typed `baseline_binding` nodes supplied by an exact prerequisite provider;
 - unresolved nodes with blockers.
 
+When reading a persisted package, readiness is restored per argument and recursively
+through its recipe. An unresolved setup-bound identity does not make a separate, fully
+specified DTO constructor unready. The input's overall `materializable` flag remains
+unchanged; exact setup bindings still have to resolve before execution.
+
 The executor materializes a supported subset. Runtime-owned arguments currently include `SagaUnitOfWorkService`, `CommandGateway`, and a fresh `SagaUnitOfWork`. A baseline binding is materializable only when the persisted provider id/version is present and the provider returns the required key with the persisted exact type. Applications may declare bounded prerequisite workloads in `src/test/resources/verifier-prerequisite-scenarios.json`; descriptor schema `microservices-simulator.prerequisite-scenario-descriptor.v2` requires `selectionKind=EVENT|NO_EVENT`. `EVENT` preserves the exact selected route, while `NO_EVENT` rejects event-route fields and selects only a source-derived workload with no event consequence. The generic adapter resolves named Saga steps without application FQNs in verifier production code. The matching provider may live on the application's test classpath. Unsupported calls and unresolved source values remain blockers.
+
+Source setup result properties admit `aggregateId`, `courseAggregateId`, and the exact
+nested path `quiz.aggregateId`. The nested path retains the existing `resultProperty`
+record and `property` string. Before any setup dispatch, the runner verifies public
+zero-argument getters from a declared DTO root through a DTO `getQuiz()` result to an
+Integer-compatible `getAggregateId()` result. Other paths and incompatible signatures
+are rejected; null intermediate values fail setup without starting target participants.
+
+Source setup preserves existing complete `setup()`-only candidates and can additionally
+use preparation from the same exact Spock feature. Typed AST occurrences identify the
+target and the source order: a new candidate contains ordinary `setup()` actions followed
+by supported facade calls strictly before that target, including void activation and
+enrollment effects. Calls from different features or classes are never combined by this
+extension. Assertion/cleanup/where labels, control flow, direct workflow execution, and
+direct event-handler execution close further feature-prefix extraction.
+
+Direct facade arguments retain caller DTO setters and property assignments as they stood
+before the call, including self-rebinding calls. Later assignments cannot leak backward
+into the retained setup argument recipe.
+
+For a selected tuple, the candidate must end before its earliest selected target, supply
+every setup-dependent argument, and contain no selected target action. An unselected
+facade effect between selected targets blocks the tuple rather than being omitted or
+moved into setup. Collapsed repeated target occurrences and differing complete candidates
+remain ambiguous and blocked. This metadata is internal; persisted record shapes and the
+closed application setup dispatcher are unchanged. Existing fixture-only coverage retains
+priority, so this is an extension of supported preparation, not whole-test replay.
 
 Recipe readiness, catalog acceptance, static setup candidacy, runtime setup readiness, and successful execution are different stages. Do not collapse them into one “executable” count.
 
@@ -277,6 +330,19 @@ A compensation checkpoint records why a completed forward occurrence may require
 - `EXPLICIT_COMPENSATION`;
 - `IMPLICIT_SAGA_ROLLBACK`;
 - `CONSERVATIVE_UNKNOWN`.
+
+A dispatched `SagaCommand` can add a persistent semantic-state write to its payload
+access. A supported non-null `setSemanticLock(...)` before dispatch adds a WRITE on
+the same aggregate target, including values named `READ_TOURNAMENT` or `NOT_IN_SAGA`.
+The payload READ remains visible. Enum names do not determine whether a write occurred.
+Unsupported wrapper configuration, custom subclasses and anonymous wrappers remain uncertain; a proven plain read needs no
+implicit rollback checkpoint.
+
+Before the executor reports a failed participant `COMPENSATED`, it queries the framework's
+remaining recovery checkpoints. Pending work stops execution with terminal status `UNEXPECTED_EXECUTION_FAILURE`,
+schedule conformance `INCOMPLETE`, and `PENDING_RUNTIME_RECOVERY`; a failed query reports `RECOVERY_CHECKPOINT_DISCOVERY_FAILED`.
+Both produce an invalid ImpactV2 assessment with null score. The executor does not run
+unplanned cleanup to make an incomplete recovery schedule appear complete.
 
 For one aborted participant, checkpoints preserve reverse completed-step order. Recovery schedules may interleave those checkpoints with still-valid forward actions from surviving participants. The configured recovery cap limits written schedules without changing the exact uncapped count for a computed vector.
 
@@ -402,6 +468,12 @@ Result meanings:
 
 Normal execution uses the same setup implementation, so a separate preflight is optional. The occurrence, validation, dispatch, and isolation rationale is retained in [`decisions/2026-08-28-source-derived-ordered-setup.md`](decisions/2026-08-28-source-derived-ordered-setup.md).
 
+A source setup may prepare application state without supplying any participant argument.
+The parent accepts its explicitly empty `participantBindings` array when action,
+cleanup/baseline, materialization, startup, and worker-isolation checks pass. Missing,
+null, or malformed binding evidence is rejected before deserialization; any reported
+binding must still be resolved.
+
 ### Normal execution
 
 Normal execution requires:
@@ -451,6 +523,7 @@ Supported:
 - explicit domain-failure fallback and conservative infrastructure hard stops;
 - dry-run selection/mapping validation;
 - optional ImpactV1 sidecar.
+- automatic `*.impact-v2.json` assessment sidecar derived from the execution-report path.
 
 Unsupported:
 
@@ -478,10 +551,493 @@ When `--impact-output-path` is supplied, ScenarioExecutor installs an attempt-sc
 
 ImpactV1 does not detect silent compensation errors, postcondition failures, final-state divergence, or general business harm. The count and score are currently numerically identical because this first model has no weighting.
 
+## ImpactV2 assessment
+
+Ordinary ScenarioExecutor attempts write
+`microservices-simulator.scenario-impact-v2-assessment.v1` beside the execution report:
+`execution-report.json` becomes `execution-report.impact-v2.json`. Collection begins only
+after setup and captures one baseline, exact committed revisions reloaded after transaction commit during
+measured actions, exact selected-event receiver state/eligibility after delivery, and one
+final horizon snapshot plus final polymorphic eligibility. Receiver eligibility is also
+measured against the exact selected event before the handler runs. Selection/setup and
+incomplete execution produce assessment status `INVALID` while retaining unavailable
+collection evidence. A valid completed execution without the observer produces assessment
+status `UNAVAILABLE`. `microservices.simulator.impact.enabled=false` provides the bounded
+observer-off control while still writing an explicit `COLLECTION_DISABLED` sidecar.
+
+Persistent application data is projected from JPA managed attributes. Aggregate lifecycle
+is included in comparison data; application dates, ordered lists, sets, owned entities,
+and embedded reference versions are retained. Framework-generated row identities,
+aggregate revision/creation timestamp/predecessor metadata, and Saga semantic locks are
+kept out of application-data equality. Backreferences to an aggregate normalize to its
+logical identity. A nested owned entity's backlink to an ancestor becomes a stable
+relative ancestor reference only when an inverse JPA `mappedBy` association with
+`PERSIST`/`ALL` cascade proves ownership and actually contains that child. Child fields
+remain in the projection; generated row IDs and unordered traversal indexes do not enter
+the reference. Unsupported cycles remain `PERSISTENT_MAPPING_CYCLE` gaps. Other unsupported mappings and missing identities
+produce coverage gaps. Subscription targets resolve to exact persisted aggregate identities;
+missing or type-ambiguous targets remain explicit gaps. Event consumers carry their own
+writer identity, and unowned, mismatched, or asynchronous writes become attribution gaps.
+Observation failures are contained and retained independently from a failing callback so
+they cannot replace application outcomes or disappear from the sidecar.
+The observer remains installed through synchronous final-horizon collection, then closes
+before its retained failures are drained. Saga/local execution and Spring transaction
+`afterCommit` callbacks complete before their action returns; general asynchronous command
+propagation beyond that scheduled horizon is outside this narrow executor boundary.
+
+The sidecar preserves package-manifest, attempt, workload and FaultScenario identity,
+the raw baseline/final snapshots, committed writes, event deliveries and coverage gaps,
+and three deterministic category results:
+
+- `DELETED_DEPENDENCY`: an ACTIVE final source retains a subscription-declared dependency
+  on a target observed becoming DELETED during the attempt and remaining DELETED;
+- `FAILED_OPERATION_RESIDUAL`: a failed Saga with completed recovery is the sole observed
+  writer of an aggregate whose application data or lifecycle differs at the horizon;
+- `UNRESOLVED_DELIVERED_EVENT`: the exact scheduled event delivery succeeded, the same
+  typed receiver's persistent state did not change across delivery, and the surviving
+  receiver remains polymorphically eligible for that event at the horizon.
+
+Each category records deterministic candidates, findings, evidence references and unknown
+reasons. Another Saga or event consumer writing a residual candidate makes that object
+unknown. Missing projections, writer attribution, exact delivery evidence, or final
+eligibility cannot produce a positive finding. Current persistence represents deletion
+through the aggregate lifecycle projection; a missing final snapshot is unknown rather
+than proof of physical deletion.
+
+`COMPLETE` assessments have a numeric `completeScore`, including explicit zero. The score
+is the union of positive aggregate identities, so one object with multiple reasons counts
+once. `PARTIAL` assessments retain findings and `observedAffectedObjectCount` as a lower
+bound but serialize `completeScore` as null. Invalid executions and unavailable collection
+serialize both counts as null. Assessment failure is contained, retains raw evidence and
+adds `ASSESSMENT_FAILED`; it does not replace the application outcome. ImpactV1 semantics
+and the v5 execution report are unchanged.
+
+### Persisted qualification of the three checks
+
+The first implementation slice passed eight persisted Quizzes cases through the ordinary
+ScenarioExecutor, plus three observer-disabled controls. These are deliberately small,
+provider-backed qualification workloads, not a claim that the entire generated catalogue
+has been executed. The same collector and checks run for each case.
+
+A Tournament points to a generated Quiz containing copied Question data. Removing a
+Tournament deletes its Quiz first. Updating a Question can publish an event that should
+refresh the Quiz's copy. Updating a Tournament changes its settings before updating the
+Quiz; a failure between those operations invokes compensation.
+
+| Case | Complete score | What the final evidence shows |
+| --- | ---: | --- |
+| Failure after Quiz removal, before Tournament removal | 2 | The active Tournament still declares the deleted Quiz dependency; the failed Saga also leaves the Quiz deleted |
+| Successful removal control | 0 | Both removals finish; no surviving active source matches the rule |
+| Ordinary Tournament compensation | 1 | Count, dates and topic IDs are restored, but embedded topics lose their course IDs and the application mutation time changes |
+| Temporary no-op compensation variant | 1 | The same Tournament retains the requested count, dates and topic set |
+| Successful update, ordinary build | 0 | The operation succeeds; no failed-operation residual is claimed |
+| Successful update, no-op-compensation build | 0 | The unused compensation mutation does not create a finding |
+| Current Question event consumer | 1 | Delivery succeeds but the Quiz stays unchanged and eligible for that exact event |
+| Temporary repaired event consumer | 0 | Delivery persists the copied data and makes that event ineligible |
+
+All eight assessments are COMPLETE with no collection gaps. Three additional fresh runs
+with observation disabled report UNAVAILABLE and null counts. Their execution outcomes,
+actions, prerequisite inputs and selected independent final-state witnesses match the
+enabled counterparts. These witnesses cover the fixture's Tournament, Quiz and Question;
+they are not an exhaustive equality proof for every database field.
+
+The ordinary compensation result corrects the earlier expectation of zero. Its recovery
+DTO is built by `TournamentTopic.buildDto()`, which omits the topic's course ID. Rebuilding
+the embedded topic from that DTO therefore changes the saved course ID from 1 to null.
+The generic persistent-state comparison exposed this without a Quizzes-specific rule.
+The earlier experiment checked topic IDs and other selected fields, so its claim of
+restoration was limited to those observations. Production Quizzes code remains unchanged.
+
+Both compensation cases count one Tournament: this is an object count, not a severity
+ranking. Application-owned timestamps are retained too; a timestamp-only difference can
+satisfy the residual pattern under the current contract. Neither finding automatically
+establishes business harm. Changing that policy requires a separate methodological choice.
+
+Reproduction is owned by `verifiers/experiments/impact-v2/README.md`; the case matrix,
+source/patch provenance, costs and limitations are in
+`issues/2026-09-06-potential-impact-v2/M2-HANDOFF.md`. Validated reports are under
+`verifiers/target/impact-v2-qualification/run-03/`.
+
+### Broader ImpactV2 qualification
+
+**Correction after qualification:** source analysis had missed the semantic-state write
+in RemoveTournament's `getTournamentStep`. Some generated recovery schedules therefore
+omitted real framework rollback, and the executor could report them compensated anyway.
+The counts below describe the preserved earlier campaign, not proof of complete recovery.
+The correction and fresh benchmark qualification are tracked in
+`issues/2026-09-06-semantic-lock-recovery/HANDOFF.md`.
+
+The next campaign ran 77 ordinary ScenarioExecutor attempts from frozen compiled sources
+in fresh Docker/JVM/H2 environments: 17 current RemoveTournament/AddParticipant recovery
+schedules and a separate 60-attempt catalogue sample. No scoring or application source
+was changed during qualification.
+
+| Cohort | Attempts with reports | COMPLETE | PARTIAL | INVALID | UNAVAILABLE |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Current historical-benchmark family | 17 | 12 | 5 | 0 | 0 |
+| Broader sample: 30 control/fault pairs, 26 Saga types | 60 | 47 | 4 | 9 | 0 |
+
+The historical 34 schedules map onto that campaign’s 17 when the omitted
+`CONSERVATIVE_UNKNOWN` recovery actions are removed. All 34 rows are accounted for;
+this is a structural projection, not 34 fresh executions or proof that the removed
+runtime actions were semantically irrelevant. Eight current schedules correspond to
+the old 19 `HARMFUL_FOR_RULE` rows: five have complete score 2 and three have a positive
+lower bound of 1 with partial coverage. Of the nine schedules corresponding to the old
+15 `NO_BROKEN_REFERENCE` rows, seven have complete score 0 and two are partial with
+lower bound 0. The old labels never enter scoring. A newer benchmark wrapper rejected
+this original provider-backed setup before execution; those 17 wrapper rejections are
+retained separately, and the ordinary executor supplied the 17 authoritative reports.
+No new independent application-rule observation is claimed.
+
+The broader sample was selected before observing outcomes: one setup-materializable
+single-participant workload per eligible Saga, plus four event-bearing shapes, each
+paired with no assigned fault and a final-slot fault. This is setup eligibility, not
+proof of argument runnability or a healthy control. Of 68 discovered Saga types, 42 had
+no eligible workload under this procedure (32 lack accepted inputs; 10 have inputs but
+no eligible setup/workload). No unsuccessful selection was silently replaced.
+
+Twenty-one pairs have two complete assessments; 17 also have a successful exact control.
+Three of those 17 show a positive fault result against zero: CreateQuestion leaves a new
+active Question (score 1), RemoveCourseExecution leaves its Course count reduced despite
+failed removal (score 1), and RemoveTournament leaves a deleted Quiz plus its surviving
+Tournament dependency (score 2). The other 14 qualified pairs are zero/zero under the
+implemented checks. Complete scores across all 60 attempts are 39 zeros, seven ones and
+one two; four partial and nine invalid assessments have no complete score.
+
+The main measurement gap is a nested owned back-reference:
+`TournamentParticipant -> ParticipantAnswer -> TournamentParticipant`. Its mapping cycle
+makes residual assessment partial in the four broader cases and five benchmark cases.
+Six broader attempts cannot materialize UserDto/TopicDto arguments after successful
+setup; three event controls have no eligible subscriber for their selected route.
+No broader pair therefore extends successful event-delivery qualification beyond the
+focused fixture above. Four otherwise complete pairs also have unhealthy controls.
+In particular, both SolveQuiz controls already fail and leave a deleted QuizAnswer record
+that was absent at baseline; the corresponding fault attempts have the same score 1.
+The current lifecycle comparison counts that persistent remnant. It may be expected
+compensation storage rather than damaged usable data; it is not an injected-fault harm
+claim. Treating such deletion markers differently needs an explicit contract decision.
+
+Selection, reproducible scripts and validators live in
+`verifiers/experiments/impact-v2-broader/`. The campaign handoff and plain domain examples
+are in `issues/2026-09-06-impact-v2-broader-qualification/`; raw and aggregate reports are
+under `verifiers/target/impact-v2-broader/run-01/`. This sample does not qualify every
+input, fault slot, schedule, event route, Saga type or concurrent combination.
+
+An invariant exception can show that a local safeguard prevented a write, while earlier
+Saga effects remain persisted. Rejection count alone therefore establishes neither final
+harm nor successful recovery. The saved all-zero RemoveTournament/AddParticipant run
+makes this concrete: joining commits first, then Tournament deletion is rejected because
+participants remain. Its preceding Quiz-removal step has already completed. The saved
+report is PARTIAL_COMPENSATED / DEVIATED with one rejection; it does not include a full
+persisted final-state snapshot. The guard diagnosis is explained in the research
+RESULTS.md. All-zero means no assigned fault, not guaranteed application success.
+The experiment below assesses a different observation; it does not change ImpactV1.
+
+### Corrected semantic-state recovery qualification
+
+The corrected RemoveTournament/AddParticipant package contains **29 schedules across
+12 canonical fault vectors**. It restores implicit rollback of the Tournament status
+written by `getTournamentStep`, while the ordinary User read remains without a recovery
+checkpoint. All 29 ran in fresh Docker/JVM/H2 environments. The 23 schedules whose fault
+occurs after the Tournament status write report successful `IMPLICIT_SAGA_ROLLBACK` for
+that step; every corrected execution reaches a valid terminal outcome.
+
+A separate execution of the earlier `01001` plan stops with `PENDING_RUNTIME_RECOVERY`
+for `getTournamentStep`, incomplete conformance, and an invalid/null ImpactV2 assessment.
+This demonstrates the new completion guard independently of the generator fix.
+
+ImpactV2 gives 19 complete assessments (10 score 0, nine score 2) and 10 partial
+assessments (six with observed lower bound 1, four with lower bound 0). The partial cases
+retain the existing participant/answer persistent-mapping-cycle coverage gap. Recovery
+completeness and observation coverage remain separate. No impact category or scoring
+policy changed.
+
+A final static-only safeguard rejects custom and anonymous SagaCommand constructions
+as uncertain. Regeneration after that safeguard produced identical hashes for every
+package artifact, including the manifest; the runtime executor, simulator and Quizzes
+sources match the frozen build used for the 29 executions. The evidence and reproduction
+commands are in `issues/2026-09-06-semantic-lock-recovery/HANDOFF.md` and
+`verifiers/target/semantic-lock-recovery/`.
+
+### Owned-cycle coverage and control requalification
+
+The nested owned-backlink observer correction was rerun against all 29 corrected
+benchmark schedules. All assessments are now COMPLETE: **14 score 0 and 15 score 2**.
+The ten former partials resolve to four zeros and six twos. Every previously complete
+score is unchanged; execution outcomes, conformance and actual implicit rollback lists
+match the previous campaign, including all 23 Tournament-status rollbacks. This is an
+observation-coverage improvement, with no scoring-policy change.
+
+Source input qualification also repairs per-argument readiness and provides explicit
+test prerequisites for the retained broader control/fault pairs. The final selection
+has 60 COMPLETE assessments across 30 pairs, all with successful exact controls:
+52 scores of 0, seven of 1 and one of 2. One successful control scores 1: the selected
+QuizAnswer deletion route runs, while a separate eligible Quiz route is outside the
+schedule and the active Quiz still depends on the deleted offering. Complete assessment
+does not imply zero impact or that every unselected handler has run.
+
+Qualification retained 93 actual attempts: the 89-run main campaign plus two successive
+two-run repairs of the UpdateStudentName event prerequisite. The first repair supplied
+the wrong subscriber type for the persisted Tournament route. Both invalid controls are
+preserved; the final pair supplies an eligible Tournament and scores 0/0. The other 29
+broader pairs retain their first campaign evidence. The full evidence,
+declared input replacements and source-linked domain examples are owned by
+`issues/2026-09-06-impact-coverage-controls/HANDOFF.md` and `DOMAIN-CASES.md` in that
+directory. Campaign artifacts are under `verifiers/target/impact-coverage-controls/`.
+
+## Understanding impact through Quizzes
+
+### The application and ordinary user stories
+
+Quizzes is a teaching application with a question bank, quizzes, student attempts, and
+tournaments. These names describe different objects:
+
+| Object | Meaning in the application |
+| --- | --- |
+| Course and CourseExecution | A subject and one offering of it, with enrolled students |
+| Topic and Question | A question-bank category and a reusable question |
+| Quiz | A selection of questions, associated with a course offering and availability dates |
+| Tournament | A competition with a creator, topics, participants, dates, and a reference to its Quiz |
+| QuizAnswer | One student's attempt at a Quiz; starting creates it before any answer need be submitted |
+| QuestionAnswer | An individual answer within that attempt |
+
+A student enrolled in a course offering can create a Tournament by choosing topics,
+a number of questions, and dates. The application obtains questions, generates a Quiz,
+and then creates the Tournament referring to it. Joining adds a Tournament participant;
+it does not itself create a QuizAnswer. Solving a Tournament loads its Tournament and
+Quiz, starts a student attempt, and attaches that attempt to the participant.
+
+These actions span separate microservice objects. `CreateTournament` is a Saga: it
+performs several steps whose effects can persist before the whole request finishes.
+The Tournament needs the generated Quiz's returned identity, so the order is:
+
+```text
+Validate/load the course offering, creator and topics; obtain questions
+  -> generate and persist Quiz Q
+  -> create and persist Tournament T referring to Q
+  -> finish the Saga
+```
+
+The Quiz can therefore exist before the Tournament. If creation fails after generating
+the Quiz but before creating the Tournament, the registered compensation deletes the
+Quiz. Here deletion sets its latest lifecycle state to DELETED; older versions remain.
+Compensation is application recovery logic, not an automatic rollback of every earlier
+transaction or every other Saga's use of the data.
+
+There are two distinct start paths. The ordinary Tournament solve operation uses
+`SolveQuizFunctionalitySagas`, which loads the Tournament and associates the attempt with
+its participant. The experiment uses generic `StartQuizFunctionalitySagas`, passing a
+known Quiz ID directly from the creating Saga's result. It can cache a Quiz DTO and later
+create an attempt from it without loading a Tournament. **The experiment establishes
+this controlled workflow interaction, not ordinary UI discovery of an unfinished
+Tournament or its Quiz.**
+
+### The four controlled runs
+
+Each run starts in a fresh JVM/Spring/H2 context with the prerequisite course offering,
+students, topics, and questions. Runs 1, 2, and 4 create a new Quiz during measurement;
+run 3 starts with an existing Tournament and Quiz and no participants. Letters identify
+operations within a run: A creates or removes a Tournament, and B starts a Quiz attempt.
+
+**Run 1 — Compensation happens before the other operation reads.**
+
+1. A generates Quiz Q.
+2. An assigned fault fires before A's Tournament-creation step body.
+3. A compensates by deleting Q.
+4. B tries to load Q and fails because it is absent from the live lookup.
+
+Final observation: Q is deleted; no Tournament or student attempt was created.
+This control shows that the read detects the deletion when recovery precedes it.
+
+**Run 2 — The reader retains data across compensation.**
+
+1. A generates Quiz Q; the same fault prevents Tournament creation.
+2. Before A compensates, B reads Q and retains its returned DTO.
+3. A compensates by deleting Q.
+4. B continues from the cached data and successfully creates QuizAnswer R.
+
+Final observation: R is active and refers to an earlier version of deleted Q.
+The probe establishes the exact identity/version chain: Q version 18 was created,
+returned to B, and stored in R; Q's latest version 19 is deleted. The exact read version
+comes from a supplemental cached-DTO observation: existing raw access events identify
+an object access but do not supply its read version. Creating an attempt is
+not automatically harm. The unresolved question is whether this surviving attempt can
+legitimately function using that snapshot.
+
+**Run 3 — Partial removal leaves a reference without another operation.**
+
+1. Setup supplies existing Tournament T and its Quiz Q.
+2. A starts removing T and deletes Q first.
+3. An assigned fault fires before the Tournament-deletion step body.
+4. The available recovery releases the Tournament's semantic lock; it does not restore Q.
+
+Final observation: T remains active and refers to deleted Q. There is no B and no
+cross-operation read. A dirty-read detector cannot explain this execution because the
+remaining effect comes from one Saga's incomplete removal/recovery.
+
+**Run 4 — Intermediate visibility followed by successful completion.**
+
+1. A generates Quiz Q.
+2. B reads Q before A finishes.
+3. A creates Tournament T and finishes successfully.
+4. B creates QuizAnswer R and finishes successfully.
+
+Final observation: Q, T, and R are active. Intermediate visibility occurred, but the
+surviving-reference pattern is absent. Exposure alone contributes no harm under the
+agreed impact direction; this control does not prove every possible domain invariant.
+
+### Results and what they mean
+
+| Run | Read another unfinished Saga's newly created object? | Active objects retaining a reference to a target deleted during the run | Invariant rejections |
+| --- | ---: | --- | ---: |
+| 1. Compensation before read | No | None | 0 |
+| 2. Cached read survives compensation | Yes | One student attempt | 0 |
+| 3. Partial removal alone | No | One Tournament | 0 |
+| 4. Successful overlap | Yes | None | 0 |
+
+All measured event queues were empty at the end, and all observed Quiz, Tournament,
+and QuizAnswer semantic locks were released. A released lock says recovery no longer
+holds that lock; it does not certify consistency. Six executions covered these four
+runs plus repeats of runs 2 and 4, with identical normalized results for both repeats.
+
+The observer extracts two application relationships through typed getters:
+QuizAnswer→Quiz and Tournament→Quiz. The offline detector applies the same rule to both:
+**an active object retains a reference to a target observed becoming deleted during the
+attempt and still deleted at the observation horizon.** It counts distinct source
+objects, not repeated log events. Its classification has no Quizzes class names or
+case-specific verdicts; relationship extraction itself is not automatic or generic yet.
+
+| Evidence | What we can conclude | What remains unknown |
+| --- | --- | --- |
+| B read A's object before A finished | Intermediate exposure occurred | Whether it caused a harmful final effect |
+| An active object still refers to the deleted target | A reproducible final-state candidate exists | Whether a live target is required or a historical snapshot is legitimate |
+| Existing invariant checks rejected no writes | No rejection was observed at that boundary | Whether the settled state satisfies all domain requirements |
+| No candidates were detected | This pattern was absent in the observed slice | Whether other forms of damage exist |
+
+An intentionally historical reference also triggers the structural detector in a unit
+control. This is why `candidateAffectedObjectCount` is a measurement, while the research
+`impactScore` remains null. The current observation slice covers three object types;
+it is neither a whole-application scan nor a complete serializability comparison.
+Some existing Quizzes tests compare serial orders and interleavings, but the generic
+executor does not derive an impact verdict by comparing their final observations.
+
+### Behavioral follow-up and current impact matrix
+
+Six fresh application runs now compare three probes against healthy controls. Each
+captures the original final state first, then records the probe as a separate continuation.
+Independent probes use separate reproduced states. The original score and timeline do
+not incorporate probe activity.
+
+| Observation/probe | Affected state | Healthy control | Current interpretation |
+| --- | --- | --- | --- |
+| Active object retaining a reference to a deleted target | Present in the attempt and partial-removal examples | Absent | Structural candidate; live-required versus historical meaning unresolved |
+| Load the surviving Tournament | Succeeds | Succeeds | The Tournament remains retrievable |
+| Load Tournament, then fetch its returned Quiz ID | Quiz lookup fails: aggregate not found | Both reads succeed | Demonstrated read failure against a working control; domain harm undecided |
+| Submit an answer on the surviving attempt | Fails at getQuizAnswerStep | Same failure | Existing baseline defect; no discrimination of compensation's consequence |
+
+The user explicitly chose to record the read failure without declaring domain harm or
+adding an active-Tournament/retrievable-Quiz rule. This matrix contains observations and
+controls, not severity weights. Research impact scores remain null; production ImpactV1
+is unchanged.
+
+The Tournament Quiz probe is a sequence of two existing public facades, not the full
+SolveQuiz workflow. The two Tournament states have matching fixture structure and relative
+dates, with no participants; valid solve preconditions were not established. The answer
+pair uses the exact retained Quiz version and matching question/option/user inputs. Both
+fail because the workflow dereferences its attempt DTO before assigning it, so answer
+submission cannot currently answer the impact question. Application repairs are separate
+from this measurement.
+
+All six before snapshots match their recorded original final states. The observed
+Quiz/Tournament/QuizAnswer state slice, persisted answer contents, and latest observed
+Saga aggregate locks/versions remain unchanged by these probes; pending queues stay
+empty. This is bounded observation, not a whole-application correctness claim. Returned
+Tournament DTOs omit the Quiz version, so exact target-version evidence comes from the
+persisted relationship rather than the DTO.
+
+Detailed results and the earlier all-zero rejection diagnosis are in the experiment's
+RESULTS.md. [The roadmap](roadmap.md#impact-probes-are-a-methodological-option-not-an-adopted-score)
+keeps final-state checks, bounded continuations, and serial comparisons as alternatives.
+The user subsequently accepted potential-impact observations without bespoke prohibited-state
+rules. The update experiments below broaden the evidence beyond deleted-target references;
+read failures are still not automatically treated as domain harm.
+
+### Update experiments: propagation and compensation
+
+The user chose potential-impact observations without requiring a business-harm oracle,
+and asked to test update effects before integrating a broader score. A separate experiment
+under `verifiers/experiments/impact-updates/` compares four fresh JVM/Spring/H2 conditions:
+
+| Condition | Observed result | Meaning |
+| --- | --- | --- |
+| Current Question-to-Quiz update handler | Question 7 changes title/content; the same exact update event is delivered successfully twice to Quiz 10, whose embedded question remains unchanged | Reproduced application persistence defect and lack of receiver progress; no injected fault is needed |
+| Temporary build with the missing receiver save | First delivery persists the new text and event version; the same event is subsequently ineligible | Diagnostic repaired control, not a production application fix |
+| Current UpdateTournament compensation | Tournament 11 changes from two questions to three; an assigned fault stops updateQuizStep before its body; recovery restores the original count, dates and topics | Successful recovery of the observed update, despite a new aggregate version |
+| Temporary build with a no-op compensation body | Same forward update and assigned fault; recovery executes its checkpoint and releases the lock, but count three and the changed dates/topics remain | Controlled residual-update mutant; the Quiz still has its original two questions |
+
+The Question aggregate's new version and the later event publisher version differ: they
+are separate increments. The repaired embedded QuizQuestion stores the event version.
+Raw event-table rows are retained history, not a count of unprocessed work. The propagation
+horizon explicitly includes two selected-event attempts; the repaired second attempt is
+an expected ineligible replay, not an application failure. Unscoped scheduled polling is
+suppressed. No additional event-draining behavior is introduced into ScenarioExecutor.
+
+The observations cover declared persistent projections and identities, not every field
+in the application. The mutant changes only the compensation body in a copied build;
+its checkpoint can report execution without a restoring data write. The original and
+repaired Question consumer similarly can both return success, while only one persists
+progress. Therefore completion/exception counters alone do not distinguish these cases.
+
+These experiments motivated the three implemented ImpactV2 categories: deleted-target
+dependencies, failed-operation residuals, and unresolved delivered events. The ordinary
+executor now counts distinct affected aggregate identities with explicit attribution and
+coverage. These earlier hand-driven experiments remain separate from persisted-scenario
+qualification and do not establish coverage of all generated scenarios. The real baseline update defect must
+be distinguished from injected-fault effects before evaluating search.
+
+The experiment README and RESULTS.md own exact reproduction, selected projections,
+source/build hashes, validation and limitations. Reports are under
+`verifiers/target/impact-updates/`. Implementation sequencing and subsequent qualification are recorded in
+[the roadmap](roadmap.md#proposed-route-to-potential-impact-scoring-in-ordinary-execution).
+
+### Reproduce and inspect the experiment
+
+The research harness lives in `verifiers/experiments/impact-three-cases/`, outside
+production sources and normal generated FaultScenario execution. From the repository root:
+
+```sh
+docker compose run --rm --no-deps --pull never -T --entrypoint bash scenario-executor /verifiers/experiments/impact-three-cases/run.sh
+python3 verifiers/experiments/impact-three-cases/analyze.py verifiers/target/impact-three-cases/run-1/*.json --output verifiers/target/impact-three-cases/analysis-run-1.json
+python3 verifiers/experiments/impact-three-cases/analyze.py verifiers/target/impact-three-cases/run-2/*.json --output verifiers/target/impact-three-cases/analysis-run-2.json
+python3 -m unittest discover -s verifiers/experiments/impact-three-cases -p 'test_*.py' -v
+```
+
+Its README owns harness operation and observation details; RESULTS.md records the exact
+version chain, review and technical limitations. Reports and logs are under
+`verifiers/target/impact-three-cases/`: `run-1/`, `run-2/`, `analysis-run-1.json`,
+`analysis-run-2.json`, and `repeatability.json`. The original four-case validation is six successful
+harness runs and twelve detector tests. The separate behavior follow-up adds six paired
+probe runs; run `run-behavior-probes.sh` through the same Docker entrypoint to reproduce
+them under `verifiers/target/impact-behavior-probes/`. Raw IDs, dates and timings are not claimed
+byte-stable; repeatability concerns normalized findings. No LLM inference is part of
+this method, and no production impact behavior changed.
+
 ## Current evidence
 
-Evidence here was generated from the final current-only implementation through
-2026-09-03. Paths are workspace-relative and intentionally bounded.
+Each result below belongs to its named package, configuration, and execution scope.
+The latest single-input qualification supersedes earlier single-input candidate totals;
+older multi-Saga and event runs remain evidence only for their stated capabilities.
+Paths are workspace-relative. Local `target/` artifacts are reproducibility outputs,
+not a durable publication archive; preserve selected raw evidence before cleaning them.
+
+| Question | Representative evidence | Interpretation |
+| --- | --- | --- |
+| How many ordinary single inputs are static candidates? | 665/796; 88 gained, zero lost | Latest nested-binding package; not 665 successful executions |
+| Do the new nested bindings survive real execution? | Four fault-free Docker attempts: SUCCESS / EXACT | Exact course/question/topic identities and one target creation |
+| Can an event reach its intended receiver? | Delivery, masking, and absent-receiver controls | One source-derived QuizAnswer fixture, not generic receiver synthesis |
+| Has every latest candidate been preflighted? | No; older 402-workload scan plus seven targeted repairs | Not a full rerun on the latest package |
+| Do the impact controls differ? | Candidate objects 0/1/1/0; exposures 0/1/0/1 | Final-state candidates, not established domain harm |
+| What is the current verifier test result? | 763 tests, 48 suites, no failures/errors/skips | `verifiers/target/impact-v2-base/verifiers-full.log`; obsolete XML reports excluded |
 
 ### Equivalent Quizzes count-only analysis
 
@@ -572,55 +1128,199 @@ The corrected package under
 `verifiers/target/event-route-proof/quizzes-20260904-021015-239/` preserves exact fully
 qualified `eventHandlingClass` and handler identities. The reader restores those values
 and execution loads the exact classes rather than searching by method or simple name;
-route ordering and ids are unchanged. The same four event-reaching triple controls now
-pass route resolution and report `SELECTED_SUBSCRIBER_NOT_FOUND`. Their setup creates
-only CourseExecution and User state, while the selected routes require an existing
-QuizAnswer or Tournament subscriber. This is a separate event-expanded setup gap.
+route ordering and ids were unchanged in that repair. The four event-reaching triple
+controls reported `SELECTED_SUBSCRIBER_NOT_FOUND`; their setup creates only CourseExecution
+and User state. A later export correction (below) found that workload-local route indices
+could still point at the wrong catalogue consumer. These historical reports demonstrate
+missing subscriber state for the restored route, but do not establish the intended
+consumer identity. Regenerate before requalifying those exact triples.
 
-The latest all-single-Saga measurement contains 796 base input workloads. Of these, 559
-have source setup, one needs no setup, and 236 are blocked, up from 267 ready and 527
-blocked. The 236 remaining failures are three rejected setup plans, 175 partial
-setup-result bindings, and 58 inputs with no binding. The next input/setup improvement is
-therefore to connect values created by calls in the feature method before its target Saga
-call and to represent the few observed two-property result paths.
+Exact nested-property reconstruction and feature-prefix setup have bounded runtime
+proof in addition to the latest nested whole-result qualification below. Three FindQuiz
+inputs resolved `quiz.aggregateId` through their retained Tournament result and passed
+Docker preflight. Three feature-prefix inputs passed after reproducing earlier user
+creation, enrollment, or other source actions. StartQuiz and LeaveTournament prefixes
+also passed after explicit dispatcher registrations were added. These checks establish
+input reconstruction/startup, not replay of their complete source test methods.
 
-The complete preflight of this reduced package ran 402 candidate workloads in isolated
-workers. Every worker reported `SETUP_READY`; the combined report retains 395 as ready
-and changes seven to `FRESH_STATE_ISOLATION_FAILED`. Inspection shows those seven also
-completed their setup actions and started their participants. Their setup prepares
-application state but supplies no participant argument, and the parent validator
-currently rejects the empty binding list. The published result is therefore 395/402,
-with a confirmed aggregation false negative affecting seven state-only setups.
+The source fixes preserve pre-call DTO mutations and stop setup before the exact measured
+target occurrence. Earlier count-only stages are superseded by the latest ordinary
+single-input measurement below. Commands, selected IDs, and reports for these distinct
+runtime proofs remain in `issues/2026-09-04-complete-source-derived-setup/FINAL-HANDOFF.md`
+and `verifiers/target/astra-qualification/`.
+
+The complete preflight of the earlier package
+`event-route-proof/quizzes-20260904-021015-239` ran 402 candidate workloads in isolated
+workers. Its saved combined report retains 395 as ready and changes seven successful
+state-only setups to `FRESH_STATE_ISOLATION_FAILED` because the old parent rejected an
+empty binding list. The corrected parent was then exercised in Docker against exactly
+those seven persisted workloads: all seven returned `SETUP_READY`, with seven started
+participants, explicitly empty binding arrays, and unchanged package hashes. The bounded
+rerun took 109.23 seconds; evidence is under `verifiers/target/astra-qualification/`
+(`state-only-preflight.json`, log, selection file, and qualification-only driver).
+This is a seven-workload regression proof, not a fresh 402-workload or latest-package
+preflight. The historical full report remains 395/402.
+
+### Source-derived event receiver qualification
+
+The ordinary size-one package at
+`verifiers/target/astra-event-receiver/generated/quizzes-20260904-222711-381/`
+predates the latest nested participant extension. Its 944 written workloads include
+event/provider variants and are not the ordinary-input denominator. Its candidate totals
+are superseded by the nested-binding measurement below. All nine files match a
+second generation byte-for-byte and remained unchanged after Docker execution.
+
+The executable exporter now resolves selected event references against the authoritative
+Saga route catalogue, scoped by participant Saga, exact step/emission and consumer
+semantics. A workload selecting only the second consumer references `event#0-route#1`
+rather than incorrectly reusing `event#0`. Missing/ambiguous matches fail export; no
+record shape changes. Earlier exports affected by this projection must be regenerated.
+
+The Quizzes closed setup dispatcher now registers ten exact methods, adding `createQuiz`,
+`startQuiz`, and `addParticipant`. These covered every source-setup signature in that event qualification's package;
+method coverage alone does not establish setup or measured-action success.
+The earlier blocker partition, now superseded for the nested DTO cohort, is in
+`issues/2026-09-04-event-receiver-setup/DIAGNOSIS.md`. The existing ordinary
+`QuizAnswerEventHandlingTest#AnonymizeStudentEvent updates the student name in the quiz answer`
+already supplies an eight-action fixture creating a course execution, active enrolled
+student, question, quiz, and started quiz answer with shared identities. No descriptor,
+provider, manual package editing or cross-test fixture synthesis supplies this setup.
+
+Three fresh Docker executions of persisted scenarios proved:
+
+| Case | Result | Event evidence |
+| --- | --- | --- |
+| QuizAnswer route, vector `00` | `SUCCESS / EXACT` | One event delivered to QuizAnswer subscriber 7; publisher CourseExecution 2, selected student 3 |
+| Same route, vector `01` | `COMPENSATED / EXACT` | `MASKED_BY_TRIGGER_FAULT`; no delivery receipt |
+| Tournament route, vector `00`, same fixture | `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE` | `SELECTED_SUBSCRIBER_NOT_FOUND`; exact Tournament handler retained, no fallback to existing QuizAnswer |
+
+All three executed the source setup successfully, cleared one pending setup event and
+proved an empty event baseline before measurement. The two previously blocked StartQuiz
+and LeaveTournament prefix examples also passed isolated preflight in 29.76 seconds,
+clearing one and three pending events respectively. This is bounded setup/replay evidence,
+not full qualification of the latest candidates or a new harmful/zero-impact comparison.
+No ImpactV1 output was requested for this qualification.
+
+Evidence, selected persisted IDs, commands and independent review are in
+`issues/2026-09-04-event-receiver-setup/`; logs and reports are under
+`verifiers/target/astra-event-receiver/`. The latest full verifier result is recorded
+below. Five focused Quizzes tests passed: two dispatcher tests
+and three existing receiver-behavior features.
+
+### Nested participant setup-result qualification (2026-09-05)
+
+Participant binding now traverses existing constructor, assignment, collection and
+supported-transform recipes to retain whole results from exact earlier setup actions.
+For example, a QuestionDto can retain a previously created TopicDto in its set, and a
+QuizDto can retain a previously created QuestionDto in its list. A whole-result reference
+is authoritative; its historical construction recipe is not evaluated again. Missing,
+conflicting, mistyped or omitted producers fail closed instead of falling back to an
+unbound value. Identical traces of the same source occurrence remain deduplicated.
+
+When the measured target itself occurs in `setup()` or a supported setup helper, its
+setup plan stops before that exact target occurrence. Missing or ambiguous target
+occurrence metadata cannot fall back to replaying the complete fixture. Existing root
+property bindings remain supported; new nested scalar property-result collections,
+including the deferred Tournament patterns, remain outside this extension.
+
+The ordinary package under
+`verifiers/target/astra-nested-bindings/final-generated/quizzes-20260905-125205-380/`
+contains **665 of 796 static candidates: 664 source setup, one without setup, 131 blocked**.
+Independent input-ID comparison against the previous 577-candidate package finds
+**88 gained and zero lost: 85 CreateQuestion and three CreateQuiz inputs**. Intermediate
+measurements that included nested scalar property collections are superseded by this
+final scoped result. This is static candidacy, not 665 successful executions.
+
+Four fresh Docker executions selected unchanged persisted fault-free scenarios: the
+CreateQuiz inputs from StartQuizTest, StartQuizCompensationTest and
+QuizAnswerEventHandlingTest, plus the CreateQuestion input from StartQuizTest. All four
+returned `SUCCESS / EXACT`, successful source setup and an empty pending-event baseline.
+A qualification-only observer checked persisted course identities and exact nested
+question/topic identities against setup action results, and verified the target was
+created exactly once. No application-specific impact rule or runtime authorization was
+added for this proof.
+
+All nine package files were byte-identical on repeat generation and remained unchanged
+after Docker qualification. The full verifier test result and stale-report correction
+are recorded in [regression proof](#regression-proof).
+
+The exact issue and qualification evidence are in
+`issues/2026-09-04-nested-participant-setup-bindings/` and
+`verifiers/target/astra-nested-bindings/`.
+
+### Missing-input audit (2026-09-05)
+
+The latest nested-binding package still has 68 Sagas: 36 with accepted inputs and
+32 without. A read-only audit covered all 62 Groovy and six Java test files under
+`applications/quizzes/src/test`. None of these 32 Sagas has even a rejected row in that
+package's `inputs.jsonl`; the recorded input-policy/source-mode rejections therefore
+do not explain this cohort.
+
+| Finding | Sagas | Meaning and next useful action |
+| --- | ---: | --- |
+| No relevant direct invocation found in the inspected tests, after separating event routes | 19 | Includes AnswerQuestion and ConcludeQuiz. Select useful user behavior and establish a working application test before expecting the verifier to extract an input. This is not proof of no coverage outside the inspected scope. |
+| Indirect event-consumer path identified | 12 | Includes removing a user from an attempt and updating a Tournament participant's answer. Static event routing shows how these paths can be reached, not that a test executed them. Qualification needs the producing event and the exact receiver's state. |
+| Direct invocation exists but no extracted input | 1 | The synchronous UpdateQuestionTopics call appears inside the benchmark loop in UpdateQuestionTopicsAsyncTest. Its asynchronous counterpart has an accepted input. Diagnose the missing extraction before adding a heuristic; its exact root cause is not yet established. |
+
+These categories use event-route evidence first, then direct test calls, then absence
+of such calls. An event consumer can also lack a direct test call; the categories are
+an audit partition, not mutually exclusive concepts. The strongest extraction example
+is `UpdateQuestionTopicsAsyncTest.groovy` in the test package
+`pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/question`: it prepares
+`benchmarkTopicIds`, creates a fresh synchronous Question in the loop, and invokes
+`questionFunctionalities.updateQuestionTopics(syncQuestion.getAggregateId(), benchmarkTopicIds)`.
+
+The AnswerQuestion/ConcludeQuiz finding matters for impact research: the existing
+StartQuiz tests do not establish that submitting or concluding the created attempt
+works. The new paired answer probe independently exposed an application defect before
+it could distinguish compensated and healthy states. Fixing that path is separate
+application work, not an automatic verifier coverage gain.
+
+Audit inputs are the latest package under `verifiers/target/astra-nested-bindings/`
+and its `final-generation.log` event-bridge evidence. Accounting reports 886 analyzed
+inputs (796 accepted, 90 rejected); the raw input file also includes four additional
+provider/prerequisite entries for already covered Sagas. Those entries do not alter
+the 36/32 partition or the 665 static-candidate result. There is no dynamic observation
+artifact in this static package, so the audit makes no runtime-coverage claim.
 
 ### Bounded current dynamic smoke
 
-The same package was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The current input-map rerun is under `verifiers/target/input-map-fix/quizzes-source-package/`. It has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `exactInput`, 8 `shapeOnly`). Unique input evidence is 2 exact, 0 test-and-shape, 0 shape-only; its only workload remains `allInputsObservedInOneCommonTest`.
+The focused RemoveTournament/AddParticipant package described under bounded executable evidence was enriched by one host invocation of `DynamicEnrichmentOrchestrator` selecting only `RemoveTournamentAddParticipantRecoveryWindowExploratoryTest`. Maven ran five features with zero failures. The current input-map rerun is under `verifiers/target/input-map-fix/quizzes-source-package/`. It has 1,038 observations (188 step-started, 188 step-finished, 422 command-sent, 239 aggregate-accessed, one invariant violation) and 10 attribution groups (2 `exactInput`, 8 `shapeOnly`). Unique input evidence is 2 exact, 0 test-and-shape, 0 shape-only; its only workload remains `allInputsObservedInOneCommonTest`.
 
 Before the repair, the equivalent run produced 0 exact, 2 test-and-shape, and 8 shape-only groups because the verifier wrote `workloadPlanIds` while the simulator expected `scenarioPlanIds`. The simulator now reads `workloadPlanIds`; the raw event JSONL was removed after successful publication, while the input map, Maven log, test reports, and normalization diagnostics remain outside the package.
 
-Current executable-package role sizes are: accounting 22,015 bytes; Sagas 68 / 90,446; inputs 847 / 3,959,368; interactions 764 / 402,946; setups 1 / 9,643; workloads 1 / 1,050; FaultScenarios 14 / 3,792; requests 1 / 262; observations 1,038 / 725,795; attributions 10 / 8,991; manifest 1,226 bytes. Every declared SHA-256 matched, and the current reader revalidated all cross-file references after dynamic publication.
+That focused enriched package's role sizes are: accounting 22,015 bytes; Sagas 68 / 90,446; inputs 847 / 3,959,368; interactions 764 / 402,946; setups 1 / 9,643; workloads 1 / 1,050; FaultScenarios 14 / 3,792; requests 1 / 262; observations 1,038 / 725,795; attributions 10 / 8,991; manifest 1,226 bytes. Every declared SHA-256 matched, and the current reader revalidated all cross-file references after dynamic publication.
 
 ### Regression proof
 
-The final complete verifier suite passed 743 tests with zero failures, errors, or skips.
-Focused review covered tuple pruning and accounting equations, writer/reader round trips,
-exact event-route identity, route ordering, and execution without simple-name fallback.
-The fresh packages passed current-reader shape, SHA-256, identity, ordering, uniqueness,
-and reference validation.
+Local consolidation was validated in the primary checkout with JDK 21: **775 verifier
+tests**, **136 simulator tests**, and **17 focused Quizzes tests**, all passing without
+failures, errors or skips. Logs are in
+`verifiers/target/local-consolidation-validation/{verifiers,simulator,quizzes-focused}.log`.
+The complete verifier run includes the final dedicated event-receiver fixture; its
+nested-input cohort assertions now account for that fixture's additional Question and
+Quiz while checking their exact source provenance. The Quizzes run is a selected suite,
+not a claim that every application test was executed.
+
+Focused qualification covers exact producer identity and target exclusion, typed nested
+bindings, package determinism, route identity, state-only preflight, and real application
+setup/execution as described above. The Docker impact experiments are separate runtime
+evidence and are not added to either unit/regression-suite total.
 
 ## Current limitations
 
 - Thirty-two discovered Quizzes Sagas still lack accepted static inputs. This does not mean no tests exist; their invocation/value shapes remain unclassified or unsupported.
-- Event-expanded workload setup does not yet include state required only by the selected consumer. Four exact-route triple controls reach their chosen consumer but cannot find a QuizAnswer or Tournament subscriber.
-- The preflight parent validator incorrectly requires every source-derived setup to supply at least one participant argument. Seven state-only setups succeed in their workers but are reported as fresh-state isolation failures.
+- Event-expanded setup can prepare a receiver when the existing source fixture already contains it, as the qualified QuizAnswer example proves. It does not infer receiver-only state or compose independent test contexts. Earlier triple route exports need regeneration before exact-consumer requalification.
+- The seven state-only setups previously rejected by the preflight parent now pass a targeted Docker rerun. The old complete report and newer package generations still need to be distinguished; the targeted repair does not qualify every newer workload.
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
 - Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Setup translation now also handles the observed `Arrays.asList(...)`, bounded string concatenation, and `QuizDto` shapes. Other expressions remain blocked rather than being guessed.
 - Static setup candidacy is conservative prediction. The newly attached setups have full static validation, but broad runtime preflight has not yet been repeated for them.
+- The setup dispatcher admits only explicitly registered signatures. The known StartQuiz and LeaveTournament gaps are fixed and their bounded preflight passes; unregistered signatures still fail closed. The parent preserves validated expected failure reports from nonzero workers; crashes, absent or malformed reports and mismatched identities remain invalid attempts.
 - Repeated same-participant runtime step names are structurally rejected because current Saga/local runtime state is keyed by step name rather than occurrence id.
 - Segment compression preserves conflict-anchor order cases under extracted evidence; it does not prove every semantically distinct runtime interleaving is retained.
 - Dynamic enrichment remains local/Saga-focused. The fresh one-class smoke resolves 2 of 10 Saga-invocation groups exactly; the other 8 remain shape-only, and 933 observations still lack a uniquely resolved Saga and Saga-local step.
-- The generated Quizzes event-consequence pair provides one ImpactV1 1/0 discrimination. The automatic source-derived RemoveTournament–AddParticipant path proves one harmful/control pair without its descriptor/provider; the retained historical benchmark still provides the complete 34-row 19/15 landscape. ImpactV1 is zero for every Remove/Add row, so a broader impact contract remains undefined.
+- The historical generated Quizzes event-consequence pair provided one ImpactV1 1/0 discrimination; it needs current-package regeneration before new execution claims. The automatic source-derived RemoveTournament–AddParticipant path proves one harmful/control pair without its descriptor/provider; the retained historical benchmark still provides the complete 34-row 19/15 landscape. ImpactV1 was zero for every historical Remove/Add row. The implemented ImpactV2 contract now measures three generic evidence categories; the historical labels remain separate application-rule evidence.
 - Three refreshed benchmark controls demonstrate the explicitly marked zero-bit domain-fallback path; other fallback shapes remain unqualified.
 - Persistent-environment reset is the caller/orchestrator's responsibility.
 - On-demand mutation is process-local and filesystem-local. Covered publication failures roll back byte-for-byte, but network filesystems, multi-host coordination, and abrupt host/process death are not qualified.
@@ -632,11 +1332,20 @@ and reference validation.
 - Compensation faults, delay injection, non-binary impairments, or automatic recovery retry/backoff.
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
-- State-divergence, postcondition, or silent-compensation impact models beyond invariant-count ImpactV1.
+- A universal domain-correctness oracle, generic serial-comparison oracle, or automatic continuation-probe impact model. ImpactV2 already assesses its three bounded final-effect conditions.
 - Generic batch execution qualification, generic reset orchestration beyond fresh process workers, GA/local fault search, or scenario prioritization. The current benchmark command remains application-specific.
 
 ## Safe thesis framing
 
 Safe current claim:
 
-> The verifier deterministically extracts Saga, input, interaction, setup, workload, fault, and runtime-observation facts into one current package; derives static conflicts from semantic command roots; and uses positive input evidence for strict multi-Saga selection. Count-only measures setup candidacy without writing workload rows and prunes incompatible input tuples during construction. Fresh Quizzes evidence finds 76,913 selected workloads for Saga-set sizes 1–3: 57,293 have source setup, one needs no setup, and 19,619 are blocked. The executor preserves and resolves the exact selected event route, while current triple evidence exposes a remaining subscriber-setup gap. The implementation can preflight and replay selected Saga/local FaultScenarios and report ImpactV1, but broad runtime validation and a useful search objective remain future work.
+> The verifier derives deterministic fault experiments from Saga application source and
+> tests, reconstructs supported prerequisite state, and replays selected persisted
+> scenarios in an isolated Saga/local runtime. Its ImpactV2 assessment reports three
+> application-independent potential-impact conditions using supported persistent state,
+> write attribution and event evidence, with explicit observation coverage. The latest
+> Quizzes qualification covers 29 benchmark schedules and 30 broader control/fault pairs.
+> These results demonstrate the implemented conditions within that scope; they do not
+> establish severity, universal domain harm or coverage of every executable scenario.
+> Methodological interpretation with the advisor, broader claims where justified, and
+> automated search evaluation remain future work.

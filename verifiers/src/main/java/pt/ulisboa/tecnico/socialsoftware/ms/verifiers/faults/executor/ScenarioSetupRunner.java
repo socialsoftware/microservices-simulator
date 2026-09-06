@@ -254,8 +254,17 @@ final class ScenarioSetupRunner {
             }
             case ACTION_RESULT_PROPERTY -> {
                 SetupAction source = sourceAction(recipe, actionsById);
-                Method getter = exactGetter(loadType(source.declaredResultTypeFqn()), recipe.propertyName());
-                requireDeclaredCompatibility(box(getter.getReturnType()), expectedRaw, recipe.declaredTypeFqn());
+                Class<?> resultType = loadType(source.declaredResultTypeFqn());
+                for (String property : resultPropertySegments(recipe.propertyName())) {
+                    resultType = exactGetter(resultType, property).getReturnType();
+                    if ("quiz".equals(property) && !resultType.getName().endsWith("Dto")) {
+                        throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_PROPERTY", "quiz must return a declared DTO type");
+                    }
+                }
+                if ("quiz.aggregateId".equals(recipe.propertyName())) {
+                    requireDeclaredCompatibility(box(resultType), Integer.class, null);
+                }
+                requireDeclaredCompatibility(box(resultType), expectedRaw, recipe.declaredTypeFqn());
             }
             case CONSTRUCTOR -> {
                 Class<?> target = loadType(recipe.targetTypeFqn());
@@ -318,8 +327,13 @@ final class ScenarioSetupRunner {
             }
             case ACTION_RESULT_PROPERTY -> {
                 RetainedResult result = retainedResult(recipe.actionId(), retained);
-                Object value = exactGetter(result.value().getClass(), recipe.propertyName())
-                        .invoke(result.value());
+                Object value = result.value();
+                for (String property : resultPropertySegments(recipe.propertyName())) {
+                    if (value == null) {
+                        throw new SetupFailure("SETUP_NULL_RESULT_PROPERTY", recipe.propertyName());
+                    }
+                    value = exactGetter(value.getClass(), property).invoke(value);
+                }
                 yield new MaterializedValue(value, recipe.actionId(), recipe.propertyName(), result.resultId());
             }
             case CONSTRUCTOR -> {
@@ -428,6 +442,12 @@ final class ScenarioSetupRunner {
             throw new SetupFailure("UNSUPPORTED_SETUP_CONSTRUCTOR",
                     type.getName() + " has no public no-argument constructor");
         }
+    }
+
+    private List<String> resultPropertySegments(String property) {
+        if ("quiz.aggregateId".equals(property)) return List.of("quiz", "aggregateId");
+        if ("aggregateId".equals(property) || "courseAggregateId".equals(property)) return List.of(property);
+        throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_PROPERTY", String.valueOf(property));
     }
 
     private Method exactGetter(Class<?> type, String property) {

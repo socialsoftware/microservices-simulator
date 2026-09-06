@@ -9,6 +9,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException;
@@ -17,6 +19,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryExc
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowStepRecoveryResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver;
+import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
@@ -54,6 +62,8 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
     private CommandGateway commandGateway;
     @Autowired
     private Environment environment;
+    @Autowired
+    private PersistentStateObserver persistentStateObserver;
 
     public SagaUnitOfWork createUnitOfWork(String functionalityName) {
         return new SagaUnitOfWork(versionService.getNextVersionNumber(), functionalityName);
@@ -249,10 +259,11 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         }
         aggregate.setVersion(commitVersion);
         aggregate.setCreationTs(DateHandler.now());
-        entityManager.merge(aggregate);
+        Aggregate managedAggregate = entityManager.merge(aggregate);
 
         unitOfWork.setVersion(commitVersion);
         recordAggregateAccess("WRITE", aggregate, unitOfWork, "SagaUnitOfWorkService.registerChanged");
+        registerCommittedWriteObservation(managedAggregate, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -284,6 +295,66 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                     e.getMessage(),
                     e);
         }
+    }
+
+    private void registerCommittedWriteObservation(Aggregate aggregate, SagaUnitOfWork unitOfWork) {
+        if (!ImpactEvidenceObserverHolder.isEnabled()) return;
+        var observer = ImpactEvidenceObserverHolder.current();
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            ImpactEvidenceObserverHolder.coverageGap(observer, new ImpactEvidence.CoverageGap(
+                    "WRITE", aggregate == null ? null : String.valueOf(aggregate.getAggregateId()),
+                    "TRANSACTION_CONFIRMATION_UNAVAILABLE",
+                    "write hook ran without active transaction synchronization"));
+            return;
+        }
+        try {
+            ImpactEvidence.AggregateIdentity identity = persistentStateObserver.identityOf(aggregate);
+            Long version = aggregate == null ? null : aggregate.getVersion();
+            ImpactEvidence.Writer writer = currentWriter(unitOfWork);
+            TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronization() {
+                @Override public void afterCommit() {
+                    try {
+                        ImpactEvidence.Projection projection =
+                                persistentStateObserver.snapshotVersion(identity, version, "WRITE");
+                        projection.gaps().forEach(gap -> ImpactEvidenceObserverHolder.coverageGap(observer, gap));
+                        if (projection.snapshot() != null) {
+                            ImpactEvidenceObserverHolder.committedWrite(observer, projection.snapshot(), writer);
+                            return;
+                        }
+                        if (projection.gaps().isEmpty()) {
+                            ImpactEvidenceObserverHolder.coverageGap(observer, new ImpactEvidence.CoverageGap(
+                                    "WRITE", String.valueOf(identity), "WRITE_RELOAD_FAILED",
+                                    "committed aggregate revision could not be reloaded"));
+                        }
+                    } catch (RuntimeException failure) {
+                        ImpactEvidenceObserverHolder.coverageGap(observer, new ImpactEvidence.CoverageGap(
+                                "WRITE", String.valueOf(identity), "WRITE_RELOAD_FAILED",
+                                failure.getClass().getName() + ": " + failure.getMessage()));
+                    }
+                }
+            });
+        } catch (RuntimeException failure) {
+            ImpactEvidence.CoverageGap gap = new ImpactEvidence.CoverageGap(
+                    "WRITE", aggregate == null ? null : String.valueOf(aggregate.getAggregateId()),
+                    "WRITE_OBSERVATION_FAILED", failure.getClass().getName() + ": " + failure.getMessage());
+            ImpactEvidenceObserverHolder.coverageGap(observer, gap);
+        }
+    }
+
+    private ImpactEvidence.Writer currentWriter(SagaUnitOfWork unitOfWork) {
+        return ImpactWriterContext.current().orElseGet(() -> {
+            var boundary = FaultVectorProviderHolder.currentBoundary().orElse(null);
+            var step = DynamicEvidenceContext.current().orElse(null);
+            String functionality = step != null ? step.functionalityName()
+                    : unitOfWork == null ? null : unitOfWork.getFunctionalityName();
+            String stepName = step == null ? null : step.stepName();
+            if (boundary != null) {
+                return new ImpactEvidence.Writer("SAGA", boundary.scenarioExecutionId(), boundary.scenarioPlanId(),
+                        boundary.sagaInstanceId(), null, "FORWARD", functionality,
+                        boundary.runtimeStepName(), null);
+            }
+            return ImpactEvidence.Writer.unknown(functionality, stepName);
+        });
     }
 
     @Override

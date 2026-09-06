@@ -4,6 +4,8 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.transaction.support.TransactionSynchronization;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorBoundaryContext;
@@ -13,6 +15,11 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceEv
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNoopRecorder;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorder;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserver;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService;
@@ -259,6 +266,174 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         assertThat(recorder.events).isEmpty();
     }
 
+    @Test
+    void registerChangedPublishesImmutableWriteOnlyAfterCommit() {
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(121L);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        TestAggregate aggregate = new TestAggregate(2, "SagaExecution");
+        when(entityManager.merge(aggregate)).thenReturn(aggregate);
+        ImpactEvidence.AggregateIdentity identity = new ImpactEvidence.AggregateIdentity("SagaExecution", 2);
+        ImpactEvidence.AggregateSnapshot snapshot = new ImpactEvidence.AggregateSnapshot(
+                identity, 121L, "ACTIVE",
+                TestAggregate.class.getName(), java.util.Map.of("label", "saved"), List.of());
+        when(stateObserver.identityOf(aggregate)).thenReturn(identity);
+        when(stateObserver.snapshotVersion(identity, 121L, "WRITE"))
+                .thenReturn(new ImpactEvidence.Projection(snapshot, List.of()));
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        ReflectionTestUtils.setField(service, "persistentStateObserver", stateObserver);
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer)) {
+            service.registerChanged(aggregate, new SagaUnitOfWork(90L, "write"));
+            assertThat(observer.writes).isEmpty();
+            verify(stateObserver, never()).snapshotVersion(identity, 121L, "WRITE");
+            List<TransactionSynchronization> callbacks = TransactionSynchronizationManager.getSynchronizations();
+            assertThat(callbacks).hasSize(1);
+            callbacks.forEach(TransactionSynchronization::afterCommit);
+            assertThat(observer.writes).containsExactly(snapshot);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void committedRevisionReloadFailureProducesGapWithoutFalseWrite() {
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(125L);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        TestAggregate aggregate = new TestAggregate(7, "Committed");
+        when(entityManager.merge(aggregate)).thenReturn(aggregate);
+        ImpactEvidence.AggregateIdentity identity = new ImpactEvidence.AggregateIdentity("Committed", 7);
+        when(stateObserver.identityOf(aggregate)).thenReturn(identity);
+        when(stateObserver.snapshotVersion(identity, 125L, "WRITE"))
+                .thenThrow(new IllegalStateException("database unavailable"));
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        ReflectionTestUtils.setField(service, "persistentStateObserver", stateObserver);
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer)) {
+            service.registerChanged(aggregate, new SagaUnitOfWork(90L, "write"));
+            assertThatCode(() -> TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit)).doesNotThrowAnyException();
+            assertThat(observer.writes).isEmpty();
+            assertThat(observer.gaps).extracting(ImpactEvidence.CoverageGap::reason)
+                    .containsExactly("WRITE_RELOAD_FAILED");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void registerChangedDoesNotPublishWriteWhenTransactionRollsBack() {
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(122L);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        TestAggregate aggregate = new TestAggregate(3, "SagaExecution");
+        when(entityManager.merge(aggregate)).thenReturn(aggregate);
+        ImpactEvidence.AggregateIdentity identity = new ImpactEvidence.AggregateIdentity("SagaExecution", 3);
+        ImpactEvidence.AggregateSnapshot snapshot = new ImpactEvidence.AggregateSnapshot(
+                new ImpactEvidence.AggregateIdentity("SagaExecution", 3), 122L, "ACTIVE",
+                TestAggregate.class.getName(), java.util.Map.of(), List.of());
+        when(stateObserver.identityOf(aggregate)).thenReturn(identity);
+        when(stateObserver.snapshotVersion(identity, 122L, "WRITE"))
+                .thenReturn(new ImpactEvidence.Projection(snapshot, List.of()));
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        ReflectionTestUtils.setField(service, "persistentStateObserver", stateObserver);
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer)) {
+            service.registerChanged(aggregate, new SagaUnitOfWork(90L, "write"));
+            TransactionSynchronizationManager.getSynchronizations().forEach(callback ->
+                    callback.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK));
+            assertThat(observer.writes).isEmpty();
+            verify(stateObserver, never()).snapshotVersion(identity, 122L, "WRITE");
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void rejectedWriteNeverRegistersDurableImpactEvidence() {
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(123L);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        SimulatorException failure = new SimulatorException("rejected");
+        FailingAggregate aggregate = new FailingAggregate(5, "Rejected", failure);
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        ReflectionTestUtils.setField(service, "persistentStateObserver", stateObserver);
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+
+        TransactionSynchronizationManager.initSynchronization();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer)) {
+            assertThat(catchThrowable(() -> service.registerChanged(
+                    aggregate, new SagaUnitOfWork(90L, "write")))).isSameAs(failure);
+            assertThat(TransactionSynchronizationManager.getSynchronizations()).isEmpty();
+            assertThat(observer.writes).isEmpty();
+            verify(stateObserver, never()).identityOf(aggregate);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void observerCallbackFailureIsContainedAfterDurableCommit() {
+        EntityManager entityManager = mock(EntityManager.class);
+        IVersionService versionService = mock(IVersionService.class);
+        when(versionService.incrementAndGetVersionNumber()).thenReturn(124L);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        TestAggregate aggregate = new TestAggregate(6, "Committed");
+        when(entityManager.merge(aggregate)).thenReturn(aggregate);
+        ImpactEvidence.AggregateIdentity identity = new ImpactEvidence.AggregateIdentity("Committed", 6);
+        ImpactEvidence.AggregateSnapshot snapshot = new ImpactEvidence.AggregateSnapshot(
+                new ImpactEvidence.AggregateIdentity("Committed", 6), 124L, "ACTIVE",
+                TestAggregate.class.getName(), java.util.Map.of(), List.of());
+        when(stateObserver.identityOf(aggregate)).thenReturn(identity);
+        when(stateObserver.snapshotVersion(identity, 124L, "WRITE"))
+                .thenReturn(new ImpactEvidence.Projection(snapshot, List.of()));
+        SagaUnitOfWorkService service = serviceWith(mock(SagaAggregateRepository.class), entityManager, versionService);
+        ReflectionTestUtils.setField(service, "persistentStateObserver", stateObserver);
+        ImpactEvidenceObserver observer = new RecordingImpactObserver() {
+            @Override public void committedWrite(ImpactEvidence.AggregateSnapshot value, ImpactEvidence.Writer writer) {
+                throw new RuntimeException("observer failed");
+            }
+        };
+
+        TransactionSynchronizationManager.initSynchronization();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer)) {
+            service.registerChanged(aggregate, new SagaUnitOfWork(90L, "write"));
+            assertThatCode(() -> TransactionSynchronizationManager.getSynchronizations()
+                    .forEach(TransactionSynchronization::afterCommit)).doesNotThrowAnyException();
+            verify(entityManager).merge(aggregate);
+        } finally {
+            TransactionSynchronizationManager.clearSynchronization();
+        }
+    }
+
+    @Test
+    void writerContextScopesDoNotLeakAcrossActions() {
+        ImpactEvidence.Writer outer = new ImpactEvidence.Writer("SAGA", "a", "w", "s", "one",
+                "FORWARD", "F", "first", null);
+        ImpactEvidence.Writer inner = new ImpactEvidence.Writer("EVENT_CONSUMER", "a", "w", "s", "event",
+                "EVENT", "H", "handle", 7);
+
+        try (ImpactWriterContext.Scope ignored = ImpactWriterContext.enter(outer)) {
+            assertThat(ImpactWriterContext.current()).contains(outer);
+            try (ImpactWriterContext.Scope nested = ImpactWriterContext.enter(inner)) {
+                assertThat(ImpactWriterContext.current()).contains(inner);
+            }
+            assertThat(ImpactWriterContext.current()).contains(outer);
+        }
+        assertThat(ImpactWriterContext.current()).isEmpty();
+    }
+
     private SagaUnitOfWorkService serviceWith(SagaAggregateRepository repository,
                                               EntityManager entityManager,
                                               IVersionService versionService) {
@@ -351,5 +526,15 @@ class SagaUnitOfWorkServiceDynamicEvidenceTest {
         public void close() {
             // no-op for tests
         }
+    }
+
+    private static class RecordingImpactObserver implements ImpactEvidenceObserver {
+        private final List<ImpactEvidence.AggregateSnapshot> writes = new CopyOnWriteArrayList<>();
+        private final List<ImpactEvidence.CoverageGap> gaps = new CopyOnWriteArrayList<>();
+        @Override public void committedWrite(ImpactEvidence.AggregateSnapshot aggregate, ImpactEvidence.Writer writer) {
+            writes.add(aggregate);
+        }
+        @Override public void eventDelivery(ImpactEvidence.EventDelivery delivery) { }
+        @Override public void coverageGap(ImpactEvidence.CoverageGap gap) { gaps.add(gap); }
     }
 }

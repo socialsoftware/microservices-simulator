@@ -25,6 +25,8 @@ theme:
     - search.suggest
 nav:
   - Start: README.md
+  - Reunião de orientação: reunioes/2026-09-08.md
+  - Meeting evidence: evidence/impact-2026-09-06/README.md
   - Current State: current-state.md
   - Roadmap: roadmap.md
   - Decisions:
@@ -32,8 +34,9 @@ nav:
       - Domain Service vs Coordination Facade: decisions/2026-04-06-domain-service-vs-coordination-facade.md
       - Static Package vs Dynamic Evidence: decisions/2026-04-28-hybrid-static-dynamic-key-binding.md
       - Conflict-Anchor Segment Compression: decisions/2026-06-16-conflict-anchor-segment-compression.md
-      - Compensation-Aware v3 Contract: decisions/2026-07-19-compensation-aware-fault-scenario-contract.md
+      - Compensation-Aware Fault Scenario Contract: decisions/2026-07-19-compensation-aware-fault-scenario-contract.md
       - Event-Consequence Replay Contract: decisions/2026-07-30-deterministic-event-consequence-replay.md
+      - Source-Derived Ordered Setup: decisions/2026-08-28-source-derived-ordered-setup.md
 plugins:
   - search
 markdown_extensions:

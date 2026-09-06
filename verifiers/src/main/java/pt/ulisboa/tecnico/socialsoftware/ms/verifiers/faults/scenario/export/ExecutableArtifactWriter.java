@@ -156,12 +156,13 @@ public final class ExecutableArtifactWriter {
                 generatedAt, requiredPackageInputs);
         Map<String, String> interactionIds = interactionIds(interactionFactsPath);
         Map<String, List<String>> sagaStepIds = sagaStepIds(sagaFactsPath);
+        Map<String, List<PersistedRoute>> sagaRoutes = sagaRoutes(sagaFactsPath);
 
         Map<String, String> setupIds = new LinkedHashMap<>();
         List<Map<String, Object>> setups = setupRecords(safeGeneration.workloadPlans(), setupIds);
         List<Map<String, Object>> workloads = safeGeneration.workloadPlans().stream()
                 .sorted(Comparator.comparing(WorkloadPlan::deterministicId, Comparator.nullsFirst(String::compareTo)))
-                .map(plan -> workloadRecord(plan, setupIds, interactionIds, sagaStepIds))
+                .map(plan -> workloadRecord(plan, setupIds, interactionIds, sagaStepIds, sagaRoutes))
                 .toList();
         List<Map<String, Object>> faults = safeGeneration.faultScenarios().stream()
                 .sorted(Comparator.comparing(FaultScenario::workloadPlanId, Comparator.nullsFirst(String::compareTo))
@@ -311,7 +312,8 @@ public final class ExecutableArtifactWriter {
 
     private Map<String, Object> workloadRecord(WorkloadPlan plan, Map<String, String> setupIds,
                                                Map<String, String> interactionIds,
-                                               Map<String, List<String>> sagaStepIds) {
+                                               Map<String, List<String>> sagaStepIds,
+                                               Map<String, List<PersistedRoute>> sagaRoutes) {
         LinkedHashMap<String, Object> record = new LinkedHashMap<>();
         record.put("id", plan.deterministicId());
         List<SagaInstance> participants = plan.participants();
@@ -358,7 +360,7 @@ public final class ExecutableArtifactWriter {
             LinkedHashMap<String, Object> value = new LinkedHashMap<>();
             value.put("id", id);
             value.put("kind", "event");
-            value.put("route", routeId(event, plan, localStepIds));
+            value.put("route", routeId(event, plan, localStepIds, sagaRoutes));
             value.put("triggeringStep", occurrenceIds.get(event.triggerScheduledStepId()));
             schedule.add(value);
         }
@@ -480,19 +482,59 @@ public final class ExecutableArtifactWriter {
         return id;
     }
 
-    private String routeId(EventConsequence event, WorkloadPlan plan,
-                           Map<String, String> localStepIds) {
-        String step = localStepIds.getOrDefault(event.triggerScheduledStepId(),
-                localStepId(event.triggerScheduledStepId()));
-        int ordinal = event.emissionSite() == null ? 0 : event.emissionSite().emissionOrdinal();
-        List<EventConsequence> sameOrigin = plan.eventConsequences().stream()
-                .filter(candidate -> Objects.equals(candidate.triggerScheduledStepId(), event.triggerScheduledStepId()))
-                .filter(candidate -> candidate.emissionSite() != null && candidate.emissionSite().emissionOrdinal() == ordinal)
-                .sorted(Comparator.comparing(EventConsequence::deterministicId, Comparator.nullsFirst(String::compareTo)))
-                .toList();
-        int routeIndex = Math.max(0, sameOrigin.indexOf(event));
-        return step + "/event#" + ordinal + (routeIndex == 0 ? "" : "-route#" + routeIndex);
+    private Map<String, List<PersistedRoute>> sagaRoutes(Path sagaFactsPath) throws IOException {
+        Map<String, List<PersistedRoute>> result = new LinkedHashMap<>();
+        for (String line : Files.readAllLines(sagaFactsPath, StandardCharsets.UTF_8)) {
+            if (line.isBlank()) continue;
+            JsonNode saga = MAPPER.readTree(line);
+            List<PersistedRoute> routes = new ArrayList<>();
+            saga.path("steps").forEach(step -> step.path("eventRoutes").forEach(route ->
+                    routes.add(new PersistedRoute(step.path("id").asText(), route))));
+            result.put(saga.path("fqn").asText(), List.copyOf(routes));
+        }
+        return Map.copyOf(result);
     }
+
+    private String routeId(EventConsequence event, WorkloadPlan plan,
+                           Map<String, String> localStepIds,
+                           Map<String, List<PersistedRoute>> sagaRoutes) {
+        ScheduledStep trigger = plan.forwardSchedule().stream()
+                .filter(step -> Objects.equals(step.deterministicId(), event.triggerScheduledStepId()))
+                .findFirst().orElseThrow(() -> new IllegalArgumentException("event has no exact trigger step"));
+        String saga = plan.participants().stream()
+                .filter(participant -> Objects.equals(participant.deterministicId(), trigger.sagaInstanceId()))
+                .map(SagaInstance::sagaFqn).findFirst().orElseThrow();
+        String step = localStepIds.get(event.triggerScheduledStepId());
+        if (event.emissionSite() == null || step == null) {
+            throw new IllegalArgumentException("event has no exact emission/step identity: " + event.deterministicId());
+        }
+        String origin = step + "/event#" + event.emissionSite().emissionOrdinal();
+        String eventName = event.eventTypeFqn() == null ? null
+                : event.eventTypeFqn().substring(event.eventTypeFqn().lastIndexOf('.') + 1);
+        // The static package owns route numbering. A workload often selects only one
+        // of several routes, so its own consequence index cannot identify that route.
+        List<String> matches = sagaRoutes.getOrDefault(saga, List.of()).stream()
+                .filter(route -> Objects.equals(route.stepId(), step))
+                .map(PersistedRoute::value)
+                .filter(route -> route.path("id").asText().equals(origin)
+                        || route.path("id").asText().startsWith(origin + "-route#"))
+                .filter(route -> Objects.equals(route.path("event").asText(null), eventName))
+                .filter(route -> Objects.equals(route.path("eventHandlingClass").asText(null), event.eventHandlingClassFqn()))
+                .filter(route -> Objects.equals(route.path("handler").asText(null), event.eventHandlerClassFqn()))
+                .filter(route -> Objects.equals(route.path("processingMethod").asText(null), event.eventHandlingMethodName()))
+                .filter(route -> Objects.equals(route.path("functionalityMethod").asText(null), event.facadeMethodName()))
+                .filter(route -> Objects.equals(route.path("downstreamSaga").asText(null), event.downstreamSagaFqn()))
+                .map(route -> route.path("id").asText())
+                .toList();
+        if (matches.size() != 1) {
+            throw new IllegalArgumentException("event " + event.deterministicId()
+                    + " has no unique exact Saga route in " + saga + "::" + origin
+                    + " (matches=" + matches.size() + ")");
+        }
+        return matches.getFirst();
+    }
+
+    private record PersistedRoute(String stepId, JsonNode value) {}
 
     private String runtimeName(String stepId) {
         if (stepId == null) return "step";

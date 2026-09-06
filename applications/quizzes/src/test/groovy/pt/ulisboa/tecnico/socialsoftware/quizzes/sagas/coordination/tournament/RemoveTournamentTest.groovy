@@ -63,6 +63,14 @@ class RemoveTournamentTest extends QuizzesSpockTest {
 
     def cleanup() {}
 
+    def "find the tournament quiz by its created identity"() {
+        when:
+        def quiz = quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)
+
+        then:
+        quiz.aggregateId == tournamentDto.quiz.aggregateId
+    }
+
     def "remove tournament successfully"() {
         given: 'tournament is deleted'
         tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)

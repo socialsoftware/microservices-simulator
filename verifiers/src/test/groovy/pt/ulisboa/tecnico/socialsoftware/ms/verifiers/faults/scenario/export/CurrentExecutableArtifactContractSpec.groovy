@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export
 import com.fasterxml.jackson.databind.JsonNode
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.databind.node.ObjectNode
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGenerator
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.WorkloadPlan
 import spock.lang.Specification
@@ -69,6 +70,46 @@ class CurrentExecutableArtifactContractSpec extends Specification {
 
         then:
         thrown(IllegalArgumentException)
+    }
+
+    def 'source setup bindings do not poison an independent constructor argument after package reading'() {
+        given:
+        def fixture = materializeFixture('initial-catalog')
+        mutateRole(fixture, 'inputs') { inputs ->
+            def input = inputs.find { it.path('id').asText() == 'input-1' }
+            input.put('materializable', false)
+            input.set('blockers', mapper.valueToTree([[
+                    argument: 0,
+                    reason: 'setupBoundResult',
+                    sourceExpression: 'created.aggregateId'
+            ]]))
+            input.path('arguments').first().set('value', mapper.createObjectNode()
+                    .put('kind', 'unresolved').put('reason', 'setupBoundResult'))
+            input.path('arguments').add(mapper.valueToTree([
+                    index: 1,
+                    expectedType: 'java.beans.FeatureDescriptor',
+                    sourceExpression: 'dto <- new FeatureDescriptor()',
+                    value: [
+                            kind: 'constructor',
+                            targetType: 'java.beans.FeatureDescriptor',
+                            fields: [name: [kind: 'literal', value: 'source-backed-name']]
+                    ]
+            ]))
+        }
+
+        when:
+        def contents = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+        def workload = contents.workloadPlans().find { it.deterministicId() == 'workload-1' }
+        def input = workload.acceptedInputs().find { it.deterministicId() == 'input-1' }
+        def dtoReadiness = new ScenarioExecutorReadinessEvaluator().evaluate(input.inputRecipe().arguments()[1])
+
+        then:
+        !input.inputRecipe().executorReady()
+        !input.inputRecipe().arguments()[0].executorReady()
+        input.inputRecipe().arguments()[1].executorReady()
+        input.inputRecipe().arguments()[1].recipe().assignments()*.propertyName() == ['name']
+        dtoReadiness.materializable()
+        dtoReadiness.blockers().isEmpty()
     }
 
     def 'ordinary package consumption is current-only and rejects historical manifests'() {

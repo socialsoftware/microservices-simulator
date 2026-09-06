@@ -1,0 +1,2340 @@
+{
+  "package": "verifiers/target/astra-event-receiver/generated/quizzes-20260904-222711-381",
+  "acceptedBaseInputs": 796,
+  "withSourceSetup": 576,
+  "needsNoSetup": 1,
+  "blocked": 219,
+  "sourceSetupMethodCoverageBefore": 551,
+  "sourceSetupMethodCoverageAfter": 576,
+  "uniqueSourceSetups": 475,
+  "blockedBySaga": {
+    "AddParticipant": 3,
+    "AddParticipantAsync": 2,
+    "AddStudent": 3,
+    "AnonymizeUserTournament": 13,
+    "CreateCourseExecution": 1,
+    "CreateQuestion": 85,
+    "CreateQuiz": 3,
+    "CreateTopic": 3,
+    "CreateTournament": 39,
+    "CreateTournamentAsync": 1,
+    "CreateUser": 1,
+    "DeleteUser": 2,
+    "FindQuiz": 15,
+    "RemoveQuizAnswer": 2,
+    "RemoveTournament": 6,
+    "RemoveUserFromCourseExecution": 1,
+    "UpdateQuestionTopicsAsync": 1,
+    "UpdateTournament": 28,
+    "UpdateUserName": 9,
+    "UpdateUserNameInQuizAnswer": 1
+  },
+  "blockedInputs": [
+    {
+      "workloadId": "01ad0e8bdff4a754620b882860a9d0617c9addffd134d81341d3538327cb4715",
+      "inputId": "a196ed593fa3f127c4fd460f8bb26e090d013608822bc2c3ab03976e5b07c8d9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.RemoveTournamentAddParticipantRecoveryWindowExploratoryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "02fa04c6a90d851a899ab01a7999c33cdd3effa39311a41ccd9fb2329d15e32a",
+      "inputId": "2fb00f3f730e8540a57b5f75d7aa7962a95d47584eeb9297ccff4e0d2926a06d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "0393ed79894e7f124e8dd9e2ba00aa21b8699baf7ab3be3e88c663d55605320a",
+      "inputId": "b455769839b79c7c61c7b0fb68ffb0506bb7dbd073454babf7df4eead8b87c22",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "control: successful CreateTournament followed by StartQuiz is safe",
+        "testRole": "featureUnderTest",
+        "call": "this.newCreateTournament()"
+      }
+    },
+    {
+      "workloadId": "054010374580fd90d241e5da412b73c429bbaac00bab1eb91e843e2ff29fcf5e",
+      "inputId": "c59db46f96fc01d965119f663c91b0cd138a1cc8c0a3a9c548cdaa4082e38cfc",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "concurrent: add(1); update; add(2); event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "05807a168c193938da5043ee06dbd31598d1afd9a7c00da5d3883161f397d450",
+      "inputId": "32928bbacddb08fe8844824a2de0c4f964a19bbb529df1a450e412453a647a31",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "05daf386df2190dae500b8496273ddaff1590cd92d125c57a757dd9a309fa1a2",
+      "inputId": "88342f4e5e9af64913b25e8de2fa1e7c3ca06e29c26c6d5811303647e2d0bdda",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "062a3de6e26b2e89ba532cac577f035a0310955d0e64303a81bac6597ddeccf3",
+      "inputId": "759e8a4d5227f26c44e12a55cbb964226563a2cb7d9cbe0811833ede371b99af",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "07a35c3a95973247f73073dace72b4a84287e241d8cadb874e658fac6ad642d1",
+      "inputId": "7e588c129f82519dde6dcc337708856698c41935dda0834c3a49b8af09015dd0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "0893b20d9e69c82a88c9eaf17757c1ada0c6397daac07d7a101f6062ff1869b0",
+      "inputId": "466adc921215e534097dd23ab3336e2a7432f6132990bca3bdf4e47ca6a849bf",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament aborts when trying to create the tournament and violates an invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "08d7b412418ca088d01a2391c70ad84042511d3139626bc4ebc2268be976d6d7",
+      "inputId": "68e6c755dcdd8597a047e6a91eb607292e9302dd381069ede5e336aa909c7d2f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "0a3e98edd56f536554a8897d094cb35c3c3c80fb24afc3c74f34155439d084c1",
+      "inputId": "cc3ac1489548225a4b3394b9a85f97bc173f0e148cdc688c9988dfda41d055e6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "sequential: update; remove",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topics)"
+      }
+    },
+    {
+      "workloadId": "0b36828343e251285ec11e286854691c2c0e76cdc606e56170461fa879366025",
+      "inputId": "78130f3d6e05c7c9ab4798a8292f548b63b5491a06ba96953a4ffe9840e1f52b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.DeleteUserFromCourseExecutionTest",
+        "method": "enroll student; deactivate and delete user; before event processing student is still in execution",
+        "testRole": "featureUnderTest",
+        "call": "userFunctionalities.deleteUser(userDto.getAggregateId())"
+      }
+    },
+    {
+      "workloadId": "0b425001e23dd5673768b0773a705c946c5ac6732db8b1e61f03210f7d1a2095",
+      "inputId": "b339d2f51573645ac2ab1630556a4aeb530d4583ec400b7c50111dee929da775",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; remove - updateQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "0b4d63a239a2a718a7c56bd5c1f91e977dab6648c85a47af70c0a1402202ea80",
+      "inputId": "c77c2d72aad866423c7ff3f91bfe95ce6ed94996b51f4309b0b21455fec3ee12",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.SolveQuizAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "0c023c0edcde74675f1fe1a389b169d759b2a886bd02b5e7e1a40a765d073b72",
+      "inputId": "9172b9374c0ec10f0d3306624c358bdbb95192d94f846e3185bb656f1f74a38e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "cannot add participant after tournament has started - ENROLL_UNTIL_START_TIME invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.addParticipant(startedTournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())"
+      }
+    },
+    {
+      "workloadId": "0c8e1c4f6f91b90bc8aef9910c7812227bc4e752b55bdc750352548419b1f85f",
+      "inputId": "458be50bce2263bebedf208916ea9efc6838e6d426c4883ba3e6e9dd75891d83",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.execution.CreateCourseExecutionAddStudentCompensationImpactExploratoryTest",
+        "method": "assigned final-step fault makes createCourseExecutionStep compensation violate REMOVE_NO_STUDENTS",
+        "testRole": "featureUnderTest",
+        "call": "this.newAddStudent(executionId)"
+      }
+    },
+    {
+      "workloadId": "0d7faf0f418b88570a243b3c947f2e05f3c9b7beb6c6f8986f6868ac58d9ff3d",
+      "inputId": "c1319b11a7bc599bf410aff8aef35bcbcf5e71c26d6231da876f89ac5ae21955",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; update - resume; event",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "0df3ce7fcac20982be22ed75457ea6ccf882a54d182afb427a563d6e00c4f371",
+      "inputId": "94fbbbef40b91978cf7e4a1b0412e49ae092d37055ee21b127f52d39df0fc5bb",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential - add creator: add; update; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "0e1ee2bf78924c40a508eba94c44cd83c0d2fe0f81769dd71a5b41d8a416099c",
+      "inputId": "77859672b8ae391bd89fab3e9349407c6c96101af9b58ee93e86ee70ab2a2e89",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "0e5388b9d104b5ca901d419d7102aa9fb2ae5609753f4c4916e31aec89d44e72",
+      "inputId": "ff1e07c18b13e181ef6765190e8b0d93cb333e10983dfc594a1875b292ab95d1",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "12023889ca2007e211bfbf40ec7bc0da016fb6cb20c253f01ba080067aae1bb9",
+      "inputId": "23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament successfully",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "12536e0e338d7e763f6953cfe9474a8786ab16033033ff4e77de025bf65d7167",
+      "inputId": "010e1d7074088643dd0a8ec5b40b8075dc9b366ece056e4075ac09d464626326",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizTest",
+        "method": "setup",
+        "testRole": "setup",
+        "call": "quizFunctionalities.createQuiz(courseExecutionDto.getAggregateId(), quizDtoInput)"
+      }
+    },
+    {
+      "workloadId": "12bf0a6d0b4a2d5d05f92a1c070c57004894913dd73b0d495445652bd36a545b",
+      "inputId": "5369d05d7e266fe2efe6b24f8b41b1a2051a4074f5cbe478df28d2951bf90887",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CancelTournamentTest",
+        "method": "cannot update tournament after it has been cancelled - IS_CANCELED invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, [] as Set)"
+      }
+    },
+    {
+      "workloadId": "12e5c6352ec0bcee98cc114d6e7f96c52db01ca277e55d8e657f79be6c559508",
+      "inputId": "bb1d28bb4e68beb7b9763c41e13fa339370a65a4b05842b2fc00b9d6dae237c6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; event; update - resume;",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult2.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "1398c9fc72d6867501e81e4fe9d3da85b5a8b09d722a9ed8bf0d4f0bd2eb5119",
+      "inputId": "df5ddb6614028d507eb7822bfeba23484e73dfa7f0c7248cf38474f9b94ca621",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizCompensationTest",
+        "method": "setup",
+        "testRole": "setup",
+        "call": "quizFunctionalities.createQuiz(courseExecutionDto.getAggregateId(), quizDtoInput)"
+      }
+    },
+    {
+      "workloadId": "145a1a45ee5c11cfdff8dfbc1afef8f11dbebfbbe6558096477a24afbbfc0257",
+      "inputId": "9d26a56fd8cc755f886aec07ea3c757e188ec2b9d1d4b7c9dbefd4ef122df438",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "15ef27120aad82116e2deecad19e9f405a88057685ef3cce8c2fd9884b7f7915",
+      "inputId": "ab046c87be6325a20f424bc2679c50dc33ad62c384229dad761139f1beafc2df",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CancelTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "16b08425e929a44e2444b97772d3fe2e4e2b09c9fc76843f3a890eed641f2334",
+      "inputId": "4e040323b1570eee08e0123c83d20876c628a9d21f97cac730f68172d201e857",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "16c9d75d7b8cde9c6987395d1f2a7f8c6df781080e9624a181cdb85393b23d74",
+      "inputId": "ed8b88b1ab8252550f1810f7ae160ec996408f0d430c01ea19dbc19880d0defd",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "17b7b67ee2e1c4bb43ad91764cd7a40c48b5867c9aeecec8679b3f56dc55d9df",
+      "inputId": "177d30700f04eb353bd6b26ce0c98916675708f609806ba0795d6f23d68e7a8d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "181005ec75b7fde1a027103594796cc57872e84b025e646da582fcf537e28455",
+      "inputId": "2dc727adee86ee8de4b46298e7a1a67f67fc83ef705ae45f8423bc83eb5c231b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.question.UpdateQuestionTopicsAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "189590f6519ff2d7e6d5b1cef6aa5a3daa54c548e2f162c722248d1b8bf58f8a",
+      "inputId": "098c8dd7dbb11980b61deb825796248be6f280f48b66514ef5747a1a08a8478a",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.HandleEventBehaviour",
+        "method": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "1a140a3e415d774b3c7f87388efde52d5ac96fe2da20cef72318314b0dc9a09e",
+      "inputId": "ca08deaf357f4209f2a0cc1ae8f9d3b2feec02ba75f1ce3ea6b8b99854809be8",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; event; update - resume;",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "1acb8c86549a2eef305545076626b5b54dc93081af0e9adec38862566b3bedb7",
+      "inputId": "48c8cd2173fb88b276630b23a363974fc9775e7e17c7621640bdb3e06b3baeb0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "1c15787fa6a883eb95fa53400b9b05ff7c483db48deed0eac42694fec88a9e8d",
+      "inputId": "34297f86daf0220d53e12a6dad2de2a661aff1023403a1e2e4a50b38e6d5125c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "1d924511b618dda3839bd96f955b148dfbe17565194b6f8a7d168d12318fa7ea",
+      "inputId": "61db3d0da5a834926fb8ead55070b0bf437df1e59700b3cdecf972ebff22024c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; event; update - resume;",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "1ef3d7ba0de7a8c6ed89c6dac75dfddab42b3953e13de55f8b1b482f7b21edd0",
+      "inputId": "01078dd0600cbcbbfc5532358e86e22c33feaaa8a96fcd86633183e66313048e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CancelTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "221c46e2c2378943ace4fd7b596ec082f2a7fb040a2e7cdc6961e1bb4e8b423b",
+      "inputId": "6a3a3dbabb2d234badc351d71273d3446c23b72257a95f1516ebdb12dc13aec0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "235ce100907ca2005ffe1223f8a7124728fd250c3db0cdc3844177bdcdde1a14",
+      "inputId": "cd11d553bc01fbc62be4ec81f061760287a3bfaec0d1b5616f61f75d23f471f2",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; event; update - resume;",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "23ca54a84d88b053d7829b13e155d1602cb5a5b2f52b2c42a5b54a4f1b573752",
+      "inputId": "b02d69661dc97ecd0cbf1976f7a82fb639d47ae7d04373c4db5cd469614ba4fc",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "244d88611200a9681751bfd128d6dee9f0128ec83e44a3ba9027af8a6fe96869",
+      "inputId": "f48de1038d0925d7b6c2767cf805829008f8eef683c66b420e99a8c615fb96fa",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "24d7be988647bf045e6e6a109aaf1d82d5163436098e51ecbdd2daa4514902e2",
+      "inputId": "be3125396650f26a76b5993a32f6db602f69578165e03978f939ba87865f83b5",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantAndRecoverTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "263892485177e645469b9b4e0d308c987e6a41082c1a998f7ed5fa65c1702be4",
+      "inputId": "7ac6c4a31c338d2610c301a1c8b3d4d89012c91b7f8fede5889a71c103a0a412",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createUser",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "userFunctionalities.createUser(userDto)"
+      }
+    },
+    {
+      "workloadId": "2a59fd953b2b8c0a5a38e25588ae9c13b4332d4fc07b5e189a391eb2491338ac",
+      "inputId": "0fd11b0960ad09bd31fa37793941f2a276581d0da3243a84372f2097869c5fb1",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizCompensationTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "2aead619f300f9aa42055be717155f28368e96cd6691a848fbf691736c8683d7",
+      "inputId": "0dfb761a4b70a70dfa887243087681284e70144bf253f5d28dc653d880a02ef2",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "2cb659322cc3b936042056be01166fdba6993307a4e5b4411a1ab5160c233c93",
+      "inputId": "341358a7a31f9391c2843a3b7e9e1047194ea6b4b6b6d2be457e05e10f43f94b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; update - resume; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "3121b7a11af91bb1922476a2070a061fb9d41c737a0999fc10bea08682f1bdf9",
+      "inputId": "afbdaba825b01725af1418c120269a2374750d896e0f770d938f47050d8d7b44",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.RemoveTournamentAddParticipantRecoveryWindowExploratoryTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "32d3133d7710928d16d6eb45c8f19d6940fec3f8b921dfbd7483ce6ec5462778",
+      "inputId": "5cd873752a366ae3e18a1297a907a61abb3d5bd314d84a30545a3c06cb118fa6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; remove - removeQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "351a939a0a9760be606588c3c12a41503d93f1c7b5a8b198070cbf8e4471c870",
+      "inputId": "26310dd8af0abfc65c8fc34c32da4feae46de0a1c25cc12e6d5ba62955a8dfd3",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentAsyncTest",
+        "method": "create tournament using async functionality",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournamentAsync(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto([startTime:DateHandler.toISOString(TIME_1), endTime:DateHandler.toISOString(TIME_3), numberOfQuestions:2]))"
+      }
+    },
+    {
+      "workloadId": "3547cb111d0096760857bb08a41c949a2291a0909e7cb8eec05842efc5a4fff0",
+      "inputId": "a7191c8130c3fbd4d8c94ab1233865550629753d5ad8b46f2587dd522cab513c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+        "method": "setup",
+        "testRole": "setup",
+        "call": "quizFunctionalities.createQuiz(courseExecutionDto.getAggregateId(), quizDtoInput)"
+      }
+    },
+    {
+      "workloadId": "3655db137ed8c9f8979160abcaa3fa2b6c39d4803afde9e2b42dac66e800f1ce",
+      "inputId": "e3416769c87de1774e9db22798599ad2260abb41a4194c20210e28358a018c28",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "36e2742762e0225cabe5eee8f30009cb264f5d6b02576b5edcec0d94295b9ff4",
+      "inputId": "af84d967dfd6dbae4d5c8d8518016d24651346712f562fe747b9ebefd9d86050",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "3b4d5c56a85ba0b12d189b1b6f7caeae8659b74c9bb9ef8211289cedc20bf4c9",
+      "inputId": "408afe13f9cb59145f06e4e7e1423bd1d1f95637c56f91c0d07630c33afe3d63",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "compare async vs sync implementation performance",
+        "testRole": "featureUnderTest",
+        "call": "new AddParticipantFunctionalitySagas(unitOfWorkService, syncTournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), syncUnitOfWork2, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "407f08aa0dc4327e7f162af4eec3d2151e0c18d943fca5ed6ba45a5e67776b0a",
+      "inputId": "d296d74b98ee8057276746749695d7911c96f4a5905c0f8dc39b8a4e8f68dfac",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "41546436dbee4db26e3fc5ee95f347477462404b3433e9ff1a0dbbb5666ef6fb",
+      "inputId": "2e317dda659cad3fb4cc3e95dd7af28eb11c74a04f0e86ccbb7cc10681b19a15",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "44760e206b3eb6aee8febd0cdfdd2082f2d3746a75b98bbd5577a9ebc2fc17b6",
+      "inputId": "a52090d5afcf93aa1404b665d29ac5ba8ce7ba837062130374f4c1533df05a28",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "460e8a171d6d25f500f16b59b464d1b4e7d9896a883c0d92fe482ef7dd59cee8",
+      "inputId": "eb1b58093207ff0d8046d3ba8b5c55382eaf268dfd45391d47ee59610de712a4",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createTournament",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "488d24505f16fc19faf2c8d1016c7829e03efc176072c1031e343eefee3e5344",
+      "inputId": "7701f26e0420fe805a20408fd27d8622270f983729fd0e56703629a94852bb7f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "4a8e74976056cb199159f0bdb632ba2e1f794663ed8a6ecaeafcd59c55f85382",
+      "inputId": "8e82afe2a80fea6ddd2658b91abb81c86a50671e742636fb1bc2ca9dbbf42076",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "4c3b1b37fcdae804c2c83a5a509838ce8f22c2d38733d133a07fc5091fffabc7",
+      "inputId": "dfefe2b2a128433e035b70f8bd8762c9db3495b306716f1f1bff1dcd6ff3ef0b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "concurrent update of tournament",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto2, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "4d40b7c304fbe35a47eeed369d06f739b6e10de3d99c49afce665b662a74a449",
+      "inputId": "7e82e7800a30e6a66d0135b3ac66ea32971af0752f08cc34467b21b552abd3c8",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament with zero numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "4d95d58dd1856a055b00703637872099407255dc44461a908a4090dc176ffcae",
+      "inputId": "7064591e360c2dd6583fae4251840e791ffe29abf6fd68e1c7548a9a8d6920ff",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.RemoveTournamentAddParticipantRecoveryWindowExploratoryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "4e641aa08e7f3ad8e719effec3d0de9e23a1b15b119d88f2b0c83b1b5acf1733",
+      "inputId": "ac7d2d58cb5879f8c06ced83113468e565056bd8f9373da0ce185e2b5c1bd96c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "setup",
+        "testRole": "setup",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, updateTournamentDto, topics, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "4f4555e210741de16c17d3248ddbc7a7b42c3e49b55a6eb8c5d8ea0f6cc3ab9d",
+      "inputId": "57efc5ea432bc60bfc4d69e199e82c3daf083e3ca2ab16ec3f33b4c90ec470e4",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "4f4f2998a9c69f5c13f3abca6200c64f9e8c899e1f188337f601482d225dcc60",
+      "inputId": "4d9751657fd31e9b01a49b3bf1f53c0d1a9a6cfe6b10a13bc5cc2dc3ff868973",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "4fbae642886cdf34ddd1fc19cb8c22317b6c77d13f5239de5c3e91fb11cf5cd4",
+      "inputId": "7db0a26855a1c53456546d85adde72ea8f50846afec2a2466a9e117f93fb6f50",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "531909f7d3e4b6e7ad5276392ca7698df058d241e43bbf096446425e11b20c06",
+      "inputId": "5f34d1d461756aca3d34cd9cd0a698a43c031fea3de40257579e7732ab0a12ec",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "create tournament with zero numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto([startTime:DateHandler.toISOString(TIME_1), endTime:DateHandler.toISOString(TIME_3), numberOfQuestions:0]))"
+      }
+    },
+    {
+      "workloadId": "5378d3409c1aa93f9ef6a03e61752031fad49e6a92c75462346ea60d14b6989e",
+      "inputId": "ae57c51fd11cc32d33afbc7f54eb884010a6f2790549a55ffd3fd5e588b53456",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: anonymize creator; update tournament; event",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "53c56318a3acb3b729a11ba19e5058721de974a5e9ade2620b953365b9d4c633",
+      "inputId": "c79a5c0d7f91c4062e46f7b8329111546e949f58c27d66064f943c62e9e740b6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "53dcf25b5cbf0e9f1d06f572d261b59869b58fd7e8acca7042bf02464cc65199",
+      "inputId": "845387cd7ac19a7fac7303425c6b0d95e8acf79a7e0dbb09d1089913a0e094c8",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentRecoveryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "56420c4ccc9363e11d30b76967c65958dd8481af39aebd9be99772a25fecf1c9",
+      "inputId": "272e0c37582200cf0f82a9b4c33a61329b9ba232db5fa78827748a97766a2ffd",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "571b937fe7cb975e5aa5833c2ca120c56cdfc749849832581b5f39d789db43a4",
+      "inputId": "816df7802375fc120043d118a9a8a77584e2ee99ba1a537f798911e130313e35",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "5765030e4860f40a8d506e2bc4135c86794e6589604ae6afcb97e79cd4034e35",
+      "inputId": "fb3aaf83c5ffaadc1f7a756cf348dc9e675781dcacbfaa2b82060d3059ec1b8d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "cannot update tournament after it has started - FINAL_AFTER_START invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "5835d2205d7f327f0e5bb27b21f4ce54ee8a48c86056079b5123ebba5ae26113",
+      "inputId": "7956c91e2c32ab247e238c4deb1b022a7eace0588ed3bb875d8c28ac9fd4669b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.HandleEventBehaviour",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "58fa1446eb362d8ffdc1b0854c748898a2c5aa50e324cb649659cfcc3864e4de",
+      "inputId": "3745d0650691a2ac162be6461a382c2347a425859784db53f728885ec37d2530",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "compare async vs sync implementation performance",
+        "testRole": "featureUnderTest",
+        "call": "new AddParticipantAsyncFunctionalitySagas(unitOfWorkService, asyncTournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto3.getAggregateId(), asyncUnitOfWork2, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "596af8b91bcf99982c86b093143db1880c4f0184ec49ac4366e7ae83a8ca834f",
+      "inputId": "e7eca8aeb11287ed1f71f9ccf7452e4537aa87401d5b0c3df2f2c7c0b88aa7a5",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "update tournament then add participant",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "59dd64f7c98234d0672ef8b7967f2e711814e269f2256351dd9706c36596b84a",
+      "inputId": "e5e06d3c9278d51870a0efa828057bdd8892450bb20dc5a6d04f576ef6ab6d55",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "5a51feb1a9ba00af6f16605a49459ad6c3639297dc52660560d8a89ec7717cf2",
+      "inputId": "e513e11d050a26c40407fa8e7a99ee8b21f2d222fbd08d50aefd0414076efe6a",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentCompensationTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "5b1ca454f89cedc4bb1bf9e774fdad34f557c4b0c0e84c58c305e282d99c81b1",
+      "inputId": "8d1b6ceac1a814481bf1fa154a2057d0c32d2337c76eb2e64c9fdaddeac8bb18",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; update - resume; event",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "5db926359c29ae41e0e945dd4f73bfd11b28c134ae686b51e692f52ce517f594",
+      "inputId": "e1a6b3533786f45bbe54e9e439131feb101bd161355fa2e83500c06fbc9733d0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "5dd01319f120f2f0a62ecd689fdf6e44656515138e05fedf78bb1a48fbbe00de",
+      "inputId": "02c28e6b26b64b7235d6809ce3393ac1874a1c3359cac13cf73b5f87a9d85114",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentRecoveryTest",
+        "method": "Check Quiz existence",
+        "testRole": "featureUnderTest",
+        "call": "new CreateTournamentFunctionalitySagas(unitOfWorkService, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "603c6ef5c320f97f0441bed773d39ad052b891f8d02d3b1281ccf9cdd72a47f4",
+      "inputId": "025de63ea31240d7f74f4a3043c32d81cd44604d19a4c547a1436a25f02f2b21",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.LeaveTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "605c624780d5619d987d9e5f3ebc6877d0e0a65d922981f1d7b06e83d26e3e70",
+      "inputId": "a6e7f7a0c81aa561f99f23c1ac193cec681d817374c855937bf279d81312b9c7",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createTopic",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto)"
+      }
+    },
+    {
+      "workloadId": "60cd997e769b4ab71cccfedc469eff16bc6e54b38ded12848c9a4100981773e1",
+      "inputId": "c009ac12ee22a8660eb45a6e0e94239530240c92cd44a6d9ca5655368e1a08d1",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: anonymize creator; event; update tournament",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "620d26d4ad549f6ef831ba294987aa53e4909d37e4e4f34f259883d701f49fdf",
+      "inputId": "4b06e52ceb17181bf777cf904fa86900358987fae33f3fdb65db3eb44aa57faf",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "6244020e97b8b66b07c83e67dddbc9fe8f348ed0181f5ff300e917928aa0f6df",
+      "inputId": "c0df6f076c2bfdd3b51f226673c442a96aff5313bd38934f0ae40e63a5715c4c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential: add; update",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "640ec799821c8f151f70a3b62c2e2fa8719d6c202be9dcf378762090348d864e",
+      "inputId": "d0625be79ad325f31a48f047affc77ed67ee803d478acb1b7be6c937b5c85fcf",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "split StartQuiz: cached Quiz survives deletion and StartQuiz resumes to create a dangling answer",
+        "testRole": "featureUnderTest",
+        "call": "this.newCreateTournament()"
+      }
+    },
+    {
+      "workloadId": "64e38ee77841a9853ae5652f058b5185b4a07c30e608808049cbe3ed75c01580",
+      "inputId": "487fb2a6ddf43c0e0e4a8b05cf51c0c2c5ea7980d00ac568ff966f51a29a8f4f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.StartQuizTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "661d8711ed2035a3fd60cf6cf84c90801faca0d7495cee005adbb31728780616",
+      "inputId": "742de6f6c06add737b57c8af7d3456876889d30d10fd5d5d1be6b5f8add4dced",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; remove - updateQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "6771a9b60ee7a547722546854d3e51879f1049e01516568270cdcd358d12c3f8",
+      "inputId": "9fa134e94e6646c3821f1519b221eb49cb595e092cda82f2439102aba3c58083",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "68efa69cf6144fda85a85e0d3b18b2aefac0c4489b4e63d68c3ca0e9cedc3ebf",
+      "inputId": "df638a4163183fb1033504b8e60b82fab7a01c356d9cb99fda03fbbbf42edfde",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "68f4ad84d241d654b0092d13395de2acbcd563f1cd6464da9d649dd6369678b9",
+      "inputId": "8eaa90fe37575b98aea8a32e7a7869fcc8db11a73ee935596013b64b922dc0ec",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createTopic",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto)"
+      }
+    },
+    {
+      "workloadId": "69d7e5c898c671046283753f73b308156271e0770b01e199202a05f39e310979",
+      "inputId": "261dedf08efb9256afb026b2ffd983cbdfefe098b6c2be604aef7fa8de1d27c9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "concurrent - add creator: add-s1; update; event; add-s2",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "6b3a255157795dbd906f15dbae5ae90c693e0ff1ca533ecd07c4c2fa64ae3d30",
+      "inputId": "57e51d5717505a99468013daa6740cb0f3ee45b9d8aa51f50b4e5e61da147676",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "sequential anonymize creator and add student: event is processed after add student",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "6d843c169d4b03f9b6a4a99d88bdb963f939cdcf5b10b58d39548ae9f11c13a4",
+      "inputId": "6adcbc4aa1d57ca6cba3b3d311a395e54fde280f5cfff24611fda9aa74683290",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential - add creator: update; event; add",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "70386d6e41dc4ce9a9984cf825206fd4ad6cbac18790d5add94194a8c46bb994",
+      "inputId": "176b380de7d8d52e157a0b5809bdf2afe775b0e093ec02df1831a39b1652e589",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getTopicsStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "72f8f04cf1fe3ebbeb27a18cf8c7413117564c2fc25164685b6f463cd8fc9c86",
+      "inputId": "e7a4693c0beeab0ae8af4d3571c429b4d03497ee865456b6773f87ccfdafcb63",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "74b22695ef80aef5a38579fb36a8da02fd41ed6cd84a680faa85de79d5e321d2",
+      "inputId": "d050d3b79e2e79aece910b988536ead3ab3396de747180bda37375ea4212818c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getTopicsStep; remove - removeQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "75174ce5ea343b4056d15232760ab095caa6deff8285780bc23ac1a31134b700",
+      "inputId": "e1319c3fcd35d82cbff0238e7802b199fb38d910afa8befbc0dd937d818b6ead",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "7611eaca4a7ba6b3479b005f95737348d245f2ece40b4bd3e49f85aa9d7926e9",
+      "inputId": "0448fa6b0b82791ed1d8393a2b98064050deb48fcd5edf4a9757ea0077a4095b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "78bd5d102d3f3a5c852cc70a9e699dc07b0d0155da6b5366eac52e42cfd8bfc6",
+      "inputId": "ba6ebe1db553b53555bb09954df705824cd9a3febe4fa686e0e2e965431f511c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "78d6604e579aca2d141039b62c2a9e8d0852cd214f22fdd11da878e7b64b4b6a",
+      "inputId": "382216ccffb265bec287cec782f6dd7ef518966e13b7972f026fc0dbcb15bc6b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "concurrent - add creator: add-s1; update; add-s2; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "80380901da3ad7e1b59a9753fa6ab0adf64ef9b282fcd50fcea125a10752740c",
+      "inputId": "a89514f76e47a22b09ef199b3f13233df295a213634472806df776abfb5bfb0f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "804b488c218c284c33acf7452336060e86799d172a0da98b27a5dda8824daf81",
+      "inputId": "c8bc857e07465c0c931ab913522d2b6769beea6979a51e21a2e3ec5e0b9d290b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "Check Quiz existence",
+        "testRole": "featureUnderTest",
+        "call": "new CreateTournamentFunctionalitySagas(unitOfWorkService, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "81b0e0e71bd5aaffbbea2f3b476e7270f590f5b618cf8d3ff051edcac91c1bb2",
+      "inputId": "3b66dcf148ae19b876127d6c10f1d5170a51acd9420c6f6eef9cc3d0b5833798",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveCourseExecutionTest",
+        "method": "createQuestion",
+        "calledFrom": "cannot remove the sole course execution for a course when it has content",
+        "testRole": "featureUnderTest",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "81fc07c3af92116311572683ca6f4879f9c1cb3c92f741363381f1173226e4a9",
+      "inputId": "2185dc6012b5fc16b32067cd1bf42b857d7ab0b0314a7e0e63de41bc5ca847bf",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "82e35d7bddb02552d139c958a53ad95127f9a930e8efdb2204befd7e25f5ee2c",
+      "inputId": "ee4e84b4a8f064e0435a950ec0365e2e5e6424140ff9bb48cfb5a52bd1f4c9a1",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "cannot update tournament after it has started - FINAL_AFTER_START invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(startedTournamentDto, [topicDto1.getAggregateId(), topicDto2.getAggregateId()].toSet())"
+      }
+    },
+    {
+      "workloadId": "82ea0ef9c5b956213405c4d2599f4db2350d5fd99d701e191169ecbb32fd2fb4",
+      "inputId": "57cec0cef4b7854eeee625f33cdc28d11ca8885ea79a63c8ec3344fc44ee16ff",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; anonymize creator; event; update - resume;",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "84e1fe597959de9bbc90d7f03c48b0910412ba283247a210c3df427b9705e0ae",
+      "inputId": "18061b74cf54c41cb804b6cbe05e1a307427de5cd3ef9abc028413b0b061e6de",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentRecoveryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "85be6f69f82406d8fa62503e2f51608b3db02586f0c4e0daddc5dd40c105de69",
+      "inputId": "82065b4fdf83c640175233624cda8010b69a8749ceaf6ad1635d4f2cba53a158",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.SolveQuizAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "879384de3722760398759f0fc462e6b0144a07932c6693791bfafd1e250faa22",
+      "inputId": "83cf8a8a847e2d8c2455a666aaf743b3b066c82e3d6a78697d697fa816dbf953",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "8863dc03f8dc7fb4e6b660346c7ecdc4437fbf676062980382cafeaef4348f52",
+      "inputId": "09c49a583cead37dfaa95e536818e92919f34ca909515d539a873a71ff6435a9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "89c858d71f56b784d00ea6052ce182fcee7554d4f32885a608701e1617d3a98c",
+      "inputId": "7231ee614bc17495c857308693e608cac690cbb010fa73279f6ef717a39d48e2",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "8ac8cc06b09b49c29b4686c946151e3dcf8485f1c32ca2dc4769df0f19b66bc6",
+      "inputId": "f2e35caf2ddc4b9205cb61c12065e8ce40c653cacb9055d0a868802d2cd7d279",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "late compensation: completed StartQuiz leaves an active QuizAnswer referring to deleted Quiz",
+        "testRole": "featureUnderTest",
+        "call": "this.newCreateTournament()"
+      }
+    },
+    {
+      "workloadId": "8dd2a5fd17721c761646b23dde710e6ae8461f3e204386f136f8913e793defc5",
+      "inputId": "c7b148f61fdded8184ddb56aa1d203b0223993992ff2d910c9b0c54487fc886f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.HandleEventBehaviour",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "8ef48b8ed8075c8c17cbde032def02ff29c548aaf19c966428cb8583c1ef4de6",
+      "inputId": "f8ead58938f90597fcba0b3d6adaa5be04244c7683e6fe26f5773bae82517ab9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "8fed36c7eee1a4e94cbeb1da9def41d1a2fb5a4c69f9e34f5e5381c63d0d8da5",
+      "inputId": "302cba61442f677283449148378bcb3357007c76e3f8b168109da03b982bc437",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "91465a7876092f6e5fa8bd11fa334ce1317e9875001c77aa4a14efd94b033673",
+      "inputId": "ff727ffb9078c14611d9047c86662f28bcd5222bfde94f27169ca511fb3bb0e0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.SolveQuizAsyncTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "91f4d66ee77f9b22d9d5898589471a53c19b7f09be41469888159bbc19af54a1",
+      "inputId": "2ab1a24f44fedc1bb6a7accc2d1c60baef9f6d5c898d24df91a66e506f368394",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "9903e59bf4e7d971c46b228f761bdc593eb17dc4fe30a9ebc769ee730923f4cf",
+      "inputId": "cf6f9562bfddd11dc77f58ad1a9319c68a28da22181abcd80ee697b8cacd4183",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentDynamicEvidenceSmokeTest",
+        "method": "records exact SagaExecution read for CreateTournament getCourseExecutionStep",
+        "testRole": "featureUnderTest",
+        "call": "new CreateTournamentFunctionalitySagas(unitOfWorkService, userCreatorDto.aggregateId, courseExecutionDto.aggregateId, [topicDto1.aggregateId, topicDto2.aggregateId], tournamentDto, unitOfWork, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "9968532d1f5b1ee29018f797832900e4559ad92cdcfda55b6beed8ffa7c20aa0",
+      "inputId": "4b4349f4a31a9198b855246aac7773d0af114ab626d495635c5657aa47f53c5b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.LeaveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "9a46906af66cfb363eb1a509d01d8c2433baa20e3a5c6fd7f4faceae148d8436",
+      "inputId": "e6a8ce15957a22bd134ef76927e1777e04a0fe76f9a56212b57138b738a151df",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getTopicsStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "9a4e432084b728cc17fb98e52e73d8feff84ca960ae8c9ed609e48ae92b74682",
+      "inputId": "67a60a5ffa9e41d607069d9cf1356b0ad3acbd6c858510fb924cae5d9b25f789",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: anonymize creator; update tournament; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "9b15ce0d01c3096c03be2b5789c9029e5f5b53a6f5b2bbab3c4d6a65a95d350b",
+      "inputId": "36d5a9c2aebc23799ab785b848ca43857f8bc047d0b0de9f714cc785f20bb5da",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentCompensationTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "9bc18dddfafa8c3e36a2863013f9826937a4502a760e70bfab00b5be1872682a",
+      "inputId": "dad7b44621fcf7014506b2e9cc8ed12ecb0a5d49d73b6053f033e847d4b3c6b8",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament with 31 numberOfQuestions violates TOURNAMENT_MAX_QUESTIONS",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "9e6a228cabda21a7de6f544fa565cddc32086cea6ea1054708b5c9374bd6f4a9",
+      "inputId": "4bc864260a33ebe4ba987b3ab68ba741dbbd043f8cd0ea2d4940f0d26e689724",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; remove - removeQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "9e81fd93c15c85bc33859a0e9ffae7dda5748601d0306c5ccde69698d9b3d453",
+      "inputId": "09a5a31cbbd31145929d54ee3b8cc3bda403d2bf2d4eda4b639cdb87ecabd30b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "update tournament then add participant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "9ea9f99cee53986973468ec9fed4ea818522f67b7fea84fe12daaa98321f906a",
+      "inputId": "7cef27d4b5957af284da291c63f6e1d1bcb457493531577b9f7ca5b764b5245f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantWithDelaysTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "9eadedbb3773f4277f195d5510478f78437f125648cf9f7c71a05906717573d4",
+      "inputId": "5a75d9739121486579d665d62c6e36b72c00e47baa383d7ec696cffa0187ae5c",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndRemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "9ffff5f48bfb1411823e3890bfaf777c8269edf4794266034a508d99a403f420",
+      "inputId": "2c01caee9ddff49d2041c446b1db25d6b38827b57fcc879122cce7ef8f37bc81",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.HandleEventBehaviour",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "a16919ea4c0815c881153feddbeef7b03cdbfcabb1919ba3b4d6d59a2ad8a3ec",
+      "inputId": "451b3cebdd1aea57ad501b799520b5001e252f46dfadd439e48794b6c71f1497",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "Check Quiz existence step by step compensation",
+        "testRole": "featureUnderTest",
+        "call": "new CreateTournamentFunctionalitySagas(unitOfWorkService, userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], tournamentDto, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "a1eabcb0a8431ca9fbceb557ce39b0b25cd4beead6d2ebcee1cb97ac1fdf5c8e",
+      "inputId": "74b25f3720f1627e83d8d205f2e20eb43966e48639376c506760c7ea20ade13f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "a304c71e2cdf14e2e74bc6b13a0d01d68658d6e46080f752440d74194178e3f7",
+      "inputId": "f5ce4de709f249ae8156c670b5408e4a0d0e39d7269e5623788db1cfd702d3dc",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "a3f3a8f19346ee7d26255e62769e6d5ec4170abcecc4b8e9db1aba8ad522dd2e",
+      "inputId": "6d4a3703ede5a638e077835983b73febd8d072f3b36c86505c12d09825682408",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentStartQuizRecoveryWindowExploratoryTest",
+        "method": "early compensation: createTournamentStep fault removes Quiz before StartQuiz can read it",
+        "testRole": "featureUnderTest",
+        "call": "this.newCreateTournament()"
+      }
+    },
+    {
+      "workloadId": "a713cd8d41b7eceb68835ebfc279c32e9f70e34c0912e465a02aee77e2029e44",
+      "inputId": "e78bb82ab16c6708d3b4b786dfb7ed395b6ec176a066842478a9be60236ba015",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "a73758c2225aba25c4540f9d9c98f7dff1a59f41146d8fd99f5e604e9a724979",
+      "inputId": "e42943c0a29f0554a92ca67da9b7380021d5a9b35f7980cdecf8109b45b6f45a",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.LeaveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "a7baaf247f553f6c4d5bbb62ef6d2fcd659b52c3bbeefbbda60ab1b0307f596e",
+      "inputId": "14bfa7356631d118e04cb332c29581d66f1db6d465b21012aecc8b068bf8e093",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantAndRecoverTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "a89424bee65cdc283eeb90966e4e78c5fa65fad886818ad076ebbded4e300dbe",
+      "inputId": "10f9e98212751e8ba8a873eb5e57983d5da95c7866dfea3eaafa87a782f77407",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentFaultTest",
+        "method": "Check Quiz existence step by step compensation",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(quizId)"
+      }
+    },
+    {
+      "workloadId": "a91b427676114f88eb3d8085094afaa14e0d56e4c3155a4f04960c9ecc35ca26",
+      "inputId": "55a21803b3dbe13c07e50cdb7703078402584afcd2098110b6698a662821d78f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament with negative numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(updateDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "a98618949b2761d9486889760eaab4fe53ac25330e867c75189a6a01b7ea3d88",
+      "inputId": "d3c5e59357dfb4058f099e546887d0b08b741d0b15163450a288ab071c2fd73f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "aa5f636ccb8a2043ffc5920ebdec50540e267be7048c733ddb437040f336d801",
+      "inputId": "cca8125d37653fc79fc7e379976526324a99fc2831bd0707e0e7cc645782d42e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CancelTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "ab515f5129f309772834037c99c77fcafd045e4d448112dc9bc7acd8f8676a64",
+      "inputId": "f8f87db0537a5ab6bb734a0410517e9d1824b2389a89afd3ee4e965202ac5c42",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.HandleEventBehaviour",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "ac7420d2efaff494a49dc4555d7607edf52ccdf0ea70b5844c320e0bcfea4375",
+      "inputId": "a5d42e864987833e9dedc6c3339aa02f9af6a787577d6023f46f6cf5f889ed2e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: remove - removeQuizStep; update; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topics)"
+      }
+    },
+    {
+      "workloadId": "ade374036af98e286a8d00127c459fb5a1351d1d3c691e0ac04ffa12038f03a0",
+      "inputId": "72e50e2aa162ac381df9016f1bb5908d6a26207ea51cd4ed288770a2f736f087",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "ae6b6f362ee9df1afa7eb7e20d9e3d5fecd7c34869a6b39746dad613892d82ce",
+      "inputId": "ebc96a23af2ff7d0d15ed160a66fcc6ffb01abf51e0cc4cc3efdf9750d23a4de",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "b179a05a29ddd3eb96999f916aa49631742904ed77cb687abfb4b60e4d0f061f",
+      "inputId": "b86c02926d6164c872147793a2d8a911ad2e953da158d6549571889ff4357894",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: anonymize creator; event; update tournament",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "b4c791285628d4294024c60e4207ca3f5ac017d9ced0311e66c20a7e3184ac1d",
+      "inputId": "2b28f0a4e98b2e089da5c6f1b901fd0d7703512c3716187c35a34e8790d43f49",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "b59746ddd800e6614a9fecb4b9c13015a31dd5b4827f15bfc8ae81cdf0a85342",
+      "inputId": "9737acbbf2373ad9e8c78fae435aa42ca7fbf4123ad592e6a5cf2ec83f10eae9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "b60bbfa7768f9928bfdba2aed25f66e9e3fbd755e94c4f0b5a898f4f42fc0121",
+      "inputId": "1264a8e5d300c4e997b5666adf6e581969462d28003502270b2890a7efdc0ebb",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentDynamicEvidenceSmokeTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "b79f1eb9fece448bccc6ff2070bbeb074cf45094354164c69bb2e0321154dac7",
+      "inputId": "b931fef5f0a0bb41792793d2476e65055af260b59e479975e60b9367291614ed",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "compare async vs sync implementation performance",
+        "testRole": "featureUnderTest",
+        "call": "new AddParticipantAsyncFunctionalitySagas(unitOfWorkService, asyncTournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), asyncUnitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "bafadec92f87454e62d3b6a27149e74a7c548f7e5267eee04be3bb9628952da0",
+      "inputId": "70c335c4bc2ac6a128b958297412f41047e724f783d3829d337f48194bae91c3",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: anonymize creator; update tournament; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "bb65d3e67172e85178d951ff6a0908759cad672f7bf48ceca38befe0e4d21664",
+      "inputId": "45765713d0929f08ee8e347c2c6b37267a60ab8c2c21380fc57ceecdd3894516",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "bb91c6901f8c37cdeecc850bc612bd2950173bdb3c56a77a4a80e6c55d06c547",
+      "inputId": "29f6f2d09a509078e0ed64624df6159560a5f17e434e5e6f2f8bfc611a950bc0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "create tournament with invalid input",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(null, courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto([startTime:DateHandler.toISOString(TIME_1), endTime:DateHandler.toISOString(TIME_3), numberOfQuestions:2]))"
+      }
+    },
+    {
+      "workloadId": "bcb01966c05dea86c711b2fd7e031137762cb9395d64c4af930030bc50ebd05f",
+      "inputId": "41d32301448a1dd27513ad8a608e4f95b282e40c82e94045cbc43aba8c80cb28",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "bcf3817be536b1be0b326d8a933e400c79e42d092ec227a89eba83b8a1190719",
+      "inputId": "e261a3c4f396ae9799446b6f917c3707bc901691cd4c5869bc6a15c6dc042c56",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.FindTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "bd71d782945662c46b22e1e09b86aac3f1664d3e76decb1b0fae8a7124a32a47",
+      "inputId": "cd202459a033833f48b87f986c1646faa5ccae9be9be7e4adfec3c2cf24211cf",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "add participant then update tournament",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "c20e83310b16d46fb09447d9a601193f3f2b4c3d02b6c964847a5c3627e09dec",
+      "inputId": "ed2e9d0ca2d591c6bcb4b908f0ee2780e6c08a8a33a795f4fabc51781044b499",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; event; update - resume fails: creator still anonymized despite compensations",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "c5d0bb1ace9294f1c65ab0e706c7db8fca6ee306b42cdec7e718a1618069ead0",
+      "inputId": "511953452177c012eb3417a75ad02283b6972fb5616aa869b231b76d40522f79",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: update tournament; anonymize creator; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "c5ee0db57081f80627465bdc12a49952e1fe9bf07e61d2cbe7c9fac395a90e5f",
+      "inputId": "7e67574deea36fd9dc6b1d91f753bb6db6964b09ff89b11f2353f8ae840917d6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "c60745e8bd05ab3f4647516b21510446a273c658af1e3cade99ed53adf2c7904",
+      "inputId": "7e5ad0455793f3ff03e017bc2a33a2dc9f6fbefa88136aa14fed5a3b2b8f1a09",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantTest",
+        "method": "createTournament",
+        "calledFrom": "cannot add participant after tournament has started - ENROLL_UNTIL_START_TIME invariant",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "c699f2bb1b03e7874d8b7602d8053ada4509178dc38d9782a0a5699aadc4683b",
+      "inputId": "c71c6ab8745873e807f41bdfd7cb8ce6dd66d9ff18d4b6c1a5f718e0750b53cb",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: update tournament; anonymize creator; event",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "c6a08bd83613292354fbf56492c2b3340925452654868c29c969e7916a089246",
+      "inputId": "76bc091253b54048d8612a78735c165e4bf9c83f901b9d34991d2d17c053cc24",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "c6e69c1c99c2996b6af5a053aaee7f5fbfb084f54f66dc6baf11e40fa5feba3e",
+      "inputId": "7f96cf6b8fcb2ed402d08bf2eb74c2adf09b0eb24eaf0ba645d17ba00b25a178",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "c9945d3c72972ae888c3bbaaad172a00f7874454373e165874492abf1af6b900",
+      "inputId": "7b03b7765c19223c35c85b01fb9df5011e844cd6e80a654b725c838c024b4dc9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "concurrent update of tournament",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "ca4f04e4782252b124f0c975e810f2d624ab5f2d8018662c4a5756dc64b79cce",
+      "inputId": "55d483cd7fdb053e3aabe4d4235849f78f56e3de30af9781291849553063cd17",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "sequential: remove; update",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topics)"
+      }
+    },
+    {
+      "workloadId": "ca56333f474494aa2ee9ee2320c4f741f292f7b5a7d68c1c974459799338c148",
+      "inputId": "ace97ce995298fde669cb6d8603aa2f4502aaea3fd87b49cd499ec65a3ff1ab6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "add participant find the tournament in update and aborts",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "cb018f029a1f0b592ee619e83ae5c5479a2cb4eb2b640cd89a7707f2b28d0896",
+      "inputId": "88298c5b7bee42d96c7897ce29a9739558c997e300490a7a5475334f94811432",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "cb1173c72e6c3ebc49703c6a258fab2eccb550e17f6ff5cc393f1002a23fe7ed",
+      "inputId": "b0249a670f1e69bdec6d85722a912b52f3834cc4143970b58cedf33e507efccb",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantAndRecoverTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "cb137cabd4a73e9f0b76190ca8b58a29e224ceec2e23cf4ddeabfe237f9128c5",
+      "inputId": "68ea2eabb542a37c8b87aef38e212b08f57f4a71ba9f835f5445f58a67fb1956",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament successfully",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(updatedTournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "cc303d4374a4f2de6b44688f9befb277149037330ac331f7e48c016fb24d861b",
+      "inputId": "b8d66d7818d95fb0ff3887528db0b76d63d631e1cc99c7a5eb22742b3590b8e3",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "add participant then update tournament",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "cd2b5c124cb80f3197c08fac4b2f8380f8766533d235128dfbf8eead334c9cc2",
+      "inputId": "25fee991e76a726b02b1dacb3660d3bf22cf1d97dde93d86e690c20295b4e31e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+        "method": "InvalidateQuizEvent removes the quiz answer",
+        "testRole": "featureUnderTest",
+        "call": "quizAnswerEventHandling.handleInvalidateQuizEvents()"
+      }
+    },
+    {
+      "workloadId": "ce3d444992a4d9ece057bedad3118214f84851ae30239263016ebfa5101ad827",
+      "inputId": "62e3a1f5d2b59865dfc8eea98d939793dc6fb655a703071d3c2c34708610cc4b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "ce83df50cd51ed9af26be16282a068707bb7f9e5b71aeb849f76dd5e05f81ec4",
+      "inputId": "bcf6d605279a633349a3beeed9c70265b66a48f6200eb2907c8c996d5bdbedbd",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "cfa909db51bf72cc95653206393a6c27a945d2b241fd6b8d4a59af0ed5f07a38",
+      "inputId": "71fe22839032fc695b1fa019bab9d067c78c98b144ba8f156aa79b5feccae48f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getOriginalTournamentStep; remove; update - resume",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.removeTournament(tournamentDto.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "d14c169d160429f4643b021eaac412a9af33caa52beeb5096cb9712f7a1f2383",
+      "inputId": "2730fa51a9d1ae26e6c5cb7cb7de7768e7d32550d9bf03b656e6f01c65dbb17f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, retryUnitOfWork, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "d16994134a9abf65f2ee9af5ae1525d14c21de4bf80c996104008c5923aeef52",
+      "inputId": "7b612ef4a9f1d1d4993c8281fac0fe85c50f7d94b329b879a48426036165703e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+        "method": "DeleteCourseExecutionEvent removes the quiz answer",
+        "testRole": "featureUnderTest",
+        "call": "quizAnswerEventHandling.handleDeleteCourseExecutionEvents()"
+      }
+    },
+    {
+      "workloadId": "d30e895cc05e2c0fae595bf0e491229b4f53d7d43543479810ee87f2465b4fa9",
+      "inputId": "1a7f9333db9298c4072b8ca2c1a4d9d1938df5cd4fdde7892c3637c5c0ada8b2",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "d4963839c5cc0e91c75d0571e8d2b6c034367c20d5974e59ee74f57286b9bbb9",
+      "inputId": "998cfcf804886c08d0922dea024a916ecae7d811c7a0b59072d46f9b5598e107",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createTopic",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto)"
+      }
+    },
+    {
+      "workloadId": "d6cb3f5622dff3ccfea6b4073b5e9226063837643a9f438d2a29e75968dd0922",
+      "inputId": "168335fab6bfe7cdc595e2e9b85157b58ab9765a6da2a3be0661f61b4330dd54",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndSolveQuizTest",
+        "method": "sequential solve quiz and anonymize user",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "d75380f9d6533ce4854db32f26f90341ad021644ef2abbbcec1333fb3dac5a62",
+      "inputId": "dc1222f62a9627993c8ac8d593d8b1fd9e78aef990cafdaa8535889c32f887c4",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "d795b2c649490943edc354d6b89de1c32adf9f5c93587f381eed630aed067120",
+      "inputId": "f40d805f60ee79dc7545db4c620798b2627d9a780a1d875228867521c183566d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.DeleteUserFromCourseExecutionTest",
+        "method": "enroll student; deactivate and delete user; process event - student is set inactive in execution",
+        "testRole": "featureUnderTest",
+        "call": "userFunctionalities.deleteUser(userDto.getAggregateId())"
+      }
+    },
+    {
+      "workloadId": "d7af3b8d3677265c835fad9b92885077b8faef5be760b01acdd8d401bd90ffbd",
+      "inputId": "9a68875ea299d6e0c6a1a891d807baa7e1d2c6058b63908594921070cf6daf34",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CancelTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "d987fbb7ab922a7a937ec1cb0b4c2ece40f3e73ed8a042db6376759becb3e4b4",
+      "inputId": "3c8290306cc34d2741565de66efe2996cfb57a8d08d0065c5540069125f8a2d5",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "concurrent: update - getTopicsStep; remove - removeQuizStep; update - resume; remove - resume",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "da7c0583f394e960374400f09e3cf8947b7c33e47b5558b44df94dd2732cbcea",
+      "inputId": "8dfb28a687ab1cb6e7cda0745930b5b2d00c48b23a9f92c4627afb54740a2b2f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AbortUpdateAndRetryTest",
+        "method": "createCourseExecution",
+        "calledFrom": "update tournament fault compensate retry",
+        "testRole": "featureUnderTest",
+        "call": "courseExecutionFunctionalities.createCourseExecution(courseExecutionDto)"
+      }
+    },
+    {
+      "workloadId": "dab3441bab17ebce7047a82c452f54c297fb52acc8c4e6af86113de1205bf6c1",
+      "inputId": "d1bd2442fce0c98ca39685c99c767daf1d6ce91d20c806e901920ee114452b0a",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentRecoveryTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "dbec3c0f2316808afcba3629d599db063dd770cdcdf8cd0a05f611295b567c95",
+      "inputId": "acb711b2062bb0425707063c374aaa7359bda42c753aec5f4da35654de27adea",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "de09da718b10cc90bf6aaac8f7853789d771f97c23e1416a5e436b5ee6ac9ff0",
+      "inputId": "7aa7914b3b175a7398b1784f7fad1b18a11617421bd72dd292ffc222d3209794",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "create tournament successfully",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto([startTime:DateHandler.toISOString(TIME_1), endTime:DateHandler.toISOString(TIME_3), numberOfQuestions:2]))"
+      }
+    },
+    {
+      "workloadId": "de91d3105d92c894df28fa33a27d6798f6adbe0dc813e83908dd7b167e03696f",
+      "inputId": "7e5cdb890e4e5e73ba16a41f823c8a7764003c6426cca55fd1003e6493f324f5",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "concurrent anonymize creator and add student: anonymize finishes first",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "e0fe157b0e6cde8b02dc99fe032b32395825d07ef2bbf3a14453c6579af5d265",
+      "inputId": "6d7d99b896463d620ed8f4ad58f5244afb715d2757c8355b3c9464151636c675",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantWithDelaysTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "e25a1856a39bbfada56c5eb8fbbd8bdaea11d091dbd320d3d1249fd127776733",
+      "inputId": "8214c309fc1e3dcbf8846d60a9e6f0636bcb545682649d6048e80e35dc2a55b4",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "e2a6dd297049683a1be0bac5aef5060b344571fce369e290a6df8c6a7d9431e9",
+      "inputId": "54e2f1b3685b41a660f2633789fcd5e1b5d72017d4139d7ec06909098d3b70be",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantAndRecoverTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "e529cbfd2c1f937c4c7c4477e78d6911fbfa59a07af33dbacf3c89f9a1052ac8",
+      "inputId": "27c2dc53015b479444312b8913a2ad08c41b725520d28303321423bb6c7b4efc",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.CreateTournamentDynamicEvidenceSmokeTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "e52db13623e65bd9ce6fb40d69479eafef5c281216a75b2cb4a0adaff4fe6f51",
+      "inputId": "bc804a74c49af262c064bce7e12421dd3a3b268253838e44806f1dd301d849fb",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.question.UpdateQuestionTopicsAsyncTest",
+        "method": "update question topics using async functionality",
+        "testRole": "featureUnderTest",
+        "call": "questionFunctionalities.updateQuestionTopicsAsync(questionDto.getAggregateId(), [topicDto2.getAggregateId(), topicDto3.getAggregateId()])"
+      }
+    },
+    {
+      "workloadId": "e55563953fe9d35e8e1e2dd66da26fd22407454bcd689a753b25ef9df44542f7",
+      "inputId": "da35018b8eaba48435eac9db3dc2b5f251f4ef8ffa655e4be3e548e03b371bc6",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    },
+    {
+      "workloadId": "e816253743083ef8092bf42a894d99a7644b4336be5e8a79ca976b280690eeab",
+      "inputId": "c82e87bc517ee7e00f7911d9a0655b78a5aaad784a975efc59a0b2e0f6b90a1b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; event; update - resume fails: creator still anonymized despite compensations",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "e84762acd135dd266cf83da66fc6860c91fad0d4b1d7955ba0473f5d7fee2609",
+      "inputId": "a3eed8158f6aea85acf839308b0a1ade3156a81fd208ea98b99d37708d323dd7",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.LeaveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "e959915816e3528fad5e57b7b9bb28c4d312be4c2cc03de91c198390edcc3a4f",
+      "inputId": "deeb0e99b6f5e845a5a0915e489cae1319eba3b4f1a7e4720462f77c9f3279c0",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantWithDelaysTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "ec1609214e09e5ab505fbd6270dfbc6883ce167ef4eca03bdf8e3b3da4680b7e",
+      "inputId": "e9d2ca308e484877f9503b90f6378d7ca36544dfa6e061e84991a38cf4e62611",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentCompensationTest",
+        "method": "saga compensation releases the course execution lock when getCreatorStep fails",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId()], new TournamentDto([startTime:DateHandler.toISOString(TIME_1), endTime:DateHandler.toISOString(TIME_3), numberOfQuestions:2]))"
+      }
+    },
+    {
+      "workloadId": "ed286e5f9d775bacd693e02dbc665008f10c3fa7dae470c18226fd907cfc0ba2",
+      "inputId": "c8a07710b342b0a2970011281941bc74a02ae23e2dd6366a7444d926a81e861b",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndAnonymizeStudentTest",
+        "method": "sequential anonymize creator and add student: event is processed before add student",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "ede90b8eef68a652d4ec9a1376ef88465bb5c1c626e5e63ab8623ced7fd15868",
+      "inputId": "432697057fcf42b6b4476148369aa1c0aa6a85cf8f0f540cb885a018910a6dae",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "update tournament aborts when trying to create a quiz and there are not enough questions",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)"
+      }
+    },
+    {
+      "workloadId": "eec7fc01723f8340b28d1e76d10a7fb9148c6d47e0e0f3d78de82e20651dcc44",
+      "inputId": "d0d5098141a167dfb53c6670a2f0913ad649073f288ea914e834a483de37fe3d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "ef3779f04cfd6be1b7d9c36ab882cd16d52182695602e58e03e7949768550bb2",
+      "inputId": "73a1b852fe9f6ce89fae2c19a828d7f45b34c2f158ce972832558c23f1713724",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.SolveQuizAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "f25c3ef7b6f3be18087f33dac5b722647df8e47e904d7cf8c37c24675a518e33",
+      "inputId": "d01b0535f063d8c91e0e4cf31f5019c5c43e6aaac2e33ffb0b2c0150049a5ed8",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveStudentFromCourseExecutionTest",
+        "method": "remove one of two students successfully",
+        "testRole": "featureUnderTest",
+        "call": "courseExecutionFunctionalities.addStudent(courseExecutionDto.getAggregateId(), userDto2.getAggregateId())"
+      }
+    },
+    {
+      "workloadId": "f26830cb19abfcac39abaae68bd6c93a70de91a8936a92753c81d12e7f76466e",
+      "inputId": "7816b2d431756d48c6e6561a65e2a08215eb8454b27ede7e4b50bbf304ad0326",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.DeleteUserFromCourseExecutionTest",
+        "method": "enroll student; deactivate and delete user; process event - student is set inactive in execution",
+        "testRole": "featureUnderTest",
+        "call": "courseExecutionEventHandling.handleRemoveUserEvents()"
+      }
+    },
+    {
+      "workloadId": "f2a22d6eaeca756572ebbb1b7e9f6245d8930f89afa97413f9493ab25b2b056c",
+      "inputId": "5c5eec7b32abdf4ea4adefda860a819adecc307f69fbc7722ee8c0cc1685832e",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentTest",
+        "method": "saga compensations",
+        "testRole": "featureUnderTest",
+        "call": "tournamentFunctionalities.createTournament(userCreatorDto.getAggregateId(), courseExecutionDto.getAggregateId(), [topicDto1.getAggregateId(), topicDto2.getAggregateId(), 999], tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "f31e918307b1d8c39fdc4ed51b5f54db8104444ff43af897f7b2b68139433b2d",
+      "inputId": "ebbdd84bce3fd4f92373e9d98b725b46aaa67c968a54bce3b50ed58d41f1c952",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: update tournament; anonymize creator; event",
+        "testRole": "featureUnderTest",
+        "call": "quizFunctionalities.findQuiz(tournamentDtoResult.quiz.aggregateId)"
+      }
+    },
+    {
+      "workloadId": "f39621d17948458e0f3cd1955e2ed31e74ec2f58095b09a6254011b84d7c8042",
+      "inputId": "088b0360d791d8663eec92348136c6cad362b5d5d52d12501966d94f786e105f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.execution.CreateCourseExecutionAddStudentCompensationImpactExploratoryTest",
+        "method": "control: enrolled newly created execution completes without assigned fault or ImpactV1 signal",
+        "testRole": "featureUnderTest",
+        "call": "this.newAddStudent(executionId)"
+      }
+    },
+    {
+      "workloadId": "f3a8c1a0c2cc1f3ca62a1d29280d15ad2fa2351063e433bda4f3913ad86af313",
+      "inputId": "3679fd93de9037961d4777e5cb687528c8ab768e0a332c7bf5b6b9b955f17ed4",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndRemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "f5b8f55c88ce7ef382ead28434e64843254246ea315138f5fcfb85a38b15105b",
+      "inputId": "f92412db546ac08967a357bac506ff0805d52c186220bd94291c9a2854e9df27",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event",
+        "testRole": "featureUnderTest",
+        "call": "new UpdateTournamentFunctionalitySagas(unitOfWorkService, tournamentDto, topicsAggregateIds, unitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "f87530b644bddc9c1322f6c1a2ee214130a0f464efe70bb347550978c98915d3",
+      "inputId": "a742c59ba4d22a86dbd028209c0ded86f0dc68c7efad37ddccd7a3cf75fdc1fd",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest",
+        "method": "AnonymizeStudentEvent updates the student name in the quiz answer",
+        "testRole": "featureUnderTest",
+        "call": "quizAnswerEventHandling.handleAnonymizeStudentEvents()"
+      }
+    },
+    {
+      "workloadId": "f88105e2282925ab1829e6c3a255da51f06ec17a7d43d435758546dbb5d3fb73",
+      "inputId": "6fc6c849df965ec998118a7cafe0d7c50bdf9670e0ae3bbf5321f4b617ff712f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndRemoveTournamentTest",
+        "method": "createTournament",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto)"
+      }
+    },
+    {
+      "workloadId": "f9ff8968e21c9316ad7f08b2dd184b75e215b5fb8b2a00857e51c0f4f6cca4e5",
+      "inputId": "0240ff88805197d7459798a8a20df280112a5c2c9aa0e0f32218a599ed60536d",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.behaviour.AddParticipantWithDelaysTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "fa04f3ccf8bdd473d7760c8b9d95b33a5882cb0dc726154c3fb966d224f43379",
+      "inputId": "4fb3a705ad74d5bb36fdca3471b64b855b45585665a3473308a632d052b5aa65",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "fab3ecbd1c4776ab549259e708b8146925569fa9b208e6560d306525e1b3cac5",
+      "inputId": "a20a5d1ed6b594df38b4d98a69a8f91bfeb09f33b7eaec3c6f1e0da4e4be3b57",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentCompensationTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "fc0d93bf49f898c10c35a7c6ef8eddc0e298fe0d79e536dd1d9e6dd2f1aab489",
+      "inputId": "f091173d3e1d3a7f07449eeb5344915dbd4e28203c0f53a234b94b86debb8fd9",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.CreateTournamentAsyncTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "fe52ed30789264823a14708d225033f8000e5caa76f3d6b48c421939bab5ce97",
+      "inputId": "5e88dafda7d763d92af302d7565ad99274836354421062ca86200d66d91da803",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAsyncTest",
+        "method": "compare async vs sync implementation performance",
+        "testRole": "featureUnderTest",
+        "call": "new AddParticipantFunctionalitySagas(unitOfWorkService, syncTournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId(), syncUnitOfWork1, commandGateway)"
+      }
+    },
+    {
+      "workloadId": "fe86c38927e7e4d08eaa41344682cf534e68903bf823bc2890ea850e53cc0e6e",
+      "inputId": "fce3ba6b985b724d9f48f4689e2d0b60966e4f226b166d7b8c9f123f019f6919",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "feb019b0925201bc7a2703537e42151a0179ed6195ed08bbe9a2dad2c195bd4e",
+      "inputId": "ce8e10335dd70b82334094dc9f1c8f90db2f351df9596cc5d07466f3f37cc09f",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndRemoveTournamentTest",
+        "method": "createQuestion",
+        "calledFrom": "setup",
+        "testRole": "setupHelper",
+        "call": "questionFunctionalities.createQuestion(courseExecutionDto.getCourseAggregateId(), questionDto)"
+      }
+    },
+    {
+      "workloadId": "feb827462e74e97d0332f0957c713fac116b3435425422c479ad588ce9b17976",
+      "inputId": "bc92bde0dfe07bfa936e55a874170c779254d8173918fe8f184c0bf60d948c67",
+      "source": {
+        "testClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "concurrent - add creator: update; add-s1; event; add-s2",
+        "testRole": "featureUnderTest",
+        "call": "tournamentEventHandling.handleUpdateStudentNameEvent()"
+      }
+    }
+  ]
+}

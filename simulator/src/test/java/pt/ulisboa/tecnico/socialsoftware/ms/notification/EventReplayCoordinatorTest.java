@@ -8,12 +8,18 @@ import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventHandler;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventSubscription;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserver;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService;
 
 import java.util.List;
 import java.util.Set;
+import java.util.ArrayList;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -164,6 +170,57 @@ class EventReplayCoordinatorTest {
         EventReplayCoordinator.assertNoOpenThreadScope();
     }
 
+    @Test
+    void observesExactSelectedReceiverBeforeAndAfterHandlerWithEventWriterIdentity() {
+        activate();
+        TestEvent event = event(25, 8, 44L);
+        EventReplayCoordinator.CapturedEvent captured = new EventReplayCoordinator.CapturedEvent(
+                25, TestEvent.class.getName(), 8, 44L, true);
+        EventService eventService = mock(EventService.class);
+        when(eventService.getEventForReplay(25)).thenReturn(event);
+        EventHandler handler = mock(EventHandler.class);
+        EventSubscription subscription = mock(EventSubscription.class);
+        when(handler.getAggregateIds()).thenReturn(Set.of(51));
+        when(handler.getEventSubscriptions(51, TestEvent.class)).thenReturn(Set.of(subscription));
+        when(subscription.subscribesEvent(event)).thenReturn(true);
+        PersistentStateObserver stateObserver = mock(PersistentStateObserver.class);
+        ImpactEvidence.AggregateIdentity identity = new ImpactEvidence.AggregateIdentity("Receiver", 51);
+        ImpactEvidence.AggregateSnapshot before = new ImpactEvidence.AggregateSnapshot(
+                identity, 2L, "ACTIVE", "Receiver", java.util.Map.of("value", "before"), List.of());
+        ImpactEvidence.AggregateSnapshot after = new ImpactEvidence.AggregateSnapshot(
+                identity, 3L, "ACTIVE", "Receiver", java.util.Map.of("value", "after"), List.of());
+        when(stateObserver.observeEligibility(51, event, "BEFORE_EVENT"))
+                .thenReturn(new PersistentStateObserver.EligibilityObservation(
+                        new ImpactEvidence.Projection(before, List.of()), true));
+        when(stateObserver.observeEligibility(identity, event, "AFTER_EVENT"))
+                .thenReturn(new PersistentStateObserver.EligibilityObservation(
+                        new ImpactEvidence.Projection(after, List.of()), false));
+        EventApplicationService applicationService = applicationService(eventService);
+        ReflectionTestUtils.setField(applicationService, "persistentStateObserver", stateObserver);
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+        ImpactEvidence.Writer action = new ImpactEvidence.Writer(
+                "SAGA", "attempt", "workload", "participant", "event-action", "EVENT",
+                "Handling", "handle", 25);
+
+        try (ImpactEvidenceObserverHolder.Scope observerScope = ImpactEvidenceObserverHolder.install(observer);
+             ImpactWriterContext.Scope writerScope = ImpactWriterContext.enter(action);
+             EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                     captured, TestEvent.class.getName(), handler.getClass().getName())) {
+            applicationService.handleSubscribedEvent(TestEvent.class, handler);
+            selected.verifyCompleted();
+        }
+
+        assertThat(observer.deliveries).hasSize(1);
+        ImpactEvidence.EventDelivery delivery = observer.deliveries.getFirst();
+        assertThat(delivery.receiverBefore()).isEqualTo(before);
+        assertThat(delivery.receiverAfter()).isEqualTo(after);
+        assertThat(delivery.eligibleBefore()).isTrue();
+        assertThat(delivery.eligibleAfter()).isFalse();
+        assertThat(delivery.writer().kind()).isEqualTo("EVENT_CONSUMER");
+        assertThat(delivery.writer().actionId()).isEqualTo("event-action");
+        assertThat(ImpactWriterContext.current()).isEmpty();
+    }
+
     private void activate() {
         System.setProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY, "true");
         activation = EventReplayCoordinator.activate();
@@ -173,6 +230,13 @@ class EventReplayCoordinatorTest {
         EventApplicationService service = new EventApplicationService();
         ReflectionTestUtils.setField(service, "eventService", eventService);
         return service;
+    }
+
+    private static class RecordingImpactObserver implements ImpactEvidenceObserver {
+        final List<ImpactEvidence.EventDelivery> deliveries = new ArrayList<>();
+        @Override public void committedWrite(ImpactEvidence.AggregateSnapshot aggregate, ImpactEvidence.Writer writer) { }
+        @Override public void eventDelivery(ImpactEvidence.EventDelivery delivery) { deliveries.add(delivery); }
+        @Override public void coverageGap(ImpactEvidence.CoverageGap gap) { }
     }
 
     private TestEvent event(Integer id, int publisherId, long version) {

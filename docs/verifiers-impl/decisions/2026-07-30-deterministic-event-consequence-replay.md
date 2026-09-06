@@ -24,6 +24,14 @@ Static ownership is conservative:
 - reject ambiguous dispatch, wrong receiver or unit-of-work binding, multiple/repeated/conditional emission, compensation-origin emission, malformed consumer delegation, missing or ambiguous consumer routes, fan-out, direct recursion, and unsupported nested event chains rather than selecting heuristically;
 - retain separate candidates when genuinely distinct consumer routes are globally selected.
 
+The executable exporter resolves every event occurrence against the authoritative Saga
+route catalogue already written by static export. Matching is scoped to the triggering
+participant Saga, exact step and emission ordinal, and selected consumer semantics.
+A subset containing only the second consumer still references that consumer's catalogue
+route; workload-local list positions never assign route identity. Zero or multiple exact
+matches reject export. This 2026-09-04 repair changes no record shape; packages produced
+with the earlier workload-local projection must be regenerated.
+
 `forwardSchedule` remains the sole source of `ForwardFaultSlot`, vector bits, and `CompensationCheckpoint`. An event consequence owns none of them and never receives generated compensation.
 
 Runtime ownership belongs to the simulator:
@@ -69,4 +77,4 @@ Execution reports use their separate v5 report schema so prerequisite evidence a
 - repeatability needs a reset boundary other than fresh process/container and database;
 - package consumers require a new current contract.
 
-Current behavior and Quizzes positive/control/masking evidence are in [`../current-state.md`](../current-state.md#quizzes-event-consequence-replay-positive-control-and-masking).
+Current behavior and Quizzes positive/control/masking evidence are in [`../current-state.md`](../current-state.md#source-derived-event-receiver-qualification).

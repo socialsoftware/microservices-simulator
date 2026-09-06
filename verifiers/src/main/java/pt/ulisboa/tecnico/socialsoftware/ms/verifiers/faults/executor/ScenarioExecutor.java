@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFinalizationResult;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowRecoveryCheckpoint;
@@ -14,6 +16,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorFault;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.FaultVectorProviderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.faults.InMemoryFaultVectorProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService;
@@ -56,6 +61,7 @@ import java.util.UUID;
 import java.util.concurrent.CompletionException;
 
 public final class ScenarioExecutor {
+    private static final Logger logger = LoggerFactory.getLogger(ScenarioExecutor.class);
     private final ScenarioCatalogReader reader;
     private final ScenarioMaterializer materializer;
     private final ScenarioSetupRunner setupRunner;
@@ -85,6 +91,11 @@ public final class ScenarioExecutor {
         rejectPackageOutputAlias(options.packagePath(), options.impactOutputPath(), selectedPackage,
                 "Scenario impact report");
         rejectExecutionOutputAlias(options.outputPath(), options.impactOutputPath());
+        Path impactV2Output = impactV2OutputPath(options.outputPath());
+        rejectPackageOutputAlias(options.packagePath(), impactV2Output, selectedPackage,
+                "Scenario ImpactV2 evidence report");
+        rejectExecutionOutputAlias(options.outputPath(), impactV2Output);
+        rejectExecutionOutputAlias(options.impactOutputPath(), impactV2Output);
         String attemptId = UUID.randomUUID().toString();
         FaultScenario scenario = selectedPackage == null ? null : selectedPackage.faultScenario();
         WorkloadPlan workload = selectedPackage == null ? null : selectedPackage.workloadPlan();
@@ -92,6 +103,9 @@ public final class ScenarioExecutor {
                 ? null
                 : new ImpactV1Collector(DynamicEvidenceRecorderHolder.getRecorder(), attemptId,
                 workload == null ? null : workload.deterministicId());
+        ImpactV2EvidenceCollector impactV2Collector = new ImpactV2EvidenceCollector(attemptId,
+                workload == null ? null : workload.deterministicId(),
+                scenario == null ? options.faultScenarioId() : scenario.deterministicId());
         ScenarioExecutionReport report;
         if (scenario == null) {
             report = selectionFailureReport(options, attemptId, null, options.faultScenarioId(),
@@ -100,7 +114,8 @@ public final class ScenarioExecutor {
             report = selectionFailureReport(options, attemptId, scenario.workloadPlanId(),
                     scenario.deterministicId(), "MISSING_WORKLOAD_PLAN_ID");
         } else {
-            report = executeSelected(options, runtimeContext, attemptId, workload, scenario, impactCollector);
+            report = executeSelected(options, runtimeContext, attemptId, workload, scenario, impactCollector,
+                    impactV2Collector);
         }
         try {
             writeReport(options, report);
@@ -108,12 +123,14 @@ public final class ScenarioExecutor {
             ScenarioExecutionReport failedReport = reportWriteFailure(report, failure);
             try {
                 writeImpactReport(options, failedReport, findings(impactCollector));
+                writeImpactV2Evidence(impactV2Output, impactV2Collector.report(failedReport));
             } catch (RuntimeException impactWriteFailure) {
                 failure.addSuppressed(impactWriteFailure);
             }
             throw new ScenarioReportWriteException(failedReport, failure);
         }
         writeImpactReport(options, report, findings(impactCollector));
+        writeImpactV2Evidence(impactV2Output, impactV2Collector.report(report));
         return report;
     }
 
@@ -152,7 +169,26 @@ public final class ScenarioExecutor {
                 .filter(workload -> workload.setupPlan() != null)
                 .map(WorkloadPlan::deterministicId)
                 .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
-        return new PreflightPlan(Set.copyOf(candidateIds), Set.copyOf(sourceSetupIds));
+        Map<String, ExpectedWorkload> expectedWorkloads = packageContents.workloadPlans().stream()
+                .filter(workload -> candidateIds.contains(workload.deterministicId()))
+                .collect(java.util.stream.Collectors.toUnmodifiableMap(
+                        WorkloadPlan::deterministicId,
+                        workload -> new ExpectedWorkload(
+                                workload.participants().stream()
+                                        .map(participant -> new ExpectedParticipant(
+                                                participant.deterministicId(), participant.sagaFqn(),
+                                                participant.inputVariantId()))
+                                        .toList(),
+                                workload.setupPlan() == null ? List.of() : workload.setupPlan().actions().stream()
+                                        .map(action -> new ExpectedSetupAction(action.actionId(), action.orderIndex(),
+                                                action.methodKey(), action.declaredResultTypeFqn()))
+                                        .toList(),
+                                workload.setupPlan() == null ? List.of() : workload.setupPlan().participantBindings().stream()
+                                        .map(binding -> new ExpectedSetupBinding(
+                                                binding.inputVariantId(), binding.argumentIndex(),
+                                                binding.value().actionId(), binding.value().propertyName()))
+                                        .toList())));
+        return new PreflightPlan(Set.copyOf(candidateIds), Set.copyOf(sourceSetupIds), expectedWorkloads);
     }
 
     ScenarioSetupPreflightReport preflightIsolatedAttempt(ScenarioSetupPreflightOptions options,
@@ -220,11 +256,43 @@ public final class ScenarioExecutor {
         return report;
     }
 
-    record PreflightPlan(Set<String> candidateWorkloadIds, Set<String> sourceSetupWorkloadIds) {
+    record PreflightPlan(Set<String> candidateWorkloadIds,
+                         Set<String> sourceSetupWorkloadIds,
+                         Map<String, ExpectedWorkload> expectedWorkloads) {
         PreflightPlan {
             candidateWorkloadIds = Set.copyOf(candidateWorkloadIds);
             sourceSetupWorkloadIds = Set.copyOf(sourceSetupWorkloadIds);
+            expectedWorkloads = Map.copyOf(expectedWorkloads);
         }
+
+        PreflightPlan(Set<String> candidateWorkloadIds, Set<String> sourceSetupWorkloadIds) {
+            this(candidateWorkloadIds, sourceSetupWorkloadIds, Map.of());
+        }
+    }
+
+    record ExpectedWorkload(List<ExpectedParticipant> participants,
+                            List<ExpectedSetupAction> setupActions,
+                            List<ExpectedSetupBinding> setupBindings) {
+        ExpectedWorkload {
+            participants = List.copyOf(participants);
+            setupActions = List.copyOf(setupActions);
+            setupBindings = List.copyOf(setupBindings);
+        }
+    }
+
+    record ExpectedParticipant(String sagaInstanceId, String sagaFqn, String inputVariantId) {
+    }
+
+    record ExpectedSetupAction(String actionId,
+                               int orderIndex,
+                               String methodKey,
+                               String declaredResultTypeFqn) {
+    }
+
+    record ExpectedSetupBinding(String inputVariantId,
+                                int argumentIndex,
+                                String sourceActionId,
+                                String propertyName) {
     }
 
     private Set<String> validateMaterializabilityTable(
@@ -280,7 +348,8 @@ public final class ScenarioExecutor {
                                                     String attemptId,
                                                     WorkloadPlan workload,
                                                     FaultScenario scenario,
-                                                    ImpactV1Collector impactCollector) {
+                                                    ImpactV1Collector impactCollector,
+                                                    ImpactV2EvidenceCollector impactV2Collector) {
         ResolvedContract contract = resolveContract(workload, scenario);
         if (options.dryRun()) {
             return report(options, attemptId, "DRY_RUN", workload, scenario, "NONE", TraceMetadata.none(),
@@ -294,8 +363,38 @@ public final class ScenarioExecutor {
                     contract.faultSlots(), contract.plannedActions(), List.of(), List.of(),
                     setup.participants(), setup.blockers());
         }
-        return replay(options, attemptId, workload, scenario, contract, setup.participants(), impactCollector,
-                runtimeContext);
+        impactV2Collector.start(runtimeContext);
+        if (!impactV2Collector.started()) {
+            return replay(options, attemptId, workload, scenario, contract, setup.participants(), impactCollector,
+                    runtimeContext);
+        }
+        ImpactEvidenceObserverHolder.Scope observationScope;
+        try {
+            observationScope = ImpactEvidenceObserverHolder.install(impactV2Collector);
+        } catch (RuntimeException failure) {
+            impactV2Collector.coverageGap(new ImpactEvidence.CoverageGap(
+                    "ATTEMPT", attemptId, "OBSERVER_INSTALL_FAILED", failureDetails(failure)));
+            try {
+                return replay(options, attemptId, workload, scenario, contract, setup.participants(), impactCollector,
+                        runtimeContext);
+            } finally {
+                impactV2Collector.finish();
+            }
+        }
+        try {
+            return replay(options, attemptId, workload, scenario, contract, setup.participants(), impactCollector,
+                    runtimeContext);
+        } finally {
+            try {
+                impactV2Collector.finish();
+            } catch (RuntimeException failure) {
+                impactV2Collector.coverageGap(new ImpactEvidence.CoverageGap(
+                        "FINAL", attemptId, "OBSERVER_FINALIZATION_FAILED", failureDetails(failure)));
+            } finally {
+                observationScope.close();
+                impactV2Collector.recordObserverFailures(observationScope);
+            }
+        }
     }
 
     private SetupResult setup(WorkloadPlan workload,
@@ -535,7 +634,7 @@ public final class ScenarioExecutor {
                 if (action.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE) {
                     EventActionResult eventResult = executeEventConsequence(
                             resolved, plannedPosition, actualActions.size(), triggerStates,
-                            capturedEventsByTrigger, runtimeContext);
+                            capturedEventsByTrigger, runtimeContext, attemptId, workload.deterministicId());
                     actualActions.add(eventResult.outcome());
                     if (!eventResult.completed()) {
                         ScenarioExecutionReport.Blocker blocker = blocker(workload, scenario, participant, action,
@@ -601,23 +700,27 @@ public final class ScenarioExecutor {
                                     "ASSIGNED_FAULT", "NOT_RUN", "NOT_RUN", "ASSIGNED", List.of(), null, null));
                             lifecycleEvents.add(event(lifecycleEvents, participant, "ABORTED", action.deterministicId(), "ASSIGNED_FAULT", null));
                             if (plannedCompensations.getOrDefault(participant.saga.deterministicId(), 0) == 0) {
-                                participant.finalState = "COMPENSATED";
-                                lifecycleEvents.add(event(lifecycleEvents, participant, "NO_COMPENSATION_WORK", action.deterministicId(), "SUCCEEDED", null));
-                                lifecycleEvents.add(event(lifecycleEvents, participant, "COMPENSATED", action.deterministicId(), "SUCCEEDED", null));
+                                participant.finalState = "RECOVERY_FINISHED";
                             }
                         } else {
                             WorkflowStepExecutionResult execution;
-                            if (eventTriggerIds.contains(slot.scheduledStepId())) {
-                                EventReplayCoordinator.TriggerCaptureScope capture =
-                                        EventReplayCoordinator.beginTriggerCapture(slot.scheduledStepId());
-                                try (capture) {
+                            ImpactEvidence.Writer writer = new ImpactEvidence.Writer(
+                                    "SAGA", attemptId, workload.deterministicId(), participant.saga.deterministicId(),
+                                    action.deterministicId(), "FORWARD", participant.saga.sagaFqn(),
+                                    slot.runtimeStepName(), null);
+                            try (ImpactWriterContext.Scope writerScope = ImpactWriterContext.enter(writer)) {
+                                if (eventTriggerIds.contains(slot.scheduledStepId())) {
+                                    EventReplayCoordinator.TriggerCaptureScope capture =
+                                            EventReplayCoordinator.beginTriggerCapture(slot.scheduledStepId());
+                                    try (capture) {
+                                        execution = participant.functionality.executeStepForExecutorControlled(
+                                                slot.runtimeStepName(), participant.unitOfWork);
+                                    }
+                                    capturedEventsByTrigger.put(slot.scheduledStepId(), capture.capturedEvents());
+                                } else {
                                     execution = participant.functionality.executeStepForExecutorControlled(
                                             slot.runtimeStepName(), participant.unitOfWork);
                                 }
-                                capturedEventsByTrigger.put(slot.scheduledStepId(), capture.capturedEvents());
-                            } else {
-                                execution = participant.functionality.executeStepForExecutorControlled(
-                                        slot.runtimeStepName(), participant.unitOfWork);
                             }
                             if (!execution.completed()) {
                                 Throwable cause = unwrap(execution.failure());
@@ -672,7 +775,7 @@ public final class ScenarioExecutor {
                                     deviationPlannedPosition = plannedPosition;
                                 }
                                 FallbackResult fallback = recoverAfterRuntimeFailure(
-                                        workload, scenario, participant, resolved, action.deterministicId(),
+                                        attemptId, workload, scenario, participant, resolved, action.deterministicId(),
                                         actualActions, lifecycleEvents, blockers);
                                 if (!fallback.completed()) {
                                     markHardStopSkips(workload, scenario, plannedPosition, participantsById);
@@ -681,96 +784,102 @@ public final class ScenarioExecutor {
                                                     deviationPlannedPosition, fallback.hardStopActionId(), fallback.hardStopReason()),
                                             snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
                                 }
-                                continue;
-                            }
-                            triggerStates.put(slot.scheduledStepId(), "SUCCEEDED");
-                            if (Objects.equals(finalFaultSlotByParticipant.get(slot.sagaInstanceId()), slot.deterministicId())) {
-                                WorkflowFinalizationResult finalization = participant.functionality.finalizeForExecutor(participant.unitOfWork);
-                                if (finalization.committed()) {
-                                    participant.finalState = "COMMITTED";
-                                    actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
-                                            "COMPLETED", "SUCCEEDED", "SUCCEEDED", null, List.of(), null, null));
-                                    lifecycleEvents.add(event(lifecycleEvents, participant, "AUTOMATIC_COMMIT", action.deterministicId(), "SUCCEEDED", null));
-                                } else {
-                                    Throwable cause = unwrap(finalization.failure());
-                                    triggerStates.put(slot.scheduledStepId(), "FAILED");
-                                    if (capturedMatchingEventAfterFailure(
-                                            workload, slot.scheduledStepId(), capturedEventsByTrigger)) {
-                                        triggerStates.put(slot.scheduledStepId(), "FAILED_AFTER_EVENT_EMISSION");
-                                        participant.finalState = "HARD_STOPPED";
-                                        actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
-                                                "TRIGGER_FAILED_AFTER_EVENT_EMISSION", "SUCCEEDED", "FAILED", null,
-                                                List.of(), cause, null));
-                                        ScenarioExecutionReport.Blocker blocker = blocker(
-                                                workload, scenario, participant, action, slot.scheduledStepId(),
-                                                "TRIGGER_FAILED_AFTER_EVENT_EMISSION", cause);
-                                        participant.blockers.add(blocker);
-                                        blockers.add(blocker);
-                                        markHardStopSkips(workload, scenario, plannedPosition, participantsById);
-                                        return report(options, attemptId, "UNEXPECTED_EXECUTION_FAILURE",
-                                                workload, scenario, "IN_MEMORY_FAULT_VECTOR",
-                                                incompleteTrace(actualActions, deviationActionId,
-                                                        deviationPlannedPosition, action.deterministicId(),
-                                                        "TRIGGER_FAILED_AFTER_EVENT_EMISSION"),
-                                                snapshot(faultSlots), contract.plannedActions(), actualActions,
-                                                lifecycleEvents, participants, blockers);
-                                    }
-                                    if (!isDomainFailure(cause)) {
-                                        participant.finalState = "HARD_STOPPED";
-                                        actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
-                                                "COMMIT_INFRASTRUCTURE_FAILED", "SUCCEEDED", "FAILED", null, List.of(), cause, null));
-                                        ScenarioExecutionReport.Blocker blocker = blocker(workload, scenario, participant, action,
-                                                slot.scheduledStepId(), "COMMIT_INFRASTRUCTURE_FAILURE", cause);
-                                        participant.blockers.add(blocker);
-                                        blockers.add(blocker);
-                                        markHardStopSkips(workload, scenario, plannedPosition, participantsById);
-                                        return report(options, attemptId, "UNEXPECTED_EXECUTION_FAILURE", workload, scenario,
-                                                "IN_MEMORY_FAULT_VECTOR", incompleteTrace(actualActions, deviationActionId,
-                                                        deviationPlannedPosition, action.deterministicId(), "COMMIT_INFRASTRUCTURE_FAILURE"),
-                                                snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
-                                    }
-                                    participant.finalState = "ABORTED";
-                                    participant.runtimeDeviation = true;
-                                    actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
-                                            "COMMIT_FAILED", "SUCCEEDED", "FAILED", "UNASSIGNED_RUNTIME", List.of(), cause, null));
-                                    lifecycleEvents.add(event(lifecycleEvents, participant, "ABORTED", action.deterministicId(), "COMMIT_FAILED", cause));
-                                    ScenarioExecutionReport.Blocker blocker = blocker(workload, scenario, participant, action,
-                                            slot.scheduledStepId(), "UNASSIGNED_RUNTIME_COMMIT_FAILURE", cause);
-                                    participant.blockers.add(blocker);
-                                    blockers.add(blocker);
-                                    if (deviationActionId == null) {
-                                        deviationActionId = action.deterministicId();
-                                        deviationPlannedPosition = plannedPosition;
-                                    }
-                                    FallbackResult fallback = recoverAfterRuntimeFailure(
-                                            workload, scenario, participant, resolved, action.deterministicId(),
-                                            actualActions, lifecycleEvents, blockers);
-                                    if (!fallback.completed()) {
-                                        markHardStopSkips(workload, scenario, plannedPosition, participantsById);
-                                        return report(options, attemptId, "COMPENSATION_FAILED", workload, scenario,
-                                                "IN_MEMORY_FAULT_VECTOR", incompleteTrace(actualActions, deviationActionId,
-                                                        deviationPlannedPosition, fallback.hardStopActionId(), fallback.hardStopReason()),
-                                                snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
-                                    }
-                                }
                             } else {
-                                actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
-                                        "COMPLETED", "SUCCEEDED", "NOT_RUN", null, List.of(), null, null));
+                                triggerStates.put(slot.scheduledStepId(), "SUCCEEDED");
+                                if (Objects.equals(finalFaultSlotByParticipant.get(slot.sagaInstanceId()), slot.deterministicId())) {
+                                    WorkflowFinalizationResult finalization = participant.functionality.finalizeForExecutor(participant.unitOfWork);
+                                    if (finalization.committed()) {
+                                        participant.finalState = "COMMITTED";
+                                        actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
+                                                "COMPLETED", "SUCCEEDED", "SUCCEEDED", null, List.of(), null, null));
+                                        lifecycleEvents.add(event(lifecycleEvents, participant, "AUTOMATIC_COMMIT", action.deterministicId(), "SUCCEEDED", null));
+                                    } else {
+                                        Throwable cause = unwrap(finalization.failure());
+                                        triggerStates.put(slot.scheduledStepId(), "FAILED");
+                                        if (capturedMatchingEventAfterFailure(
+                                                workload, slot.scheduledStepId(), capturedEventsByTrigger)) {
+                                            triggerStates.put(slot.scheduledStepId(), "FAILED_AFTER_EVENT_EMISSION");
+                                            participant.finalState = "HARD_STOPPED";
+                                            actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
+                                                    "TRIGGER_FAILED_AFTER_EVENT_EMISSION", "SUCCEEDED", "FAILED", null,
+                                                    List.of(), cause, null));
+                                            ScenarioExecutionReport.Blocker blocker = blocker(
+                                                    workload, scenario, participant, action, slot.scheduledStepId(),
+                                                    "TRIGGER_FAILED_AFTER_EVENT_EMISSION", cause);
+                                            participant.blockers.add(blocker);
+                                            blockers.add(blocker);
+                                            markHardStopSkips(workload, scenario, plannedPosition, participantsById);
+                                            return report(options, attemptId, "UNEXPECTED_EXECUTION_FAILURE",
+                                                    workload, scenario, "IN_MEMORY_FAULT_VECTOR",
+                                                    incompleteTrace(actualActions, deviationActionId,
+                                                            deviationPlannedPosition, action.deterministicId(),
+                                                            "TRIGGER_FAILED_AFTER_EVENT_EMISSION"),
+                                                    snapshot(faultSlots), contract.plannedActions(), actualActions,
+                                                    lifecycleEvents, participants, blockers);
+                                        }
+                                        if (!isDomainFailure(cause)) {
+                                            participant.finalState = "HARD_STOPPED";
+                                            actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
+                                                    "COMMIT_INFRASTRUCTURE_FAILED", "SUCCEEDED", "FAILED", null, List.of(), cause, null));
+                                            ScenarioExecutionReport.Blocker blocker = blocker(workload, scenario, participant, action,
+                                                    slot.scheduledStepId(), "COMMIT_INFRASTRUCTURE_FAILURE", cause);
+                                            participant.blockers.add(blocker);
+                                            blockers.add(blocker);
+                                            markHardStopSkips(workload, scenario, plannedPosition, participantsById);
+                                            return report(options, attemptId, "UNEXPECTED_EXECUTION_FAILURE", workload, scenario,
+                                                    "IN_MEMORY_FAULT_VECTOR", incompleteTrace(actualActions, deviationActionId,
+                                                            deviationPlannedPosition, action.deterministicId(), "COMMIT_INFRASTRUCTURE_FAILURE"),
+                                                    snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
+                                        }
+                                        participant.finalState = "ABORTED";
+                                        participant.runtimeDeviation = true;
+                                        actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
+                                                "COMMIT_FAILED", "SUCCEEDED", "FAILED", "UNASSIGNED_RUNTIME", List.of(), cause, null));
+                                        lifecycleEvents.add(event(lifecycleEvents, participant, "ABORTED", action.deterministicId(), "COMMIT_FAILED", cause));
+                                        ScenarioExecutionReport.Blocker blocker = blocker(workload, scenario, participant, action,
+                                                slot.scheduledStepId(), "UNASSIGNED_RUNTIME_COMMIT_FAILURE", cause);
+                                        participant.blockers.add(blocker);
+                                        blockers.add(blocker);
+                                        if (deviationActionId == null) {
+                                            deviationActionId = action.deterministicId();
+                                            deviationPlannedPosition = plannedPosition;
+                                        }
+                                        FallbackResult fallback = recoverAfterRuntimeFailure(
+                                                attemptId, workload, scenario, participant, resolved, action.deterministicId(),
+                                                actualActions, lifecycleEvents, blockers);
+                                        if (!fallback.completed()) {
+                                            markHardStopSkips(workload, scenario, plannedPosition, participantsById);
+                                            return report(options, attemptId, "COMPENSATION_FAILED", workload, scenario,
+                                                    "IN_MEMORY_FAULT_VECTOR", incompleteTrace(actualActions, deviationActionId,
+                                                            deviationPlannedPosition, fallback.hardStopActionId(), fallback.hardStopReason()),
+                                                    snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
+                                        }
+                                    }
+                                } else {
+                                    actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
+                                            "COMPLETED", "SUCCEEDED", "NOT_RUN", null, List.of(), null, null));
+                                }
                             }
                         }
                     }
                 } else {
                     try {
-                        WorkflowStepRecoveryResult recovery = participant.functionality.recoverStepForExecutor(
-                                resolved.runtimeStepName(), participant.unitOfWork);
+                        ImpactEvidence.Writer writer = new ImpactEvidence.Writer(
+                                "SAGA", attemptId, workload.deterministicId(), participant.saga.deterministicId(),
+                                action.deterministicId(), "RECOVERY", participant.saga.sagaFqn(),
+                                resolved.runtimeStepName(), null);
+                        WorkflowStepRecoveryResult recovery;
+                        try (ImpactWriterContext.Scope writerScope = ImpactWriterContext.enter(writer)) {
+                            recovery = participant.functionality.recoverStepForExecutor(
+                                    resolved.runtimeStepName(), participant.unitOfWork);
+                        }
                         List<ScenarioExecutionReport.RecoverySubOutcome> subOutcomes = recoverySubOutcomes(recovery);
                         actualActions.add(outcome(resolved, plannedPosition, actualActions.size(),
                                 "COMPENSATED", "NOT_APPLICABLE", "NOT_APPLICABLE", null, subOutcomes, null, null));
                         participant.completedCompensations++;
                         if (participant.completedCompensations
                                 == plannedCompensations.getOrDefault(participant.saga.deterministicId(), 0)) {
-                            participant.finalState = "COMPENSATED";
-                            lifecycleEvents.add(event(lifecycleEvents, participant, "COMPENSATED", action.deterministicId(), "SUCCEEDED", null));
+                            participant.finalState = "RECOVERY_FINISHED";
                         }
                     } catch (Throwable failure) {
                         Throwable cause = recoveryFailureCause(failure);
@@ -791,6 +900,30 @@ public final class ScenarioExecutor {
                                         deviationPlannedPosition, action.deterministicId(), failedKind + "_FAILED"),
                                 snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
                     }
+                }
+                if ("RECOVERY_FINISHED".equals(participant.finalState)) {
+                    ScenarioExecutionReport.Blocker recoveryBlocker = incompleteRecovery(
+                            workload, scenario, participant, action, resolved.sourceScheduledStepId());
+                    if (recoveryBlocker != null) {
+                        participant.finalState = "ABORTED";
+                        participant.blockers.add(recoveryBlocker);
+                        blockers.add(recoveryBlocker);
+                        lifecycleEvents.add(event(lifecycleEvents, participant, "RECOVERY_INCOMPLETE",
+                                action.deterministicId(), "FAILED", null));
+                        markHardStopSkips(workload, scenario, plannedPosition, participantsById);
+                        return report(options, attemptId, "UNEXPECTED_EXECUTION_FAILURE", workload, scenario,
+                                "IN_MEMORY_FAULT_VECTOR", incompleteTrace(actualActions, deviationActionId,
+                                        deviationPlannedPosition, action.deterministicId(), recoveryBlocker.reason()),
+                                snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents,
+                                participants, blockers);
+                    }
+                    participant.finalState = "COMPENSATED";
+                    if (!"COMPENSATED".equals(actualActions.getLast().status())) {
+                        lifecycleEvents.add(event(lifecycleEvents, participant, "NO_COMPENSATION_WORK",
+                                action.deterministicId(), "SUCCEEDED", null));
+                    }
+                    lifecycleEvents.add(event(lifecycleEvents, participant, "COMPENSATED",
+                            actualActions.getLast().actionId(), "SUCCEEDED", null));
                 }
             }
         }
@@ -819,13 +952,32 @@ public final class ScenarioExecutor {
                 snapshot(faultSlots), contract.plannedActions(), actualActions, lifecycleEvents, participants, blockers);
     }
 
+    private ScenarioExecutionReport.Blocker incompleteRecovery(
+            WorkloadPlan workload, FaultScenario scenario, ParticipantState participant,
+            FaultScenarioAction action, String sourceScheduledStepId) {
+        try {
+            List<WorkflowRecoveryCheckpoint> pending = participant.functionality
+                    .recoveryCheckpointsForExecutor(participant.unitOfWork);
+            if (pending.isEmpty()) return null;
+            String steps = pending.stream().map(WorkflowRecoveryCheckpoint::sourceStepName)
+                    .distinct().sorted().collect(java.util.stream.Collectors.joining(", "));
+            return blocker(workload, scenario, participant, action, sourceScheduledStepId,
+                    "PENDING_RUNTIME_RECOVERY", "Scheduled recovery finished but runtime recovery remains for: " + steps);
+        } catch (Throwable failure) {
+            return blocker(workload, scenario, participant, action, sourceScheduledStepId,
+                    "RECOVERY_CHECKPOINT_DISCOVERY_FAILED", unwrap(failure));
+        }
+    }
+
     private EventActionResult executeEventConsequence(
             ResolvedAction action,
             int plannedPosition,
             int actualPosition,
             Map<String, String> triggerStates,
             Map<String, List<EventReplayCoordinator.CapturedEvent>> capturedEventsByTrigger,
-            ScenarioRuntimeContext runtimeContext) {
+            ScenarioRuntimeContext runtimeContext,
+            String attemptId,
+            String workloadPlanId) {
         EventConsequence consequence = action.eventConsequence();
         if (consequence == null) {
             ScenarioExecutionReport.ActionOutcome outcome = eventOutcome(action, plannedPosition, actualPosition,
@@ -882,7 +1034,13 @@ public final class ScenarioExecutor {
             selection = EventReplayCoordinator.beginSelectedEvent(
                     captured, captured.eventTypeFqn(), handlerType.getName());
             handlerInvoked = true;
-            method.invoke(handlingBean);
+            ImpactEvidence.Writer writer = new ImpactEvidence.Writer(
+                    "EVENT_CONSUMER", attemptId, workloadPlanId, action.source().sagaInstanceId(),
+                    action.action().deterministicId(), "EVENT", consequence.eventHandlingClassFqn(),
+                    consequence.eventHandlingMethodName(), captured.eventId());
+            try (ImpactWriterContext.Scope ignored = ImpactWriterContext.enter(writer)) {
+                method.invoke(handlingBean);
+            }
             selection.verifyCompleted();
             ScenarioExecutionReport.EventRuntimeEvidence evidence = eventEvidence(
                     consequence, captured, selection.subscriberAggregateId());
@@ -956,7 +1114,8 @@ public final class ScenarioExecutor {
                 failure == null ? null : failure.getMessage());
     }
 
-    private FallbackResult recoverAfterRuntimeFailure(WorkloadPlan workload,
+    private FallbackResult recoverAfterRuntimeFailure(String attemptId,
+                                                       WorkloadPlan workload,
                                                        FaultScenario scenario,
                                                        ParticipantState participant,
                                                        ResolvedAction failedAction,
@@ -986,22 +1145,24 @@ public final class ScenarioExecutor {
         }
 
         if (recoveryCheckpoints.isEmpty()) {
-            participant.finalState = "COMPENSATED";
-            lifecycleEvents.add(event(lifecycleEvents, participant, "NO_COMPENSATION_WORK", deviationActionId, "SUCCEEDED", null));
-            lifecycleEvents.add(event(lifecycleEvents, participant, "COMPENSATED", deviationActionId, "SUCCEEDED", null));
+            participant.finalState = "RECOVERY_FINISHED";
             return FallbackResult.success();
         }
 
         Set<String> usedScheduledSteps = new HashSet<>();
-        String finalRecoveryActionId = deviationActionId;
         for (WorkflowRecoveryCheckpoint checkpoint : recoveryCheckpoints) {
             RuntimeRecoveryReference reference = runtimeRecoveryReference(
                     workload, participant, failedAction, checkpoint.sourceStepName(), usedScheduledSteps);
             String actionId = runtimeRecoveryActionId(participant, checkpoint.sourceStepName(), reference.runtimeOccurrenceId());
-            finalRecoveryActionId = actionId;
             try {
-                WorkflowStepRecoveryResult recovery = participant.functionality.recoverStepForExecutor(
-                        checkpoint.sourceStepName(), participant.unitOfWork);
+                ImpactEvidence.Writer writer = new ImpactEvidence.Writer(
+                        "SAGA", attemptId, workload.deterministicId(), participant.saga.deterministicId(),
+                        actionId, "RECOVERY", participant.saga.sagaFqn(), checkpoint.sourceStepName(), null);
+                WorkflowStepRecoveryResult recovery;
+                try (ImpactWriterContext.Scope ignored = ImpactWriterContext.enter(writer)) {
+                    recovery = participant.functionality.recoverStepForExecutor(
+                            checkpoint.sourceStepName(), participant.unitOfWork);
+                }
                 actualActions.add(runtimeRecoveryOutcome(
                         actionId, participant, reference.checkpointId(), reference.sourceScheduledStepId(),
                         reference.sourceStepId(), checkpoint.sourceStepName(), reference.runtimeOccurrenceId(),
@@ -1027,8 +1188,7 @@ public final class ScenarioExecutor {
                 return new FallbackResult(false, actionId, failedKind + "_FAILED");
             }
         }
-        participant.finalState = "COMPENSATED";
-        lifecycleEvents.add(event(lifecycleEvents, participant, "COMPENSATED", finalRecoveryActionId, "SUCCEEDED", null));
+        participant.finalState = "RECOVERY_FINISHED";
         return FallbackResult.success();
     }
 
@@ -1779,6 +1939,28 @@ public final class ScenarioExecutor {
             write(options.impactOutputPath(), ScenarioImpactReport.evaluate(executionReport, findings));
         } catch (IOException failure) {
             throw new IllegalStateException("Failed to write scenario impact report", failure);
+        }
+    }
+
+    private Path impactV2OutputPath(Path executionOutput) {
+        if (executionOutput == null) return null;
+        Path fileName = executionOutput.getFileName();
+        String name = fileName == null ? "execution-report" : fileName.toString();
+        int extension = name.lastIndexOf('.');
+        String derived = extension > 0
+                ? name.substring(0, extension) + ".impact-v2" + name.substring(extension)
+                : name + ".impact-v2.json";
+        Path parent = executionOutput.getParent();
+        return parent == null ? Path.of(derived) : parent.resolve(derived);
+    }
+
+    private void writeImpactV2Evidence(Path output, ImpactV2EvidenceReport report) {
+        if (output == null) return;
+        try {
+            write(output, report);
+        } catch (IOException | RuntimeException failure) {
+            logger.warn("Failed to write ImpactV2 evidence report to {}; preserving scenario execution outcome",
+                    output, failure);
         }
     }
 

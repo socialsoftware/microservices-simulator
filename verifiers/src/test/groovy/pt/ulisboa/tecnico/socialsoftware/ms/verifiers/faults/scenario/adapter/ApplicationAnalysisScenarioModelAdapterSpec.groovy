@@ -440,6 +440,23 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
             assert steps[stepName].analysisDiagnostics().isEmpty()
             assert steps[stepName].compensationEvidence() == null
         }
+
+        and:
+        ['semanticLockReadStep', 'semanticLockClearingStep'].each { stepName ->
+            assert steps[stepName].footprints()*.accessMode() == [AccessMode.READ, AccessMode.WRITE]
+            assert steps[stepName].footprints()*.aggregateKey()*.aggregateName().toSet() == ['Item'] as Set
+            assert steps[stepName].footprints()*.aggregateKey()*.keyText().toSet() ==
+                    ['itemDto.getAggregateId()'] as Set
+            assert steps[stepName].compensationEvidence() == CompensationEvidenceClass.IMPLICIT_SAGA_ROLLBACK
+        }
+        ['forbiddenStateReadStep', 'postDispatchLockStep'].each { stepName ->
+            assert steps[stepName].footprints()*.accessMode() == [AccessMode.READ]
+            assert steps[stepName].forwardAnalysisComplete()
+            assert steps[stepName].compensationEvidence() == null
+        }
+        steps.uncertainWrapperConfigurationStep.footprints()*.accessMode() == [AccessMode.READ]
+        !steps.uncertainWrapperConfigurationStep.forwardAnalysisComplete()
+        steps.uncertainWrapperConfigurationStep.compensationEvidence() == CompensationEvidenceClass.CONSERVATIVE_UNKNOWN
     }
 
     def 'dummyapp adapter integration produces input variant for event-origin saga'() {
@@ -449,7 +466,8 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         when:
         def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
         def variant = result.inputVariants().find {
-            it.sagaFqn() == 'com.example.dummyapp.item.coordination.RenameItemFromEventFunctionalitySagas'
+            it.sagaFqn() == 'com.example.dummyapp.item.coordination.RenameItemFromEventFunctionalitySagas' &&
+                    it.sourceMethodName() == 'event handling call traces downstream item rename saga'
         }
 
         then:

@@ -213,6 +213,14 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         selfRebinding != null
         selfRebinding.constructorArguments()[1].recipe().kind() == GroovyValueKind.CONSTRUCTOR
         selfRebinding.constructorArguments()[1].producerReference() == null
+        selfRebinding.constructorArguments()[1].recipe().metadata().assignments()*.assignmentKind() ==
+                ['setter', 'property', 'setter']
+        selfRebinding.constructorArguments()[1].recipe().metadata().assignments()*.propertyName() ==
+                ['aggregateId', 'name', 'orderId']
+        selfRebinding.constructorArguments()[1].recipe().metadata().assignments()*.valueRecipe()*.text() ==
+                ['71', 'before-facade', '81']
+        !selfRebinding.constructorArguments()[1].recipe().metadata().assignments()*.valueRecipe()*.text()
+                .contains('999')
 
         and: 'a field assignment in another feature does not leak into this feature'
         laterFeature != null
@@ -225,6 +233,90 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         downstream.constructorArguments()[1].producerReference().producerMethodName() == 'createItem'
         state.groovyFacadeSetupActionTraces.any {
             it.sourceOccurrence() == downstream.constructorArguments()[1].producerReference().occurrenceId()
+        }
+    }
+
+    def 'feature-derived setup uses the exact target cutoff and retains prior void effects'() {
+        given:
+        def feature = 'feature preparation prefix feeds exact later target'
+        def featureInputTraces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.callContextMethodName() == feature &&
+                    it.sagaClassFqn == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def targetTrace = featureInputTraces.find {
+            it.sourceExpressionText() == 'itemFunctionalities.createItem(created)'
+        }
+        def postTargetTrace = featureInputTraces.find {
+            it.sourceExpressionText().contains('aggregateId: 122')
+        }
+        def featureActions = state.groovyFacadeSetupActionTraces.findAll {
+            it.callContextMethodName() == feature
+        }
+
+        expect: 'typed occurrences distinguish preparation, target, and assertion phases'
+        targetTrace?.occurrence()?.initialPreparationPhase()
+        !postTargetTrace?.occurrence()?.initialPreparationPhase()
+        featureInputTraces*.occurrence*.occurrenceId.toSet().size() == featureInputTraces.size()
+
+        and: 'the assigned producer and its setup action use the same AST occurrence'
+        featureActions*.occurrence*.orderIndex == [0, 1, 2, 3]
+        targetTrace.constructorArguments()[1].producerReference().occurrenceId() ==
+                featureActions.first().occurrence().occurrenceId()
+        targetTrace.occurrence().occurrenceId() == featureActions[2].occurrence().occurrenceId()
+        targetTrace.occurrence().occurrenceId() !=
+                targetTrace.constructorArguments()[1].producerReference().occurrenceId()
+    }
+
+    def 'control flow permanently closes later feature prefix extension'() {
+        given:
+        def feature = 'control flow closes the feature preparation prefix'
+        def traces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.callContextMethodName() == feature
+        }.sort { it.occurrence().orderIndex() }
+
+        expect:
+        traces.size() == 2
+        traces.first().occurrence().initialPreparationPhase()
+        !traces.last().occurrence().initialPreparationPhase()
+    }
+
+    def 'executed workflow and event paths permanently close later feature prefix extension'() {
+        expect:
+        ['direct workflow execution closes the feature preparation prefix',
+         'event handling execution closes the feature preparation prefix'].every { feature ->
+            def traces = state.groovyFullTraceResults.findAll {
+                it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                        it.callContextMethodName() == feature
+            }.sort { it.occurrence().orderIndex() }
+            traces.size() == 3 && traces[0].occurrence().initialPreparationPhase() &&
+                    traces[1].occurrence().initialPreparationPhase() &&
+                    !traces[2].occurrence().initialPreparationPhase()
+        }
+    }
+
+    def 'adapter blocks repeated identical targets collapsed to one input identity'() {
+        given:
+        def feature = 'repeated identical feature targets retain distinct occurrences'
+        def adapted = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def traces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.callContextMethodName() == feature
+        }
+
+        expect:
+        traces.size() == 2
+        traces*.occurrence*.occurrenceId.toSet().size() == 2
+        adapted.inputVariants().count {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.callContextMethodName() == feature
+        } == 1
+        adapted.diagnostics().any {
+            it.contains(feature) && it.contains('ambiguous target source occurrences')
+        }
+        !adapted.sourceSetupPlanBindings().any {
+            it.featureDerived() && it.featureMethodName() == feature
         }
     }
 

@@ -279,7 +279,7 @@ public final class ScenarioGenerator {
         if (result == null && bindings != null && tuple != null && warnings != null) {
             Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
                     .collect(java.util.stream.Collectors.toSet());
-            long matches = bindings.stream().filter(binding -> binding.inputVariantIds().containsAll(inputIds)).count();
+            long matches = matchingSetupPlans(inputIds, bindings).size();
             if (matches > 1) {
                 warnings.add("ambiguous source setup for input tuple " + inputIds.stream().sorted().toList());
             }
@@ -292,13 +292,32 @@ public final class ScenarioGenerator {
         if (bindings == null || bindings.isEmpty() || tuple == null) return null;
         Set<String> inputIds = tuple.inputs().stream().map(InputVariant::deterministicId)
                 .collect(java.util.stream.Collectors.toSet());
-        List<SourceSetupPlanBinding> matches = bindings.stream()
-                .filter(binding -> binding.inputVariantIds().containsAll(inputIds))
-                .toList();
+        List<SetupPlan> matches = matchingSetupPlans(inputIds, bindings);
         if (matches.size() != 1) {
             return null;
         }
-        SetupPlan candidate = matches.get(0).setupPlan();
+        return matches.get(0);
+    }
+
+    private static List<SetupPlan> matchingSetupPlans(Set<String> inputIds,
+                                                       List<SourceSetupPlanBinding> bindings) {
+        List<SourceSetupPlanBinding> complete = bindings.stream()
+                .filter(Objects::nonNull)
+                .filter(binding -> binding.inputVariantIds().containsAll(inputIds))
+                .filter(binding -> binding.matchesSelectedFrontier(inputIds))
+                .filter(binding -> !binding.replaysSelectedTarget(inputIds))
+                .toList();
+        List<SourceSetupPlanBinding> setupOnly = complete.stream()
+                .filter(binding -> !binding.featureDerived())
+                .toList();
+        List<SourceSetupPlanBinding> selected = setupOnly.isEmpty() ? complete : setupOnly;
+        return selected.stream()
+                .map(binding -> projectSetup(binding.setupPlan(), inputIds))
+                .distinct()
+                .toList();
+    }
+
+    private static SetupPlan projectSetup(SetupPlan candidate, Set<String> inputIds) {
         List<SetupParticipantBinding> selectedBindings = candidate.participantBindings().stream()
                 .filter(binding -> inputIds.contains(binding.inputVariantId()))
                 .toList();

@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeArgument
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeAssignment
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputRecipeNode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputResolutionStatus
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant
@@ -69,6 +70,40 @@ class ScenarioDateMaterializationSpec extends Specification {
         materialized.blockers()*.reason() == ['UNSUPPORTED_TRANSFORM_RECEIVER']
     }
 
+    def 'a setup-bound unresolved argument does not block an independent DTO constructor argument'() {
+        given:
+        def name = InputRecipeNode.builder('literal')
+                .executorReady(true)
+                .value('source-backed-name')
+                .build()
+        def dto = InputRecipeNode.builder('constructor')
+                .executorReady(true)
+                .targetTypeFqn(java.beans.FeatureDescriptor.name)
+                .assignments([new InputRecipeAssignment('property', 'name', 'name', 0,
+                        'dto.name = source-backed-name', true, [], name)])
+                .build()
+        def unresolved = InputRecipeNode.builder('unresolved')
+                .executorReady(false)
+                .blockers(['setupBoundResult'])
+                .build()
+        def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, false, ['setupBoundResult'], [
+                new InputRecipeArgument(0, Integer.name, InputResolutionStatus.UNRESOLVED,
+                        false, ['setupBoundResult'], 'created.aggregateId', unresolved),
+                new InputRecipeArgument(1, java.beans.FeatureDescriptor.name, InputResolutionStatus.RESOLVED,
+                        true, [], 'dto <- new FeatureDescriptor()', dto)
+        ])
+        def input = input(recipe)
+
+        when:
+        def materialized = new ScenarioMaterializer().materialize(input, null, 'dto', null, [:], [0: 41])
+
+        then:
+        materialized.success()
+        materialized.values()[0] == 41
+        materialized.values()[1] instanceof java.beans.FeatureDescriptor
+        materialized.values()[1].name == 'source-backed-name'
+    }
+
     def 'current package round-trip restores the compact date recipe for execution'() {
         given:
         def original = input(mapDateRecipe())
@@ -113,9 +148,9 @@ class ScenarioDateMaterializationSpec extends Specification {
         staticContents.inputFacts()[0].path('blockers')[0].path('reason').asText() == 'unsupportedTransformReceiver'
         restored.inputRecipe().arguments()[0].recipe().receiver().kind() == 'runtime'
         !readiness.materializable()
-        readiness.blockers() == ['UNRESOLVED_ARGUMENT']
+        readiness.blockers() == ['UNSUPPORTED_TRANSFORM_RECEIVER']
         !materialized.success()
-        materialized.blockers()*.reason() == ['UNRESOLVED_ARGUMENT']
+        materialized.blockers()*.reason() == ['UNSUPPORTED_TRANSFORM_RECEIVER']
     }
 
     private static InputRecipe mapDateRecipe() {

@@ -45,6 +45,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntime
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceClassMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceOccurrence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassification;
@@ -95,6 +96,8 @@ public class GroovyConstructorInputTraceVisitor {
     private Set<String> activeNestedFacadeTraceKeys = new LinkedHashSet<>();
     private Map<String, String> activeHelperCallContextByScope = new LinkedHashMap<>();
     private Map<String, GroovySourceValueReference> activeHelperCallOccurrenceByScope = new LinkedHashMap<>();
+    private Map<String, Integer> activeSourceOrderByContext = new LinkedHashMap<>();
+    private Set<String> blockedFeaturePrefixContexts = new LinkedHashSet<>();
 
     public void visit(GroovySourceIndex sourceIndex, ApplicationAnalysisState state) {
         Objects.requireNonNull(sourceIndex, "sourceIndex cannot be null");
@@ -147,6 +150,8 @@ public class GroovyConstructorInputTraceVisitor {
         activeNestedFacadeTraceKeys = new LinkedHashSet<>();
         activeHelperCallContextByScope = new LinkedHashMap<>();
         activeHelperCallOccurrenceByScope = new LinkedHashMap<>();
+        activeSourceOrderByContext = new LinkedHashMap<>();
+        blockedFeaturePrefixContexts = new LinkedHashSet<>();
         InheritanceLayer targetLayer = hierarchy.get(hierarchy.size() - 1);
         Map<String, TraceBuilder> classFieldScopes = new LinkedHashMap<>();
         Map<String, Expression> classFieldExpressionScopes = new LinkedHashMap<>();
@@ -224,7 +229,8 @@ public class GroovyConstructorInputTraceVisitor {
                 List.copyOf(builder.constructorArguments),
                 List.copyOf(builder.workflowCalls),
                 List.copyOf(builder.resolutionNotes),
-                builder.buildTraceText()
+                builder.buildTraceText(),
+                builder.occurrence
         )));
     }
 
@@ -269,6 +275,10 @@ public class GroovyConstructorInputTraceVisitor {
             return;
         }
 
+        if (isFeaturePrefixBarrierLabel(statement.getStatementLabel())) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
+        }
+
         if (statement instanceof BlockStatement nestedBlock) {
             traceBlock(nestedBlock, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
@@ -279,6 +289,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof TryCatchStatement tryCatchStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             traceStatement(tryCatchStatement.getTryStatement(),
                     traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
@@ -305,6 +316,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof WhileStatement whileStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             String previousBlocker = activeMutationBlocker;
             activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
             try {
@@ -321,6 +333,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof DoWhileStatement doWhileStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             String previousBlocker = activeMutationBlocker;
             activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
             try {
@@ -337,6 +350,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof ForStatement forStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             String previousBlocker = activeMutationBlocker;
             activeMutationBlocker = "LOOP_DEPENDENT_MUTATION";
             try {
@@ -353,6 +367,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof IfStatement ifStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             String previousBlocker = activeMutationBlocker;
             activeMutationBlocker = "CONDITIONAL_MUTATION";
             try {
@@ -375,6 +390,7 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         if (statement instanceof SwitchStatement switchStatement) {
+            blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
             String previousBlocker = activeMutationBlocker;
             activeMutationBlocker = "CONDITIONAL_MUTATION";
             try {
@@ -465,12 +481,14 @@ public class GroovyConstructorInputTraceVisitor {
             if (traceEventHandlerCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodName, label)) {
+                blockedFeaturePrefixContexts.add(sourceContextKey(traceSourceClassFqn, methodName));
                 return;
             }
 
             if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     methodExpressionScopes, classFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
                 return;
             }
@@ -478,7 +496,8 @@ public class GroovyConstructorInputTraceVisitor {
             traceLocalHelperFacadeSideEffects(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn,
                     methodsByName, methodName);
-            traceWorkflowCall(methodCallExpression, methodScopes, label);
+            traceWorkflowCall(methodCallExpression, methodScopes, label,
+                    traceSourceClassFqn, methodName);
         }
     }
 
@@ -525,6 +544,7 @@ public class GroovyConstructorInputTraceVisitor {
             if (traceFacadeCall(methodCallExpression, traceSourceClassFqn, classNode, metadata, state,
                     methodScopes, classFieldScopes,
                     argumentExpressionScopes, argumentClassFieldExpressionScopes,
+                    methodMutationScopes,
                     visibleFieldKeysByClassFqn, tracedBuilders, methodsByName, methodName, label)) {
                 methodExpressionScopes.put(variableName, rightExpression);
                 methodMutationScopes.remove(variableName);
@@ -551,6 +571,8 @@ public class GroovyConstructorInputTraceVisitor {
                     contextName(methodName, variableName), variableName, sagaClassFqn);
             builder.originKind = constructorResolution.originKind();
             builder.sourceExpressionText = constructorResolution.sourceExpressionText();
+            builder.occurrence = nextSourceOccurrence(traceSourceClassFqn, methodName, rightExpression,
+                    simpleName(sagaClassFqn), null);
             builder.appendContextLabel(label);
             builder.appendConstructorLine(formatAssignmentText(variableName, sagaClassFqn, null));
             appendConstructorArgumentLines(builder, constructorResolution.constructorExpression(),
@@ -664,8 +686,10 @@ public class GroovyConstructorInputTraceVisitor {
                         String nestedOccurrence = callerOccurrence.occurrenceId() + "->"
                                 + helperContext.layer().classFqn() + ":" + call.getLineNumber() + ":"
                                 + call.getColumnNumber() + ":" + call.getMethodAsString();
+                        GroovySourceOccurrence occurrence = nextSourceOccurrence(traceSourceClassFqn,
+                                callContextMethodName, call, call.getMethodAsString(), nestedOccurrence);
                         registerSetupActionTrace(state, resolution, traceSourceClassFqn,
-                                callContextMethodName, nestedOccurrence);
+                                callContextMethodName, occurrence);
                     }
                 } finally {
                     activeMutationScopes = previousMutations;
@@ -696,7 +720,9 @@ public class GroovyConstructorInputTraceVisitor {
 
     private void traceWorkflowCall(MethodCallExpression methodCallExpression,
                                    Map<String, TraceBuilder> methodScopes,
-                                   String label) {
+                                   String label,
+                                   String sourceClassFqn,
+                                   String methodName) {
         String calledMethod = methodCallExpression.getMethodAsString();
         if (calledMethod == null || !TRACKED_WORKFLOW_METHODS.contains(calledMethod)) {
             return;
@@ -714,6 +740,7 @@ public class GroovyConstructorInputTraceVisitor {
 
         builder.appendContextLabel(label);
         builder.appendCallLine(scopeName + "." + calledMethod + "(...)", label);
+        blockedFeaturePrefixContexts.add(sourceContextKey(sourceClassFqn, methodName));
     }
 
     private void captureSetterMutation(MethodCallExpression methodCallExpression,
@@ -854,6 +881,8 @@ public class GroovyConstructorInputTraceVisitor {
                     contextName(methodName, null), null, invocation.sagaClassFqn());
             builder.originKind = GroovyTraceOriginKind.EVENT_HANDLER_CALL;
             builder.sourceExpressionText = methodCallExpression.getText();
+            builder.occurrence = nextSourceOccurrence(traceSourceClassFqn, methodName, methodCallExpression,
+                    calledMethod, null);
             builder.appendContextLabel(label);
             builder.appendConstructorLine(methodCallExpression.getText());
 
@@ -1053,22 +1082,30 @@ public class GroovyConstructorInputTraceVisitor {
                                     Map<String, TraceBuilder> classFieldScopes,
                                     Map<String, Expression> methodExpressionScopes,
                                     Map<String, Expression> classFieldExpressionScopes,
+                                    Map<String, List<ScopedMutation>> methodMutationScopes,
                                     Map<String, Map<String, String>> visibleFieldKeysByClassFqn,
                                     List<TraceBuilder> tracedBuilders,
                                     Map<String, List<MethodResolutionContext>> methodsByName,
                                     String methodName,
                                     String label) {
-        FacadeResolution facadeResolution = resolveFacadeResolution(methodCallExpression, classNode, metadata, state,
-                methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn, methodsByName,
-                traceSourceClassFqn,
-                methodName,
-                traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(), methodName),
-                new ArrayDeque<>(),
-                new LinkedHashSet<>(),
-                new LinkedHashSet<>(),
-                Map.of(),
-                0,
-                false).orElse(null);
+        Map<String, List<ScopedMutation>> previousMutationScopes = activeMutationScopes;
+        FacadeResolution facadeResolution;
+        activeMutationScopes = methodMutationScopes == null ? Map.of() : methodMutationScopes;
+        try {
+            facadeResolution = resolveFacadeResolution(methodCallExpression, classNode, metadata, state,
+                    methodExpressionScopes, classFieldExpressionScopes, visibleFieldKeysByClassFqn, methodsByName,
+                    traceSourceClassFqn,
+                    methodName,
+                    traceScopeKey(classNode == null ? "(unknown)" : classNode.getName(), methodName),
+                    new ArrayDeque<>(),
+                    new LinkedHashSet<>(),
+                    new LinkedHashSet<>(),
+                    Map.of(),
+                    0,
+                    false).orElse(null);
+        } finally {
+            activeMutationScopes = previousMutationScopes;
+        }
         if (facadeResolution == null) {
             return false;
         }
@@ -1077,6 +1114,9 @@ public class GroovyConstructorInputTraceVisitor {
                 contextName(methodName, null), null, facadeResolution.creationSite().sagaClassFqn());
         builder.originKind = GroovyTraceOriginKind.FACADE_CALL;
         builder.sourceExpressionText = methodCallExpression.getText();
+        GroovySourceOccurrence occurrence = nextSourceOccurrence(traceSourceClassFqn, methodName,
+                methodCallExpression, facadeResolution.creationSite().methodName(), null);
+        builder.occurrence = occurrence;
         builder.appendContextLabel(label);
         builder.appendConstructorLine(methodCallExpression.getText());
         facadeResolution.constructorArguments().forEach(argument ->
@@ -1085,9 +1125,7 @@ public class GroovyConstructorInputTraceVisitor {
         facadeResolution.resolutionNotes().forEach(builder::appendDetailLine);
         registerConstructorTrace(builder, state);
         tracedBuilders.add(builder);
-        registerSetupActionTrace(state, facadeResolution, traceSourceClassFqn, methodName,
-                sourceValueReference(traceSourceClassFqn, methodCallExpression,
-                        facadeResolution.creationSite().methodName()).occurrenceId());
+        registerSetupActionTrace(state, facadeResolution, traceSourceClassFqn, methodName, occurrence);
         return true;
     }
 
@@ -2658,7 +2696,10 @@ public class GroovyConstructorInputTraceVisitor {
                             runtimeReceiverTrace,
                             runtimeArgumentTraces);
                     GroovySourceValueReference occurrence = activeHelperCallOccurrenceByScope.get(traceScopeKey);
-                    return new ValueTrace(callTrace.provenance(), callTrace.recipe(), occurrence);
+                    GroovyValueRecipe recipe = callTrace.recipe();
+                    return new ValueTrace(callTrace.provenance(),
+                            new GroovyValueRecipe(recipe.kind(), recipe.text(), recipe.children(),
+                                    recipe.metadata(), occurrence), occurrence);
                 }
             }
 
@@ -2690,7 +2731,10 @@ public class GroovyConstructorInputTraceVisitor {
                         traceSourceClassFqn,
                         methodCallExpression,
                         directFacadeResolution.get().creationSite().methodName());
-                return new ValueTrace(callTrace.provenance(), callTrace.recipe(), reference);
+                GroovyValueRecipe recipe = callTrace.recipe();
+                return new ValueTrace(callTrace.provenance(),
+                        new GroovyValueRecipe(recipe.kind(), recipe.text(), recipe.children(),
+                                recipe.metadata(), reference), reference);
             }
 
             if (isLocalHelperCall(methodCallExpression)) {
@@ -3024,6 +3068,15 @@ public class GroovyConstructorInputTraceVisitor {
 
         String callContextMethodName = activeHelperCallContextByScope.getOrDefault(traceScopeKey, traceMethodName);
 
+        GroovySourceValueReference callerOccurrence = activeHelperCallOccurrenceByScope.get(traceScopeKey);
+        String occurrenceId = callerOccurrence == null
+                ? sourceValueReference(traceSourceClassFqn, methodCallExpression,
+                        facadeResolution.creationSite().methodName()).occurrenceId()
+                : callerOccurrence.occurrenceId();
+        GroovySourceOccurrence occurrence = nextSourceOccurrence(traceSourceClassFqn,
+                callContextMethodName, methodCallExpression,
+                facadeResolution.creationSite().methodName(), occurrenceId);
+
         state.groovyFullTraceResults.add(new GroovyFullTraceResult(
                 traceSourceClassFqn,
                 traceMethodName,
@@ -3038,14 +3091,10 @@ public class GroovyConstructorInputTraceVisitor {
                 List.copyOf(facadeResolution.constructorArguments()),
                 List.of(),
                 List.copyOf(facadeResolution.resolutionNotes()),
-                String.join(System.lineSeparator(), traceLines)
+                String.join(System.lineSeparator(), traceLines),
+                occurrence
         ));
 
-        GroovySourceValueReference callerOccurrence = activeHelperCallOccurrenceByScope.get(traceScopeKey);
-        String occurrence = callerOccurrence == null
-                ? sourceValueReference(traceSourceClassFqn, methodCallExpression,
-                        facadeResolution.creationSite().methodName()).occurrenceId()
-                : callerOccurrence.occurrenceId();
         registerSetupActionTrace(state, facadeResolution, traceSourceClassFqn,
                 callContextMethodName, occurrence);
     }
@@ -3054,7 +3103,7 @@ public class GroovyConstructorInputTraceVisitor {
                                           FacadeResolution resolution,
                                           String sourceClassFqn,
                                           String callContextMethodName,
-                                          String occurrence) {
+                                          GroovySourceOccurrence occurrence) {
         WorkflowFunctionalityCreationSite site = resolution.creationSite();
         List<GroovyTraceArgument> facadeArguments = new ArrayList<>();
         List<String> blockers = new ArrayList<>();
@@ -3077,8 +3126,10 @@ public class GroovyConstructorInputTraceVisitor {
                     argument.recipe(), site.parameterTypeFqns().get(parameterIndex), argument.producerReference()));
         }
         GroovyFacadeSetupActionTrace trace = new GroovyFacadeSetupActionTrace(
-                sourceClassFqn, callContextMethodName, occurrence, site.classFqn(), site.methodKey(),
-                site.methodName(), facadeArguments, site.declaredResultTypeFqn(), site.voidResult(), blockers);
+                sourceClassFqn, callContextMethodName,
+                occurrence == null ? null : occurrence.occurrenceId(), site.classFqn(), site.methodKey(),
+                site.methodName(), facadeArguments, site.declaredResultTypeFqn(), site.voidResult(), blockers,
+                occurrence);
         boolean duplicate = state.groovyFacadeSetupActionTraces.stream().anyMatch(existing ->
                 Objects.equals(existing.sourceClassFqn(), trace.sourceClassFqn())
                         && Objects.equals(existing.sourceOccurrence(), trace.sourceOccurrence())
@@ -3985,6 +4036,34 @@ public class GroovyConstructorInputTraceVisitor {
         return new GroovySourceValueReference(occurrenceId, methodName, List.of());
     }
 
+    private GroovySourceOccurrence nextSourceOccurrence(String sourceClassFqn,
+                                                         String callContextMethodName,
+                                                         Expression expression,
+                                                         String methodName,
+                                                         String occurrenceId) {
+        String resolvedOccurrenceId = occurrenceId;
+        if (resolvedOccurrenceId == null) {
+            resolvedOccurrenceId = defaultText(sourceClassFqn)
+                    + ":" + (expression == null ? -1 : expression.getLineNumber())
+                    + ":" + (expression == null ? -1 : expression.getColumnNumber())
+                    + ":" + defaultText(methodName);
+        }
+        String contextKey = sourceContextKey(sourceClassFqn, callContextMethodName);
+        int orderIndex = activeSourceOrderByContext.merge(contextKey, 1, Integer::sum) - 1;
+        return new GroovySourceOccurrence(sourceClassFqn, callContextMethodName,
+                resolvedOccurrenceId, orderIndex,
+                activeMutationBlocker == null && !blockedFeaturePrefixContexts.contains(contextKey));
+    }
+
+    private String sourceContextKey(String sourceClassFqn, String callContextMethodName) {
+        return defaultText(sourceClassFqn) + "|" + defaultText(callContextMethodName);
+    }
+
+    private boolean isFeaturePrefixBarrierLabel(String label) {
+        return "then".equals(label) || "expect".equals(label)
+                || "cleanup".equals(label) || "where".equals(label);
+    }
+
     private GroovySourceValueReference appendProperty(GroovySourceValueReference reference,
                                                        String propertyName) {
         return reference == null ? null : reference.appendProperty(propertyName);
@@ -4130,6 +4209,7 @@ public class GroovyConstructorInputTraceVisitor {
         private final String sourceBindingName;
         private final String callContextMethodName;
         private final String sagaClassFqn;
+        private GroovySourceOccurrence occurrence;
         private GroovyTraceOriginKind originKind;
         private String sourceExpressionText;
         private final List<String> traceLines = new ArrayList<>();

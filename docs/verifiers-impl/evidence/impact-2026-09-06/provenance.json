@@ -1,0 +1,40 @@
+{
+  "purpose": "Exact retained reports for advisor meeting and campaign accounting; source package/attempt identity remains unchanged inside original reports.",
+  "files": [
+    {
+      "file": "remove-course-control-execution.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/run-01/broader/attempts/RemoveCourseExecution-basic-control/execution.json",
+      "sha256": "5d6b78063feb760c1fe201385b0e1f24167a40b70312191c3946fe7a86d45fda"
+    },
+    {
+      "file": "remove-course-control-execution.impact-v2.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/run-01/broader/attempts/RemoveCourseExecution-basic-control/execution.impact-v2.json",
+      "sha256": "78c1d4904525dd29881b34dc100618cdd077eafe1dc4749e05ce6cad54170d43"
+    },
+    {
+      "file": "remove-course-late-fault-execution.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/run-01/broader/attempts/RemoveCourseExecution-basic-late-fault/execution.json",
+      "sha256": "9ae7a5bed1ea9486d0470d000339538f446893581b9777cbeba6a87f725f7686"
+    },
+    {
+      "file": "remove-course-late-fault-execution.impact-v2.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/run-01/broader/attempts/RemoveCourseExecution-basic-late-fault/execution.impact-v2.json",
+      "sha256": "cf927fb98400e395c898c4b6b4a64fd03f275a8976395f6701a3c4498048e360"
+    },
+    {
+      "file": "benchmark-comparison.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/benchmark-comparison.json",
+      "sha256": "feacde24278c13770d99794d8a1ab2d5b3054a45a9b14c340a73184e12c11078"
+    },
+    {
+      "file": "qualification-summary.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/qualification-summary.json",
+      "sha256": "396a80deccd1276d4128e7a319b0f9c49b871134a23dda6b56eac10a24231300"
+    },
+    {
+      "file": "unaffected-selection-comparison.json",
+      "originalPath": "verifiers/target/impact-coverage-controls/unaffected-selection-comparison.json",
+      "sha256": "96062d051c25932292795b11bb63ed2368b5cb119c89a78494e138798a2cbf91"
+    }
+  ]
+}

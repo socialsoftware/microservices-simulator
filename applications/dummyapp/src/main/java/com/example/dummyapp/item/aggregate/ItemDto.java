@@ -6,6 +6,8 @@ public class ItemDto {
     private String name;
     private int price;
     private Integer orderId;
+    // Source-only fixture for the bounded nested DTO-result property contract.
+    private ItemDto quiz;
 
     public ItemDto() {}
 
@@ -23,4 +25,6 @@ public class ItemDto {
     public void setPrice(int price) { this.price = price; }
     public Integer getOrderId() { return orderId; }
     public void setOrderId(Integer orderId) { this.orderId = orderId; }
+    public ItemDto getQuiz() { return quiz; }
+    public void setQuiz(ItemDto quiz) { this.quiz = quiz; }
 }

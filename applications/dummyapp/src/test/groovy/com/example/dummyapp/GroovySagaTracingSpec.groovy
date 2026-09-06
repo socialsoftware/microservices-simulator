@@ -2,6 +2,7 @@ package com.example.dummyapp
 
 import com.example.dummyapp.item.aggregate.ItemDto
 import com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas
+import com.example.dummyapp.item.coordination.RenameItemFromEventFunctionalitySagas
 import com.example.dummyapp.item.coordination.ItemFunctionalitiesFacade
 import com.example.dummyapp.item.notification.handling.DummyEventHandling
 import com.example.dummyapp.order.coordination.CancelOrderFromItemFunctionalitySagas
@@ -296,12 +297,16 @@ class GroovySagaTracingSpec extends Specification {
 
     def 'facade self rebinding uses the prior local value'() {
         given:
-        def itemDto = new ItemDto(aggregateId: 71, orderId: 81)
+        def itemDto = new ItemDto()
+        itemDto.setAggregateId(71)
+        itemDto.name = 'before-facade'
+        itemDto.setOrderId(81)
 
         when:
         itemDto = itemFunctionalities.createItem(itemDto)
 
         then:
+        itemDto.setOrderId(999)
         true
     }
 
@@ -328,6 +333,68 @@ class GroovySagaTracingSpec extends Specification {
         when:
         def created = itemFunctionalities.createItem(original)
         itemFunctionalities.createItem(created)
+
+        then:
+        true
+    }
+
+    def 'feature preparation prefix feeds exact later target'() {
+        given:
+        def original = new ItemDto(aggregateId: 121, orderId: 221)
+        def created = itemFunctionalities.createItem(original)
+        orderFunctionalities.createOrder(null)
+
+        when:
+        itemFunctionalities.createItem(created)
+
+        then:
+        itemFunctionalities.createItem(new ItemDto(aggregateId: 122, orderId: 222))
+        true
+    }
+
+    def 'control flow closes the feature preparation prefix'() {
+        given:
+        orderFunctionalities.createOrder(131)
+        if (true) {
+            def marker = 'branched'
+        }
+
+        when:
+        itemFunctionalities.createItem(new ItemDto(aggregateId: 132, orderId: 232))
+
+        then:
+        true
+    }
+
+    def 'direct workflow execution closes the feature preparation prefix'() {
+        given:
+        orderFunctionalities.createOrder(141)
+        def directSaga = new CreateOrderFunctionalitySagas(null, null)
+        directSaga.executeWorkflow(null)
+
+        when:
+        itemFunctionalities.createItem(new ItemDto(aggregateId: 142, orderId: 242))
+
+        then:
+        true
+    }
+
+    def 'event handling execution closes the feature preparation prefix'() {
+        given:
+        orderFunctionalities.createOrder(151)
+        itemEventHandling.handleItemRenamedEvents()
+
+        when:
+        itemFunctionalities.createItem(new ItemDto(aggregateId: 152, orderId: 252))
+
+        then:
+        true
+    }
+
+    def 'repeated identical feature targets retain distinct occurrences'() {
+        def repeated = new ItemDto(aggregateId: 161, orderId: 261)
+        itemFunctionalities.createItem(repeated)
+        itemFunctionalities.createItem(repeated)
 
         then:
         true
@@ -360,6 +427,33 @@ class GroovySagaTracingSpec extends Specification {
         when:
         buildPointInTimeItemDtoViaFacade(911, 'after-first-facade')
         buildPointInTimeItemDtoViaFacade(922, 'after-second-facade')
+
+        then:
+        true
+    }
+
+    def 'nested result paths preserve the exact facade producer'() {
+        given:
+        def created = itemFunctionalities.createItem(new ItemDto(aggregateId: 71, orderId: 72))
+
+        when:
+        def supported = new RenameItemFromEventFunctionalitySagas(
+                null, created.quiz.aggregateId, 'nested', 72, 1, null, null)
+        def unsupported = new RenameItemFromEventFunctionalitySagas(
+                null, created.quiz.orderId, 'nested', 72, 1, null, null)
+
+        then:
+        true
+    }
+
+    def 'nested facade result collection feeds a later target without replay'() {
+        given:
+        def created = itemFunctionalities.createItem(new ItemDto(aggregateId: 73, orderId: 74))
+        def target = new CreateOrderFunctionalitySagas(
+                null, null, [created], 75, 76, true)
+
+        when:
+        target.executeWorkflow(null)
 
         then:
         true

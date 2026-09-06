@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario
 
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ScenarioModelAdapterResult
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ExecutableArtifactWriter
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.ScenarioCatalogPackageReader
@@ -106,6 +108,92 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
             scenario.actions().count { it.kind() == FaultScenarioActionKind.EVENT_CONSEQUENCE } == 1
         }
         current.accounting().path('events').path('resolvedEventRoutes').asInt() > 0
+    }
+
+    def 'selected dummyapp consumer keeps its package route when other routes are unselected or reordered'() {
+        given:
+        def original = new ApplicationAnalysisScenarioModelAdapter().adapt(dummyappState())
+        def first = original.eventConsequenceDefinitions().find { it.triggerSagaFqn() == PRODUCER_SAGA }
+        def second = alternateRoute(first, true)
+        def producer = original.sagaDefinitions().find { it.sagaFqn() == PRODUCER_SAGA }
+        def inputs = original.inputVariants().findAll { it.sagaFqn() == PRODUCER_SAGA }
+        def config = routeConfig()
+        def generation = ScenarioGenerator.generate([producer], inputs, [second], config)
+        def eager = EagerFaultScenarioGenerator.generate(generation, new RecoveryScheduleCap(1))
+        def directories = [Files.createTempDirectory('dummyapp-route-subset-'),
+                           Files.createTempDirectory('dummyapp-route-reordered-')]
+
+        when:
+        [[first, second], [second, first]].eachWithIndex { routes, index ->
+            new ExecutableArtifactWriter().write(withRoutes(original, routes), 'dummyapp', eager, directories[index])
+        }
+        def reader = new ScenarioCatalogPackageReader()
+        def current = reader.readCurrent(directories.first().resolve('scenario-catalog-manifest.json'))
+        def restored = reader.readCurrentForExecution(directories.first().resolve('scenario-catalog-manifest.json'))
+        def events = restored.workloadPlans().collectMany { it.eventConsequences() }
+
+        then:
+        !events.isEmpty()
+        events.every { it.eventHandlingClassFqn() == second.eventHandlingClassFqn() }
+        events.every { it.eventHandlerClassFqn() == second.eventHandlerClassFqn() }
+        current.workloadRecords().collectMany { it.path('schedule').toList() }
+                .findAll { it.path('kind').asText() == 'event' }
+                .every { it.path('route').asText().endsWith('-route#1') }
+        current.manifest().files().values().every { artifact ->
+            Arrays.equals(Files.readAllBytes(directories[0].resolve(artifact.path())),
+                    Files.readAllBytes(directories[1].resolve(artifact.path())))
+        }
+    }
+
+    def 'dummyapp event export rejects a missing or ambiguous persisted route'() {
+        given:
+        def original = new ApplicationAnalysisScenarioModelAdapter().adapt(dummyappState())
+        def first = original.eventConsequenceDefinitions().find { it.triggerSagaFqn() == PRODUCER_SAGA }
+        def second = alternateRoute(first, false)
+        def producer = original.sagaDefinitions().find { it.sagaFqn() == PRODUCER_SAGA }
+        def inputs = original.inputVariants().findAll { it.sagaFqn() == PRODUCER_SAGA }
+        def generation = ScenarioGenerator.generate([producer], inputs, [first], routeConfig())
+        def eager = EagerFaultScenarioGenerator.generate(generation, new RecoveryScheduleCap(1))
+        def model = withRoutes(original, ambiguous ? [first, second] : [])
+
+        when:
+        new ExecutableArtifactWriter().write(model, 'dummyapp', eager,
+                Files.createTempDirectory('dummyapp-route-invalid-'))
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('no unique exact Saga route')
+        failure.message.contains('matches=' + expectedMatches)
+
+        where:
+        ambiguous | expectedMatches
+        false     | 0
+        true      | 2
+    }
+
+    private static ScenarioGeneratorConfig routeConfig() {
+        new ScenarioGeneratorConfig(true,
+                ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                true, 1, 100, 10, 20, false,
+                ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL, 1234L)
+    }
+
+    private static ScenarioModelAdapterResult withRoutes(def original, List<EventConsequenceDefinition> routes) {
+        new ScenarioModelAdapterResult(original.sagaDefinitions(), original.inputVariants(), routes,
+                original.sourceSetupPlanBindings(), original.counts(), original.diagnostics(),
+                original.dispatchesBySaga(), original.aggregateKeyInputEvidence())
+    }
+
+    private static EventConsequenceDefinition alternateRoute(EventConsequenceDefinition first, boolean distinctHandler) {
+        new EventConsequenceDefinition(first.triggerSagaFqn(), first.triggerStepKey(), first.emissionSite(),
+                distinctHandler ? 'com.example.dummyapp.item.notification.handling.ZOtherEventHandling' : first.eventHandlingClassFqn(),
+                first.eventHandlingMethodName(),
+                distinctHandler ? 'com.example.dummyapp.item.notification.handling.handlers.ZOtherEventHandler' : first.eventHandlerClassFqn(),
+                first.eventProcessingClassFqn() + 'Other', first.eventProcessingMethodName(),
+                first.facadeClassFqn(), first.facadeMethodName(), first.downstreamSagaFqn(),
+                first.deliveryPolicy(), [])
     }
 
     private static List<String> normalLabels(def plan) {

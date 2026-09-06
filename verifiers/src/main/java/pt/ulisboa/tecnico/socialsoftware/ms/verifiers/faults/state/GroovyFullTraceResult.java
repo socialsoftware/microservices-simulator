@@ -16,7 +16,8 @@ public record GroovyFullTraceResult(
         List<GroovyTraceArgument> constructorArguments,
         List<GroovyWorkflowCall> workflowCalls,
         List<String> resolutionNotes,
-        String traceText) {
+        String traceText,
+        GroovySourceOccurrence occurrence) {
 
     public GroovyFullTraceResult {
         sourceMode = sourceMode == null ? SourceMode.UNKNOWN : sourceMode;
@@ -25,6 +26,25 @@ public record GroovyFullTraceResult(
         constructorArguments = constructorArguments == null ? List.of() : List.copyOf(constructorArguments);
         workflowCalls = workflowCalls == null ? List.of() : List.copyOf(workflowCalls);
         resolutionNotes = resolutionNotes == null ? List.of() : List.copyOf(resolutionNotes);
+    }
+
+    public GroovyFullTraceResult(String sourceClassFqn,
+                                 String sourceMethodName,
+                                 String sourceBindingName,
+                                 String callContextMethodName,
+                                 GroovyTraceOriginKind originKind,
+                                 String sourceExpressionText,
+                                 String sagaClassFqn,
+                                 SourceMode sourceMode,
+                                 SourceModeConfidence sourceModeConfidence,
+                                 List<String> sourceModeEvidence,
+                                 List<GroovyTraceArgument> constructorArguments,
+                                 List<GroovyWorkflowCall> workflowCalls,
+                                 List<String> resolutionNotes,
+                                 String traceText) {
+        this(sourceClassFqn, sourceMethodName, sourceBindingName, callContextMethodName, originKind,
+                sourceExpressionText, sagaClassFqn, sourceMode, sourceModeConfidence, sourceModeEvidence,
+                constructorArguments, workflowCalls, resolutionNotes, traceText, null);
     }
 
     public GroovyFullTraceResult(String sourceClassFqn,
@@ -53,7 +73,8 @@ public record GroovyFullTraceResult(
                 constructorArguments,
                 workflowCalls,
                 resolutionNotes,
-                traceText);
+                traceText,
+                null);
     }
 
     public GroovyFullTraceResult(String sourceClassFqn,
@@ -79,6 +100,7 @@ public record GroovyFullTraceResult(
                 constructorArguments,
                 workflowCalls,
                 resolutionNotes,
-                traceText);
+                traceText,
+                null);
     }
 }

@@ -1,11 +1,13 @@
 package com.example.dummyapp.order.coordination;
 
+import com.example.dummyapp.item.aggregate.ItemDto;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 
+import java.util.List;
 import java.util.Set;
 
 public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
@@ -24,6 +26,15 @@ public class CreateOrderFunctionalitySagas extends WorkflowFunctionality {
                                          Set<Integer> excludedCustomerIds,
                                          Integer customerId,
                                          Integer projectedCustomerId) {
+        this(unitOfWorkService, unitOfWork, customerId, projectedCustomerId);
+    }
+
+    public CreateOrderFunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+                                         SagaUnitOfWork unitOfWork,
+                                         List<ItemDto> priorItems,
+                                         Integer customerId,
+                                         Integer projectedCustomerId,
+                                         boolean sourceFixtureMarker) {
         this(unitOfWorkService, unitOfWork, customerId, projectedCustomerId);
     }
 

@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes
 
 import com.fasterxml.jackson.databind.ObjectMapper
+import jakarta.persistence.EntityManager
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver
 import io.github.resilience4j.retry.RetryRegistry
 import org.mockito.Mockito
 import org.springframework.boot.test.context.TestConfiguration
@@ -91,6 +93,11 @@ class BeanConfigurationSagas {
     @Bean
     CentralizedVersionService centralizedVersionService() {
         return new CentralizedVersionService()
+    }
+
+    @Bean
+    PersistentStateObserver persistentStateObserver(EntityManager entityManager) {
+        return new PersistentStateObserver(entityManager)
     }
 
     @Bean
