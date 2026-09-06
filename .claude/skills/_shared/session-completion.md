@@ -99,6 +99,12 @@ appends.
 Both modes write the same file, `{retro-file}`, using the template in § "Retro template" below. They
 differ only in where the material comes from.
 
+**The retro is mandatory in both self-healing modes**, and it is where OFF pays for itself. Under ON
+a doc gap is often already repaired by the time the retro is written, and the retro records that it
+happened. Under OFF the retro and the `deferred` rows beside it are the run's **only** record of
+where the harness failed, and the sole input a human has for repairing it between runs. A skipped
+retro under OFF loses the finding outright.
+
 ### Single-agent mode
 
 This is a synthesis step — do NOT run filesystem audits, grep, or re-read files to reconstruct history. Use only what is already in the conversation context.

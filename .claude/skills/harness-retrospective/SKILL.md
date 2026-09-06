@@ -10,8 +10,15 @@ End-of-run evaluation of the harness against the evidence a completed generation
 `applications/{app-name}/harness-log.md`, every file under `retros/`, and the run's own `harness:`
 commits.
 
-The harness is self-healing (`AGENTS.md` § "Harness evolution"), so this skill answers three
-questions rather than one:
+**What this skill produces depends on the run's self-healing mode** (`AGENTS.md`
+§ "Harness evolution"), read in Step 1 from the `harness-log.md` header:
+
+| Mode | Status | Produces |
+|------|--------|----------|
+| **ON** | Obligatory. A self-healing run is not finished until it has been evaluated. | Everything below: convergence, post-hoc justification of the Type 1 edits, and the gap list. |
+| **OFF** | Recommended, not obligatory. | The prioritised gap list only. Steps 6 and 7 are skipped - see § "Under self-healing OFF". |
+
+Under ON the harness repaired itself mid-run, so this skill answers three questions rather than one:
 
 1. **Did the edits converge?** Harness repairs concentrated in the early aggregates mean the harness
    absorbed what it was missing. Repairs at a flat rate to the last aggregate mean a structural gap
@@ -27,6 +34,26 @@ questions rather than one:
 It writes a prioritised gap list with a proposed fix per gap. It does not apply any fix.
 
 One invocation per completed run. No arguments.
+
+### Under self-healing OFF
+
+A run under OFF made no unilateral harness edit and produced no `harness:` commit, so questions 1 and
+2 have no evidence to answer them and are not asked: there is nothing to converge and nothing to
+re-judge. Question 3 is the whole skill. Concretely:
+
+- **State the mode in the first line of the report**, before anything else. A reader who mistakes an
+  OFF report for an ON one reads "no harness edits" as convergence when it means the mechanism was
+  switched off.
+- **Skip Step 6 (Convergence)** and **Step 7 (Post-Hoc Justification of the Type 1 Edits)**, and drop
+  their report sections along with the `Verdict:` line, whose three values all describe convergence.
+- **Step 8 (Neutral-Domain Compliance)** has no added harness lines to scan. Report that it scanned
+  zero lines **because the mode withheld the edits**, not "clean" - a clean verdict over nothing
+  scanned is the failure mode `.claude/skills/_shared/conventions.md` § "Commands whose output feeds
+  a verdict" warns about.
+- Everything else runs unchanged: the evidence read, the per-artifact grouping, the row cross-check,
+  the Type 2 halts, and the prioritised gap list. Type 1 rows are `deferred` under OFF, so they enter
+  the gap list as open gaps rather than as edits to audit - which is the point: OFF turns every Type 1
+  into a finding for a human instead of a fix by an agent.
 
 **What it is not:** it does not check the harness for internal consistency (dangling paths,
 P1-P4 drift, R1-R8 coverage). That is `/review-artifacts`, a static pre-flight check whose ground
@@ -56,6 +83,13 @@ Additionally derive:
 ```
 
 If a report with that name already exists, append `-2`, `-3`, etc. rather than overwriting.
+
+**Read the run's self-healing mode** from the `**Self-healing:**` line in the header of
+`applications/{app-name}/harness-log.md`: `on` or `off`, with a missing, unreadable or unrecognised
+value meaning `off` (`.claude/skills/_shared/conventions.md` § "Harness log"). It decides which steps
+run - see § "Under self-healing OFF" above - and it is the first line of the report. There is no
+invocation flag here: this skill evaluates a finished run, and the mode that run executed under is a
+fact about it, not a choice available now.
 
 ## Step 2: Precondition — the run must be complete
 
@@ -507,13 +541,17 @@ by a later session.
 ## Step 10: Write the Report
 
 Run `mkdir -p reviews` (no-op if it exists). Write `{report-file}` using the template below.
-Never omit a section — write "nothing to report" where a section produced no findings.
+Never omit a section — write "nothing to report" where a section produced no findings. Under
+self-healing OFF, the § Convergence and § Post-Hoc Justification sections and the `Verdict:` line are
+**removed** rather than filled with "nothing to report": they ask questions the run cannot answer, and
+an empty answer to them reads as a negative result.
 
 ```markdown
 # Harness Retrospective — {app-name}
 
 **App:** {app-name}
 **Date:** {retro-date}
+**Self-healing:** on | off (off: convergence and Type 1 re-judgement are not evaluated)
 **Harness-log rows:** {count} (Type 1 {n} / Type 2 {n} / 2-fw {n})
 **Sessions with friction:** {distinct Session values in the log} of {distinct session ids in plan.md}
 **Harness commits:** {count}
