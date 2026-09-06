@@ -315,10 +315,9 @@ public final class TestDriver {
      * functionality's behaviour — it signals a broken catalog entry or initial
      * state, so profiling fails loudly instead of emitting a garbage footprint.
      * <p>
-     * Plain step exceptions are deliberately NOT rejected: a functionality that
-     * aborts and compensates even when running alone (a business-rule
-     * rejection) is a legitimate catalog entry, and capturing its solo run —
-     * compensation writes included — is exactly its footprint.
+     * Plain step exceptions also invalidate profiling. Catalog factories must
+     * describe ordinary, solo-valid invocations; otherwise their partial and
+     * compensation effects are not a trustworthy footprint for pair planning.
      */
     private static final Set<TestStatus> PROFILING_INVALIDATING_STATUSES = Set.of(
             TestStatus.INTERNAL_SYSTEM_EXCEPTION,
@@ -334,10 +333,29 @@ public final class TestDriver {
      * <p>
      * Solo runs use the fixed master seed: with no concurrency in the schedule
      * the footprint is expected to be stable, and a fixed seed keeps profiling
-     * reproducible.
+     * reproducible. Every entry is attempted so one validation reports all
+     * invalid entries, then the whole catalog is rejected if any run raised a
+     * step exception or profiling-invalidating status.
      */
     public Map<FunctionalityId, FunctionalityFootprint> profileFunctionalities(FunctionalityCatalog catalog) {
+        return profileFunctionalities(catalog, true);
+    }
+
+    /**
+     * Test-only escape hatch for targeted catalogs whose purpose is to explore
+     * operations made valid by concurrent progress.
+     */
+    Map<FunctionalityId, FunctionalityFootprint> profileFunctionalitiesAllowingSoloExceptions(
+            FunctionalityCatalog catalog) {
+
+        return profileFunctionalities(catalog, false);
+    }
+
+    private Map<FunctionalityId, FunctionalityFootprint> profileFunctionalities(
+            FunctionalityCatalog catalog, boolean rejectSoloExceptions) {
+
         Map<FunctionalityId, FunctionalityFootprint> footprints = new LinkedHashMap<>();
+        List<String> profilingFailures = new ArrayList<>();
 
         for (var entry : catalog.funcFactories().entrySet()) {
             FunctionalityId functionalityId = entry.getKey();
@@ -359,10 +377,10 @@ public final class TestDriver {
 
             Set<TestStatus> invalidating = new HashSet<>(result.statuses());
             invalidating.retainAll(PROFILING_INVALIDATING_STATUSES);
-            if (!invalidating.isEmpty()) {
-                throw new IllegalStateException(
-                        "Solo profiling run of functionality '%s' raised %s: the catalog entry or the initial state is broken, exceptions=%s"
-                                .formatted(functionalityId, invalidating, result.exceptions().keySet()));
+            if (!invalidating.isEmpty() || (rejectSoloExceptions && !result.exceptions().isEmpty())) {
+                profilingFailures.add("functionality '%s': statuses=%s, exceptionSteps=%s"
+                        .formatted(functionalityId, invalidating, result.exceptions().keySet()));
+                continue;
             }
 
             FunctionalityFootprint footprint = FunctionalityFootprint.fromSoloRun(
@@ -374,6 +392,14 @@ public final class TestDriver {
                             .collect(Collectors.joining(", ")),
                     footprint.accesses().stream().filter(a -> !a.isWrite()).map(a -> a.identity())
                             .collect(Collectors.joining(", ")));
+        }
+
+        if (!profilingFailures.isEmpty()) {
+            throw new IllegalStateException(
+                    "Catalog '%s' has %d invalid solo profiling run(s). " +
+                            "Every catalog factory and initial state must produce a successful invocation:%n - %s"
+                                    .formatted(catalog.name(), profilingFailures.size(),
+                                            String.join(System.lineSeparator() + " - ", profilingFailures)));
         }
 
         return footprints;

@@ -62,6 +62,12 @@ Add `consistency-sweep` profile with `activatedProperties` set to `test,sagas,lo
 
 `TestDriver.init()` boots application with oracle profile and requires both providers. `profileFunctionalities(catalog)` runs every entry alone once. It validates setup, handles, factory construction, execution, and confirmed invariants.
 
-Solo profiling aborts on internal or critical failures, execution limits, dependency-resolution failure, or inter-invariant violation. Plain business exceptions may remain valid profiling outcomes.
+Neutral catalog entries must complete successfully in solo profiling. Step
+exceptions, including normal business rejections, and internal or critical
+failures, execution limits, dependency-resolution failure, or inter-invariant
+violations invalidate an entry. The profiler attempts every entry and reports
+all invalid entries before rejecting the catalog. An operation only made valid
+by concurrent progress belongs in an explicit targeted experiment, not a
+neutral catalog.
 
 Full exploration findings are evidence, not automatic test failures. Generic sweep must not assert no findings: business exceptions can count as findings, and application may legitimately have zero planned groups.

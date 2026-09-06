@@ -97,7 +97,9 @@ class FunctionalityGroupPlannerQuizzesAppTest {
         catalog = buildCatalog();
 
         // Profile + plan ONCE for the whole class: both tests read `groups`.
-        Map<FunctionalityId, FunctionalityFootprint> footprints = driver.profileFunctionalities(catalog);
+        Map<FunctionalityId, FunctionalityFootprint> footprints = driver
+                .profileFunctionalitiesAllowingSoloExceptions(catalog);
+
         for (FunctionalityFootprint footprint : footprints.values()) {
             log.info("footprint {} -> {}", footprint.functionalityId(), footprint.accesses());
         }
@@ -137,12 +139,12 @@ class FunctionalityGroupPlannerQuizzesAppTest {
      * handlers).</li>
      * </ul>
      * <p>
-     * Every entry must survive its SOLO profiling run: {@link
-     * TestDriver#profileFunctionalities} rejects a catalog whose solo run raises
-     * a critical status. The move is the tight one — its enrolment in
-     * {@code startedTournament} is rejected by design, so it only profiles
-     * cleanly because it compensates cleanly on its own. Should that stop
-     * holding, the whole class fails in {@code setupAll}, not in a test.
+     * This is a deliberately targeted engine test: moving into
+     * {@code startedTournament} and removing the occupied source both reject when
+     * run alone, but concurrency can make the removal valid and strand the move's
+     * compensation. Setup therefore uses the package-private lenient profiler.
+     * Production campaigns and generated catalog validation use the strict public
+     * profiler and reject such entries.
      */
     private FunctionalityCatalog buildCatalog() {
         SagaUnitOfWorkService unitOfWorkService = oracle.getBean(SagaUnitOfWorkService.class);

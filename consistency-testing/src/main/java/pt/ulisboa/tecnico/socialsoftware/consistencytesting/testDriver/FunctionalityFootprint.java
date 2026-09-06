@@ -16,11 +16,12 @@ public record FunctionalityFootprint(FunctionalityId functionalityId, Set<Access
 
     // TODO
     /*
-     * KNOWN LIMITATION: a solo run never triggers the compensations of a
-     * functionality that only aborts under contention, so writes that exist only on
-     * such an abort path are invisible here and a pair conflicting only through
-     * them is wrongly pruned. (Functionalities that abort even when running solo DO
-     * get their compensation effects captured.)
+     * KNOWN LIMITATION: normal catalog profiling observes only a functionality's
+     * successful solo path. Writes that exist only on an abort or compensation path
+     * are therefore invisible, so a pair conflicting only through them can be
+     * wrongly pruned. The TestDriver's lenient, test-only profiling path can capture
+     * those effects when a targeted functionality already aborts alone, but it does
+     * not cover functionalities that abort only under contention.
      * <ul>
      * <li>TODO the group-level emergent-effects (feed the effects observed in
      * group runs back into the footprints) is the principled fix: it would pick up

@@ -58,6 +58,7 @@ For each included operation:
 3. Resolve run-local aggregate IDs from handles inside each factory.
 4. Return fresh `WorkflowFunctionality` instance and fresh unit of work each run.
 5. Give distinct IDs to multiple concrete instances in one catalog.
+6. Ensure the factory completes successfully when run alone. A step exception invalidates the neutral catalog entry, even when it represents a normal business rejection. Use a separate valid initial state or exclude the entry with evidence; do not rely on concurrent progress to make it valid.
 
 Catalogs represent incompatible initial states, not aggregates or services. Keep one catalog when possible. If partitioning is required, record cross-catalog pairs that become untestable. Duplicate functionality across catalogs when different valid states materially expand coverage.
 
@@ -105,7 +106,11 @@ mvn test-compile -Pconsistency-sweep
 mvn test -Pconsistency-sweep -Dtest=<App>ConsistencyCatalogValidation
 ```
 
-Compilation and solo profiling must pass. Do not run concurrent sweep during onboarding. If discovered operation cannot solo-profile, fix state/factory or exclude it with precise evidence; never hide failure.
+Compilation and solo profiling must pass. Solo profiling rejects every step
+exception and invalid status, then reports all invalid entries together. Do not
+run concurrent sweep during onboarding. If a discovered operation cannot
+complete successfully alone, fix state/factory or exclude it with precise
+evidence; never hide failure.
 
 ## 8. Hand off
 

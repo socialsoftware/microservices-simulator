@@ -2,12 +2,14 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantWithinMaxTournamentsFunctionalitySagas.MAX_TOURNAMENTS_PER_USER;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Supplier;
@@ -32,8 +34,14 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.InitialState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.QuizzesTestFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities;
@@ -99,6 +107,43 @@ class TestDriverQuizzesAppTest {
                 "randomized exploration should realize more than one interleaving, "
                         + "got " + distinctSchedules + " distinct schedules and "
                         + distinctReadsFrom + " distinct reads-from sets");
+    }
+
+    @Test
+    void profilingReportsEveryFunctionalityThatRaisesABusinessExceptionWhenRunAlone() {
+        FunctionalityId firstRejectingId = FunctionalityId.forSagaFunctionality("firstRejectingFunctionality");
+        FunctionalityId secondRejectingId = FunctionalityId.forSagaFunctionality("secondRejectingFunctionality");
+        SagaUnitOfWorkService unitOfWorkService = oracle.getBean(SagaUnitOfWorkService.class);
+        FunctionalityCatalog invalidCatalog = new FunctionalityCatalog(
+                "invalid-solo-path",
+                AggregateHandlesRegistry::new,
+                Map.of(
+                        firstRejectingId,
+                        registry -> new SoloRejectingFunctionality(unitOfWorkService, "firstRejectingFunctionality"),
+                        secondRejectingId,
+                        registry -> new SoloRejectingFunctionality(unitOfWorkService, "secondRejectingFunctionality")));
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> driver.profileFunctionalities(invalidCatalog));
+
+        assertTrue(exception.getMessage().contains(firstRejectingId.toString()));
+        assertTrue(exception.getMessage().contains(secondRejectingId.toString()));
+        assertTrue(exception.getMessage().contains("rejectStep"));
+    }
+
+    private static final class SoloRejectingFunctionality extends WorkflowFunctionality {
+        private SoloRejectingFunctionality(SagaUnitOfWorkService unitOfWorkService, String name) {
+            SagaUnitOfWork unitOfWork = new SagaUnitOfWork(1L, name);
+            workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+            workflow.addStep(new SagaStep("rejectStep", () -> {
+            }));
+        }
+
+        @Override
+        public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
+            throw new SimulatorException("Expected solo rejection");
+        }
     }
 
     /**
