@@ -13,12 +13,38 @@ When in doubt, ask clarifying questions.
 
 ---
 
+## What the harness is
+
+The harness is the instruction set that teaches an agent to generate a simulator application from a
+spec pair. It is neither the application it generates nor the library that application runs on.
+
+Three buckets, each governed by a different rule:
+
+| Bucket | Files | What it is |
+|--------|-------|------------|
+| **Harness** | `AGENTS.md`, `CLAUDE.md`, `HARNESS.md`, `docs/`, `.claude/skills/`, `.claude/agents/` | Guidance read at runtime by an agent. Repaired under the two gates in § Harness evolution. |
+| **Framework** | `simulator/` | The core library every generated application compiles against. The system under study, and always Type `2-fw`. |
+| **Run record** | `applications/{app-name}/` (its spec pair, `plan.md`, generated source, `retros/`, `harness-log.md`) and `reviews/` | The evidence one run leaves behind. Never edited to make a past run read differently. |
+
+**The membership test:** delete `applications/`. Whatever must remain for the harness to generate a
+new application from a spec pair is the Harness bucket, plus the Framework bucket it compiles
+against. Everything that disappeared was run record.
+
+**The spec pair is not the harness.** `{App}-domain-model.md` and `{App}-aggregate-grouping.md` are
+the *input* to a run: authored per application, living beside that application's run record. Editing
+a spec changes which application is generated, not how the harness generates one.
+
+The Harness bucket is exactly the pathspec § Harness evolution calls the harness delta of a run.
+
+---
+
 ## Harness evolution
 
 The harness is **self-healing**. When the docs or skills mislead an agent, the agent's job includes
 repairing them, so the same mistake is never made twice. Every repair is recorded in
 `applications/{app-name}/harness-log.md` and committed separately with a `harness:` prefix, so the
-harness delta of a run is exactly `git log --oneline docs/ .claude/`.
+harness delta of a run is exactly
+`git log --oneline docs/ .claude/ AGENTS.md CLAUDE.md HARNESS.md`.
 
 That claim only holds if the log covers every commit, so: **every `harness:` commit carries at least
 one `harness-log.md` row**, and a commit closing N review findings carries either N rows or one row
@@ -93,7 +119,7 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/AGENTS.md`](simulator/AGENTS.md) |
 | `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/` and `harness-log.md` live here | — |
 
-Review reports are **not** per-application: `docs/reviews/` holds both kinds, `review-{date}.md`
+Review reports are **not** per-application: `reviews/` holds both kinds, `review-{date}.md`
 written by `/review-artifacts` and `harness-retro-{app-name}-{date}.md` written by
 `/harness-retrospective`.
 

@@ -107,7 +107,7 @@ thin row is.
 
 - `#` - monotonically increasing; read the last row to get the next number.
 - `Session` - the session id (`2.3.b`, `3.5`, `4.1`), `0`/`1` for Phase 0/1, or `review` for a repair
-  driven by a `docs/reviews/` report rather than by friction hit inside a session.
+  driven by a `reviews/` report rather than by friction hit inside a session.
 - `Type` - `1` (contradiction, fixed unilaterally), `2` (ambiguity, human decided), `2-fw`
   (`simulator/`, always human-decided).
 - `Artifact` - the repo-relative path of the harness file at fault.
@@ -154,6 +154,10 @@ that comes to mind is a leaked answer for the next application the harness is po
 
 This rule binds the harness artifacts only. `harness-log.md` rows are **exempt** and should name the
 functionality that triggered the fix - that is the provenance the end-of-run retrospective needs.
+
+Naming a **completed** application as a human-readable worked example is not a violation either: the
+rule protects the application currently being generated, and a finished run cannot be led to its own
+answers.
 
 ---
 

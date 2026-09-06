@@ -1,6 +1,6 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/, .claude/skills/, .claude/agents/ and AGENTS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
+description: Static consistency check over docs/, .claude/skills/, .claude/agents/ and AGENTS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
@@ -54,7 +54,7 @@ Determine today's date in `YYYY-MM-DD` format.
 Set:
 ```
 {review-date}  = today in YYYY-MM-DD
-{report-file}  = docs/reviews/review-{review-date}.md
+{report-file}  = reviews/review-{review-date}.md
 ```
 
 If a report for today already exists, append `-2`, `-3`, etc. to avoid overwriting.
@@ -101,7 +101,7 @@ The second `find` covers **all** of `.claude`, not just `.claude/skills`. `AGENT
 runtime - `docs/workflow.md` § "Two entry points" calls it the contract for a slice. Enumerating only
 the skills tree leaves it unread by Step 2 and unscanned by Step 6.
 
-**Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
+**Generated outputs excluded from input set:** files under `reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
 
 ---
 
@@ -243,7 +243,7 @@ import re, subprocess, sys
 
 APP = "{app-name}"
 TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
-PATHSPEC = TREES + [":(exclude)docs/reviews"]
+PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
@@ -294,7 +294,7 @@ instead. **State in the report which base was used and how it was derived** — 
 interpret "0 violations" without knowing how many lines were scanned. If neither rule yields a base
 (no `harness:` commits at all), there is nothing to check; say so.
 
-**Why `docs/reviews` is excluded from the pathspec.** For the same reason Step 1.b excludes it from
+**Why `reviews` is excluded from the pathspec.** For the same reason Step 1.b excludes it from
 the input artifact set: those files are this skill's own generated output, and every previous report
 prints the forbidden-noun list about itself. Including them turns each past report into a spurious
 hit that the move-test cannot clear, because the line is genuinely new at that commit.
@@ -328,7 +328,7 @@ is more useful than a bare "0 violations".
 
 ## Step 7: Write the Report
 
-Run `mkdir -p docs/reviews` (no-op if exists).
+Run `mkdir -p reviews` (no-op if exists).
 
 Write `{report-file}` using the template below. Never omit a section — write
 "nothing to report" if a check produced no findings.
