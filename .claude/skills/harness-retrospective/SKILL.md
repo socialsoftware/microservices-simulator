@@ -143,9 +143,9 @@ Check the log's own integrity while reading and record any of these as a finding
 summary: gaps or duplicates in the `#` sequence; rows with a `Type` outside `1` / `2` / `2-fw`; rows
 with an `Outcome` outside `fixed` / `declined` / `deferred`; `fixed` rows with an empty or
 unresolvable `Ref`; any row whose `Type` is `1` but whose `Artifact` is under `simulator/`, which
-the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/skills/`,
-`.claude/agents/`, `simulator/`, or `AGENTS.md` itself (implementation defects misfiled as
-friction — dismiss them in Step 9, do not count them as harness gaps).
+the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/`,
+`simulator/`, or one of the root files `AGENTS.md`, `CLAUDE.md` and `HARNESS.md` (implementation
+defects misfiled as friction — dismiss them in Step 9, do not count them as harness gaps).
 
 **Compound `Type` values.** `.claude/skills/_shared/conventions.md` § "Harness log" admits `1`, `2`
 and `2-fw` only, so a row logging a bundle of findings under a compound value (`1+2`) is an integrity
@@ -168,7 +168,7 @@ cd "$(git rev-parse --show-toplevel)"
 python3 - <<'EOF'
 import subprocess
 
-TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
+TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
 PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):

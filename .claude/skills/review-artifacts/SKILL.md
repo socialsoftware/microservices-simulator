@@ -250,7 +250,7 @@ python3 - <<'EOF'
 import re, subprocess, sys
 
 APP = "{app-name}"
-TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
+TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
 PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):
