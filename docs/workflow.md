@@ -225,11 +225,24 @@ implement, and both close a session through
 [`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md),
 so they produce the same retro shape and the same one-commit-per-session history.
 
-The manager buys context quality, not speed: slices run sequentially, each with a fresh narrow
-context, instead of one agent holding a whole heavy session at once. It owns the self-healing gate,
-the harness-log rows and every commit; slices report friction and halt on Type 2 (`AGENTS.md`
-§ "Harness evolution"). Its contract for a slice is
-[`.claude/agents/aggregate-slice.md`](../.claude/agents/aggregate-slice.md).
+Slices run strictly sequentially, each with a fresh narrow context, instead of one agent holding a
+whole heavy session at once. The manager owns the self-healing gate, the harness-log rows and every
+commit; slices report friction and halt on Type 2 (`AGENTS.md` § "Harness evolution"). Its contract
+for a slice is [`.claude/agents/aggregate-slice.md`](../.claude/agents/aggregate-slice.md).
+
+What the choice actually trades:
+
+| Axis | `/implement-aggregate` | `/implement-aggregate-full` |
+|------|------------------------|------------------------------|
+| **Scheduled checkpoints** | One per session, so four per aggregate. Each ends in a completion report you read before invoking the next. | One per aggregate. The manager runs `a` through `d` and reports at the boundary. |
+| **Unscheduled halts** | Type 2 and `2-fw` halt and wait for you. | **Identical.** A slice halts, the manager surfaces the block verbatim and waits. |
+| **Token cost** | Lower. One agent, one context per session. | Higher. Every slice reads the session sub-file and its concept docs from cold, and the manager holds its own context on top. |
+| **Context quality** | Degrades across a long session as one context accumulates the whole of it. | Higher per unit of work. Each slice starts fresh and narrow, which is the property the topology exists to buy. |
+| **Failure blast radius** | One session. You see the result before the next one starts. | Up to a whole aggregate. A wrong reading can be repeated across four sessions before you next look. |
+
+**`-full` is not unattended.** It reduces how often you are asked to *start* something, not how often
+you are asked to *decide* something: the Type 2 and `2-fw` gates are the same gates, they fire on the
+same friction, and they wait just as long. Budget for being interrupted either way.
 
 Applications whose plan.md predates slicing are not migrated: `/implement-aggregate-full` halts
 rather than guessing a slice list. Run `/implement-aggregate` on them, or regenerate the plan.

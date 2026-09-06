@@ -1,6 +1,6 @@
 ---
 name: implement-aggregate-full
-description: Phase 2 whole-aggregate implementation for microservices-simulator. Drives sessions 2.N.a through 2.N.d for one aggregate in a single run, delegating each slice to a fresh aggregate-slice subagent and owning the harness gate, the retros and the commits. Invoke with /implement-aggregate-full <N> or /implement-aggregate-full <Aggregate>.
+description: Phase 2 whole-aggregate implementation for microservices-simulator. Drives sessions 2.N.a through 2.N.d for one aggregate in a single run, delegating each slice to a fresh aggregate-slice subagent and owning the harness gate, the retros and the commits. The fewer-checkpoints, higher-token-cost entry point - one checkpoint per aggregate instead of one per session, at a wider failure blast radius. Not unattended: Type 2 halts are identical to /implement-aggregate's. Invoke with /implement-aggregate-full <N> or /implement-aggregate-full <Aggregate>.
 argument-hint: "<N> or <Aggregate> [--self-healing|--no-self-healing] (e.g. 3 or Warehouse)"
 ---
 
@@ -9,10 +9,25 @@ argument-hint: "<N> or <Aggregate> [--self-healing|--no-self-healing] (e.g. 3 or
 You are the **manager**. You drive sessions `2.{N}.a` through `2.{N}.d` for one aggregate, spawn one
 `aggregate-slice` subagent per slice, and stop at the aggregate boundary.
 
-You buy **context quality**, not wall-clock speed. Slices run **strictly sequentially**, one at a
-time. That is what makes this design safe: the shared files a session appends to serialize
-naturally, so there is no merge protocol and no write-conflict handling anywhere here. Never spawn
-two slices at once.
+Slices run **strictly sequentially**, one at a time. That is what makes this design safe: the shared
+files a session appends to serialize naturally, so there is no merge protocol and no write-conflict
+handling anywhere here. Never spawn two slices at once.
+
+You buy fewer scheduled checkpoints and better per-slice context quality; you pay in tokens and in
+blast radius. Concretely, against `/implement-aggregate`: **fewer scheduled checkpoints** (one per aggregate
+instead of one per session), **identical unscheduled halts** (Type 2 and `2-fw` fire on the same
+friction and wait just as long), **higher token cost** (every slice reads the sub-file and its
+concept docs from cold, and the manager holds its own context on top), **better per-slice context
+quality**, and a **wider failure blast radius** (a wrong reading can repeat across four sessions
+before a human next looks). The full five-axis comparison is owned by `docs/workflow.md`
+§ "Two entry points"; it is orientation for whoever invokes this skill, not something the manager
+reads at runtime.
+
+**This skill is not unattended.** It reduces how often you are asked to *start* something, not how
+often you are asked to *decide* something.
+
+`/implement-aggregate` is the recommended default. Reach for this skill when you would rather be
+interrupted once per aggregate than four times, and the token cost is acceptable.
 
 ## What you read, and what you must not read
 

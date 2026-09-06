@@ -1,6 +1,6 @@
 ---
 name: implement-aggregate
-description: Phase 2 aggregate implementation for microservices-simulator. Auto-detects the next unchecked session in plan.md and delegates to the appropriate sub-file (session-a.md through session-d.md). Invoke with /implement-aggregate [session] (e.g., /implement-aggregate or /implement-aggregate 2.3.b).
+description: Phase 2 aggregate implementation for microservices-simulator. Auto-detects the next unchecked session in plan.md and delegates to the appropriate sub-file (session-a.md through session-d.md). The recommended default entry point - one session per invocation, so a checkpoint after every session, the lowest token cost and the narrowest failure blast radius. Invoke with /implement-aggregate [session] (e.g., /implement-aggregate or /implement-aggregate 2.3.b).
 argument-hint: "[session] [--self-healing|--no-self-healing] (e.g. 2.3.b - session optional, auto-detects if omitted)"
 ---
 
