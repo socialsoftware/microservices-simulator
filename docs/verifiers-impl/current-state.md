@@ -493,6 +493,23 @@ Unmarked failures—including plain `SimulatorException`, service unavailability
 
 Replay mode is activated before Spring startup. The simulator captures the exact event only after persistence, suppresses unscoped scheduled polling, and allows one selected event id through one persisted `EventHandling` bean method and one eligible subscriber. The executor invokes that real Spring bean synchronously outside the fault-vector boundary and before the next outer action when the persisted route resolves to one `EventHandling` class.
 
+There are two separate multiplicities: different handler routes for one event, and
+different eligible aggregate instances within one route. `ScenarioGenerator` retains
+the base workload and creates separate route/placement variants, each with
+`List.of(consequence)`, subject to extraction support and catalogue caps. It does not
+combine deliveries to several routes in one generated workload. Within the selected
+route, `EventApplicationService` requires exactly one eligible aggregate; zero or
+multiple receivers hard-stop. This is narrower than normal application event processing,
+which can traverse several subscribers and invoke different routes. Delivery order
+across all interested listeners is therefore not qualified by these scenarios.
+
+Each selected delivery is one atomic normal action, placed after its trigger among
+outer forward steps. It adds no fault bit or recovery checkpoint; the consumer's internal
+steps are not independently interleaved with outer actions. A completed scenario is the
+end of that selected action schedule, not proof that every possible listener has run.
+The [Portuguese event example](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-o-que-executamos-atualmente)
+illustrates the distinction and its effect on the successful positive control.
+
 An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay currently supports one exact local subscriber only—no fan-out, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
 
 ### Report
@@ -552,6 +569,26 @@ When `--impact-output-path` is supplied, ScenarioExecutor installs an attempt-sc
 ImpactV1 does not detect silent compensation errors, postcondition failures, final-state divergence, or general business harm. The count and score are currently numerically identical because this first model has no weighting.
 
 ## ImpactV2 assessment
+
+The collection path is concrete instrumentation, not free-text log inference:
+
+| Code boundary | Responsibility |
+| --- | --- |
+| `ScenarioExecutor` / `ImpactV2EvidenceCollector.start()` | Start after successful setup and obtain the baseline with `PersistentStateObserver.snapshotAll()` |
+| `ImpactWriterContext` | Attribute each forward/recovery/event action; consumers have distinct writer identity |
+| `SagaUnitOfWorkService.registerChanged()` / `registerCommittedWriteObservation()` | Register a Spring `afterCommit` callback and reload the exact revision through `snapshotVersion()` in an independent read transaction |
+| `EventApplicationService.handleSelectedEvent()` | Observe the selected receiver's persisted state and eligibility before and after the real handler |
+| `ImpactV2EvidenceCollector.finish()` / `ImpactV2Assessor.assess()` | Collect final state and event eligibility, then assess evidence against execution outcomes |
+
+The collector is not a general read-from or value-lineage recorder. Existing aggregate
+access traces identify objects and access modes but do not generically identify every
+returned read version or copied value. ImpactV2's three checks do not classify dirty
+reads, lost updates, write skew, or serializability; completeness is relative to those
+checks. A multi-writer residual candidate remains unknown rather than being assigned to
+one writer. The [Portuguese methodological discussion](reunioes/2026-09-08.md#46-e-as-anomalias-de-concorrencia-mudamos-a-direcao-da-tese)
+explains why persistent-effect measurement was prioritized and what causal analysis
+would additionally require. This is an explicit current scope boundary, not evidence
+that concurrency-anomaly detection is unsuitable for the thesis.
 
 Ordinary ScenarioExecutor attempts write
 `microservices-simulator.scenario-impact-v2-assessment.v1` beside the execution report:
