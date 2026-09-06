@@ -265,29 +265,37 @@ same friction, and they wait just as long. Budget for being interrupted either w
 Applications whose plan.md predates slicing are not migrated: `/implement-aggregate-full` halts
 rather than guessing a slice list. Run `/implement-aggregate` on them, or regenerate the plan.
 
-### Aggregate-boundary checkpoint
+### Harness maintenance: `/review-artifacts`
 
-After the last session of aggregate `{N}` is committed and before the first session of aggregate
-`{N+1}` begins, run `/review-artifacts` in a fresh session.
+`/review-artifacts` is not a phase of this pipeline. It is a static maintenance pass over the harness
+itself - `docs/`, `.claude/`, `AGENTS.md`, `HARNESS.md` - that collects the debris hand-editing and
+mid-run repair leave behind: paths that no longer resolve, two files prescribing different things, a
+piece of knowledge that lost its single owner, a domain noun leaked in from the application being
+generated. It reports; it does not repair.
 
-**This step is human-invoked, under both entry points.** `/implement-aggregate-full` stops at the
-aggregate boundary and tells the human to run it; it never runs it itself and never continues to
-`{N+1}`.
+**It is always human-invoked, under both entry points.** `/implement-aggregate-full` stops at the
+aggregate boundary and tells the human it is available; it never runs it itself and never continues
+to `{N+1}` either way.
 
-Most of what it catches is application-side and mode-independent. Aggregate `{N}` is the first
-consumer of every pattern it exercised, so the boundary is where a misread doc shows up as a wrong
-implementation while only one aggregate has been built on it, rather than after five. It also runs
-the neutral-domain check that keeps this run's domain nouns out of the harness - the check that
-protects the *next* application the harness is pointed at, and the reason the boundary matters even
-on a run that changed nothing.
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session. That cost is why the guidance below is a
+recommendation rather than a step.
 
-Mid-run harness drift is a third reason, and it applies **only under self-healing ON**
-(`AGENTS.md` § "Harness evolution"). There, sessions repair `docs/` and `.claude/skills/` under the
-Type 1 gate, so the artifacts change while they are being read and a fix made in `2.{N}.c` can
-contradict a doc that `2.{N+1}.a` is about to follow. Under OFF no such drift exists, and the first
-two reasons still stand on their own.
+**When it is worth running,** in descending order:
 
-It reports; it does not repair. Act on its Critical and Major findings before starting `{N+1}`.
+1. **After any substantial change to the harness** - a refactor, a batch of doc rewrites, a new or
+   retired skill. This is what it is for, and the run that follows reads whatever the edits left
+   behind.
+2. **After each finished aggregate, under self-healing ON** (`AGENTS.md` § "Harness evolution").
+   There, sessions repair `docs/` and `.claude/skills/` under the Type 1 gate, so the artifacts
+   change *while* they are being read: a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a`
+   is about to follow, and the aggregate boundary is the last moment that contradiction is cheap.
+   Act on its Critical and Major findings, in their own `harness:` commits, before starting `{N+1}`.
+3. **Occasionally under OFF, if you want the neutral-domain sweep early.** Under OFF the harness
+   cannot drift mid-run - the bucket must stay clean and the session commit halts if it is not - so
+   there is nothing new for it to find between aggregates except nouns the run itself could not have
+   introduced. Once at the end of the run is usually enough, and its findings are acted on between
+   runs rather than at a boundary.
 
 ---
 

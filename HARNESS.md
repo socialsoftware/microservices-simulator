@@ -82,7 +82,7 @@ nothing, and a skill scanner that does not follow directory symlinks will not se
 
 ## 4. The pipeline
 
-Six stages. Each produces a stable artifact the next one starts from, so an agent is told exactly
+Five stages. Each produces a stable artifact the next one starts from, so an agent is told exactly
 what to read and what to produce rather than being handed the whole problem.
 
 | Stage | Command | Produces |
@@ -91,7 +91,6 @@ what to read and what to produce rather than being handed the whole problem.
 | Phase 0 - Bootstrap | `/boot-strap <app-name> [--self-healing]` | Maven scaffold, exception classes, Spock base classes, `harness-log.md` with the run's mode |
 | Phase 1 - Classify & Plan | `/classify-and-plan <domain-model> <aggregate-grouping>` | `plan.md`: rule classification, aggregate implementation order, per-session file lists and slice lists |
 | Phase 2 - Implementation | `/implement-aggregate` or `/implement-aggregate-full` (§ 6) | The application, one session per commit, with a retro per session |
-| Aggregate boundary | `/review-artifacts` | A static consistency report over the harness, in `reviews/` |
 | End of run | `/harness-retrospective` | An empirical evaluation of the harness against the run's evidence |
 
 Phase 2 runs four session types per aggregate, in order: `a` domain layer, `b` read
@@ -99,16 +98,17 @@ functionalities, `c` write functionalities, `d` event wiring (only when the aggr
 events). Aggregates are implemented in topological order of their event dependencies, so an
 aggregate is never built before something it caches from.
 
-**Run `/review-artifacts` on two occasions:** at every aggregate boundary during a run, and after
-any hand-edit to the harness (§ 10). It is human-invoked in both topologies:
-`/implement-aggregate-full` stops at the boundary and tells you to run it rather than running it
-itself.
+A sixth command, `/review-artifacts`, sits outside the pipeline: it is a maintenance pass over the
+harness rather than a step that produces the application (§ 10). It is human-invoked and never runs
+itself - `/implement-aggregate-full` stops at the aggregate boundary and tells you it is available
+rather than running it.
 
-**Who acts on its findings depends on the mode.** Under self-healing ON, act on the Critical and
-Major findings at the boundary, in their own `harness:` commits, before starting the next aggregate.
-Under OFF the harness bucket must stay clean for the whole run, and the next session's commit halts
-if it is not (§ 8), so the findings are recorded and carried to the end of the run: act on them
-between runs, not at the boundary. The full description of each phase is in
+**Under self-healing ON, running it after each finished aggregate is recommended**, because sessions
+are editing `docs/` and `.claude/` while later sessions read them. Act on its Critical and Major
+findings in their own `harness:` commits before starting the next aggregate. **Under OFF it is
+optional**: the harness cannot drift during the run, the harness bucket must stay clean for the whole
+run and the next session's commit halts if it is not (§ 8), so anything it finds is carried to the
+end of the run and acted on between runs. The full description of each phase is in
 [`docs/workflow.md`](docs/workflow.md).
 
 ## 5. Writing your spec pair
@@ -234,7 +234,7 @@ applications/{app-name}/
 ├── .mvn/maven.config                   untracked; points Maven at your settings.xml
 └── src/                                the generated application
 reviews/
-├── review-{date}.md                    one per aggregate boundary
+├── review-{date}.md                    one per /review-artifacts run, if any
 └── harness-retro-{app-name}-{date}.md  one per completed run
 ```
 
@@ -249,8 +249,19 @@ edited to read better.
 
 ## 10. Changing the harness yourself
 
-Between runs, edit `docs/` and `.claude/` directly; that is what they are for. Run
-`/review-artifacts` afterwards to catch dangling paths and contradictions before an agent hits them.
+Between runs, edit `docs/` and `.claude/` directly; that is what they are for.
+
+**`/review-artifacts` is the garbage collector for those edits, and this is where it earns its
+keep.** It is a static pass over `docs/`, `.claude/`, `AGENTS.md` and `HARNESS.md` that catches what
+hand-editing leaves behind: paths that no longer resolve, two files prescribing different things, a
+piece of knowledge that lost its single owner, a domain noun leaked in from the last application.
+Run it after any substantial change to the harness - a refactor, a batch of doc rewrites, a new or
+retired skill - before the next run reads the result.
+
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session or alongside other work you still want context
+for. That cost is why it is a recommendation rather than a step of the pipeline: run it when the
+harness has actually changed, not on a schedule.
 
 Two rules worth knowing before you write anything into a harness file:
 

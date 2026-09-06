@@ -61,7 +61,8 @@ naming all N. A `harness:` commit with no row is a defect in the run's record, n
 `harness:` commits that carry them. A run under OFF touches no file in the Harness bucket, so its
 harness delta is empty by construction, and the artifacts an agent was measured against are the ones
 it was given. Everything else is retained unchanged: the gate classification, the Type 2 and `2-fw`
-halts, the `harness-log.md` rows, the per-session retro, and the `/review-artifacts` boundary check.
+halts, the `harness-log.md` rows, the per-session retro, and the `/review-artifacts` check, which
+stays available to the human under both modes.
 A run under OFF still produces the full record of where the harness failed; it just does not act on
 it mid-run.
 

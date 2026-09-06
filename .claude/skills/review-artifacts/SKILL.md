@@ -1,6 +1,6 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
+description: Garbage collector for the harness itself - a static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md covering path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance and ambiguous guidance. Recommended after any substantial harness change, and after each finished aggregate when self-healing is ON; optional otherwise. Expensive: it reads every harness file in full, so run it in a fresh session. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
@@ -11,23 +11,29 @@ Static pre-flight check over the harness itself: `docs/**`, `.claude/skills/**`,
 files, checks them for internal consistency, and writes one dated report. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
-**When to run it:** at every **aggregate boundary** — after the last session of aggregate `{N}` is
-committed and before the first session of aggregate `{N+1}` begins — and once more before a run
-starts, after a round of harness edits.
+**What it is for:** collecting the debris that hand-editing and mid-run repair leave in the harness —
+paths that no longer resolve, two files prescribing different things, a piece of knowledge that lost
+its single owner, a domain noun leaked in from the application being generated.
 
-Running it during a run is the point, not a violation, and most of what it catches holds in both
-self-healing modes. Aggregate `{N}` is the first consumer of every pattern it exercised, so the
-boundary is where a misread doc surfaces as a wrong implementation while only one aggregate has been
-built on it. It also runs the neutral-domain check that keeps this run's domain nouns out of the
-harness, which protects the *next* application the harness is pointed at and is the reason the
-boundary matters even on a run that changed nothing.
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session or alongside work whose context you still
+need. That cost is why the guidance below is a recommendation rather than a mandatory step: run it
+when the harness has actually changed, not on a schedule.
 
-Mid-run harness drift is a third reason, and it applies **only under self-healing ON**
-(`AGENTS.md` § "Harness evolution"). There, sessions repair `docs/` and `.claude/skills/` under the
-Type 1 gate, so the artifacts change *while* they are being read: a fix made in `2.4.c` can
-contradict a doc that `2.5.a` is about to read, and the aggregate boundary is the last moment that
-contradiction is cheap. Under OFF no such drift exists, and the first two reasons still stand on
-their own.
+**When it is worth running,** in descending order:
+
+1. **After any substantial change to the harness** — a refactor, a batch of doc rewrites, a new or
+   retired skill. This is the primary use, and the run that follows reads whatever those edits left
+   behind.
+2. **After each finished aggregate, under self-healing ON** (`AGENTS.md` § "Harness evolution").
+   There, sessions repair `docs/` and `.claude/skills/` under the Type 1 gate, so the artifacts
+   change *while* they are being read: a fix made in `2.4.c` can contradict a doc that `2.5.a` is
+   about to read, and the aggregate boundary is the last moment that contradiction is cheap.
+3. **Occasionally under OFF, if you want the neutral-domain sweep early.** Under OFF the harness
+   cannot drift mid-run, so between aggregates there is little new for it to find. Running it during
+   a run is never a violation — just rarely worth its cost before the run ends.
+
+Running it is always the human's call, under both Phase 2 entry points.
 
 **What it is not:** it does not evaluate how the harness performed on a real run. That is
 `/harness-retrospective`, which reads a completed run's `harness-log.md`, retros and reviews.

@@ -216,10 +216,13 @@ Report to the human:
 - under ON, harness fixes made, with their `harness:` commit shas; under OFF, every `deferred` row
   with the reading you proceeded on, since those are the run's open harness findings;
 - Type 2 questions raised and how they were answered, plus any left open;
-- the instruction: **run `/review-artifacts` in a fresh session before starting aggregate {N+1}**.
+- under ON, the recommendation: **run `/review-artifacts` in a fresh session before starting
+  aggregate {N+1}**, since this run has been editing the harness while later sessions read it; under
+  OFF, a one-line note that it is available but optional, because the harness cannot have drifted.
 
-That checkpoint stays human-invoked and unchanged, in both modes (`docs/workflow.md`
-§ "Aggregate-boundary checkpoint").
+Never run it yourself. It is human-invoked in both modes, and it is expensive - it reads every
+harness file in full, so it belongs in a fresh session (`docs/workflow.md`
+§ "Harness maintenance: `/review-artifacts`").
 
 If the run halted early, report the same list plus the exact point it stopped and what unblocks it.
 

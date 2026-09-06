@@ -524,9 +524,11 @@ aggregate's worth, so the diff covers every harness commit of the run.
 | File | Added line | Noun | harness-log row (if any) |
 |------|-----------|------|--------------------------|
 
-Report the count of violations and, separately, how many of them the aggregate-boundary
-`/review-artifacts` runs had already flagged. A violation that a boundary check caught and nobody
-acted on is a process finding, not a rule finding — say which kind each one is.
+Report the count of violations and, separately, how many of them a `/review-artifacts` run during
+this run had already flagged. A violation that such a review caught and nobody acted on is a process
+finding, not a rule finding — say which kind each one is. `/review-artifacts` is recommended, not
+mandatory, so a run may have no reviews at all: when `reviews/` holds none dated within the run, say
+so and report every violation as a rule finding rather than inferring a process failure.
 
 ---
 
@@ -657,9 +659,9 @@ soften a **Ratified a guess** verdict.)
 | File | Added line | Noun | harness-log row (if any) |
 |------|-----------|------|--------------------------|
 
-**Violations:** {count}, of which {n} were already flagged by an aggregate-boundary
-`/review-artifacts` run and not acted on (process finding) and {n} were not caught at all (rule
-finding).
+**Violations:** {count}, of which {n} were already flagged by a `/review-artifacts` run during this
+run and not acted on (process finding) and {n} were not caught at all (rule finding). {Or: no
+`/review-artifacts` run covers this run, so all {count} are rule findings.}
 
 ---
 
