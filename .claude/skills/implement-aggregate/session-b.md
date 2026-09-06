@@ -205,18 +205,18 @@ Omit any of the five the service genuinely does not use — typically `Aggregate
 which no read method needs. Session 2.{N}.c's create method is then the first to need it, and widens
 both this `@Bean` method and the service constructor to match.
 
-That list is split two ways, and the bean method must match the split: `UnitOfWorkService`, the
-repository and the custom repository are **constructor** parameters, while the factory and
-`AggregateIdGeneratorService` are `@Autowired` **fields** on the service and therefore do not appear
-in the bean method at all. Passing all five to the constructor does not compile against the service
-`docs/concepts/service.md` prescribes.
+The bean method takes exactly the dependencies the service constructor declares, in the same order,
+and passes them all to `new {Aggregate}Service(...)` - there is no field-injected category that skips
+the bean method (`docs/concepts/service.md` § Injected Dependencies).
 
 ```groovy
 @Bean
 {Aggregate}Service {aggregate}Service(SagaUnitOfWorkService unitOfWorkService,
                                       {Aggregate}Repository {aggregate}Repository,
-                                      {Aggregate}CustomRepository {aggregate}CustomRepository) {
-    return new {Aggregate}Service(unitOfWorkService, {aggregate}Repository, {aggregate}CustomRepository)
+                                      {Aggregate}CustomRepository {aggregate}CustomRepository,
+                                      {Aggregate}Factory {aggregate}Factory) {
+    return new {Aggregate}Service(unitOfWorkService, {aggregate}Repository, {aggregate}CustomRepository,
+                                  {aggregate}Factory)
 }
 
 @Bean
@@ -331,5 +331,5 @@ a signature change in 2.{N}.c, rewriting every call site.
 The session checkbox for this session is `- [ ] 2.{N}.b — Read functionalities`. Read
 `_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
 you have. It owns the whole rule, including how to anchor on the session line rather than doing a
-bare string replace, and what manager mode and single-agent mode each do about the slice
+bare string replace, and what the manager and single-agent topologies each do about the slice
 sub-checkboxes underneath it.

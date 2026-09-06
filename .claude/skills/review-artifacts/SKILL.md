@@ -1,26 +1,39 @@
 ---
 name: review-artifacts
-description: Static consistency check over docs/, .claude/skills/, .claude/agents/ and AGENTS.md - path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, ambiguous guidance. Run at every aggregate boundary during a run, and again before starting one. No arguments. Writes a structured report to docs/reviews/review-{YYYY-MM-DD}.md.
+description: Garbage collector for the harness itself - a static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md covering path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance and ambiguous guidance. Recommended after any substantial harness change, and after each finished aggregate when self-healing is ON; optional otherwise. Expensive: it reads every harness file in full, so run it in a fresh session. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
 # Review Artifacts
 
 Static pre-flight check over the harness itself: `docs/**`, `.claude/skills/**`,
-`.claude/agents/**` and `AGENTS.md`. It reads only those three trees and that one root file, checks
-them for internal consistency, and writes one dated report. Every check
+`.claude/agents/**`, `AGENTS.md` and `HARNESS.md`. It reads only those three trees and those two root
+files, checks them for internal consistency, and writes one dated report. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
-**When to run it:** at every **aggregate boundary** — after the last session of aggregate `{N}` is
-committed and before the first session of aggregate `{N+1}` begins — and once more before a run
-starts, after a round of harness edits.
+**What it is for:** collecting the debris that hand-editing and mid-run repair leave in the harness —
+paths that no longer resolve, two files prescribing different things, a piece of knowledge that lost
+its single owner, a domain noun leaked in from the application being generated.
 
-Running it during a run is the point, not a violation. The harness is self-healing
-(`AGENTS.md` § "Harness evolution"): sessions repair `docs/` and `.claude/skills/` mid-run under the
-Type 1 gate, so the artifacts change *while* they are being read. A Type 1 fix made in `2.4.c` can
-contradict a doc that `2.5.a` is about to read, and the aggregate boundary is the last moment that
-contradiction is cheap. A self-healing harness needs more static consistency checking during a run,
-not less.
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session or alongside work whose context you still
+need. That cost is why the guidance below is a recommendation rather than a mandatory step: run it
+when the harness has actually changed, not on a schedule.
+
+**When it is worth running,** in descending order:
+
+1. **After any substantial change to the harness** — a refactor, a batch of doc rewrites, a new or
+   retired skill. This is the primary use, and the run that follows reads whatever those edits left
+   behind.
+2. **After each finished aggregate, under self-healing ON** (`AGENTS.md` § "Harness evolution").
+   There, sessions repair `docs/` and `.claude/skills/` under the Type 1 gate, so the artifacts
+   change *while* they are being read: a fix made in `2.4.c` can contradict a doc that `2.5.a` is
+   about to read, and the aggregate boundary is the last moment that contradiction is cheap.
+3. **Occasionally under OFF, if you want the neutral-domain sweep early.** Under OFF the harness
+   cannot drift mid-run, so between aggregates there is little new for it to find. Running it during
+   a run is never a violation — just rarely worth its cost before the run ends.
+
+Running it is always the human's call, under both Phase 2 entry points.
 
 **What it is not:** it does not evaluate how the harness performed on a real run. That is
 `/harness-retrospective`, which reads a completed run's `harness-log.md`, retros and reviews.
@@ -54,7 +67,7 @@ Determine today's date in `YYYY-MM-DD` format.
 Set:
 ```
 {review-date}  = today in YYYY-MM-DD
-{report-file}  = docs/reviews/review-{review-date}.md
+{report-file}  = reviews/review-{review-date}.md
 ```
 
 If a report for today already exists, append `-2`, `-3`, etc. to avoid overwriting.
@@ -66,7 +79,7 @@ Run:
 find docs -type f -name "*.md" | sort
 find .claude/skills -type f \( -name "*.md" -o -name "*.template" \) | sort
 find .claude/agents -type f -name "*.md" | sort
-ls AGENTS.md
+ls AGENTS.md HARNESS.md
 ```
 
 The `*.template` files under `.claude/skills/boot-strap/templates/` are part of the review set:
@@ -80,17 +93,25 @@ defines the scope, friction gate and return contract every slice obeys, and
 `implement-aggregate-full/SKILL.md` delegates to it at runtime; a stale rule or a leaked domain noun
 there reaches generated code exactly as one in a `session-*.md` would.
 
-`AGENTS.md` is in the review set for the same reason, one level up: it is repo-root markdown that a
-skill or agent contract **reads at runtime**. `implement-aggregate/SKILL.md`,
-`implement-aggregate-full/SKILL.md` and `.claude/agents/aggregate-slice.md` each instruct the agent
-to read `AGENTS.md` § "Harness evolution" *in full* before acting on friction, and that section
-defines the Type 1 / Type 2 / `2-fw` gate the whole self-healing loop turns on. A contradiction
-there reaches generated code exactly as one in a `session-*.md` would.
+`AGENTS.md` and `HARNESS.md` are in the review set for the same reason, one level up: they are
+repo-root markdown that a skill or agent contract **reads at runtime**.
+`implement-aggregate/SKILL.md`, `implement-aggregate-full/SKILL.md` and
+`.claude/agents/aggregate-slice.md` each instruct the agent to read `AGENTS.md`
+§ "Harness evolution" *in full* before acting on friction, and that section defines the
+Type 1 / Type 2 / `2-fw` gate the whole self-healing loop turns on. `HARNESS.md` is read the same
+way: `docs/workflow.md` § "Spec Authoring" delegates to `HARNESS.md` § 5 for the spec-pair detail. A
+contradiction in either reaches generated code exactly as one in a `session-*.md` would.
 
 That criterion — read at runtime by a skill or agent contract — is the whole test, and it is
 deliberately not a wildcard over repo-root `*.md`. `README.md` documents the framework for humans
 and no skill delegates to it; `CLAUDE.md` is a one-line `@AGENTS.md` include with nothing of its own
 to check. Neither is in the set. If a future root file starts being read at runtime, add it here.
+
+`CLAUDE.md` is nonetheless in Check 4's commit pathspec (Step 6). The two scopes answer different
+questions: the review set is the files whose *content* is checked for consistency, while Check 4
+scans the *commits* that make up the harness delta as `AGENTS.md` § "Harness evolution" defines it. A
+harness fix can land in `CLAUDE.md`, and a domain noun leaked there leaks whether or not the file has
+prose of its own worth reviewing.
 
 Hold all four lists. These are the complete artifact sets. Any file path referenced in a skill
 or doc must appear in one of these lists to be a valid reference.
@@ -101,7 +122,7 @@ The second `find` covers **all** of `.claude`, not just `.claude/skills`. `AGENT
 runtime - `docs/workflow.md` § "Two entry points" calls it the contract for a slice. Enumerating only
 the skills tree leaves it unread by Step 2 and unscanned by Step 6.
 
-**Generated outputs excluded from input set:** files under `docs/reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
+**Generated outputs excluded from input set:** files under `reviews/` (e.g., `review-YYYY-MM-DD.md`, `harness-retro-{app-name}-YYYY-MM-DD.md`) are produced by `/review-artifacts` and `/harness-retrospective` and are **not** part of the input artifact enumeration. Do not flag them as untracked artifacts or broken references when they appear on disk but not in the `find docs` list.
 
 ---
 
@@ -109,9 +130,9 @@ the skills tree leaves it unread by Step 2 and unscanned by Step 6.
 
 Read every file listed by Step 1.b (all `docs/**/*.md`, all
 `.claude/skills/**/*.md`, the `.claude/skills/boot-strap/templates/*.template` scaffolds, all
-`.claude/agents/**/*.md` and `AGENTS.md`) — this is the complete review set. Do not maintain a separate
-hard-coded list here: because the set is derived directly from Step 1.b, newly added files
-(e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
+`.claude/agents/**/*.md`, `AGENTS.md` and `HARNESS.md`) — this is the complete review set. Do not
+maintain a separate hard-coded list here: because the set is derived directly from Step 1.b, newly
+added files (e.g. `.claude/skills/_shared/conventions.md`, each `.claude/skills/implement-aggregate/session-*.md`,
 or any future skill/doc) are picked up automatically without editing this skill.
 
 Read all files in parallel where possible.
@@ -220,8 +241,9 @@ Scan skill files for instructions containing:
 `.claude/skills/_shared/conventions.md` § "Neutral domain" forbids a harness fix from naming any
 entity, aggregate or operation of the application currently being generated. The rule exists because
 fixes are authored while looking at one specific aggregate, and the vivid example that comes to mind
-is a leaked answer for the next application the harness is pointed at. Self-healing makes that risk
-continuous, so this check is what turns the rule from a disclaimer into a control.
+is a leaked answer for the next application the harness is pointed at. This check is what turns the
+rule from a disclaimer into a control, and under self-healing ON, where harness fixes land mid-run,
+the risk it controls is continuous rather than confined to edits made between runs.
 
 Skip this check only when no run is in progress (no `plan.md` anywhere under `applications/`); say so
 in the report rather than omitting the section.
@@ -242,8 +264,8 @@ python3 - <<'EOF'
 import re, subprocess, sys
 
 APP = "{app-name}"
-TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
-PATHSPEC = TREES + [":(exclude)docs/reviews"]
+TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
+PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
@@ -294,7 +316,7 @@ instead. **State in the report which base was used and how it was derived** — 
 interpret "0 violations" without knowing how many lines were scanned. If neither rule yields a base
 (no `harness:` commits at all), there is nothing to check; say so.
 
-**Why `docs/reviews` is excluded from the pathspec.** For the same reason Step 1.b excludes it from
+**Why `reviews` is excluded from the pathspec.** For the same reason Step 1.b excludes it from
 the input artifact set: those files are this skill's own generated output, and every previous report
 prints the forbidden-noun list about itself. Including them turns each past report into a spurious
 hit that the move-test cannot clear, because the line is genuinely new at that commit.
@@ -328,7 +350,7 @@ is more useful than a bare "0 violations".
 
 ## Step 7: Write the Report
 
-Run `mkdir -p docs/reviews` (no-op if exists).
+Run `mkdir -p reviews` (no-op if exists).
 
 Write `{report-file}` using the template below. Never omit a section — write
 "nothing to report" if a check produced no findings.
@@ -462,13 +484,14 @@ Output to the conversation (not to the report file):
 3. **Never omit sections.** Write "nothing to report" in any section with no findings.
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
-5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**`, `.claude/agents/**` and
-   `AGENTS.md`. The single permitted
+5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**`, `.claude/agents/**`,
+   `AGENTS.md` and `HARNESS.md`; Check 4 additionally scans `CLAUDE.md` commits, per Step 1.b. The
+   single permitted
    read under `applications/**` is the `### {N}. {Aggregate}` header list in `plan.md`, for Check 4
    (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
    completed run belongs to `/harness-retrospective`.
 6. **Running during a generation run is expected.** Unchecked `- [ ]` boxes in a `plan.md` are not a
-   precondition failure - this skill is the aggregate-boundary checkpoint of a self-healing harness
+   precondition failure - this skill is the aggregate-boundary checkpoint, in both self-healing modes
    (`AGENTS.md` § "Harness evolution"). Never halt on them.
 7. **Report, do not repair.** The findings are for a human or a later session to act on. This skill
    writes exactly one file. A Critical finding does not license fixing the artifact here.

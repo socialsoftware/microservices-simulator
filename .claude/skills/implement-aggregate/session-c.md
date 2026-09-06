@@ -281,7 +281,7 @@ above, per functionality — not once for the session.
 
 For each event listed in plan.md Events published that does not yet exist:
 
-Path: `{src}events/{Event}.java`
+Path: `{src}events/{Event}Event.java`
 
 - Extends `pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event` from simulator core — it is a JPA `@Entity` and must be annotated `@Entity`. Do **NOT** implement `DomainEvent` directly.
 - Fields: all payload fields needed by consumers (check aggregate-grouping §4 event table in domain spec for payload)
@@ -386,5 +386,5 @@ Tests added this session use the same helper in their `setup:` block to satisfy 
 The session checkbox for this session is `- [ ] 2.{N}.c — Write functionalities`. Read
 `_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
 you have. It owns the whole rule, including how to anchor on the session line rather than doing a
-bare string replace, and what manager mode and single-agent mode each do about the slice
+bare string replace, and what the manager and single-agent topologies each do about the slice
 sub-checkboxes underneath it.

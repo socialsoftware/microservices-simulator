@@ -6,30 +6,80 @@ This file is the entry point for the automated agent harness that implements thi
 
 **Architecture principle:** The current implementation targets the sagas consistency pattern only, but must remain **profile-agnostic at the service layer**. Concretely: `*Service` classes inject factories and repositories via abstract interfaces (e.g. `WarehouseFactory`, `WarehouseCustomRepository`), never via the concrete sagas-profile classes (e.g. `SagasWarehouseFactory`). This keeps the door open to adding a TCC or other pattern later without touching service code.
 
-Docs and skills are **living artifacts**, edited both between runs and during them - see
-§ Harness evolution for the two gates that govern in-run edits.
+Docs and skills are **living artifacts**, edited between runs always and during them only when a run
+turns self-healing on - see § Harness evolution for the mode and the two gates that govern in-run
+edits.
 
 When in doubt, ask clarifying questions.
 
 ---
 
+## What the harness is
+
+The harness is the instruction set that teaches an agent to generate a simulator application from a
+spec pair. It is neither the application it generates nor the library that application runs on.
+
+Three buckets, each governed by a different rule:
+
+| Bucket | Files | What it is |
+|--------|-------|------------|
+| **Harness** | `AGENTS.md`, `CLAUDE.md`, `HARNESS.md`, `docs/`, `.claude/skills/`, `.claude/agents/` | Guidance read at runtime by an agent. Repaired under the two gates in § Harness evolution. |
+| **Framework** | `simulator/` | The core library every generated application compiles against. The system under study, and always Type `2-fw`. |
+| **Run record** | `applications/{app-name}/` (its spec pair, `plan.md`, generated source, `retros/`, `harness-log.md`) and `reviews/` | The evidence one run leaves behind. Never edited to make a past run read differently. |
+
+**The membership test:** delete `applications/`. Whatever must remain for the harness to generate a
+new application from a spec pair is the Harness bucket, plus the Framework bucket it compiles
+against. Everything that disappeared was run record.
+
+**The spec pair is not the harness.** `{App}-domain-model.md` and `{App}-aggregate-grouping.md` are
+the *input* to a run: authored per application, living beside that application's run record. Editing
+a spec changes which application is generated, not how the harness generates one.
+
+The Harness bucket is exactly the pathspec § Harness evolution calls the harness delta of a run.
+
+---
+
 ## Harness evolution
 
-The harness is **self-healing**. When the docs or skills mislead an agent, the agent's job includes
-repairing them, so the same mistake is never made twice. Every repair is recorded in
+The harness has a self-healing **mode**, and it is **off by default**. The mode is declared once per
+run, at `/boot-strap`, and persisted in the `harness-log.md` header
+(`.claude/skills/_shared/conventions.md` § "Harness log"). A missing or unreadable header means OFF.
+Read the header before acting on either gate below; a single invocation may override it with
+`--self-healing` / `--no-self-healing`, for that invocation only.
+
+**ON.** When the docs or skills mislead an agent, the agent's job includes repairing them, so the
+same mistake is never made twice. Every repair is recorded in
 `applications/{app-name}/harness-log.md` and committed separately with a `harness:` prefix, so the
-harness delta of a run is exactly `git log --oneline docs/ .claude/`.
+harness delta of a run is exactly
+`git log --oneline docs/ .claude/ AGENTS.md CLAUDE.md HARNESS.md`.
 
 That claim only holds if the log covers every commit, so: **every `harness:` commit carries at least
 one `harness-log.md` row**, and a commit closing N review findings carries either N rows or one row
 naming all N. A `harness:` commit with no row is a defect in the run's record, not a shortcut.
 
+**OFF.** Exactly two things are withheld: unilateral Type 1 edits to harness files, and the
+`harness:` commits that carry them. A run under OFF touches no file in the Harness bucket, so its
+harness delta is empty by construction, and the artifacts an agent was measured against are the ones
+it was given. Everything else is retained unchanged: the gate classification, the Type 2 and `2-fw`
+halts, the `harness-log.md` rows, the per-session retro, and the `/review-artifacts` check, which
+stays available to the human under both modes.
+A run under OFF still produces the full record of where the harness failed; it just does not act on
+it mid-run.
+
+The mode changes what you **do** with a classification, never how you classify. Classify first, then
+branch on the mode.
+
 Two kinds of friction, with different gates:
 
 **Type 1 - contradiction.** The harness contradicts the framework, contradicts itself, or names
 something that does not exist, and you can demonstrate it mechanically: a failing build, a missing
-symbol, two skills prescribing different things. **Fix it immediately, mid-session, in its own
-commit.** Do not ask. A human adds nothing to "this type does not exist".
+symbol, two skills prescribing different things.
+
+- **Under ON:** **fix it immediately, mid-session, in its own commit.** Do not ask. A human adds
+  nothing to "this type does not exist".
+- **Under OFF:** do not edit the harness file and do not halt. Proceed on the most reasonable
+  reading of the contradiction, append a row with `Outcome` = `deferred` and `Ref` = `-`, and surface
+  it in the session completion report so the human can act on it between runs.
 
 **Type 2 - silence or ambiguity.** The harness gives no pattern for the case in front of you, or
 gives one that cannot be followed without violating another stated principle. You **cannot** prove
@@ -51,10 +101,17 @@ practice almost always "my implementation is wrong". Log these as Type `2-fw`.
 spawning subagents (`/implement-aggregate-full`), the definitions above are unchanged, but only one
 agent acts on them. Subagents **report** friction and **halt** on Type 2 and `2-fw` before writing
 any code; they never edit `docs/`, `.claude/` or `simulator/`, never append to `harness-log.md`, and
-never commit. The manager makes every Type 1 fix and its `harness:` commit, escalates every Type 2 to
-the human verbatim, and re-spawns the halted subagent with the answer. Single writer: several
-subagents repairing the same ambiguity would produce competing `harness:` commits and racing appends
-to an append-only log.
+never commit. This is true in both modes, and it is why a subagent needs no mode of its own: it never
+had the authority the mode withholds.
+
+Under ON the manager makes every Type 1 fix and its `harness:` commit, escalates every Type 2 to the
+human verbatim, and re-spawns the halted subagent with the answer. Single writer: several subagents
+repairing the same ambiguity would produce competing `harness:` commits and racing appends to an
+append-only log.
+
+Under OFF the manager makes no fix and no `harness:` commit. A subagent's Type 1 report becomes a
+`deferred` row and a note in the re-spawn brief telling the slice which reading to proceed on, so the
+slice is unblocked without the harness changing under it. Type 2 and `2-fw` escalation is unchanged.
 
 **Harness fixes are written in neutral vocabulary** - see
 `.claude/skills/_shared/conventions.md` § "Neutral domain".
@@ -93,7 +150,7 @@ mvn clean -Ptest-sagas test -Dtest=ClassName                   # single test cla
 | `simulator/` | Core library: `Aggregate`, `Workflow`, `UnitOfWork`, `CommandGateway`, events                                 | [`simulator/AGENTS.md`](simulator/AGENTS.md) |
 | `applications/{app-name}/` | A generated application; its spec pair, `plan.md`, `retros/` and `harness-log.md` live here | — |
 
-Review reports are **not** per-application: `docs/reviews/` holds both kinds, `review-{date}.md`
+Review reports are **not** per-application: `reviews/` holds both kinds, `review-{date}.md`
 written by `/review-artifacts` and `harness-retro-{app-name}-{date}.md` written by
 `/harness-retrospective`.
 

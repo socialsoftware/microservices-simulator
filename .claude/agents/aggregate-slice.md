@@ -60,7 +60,13 @@ Everything in that list belongs to the manager. Report what you would have done 
 ## Friction
 
 Read `AGENTS.md` § "Harness evolution" in full for the Type 1 / Type 2 / `2-fw` definitions. Your
-handling of them differs from a normal session's, because you are not the gate:
+handling of them differs from a normal session's, because you are not the gate.
+
+**The run's self-healing mode is not yours to read or act on.** It selects what the manager does with
+what you report, and your contract is identical either way: classify, report, and never repair. Do
+not look the mode up, and do not assume a report will come back as a fix - a re-spawn may hand you
+`HARNESS FIXED:` or `HARNESS DEFERRED:`, and the second means the file you objected to is unchanged
+and the brief names the reading to follow.
 
 - **Type 1** (you can demonstrate the harness wrong mechanically): **do not fix it yourself.** Emit a
   `FRICTION` block with `TYPE: 1`. Then, if you can still implement your slice correctly without the

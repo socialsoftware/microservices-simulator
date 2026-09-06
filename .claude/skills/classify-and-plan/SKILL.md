@@ -63,6 +63,16 @@ Before processing:
    - Section heading: `## §4 — Events` (table)
    - Halt if any are missing: `"Aggregate grouping is missing required section {section}. Please check the file structure."`
 
+5. **Verify `applications/{app-name}/harness-log.md` exists.** If it does not, halt:
+   `"harness-log.md missing for {app-name}. Run /boot-strap first."` The file carries the run's
+   self-healing mode in its header and only `/boot-strap` writes it, so its absence means Phase 0
+   never ran for this application. Do not create it here and do not proceed without it: a plan built
+   for an application that was never bootstrapped has nothing to be implemented into.
+
+6. **Read the mode** from that header - `**Self-healing:** on|off`, missing or unrecognised meaning
+   `off` (`.claude/skills/_shared/conventions.md` § "Harness log"). It governs this session's own
+   Type 1 handling and is reported in Step 9.
+
 ---
 
 ### Step 2: Parse Domain-Model.md
@@ -406,9 +416,9 @@ For each aggregate in sorted order:
 
 ```
 write_functionalities = [f for f in all_functionalities 
-                        if f.primary_aggregate == agg AND f.operation_type == write]
+                        if f.primary_aggregate == agg AND f.operation_type == 'Write']
 read_functionalities = [f for f in all_functionalities 
-                       if f.primary_aggregate == agg AND f.operation_type == read]
+                       if f.primary_aggregate == agg AND f.operation_type == 'Read']
 ```
 
 #### 6.b: Extract published and subscribed events
@@ -458,11 +468,12 @@ Nothing else contributes:
 - **`NOT_IN_SAGA` is never declared.** It is `GenericSagaState.NOT_IN_SAGA`, supplied by the
   framework.
 
-```
-saga_states[agg] = ['IN_' + screaming_snake(f.name)
-                    for f in write_functionalities[agg]
-                    if f.operation_type != create]
-```
+So the constant list for an aggregate is `IN_` + `screaming_snake(f.name)` for each `f` in
+`write_functionalities[agg]`, minus those exclusions. The exclusion is stated in prose and not in
+pseudo-code deliberately: `operation_type` holds only `Write` or `Read` (Step 2.c), so no parsed
+field distinguishes a create. A write functionality is a create when it brings its primary aggregate
+into existence rather than mutating one that already exists (`sagas.md` § Create Functionality
+Sagas) - a judgement about the functionality, not a value the §4 table carries.
 
 For each constant, record a one-line origin: the saga that acquires it, plus any **foreign** saga
 that guards on it, which Step 6.c's cross-aggregate prerequisites already identify. The origin is
@@ -549,9 +560,9 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 ```
 
 > **`(edited)` entries** are files that already exist and are appended to, not created. Session `a`
-> appends one error-message constant per P1 rule and a `create{Aggregate}(...)` fixture helper; session
-> `b` appends the functionalities field to the same test base class. They are listed so the row does not
-> need amending on every aggregate.
+> appends one error-message constant per P1 rule and the T1 domain constants; session `b` appends the
+> functionalities field and the `create{Aggregate}(...)` fixture helper to the test base class; session
+> `c` replaces that helper's body. They are listed so the row does not need amending on every aggregate.
 
 > **`{AppClass}DomainConstants.java` is conditional and shared.** List it in the 2.N.a row of every
 > aggregate whose Step 6.e sentinel list is non-empty, and only those - a *consuming* aggregate
@@ -805,27 +816,17 @@ that must not be collapsed into one:
 
 The checklist above is the shape **before** slices are emitted. Step 8.5 expands it.
 
-#### Also create the harness log
+#### The harness log already exists
 
-After writing plan.md, create `applications/{app-name}/harness-log.md` with exactly this content —
-header only, no rows:
-
-```markdown
-# Harness Log - {app-name}
-
-Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
-
-| # | Session | Type | Artifact | Problem | Outcome | Ref |
-|---|---------|------|----------|---------|---------|-----|
-```
-
-If the file already exists, leave it untouched — it is append-only and may already carry rows from a
-partial run. Unlike plan.md, it is never overwritten.
+This skill does **not** create `applications/{app-name}/harness-log.md`. `/boot-strap` does, and it
+is the sole declarer of the run's self-healing mode in that file's header. Creating it here would
+mean creating it without a declared mode, and a missing header reads as OFF, so a run could end up in
+a mode nobody chose (Step 1 halts before this point when the file is absent).
 
 Any friction this session encountered with the harness (a doc or skill that failed to guide the
 parsing or classification) is appended as a row with `Session` = `1`, per
 `conventions.md` § "Harness log". The Type 1 / Type 2 gates in `AGENTS.md` § "Harness evolution"
-apply to this session as they do to every other.
+apply to this session as they do to every other, in the mode the header declares.
 
 ---
 
@@ -912,7 +913,7 @@ After writing plan.md:
    ```
    ✓ Phase 1 plan generated successfully.
    Plan written to: applications/{app-name}/plan.md
-   Harness log created at: applications/{app-name}/harness-log.md
+   Self-healing: {mode, from the harness-log.md header}
    ```
 
 2. **Summary of results:**
@@ -974,7 +975,8 @@ The user can review these flags before Phase 2 begins.
 ## Notes
 
 - The skill does not run tests or validate the plan against code — that is Phase 2's responsibility.
-- The skill does not create any source files — `plan.md` and `harness-log.md` only.
+- The skill does not create any source files - `plan.md` only. `harness-log.md` is created by
+  `/boot-strap`; this skill reads its header and appends rows, and never writes the header.
 - Phase 2 agents will read plan.md and tick checkboxes as they complete each session.
 - If plan.md already exists, overwrite it with the newly generated version (this allows re-planning if the domain model changes).
 - For ambiguous sections, users can manually edit plan.md before Phase 2 begins; Phase 2 agents will read the current version.

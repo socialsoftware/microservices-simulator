@@ -78,18 +78,44 @@ Path prefixes — all relative to the repository root:
 
 ## Harness evolution
 
-Defined in `AGENTS.md` § "Harness evolution". Read it there; it is not restated here.
+Defined in `AGENTS.md` § "Harness evolution", including the self-healing mode and what each mode
+changes. Read it there; it is not restated here.
 
-One clarification specific to skills: the Type 1 / Type 2 gates apply **from `/boot-strap` onward**,
-whether or not `plan.md` exists yet.
+Two clarifications specific to skills:
+
+- The Type 1 / Type 2 gates apply **from `/boot-strap` onward**, whether or not `plan.md` exists yet.
+- The mode is read from the `harness-log.md` header (§ "Harness log" below), not from memory of an
+  earlier session and not from the invoking human's tone. A skill that acts on the gate reads it.
 
 ---
 
 ## Harness log
 
 `applications/{app-name}/harness-log.md` is the single append-only record of harness friction and
-harness repair for a run. It is created by `/classify-and-plan` and appended to by every skill that
+harness repair for a run. It is created by `/boot-strap` and appended to by every skill that
 encounters friction. It is never edited retroactively and rows are never deleted.
+
+### Header
+
+The header is written once, by `/boot-strap`, and carries the run's self-healing mode:
+
+```markdown
+# Harness Log - {app-name}
+
+**Self-healing:** off
+
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
+```
+
+`Self-healing:` takes exactly `on` or `off`. **A missing, unreadable or unrecognised value means
+`off`** - the fail-safe reading, because OFF only withholds unilateral edits, while a wrongly assumed
+ON lets an agent rewrite the harness it is being measured against. `/boot-strap` is the sole writer
+of this line; no other skill edits the header.
+
+A single invocation may override the run's mode with `--self-healing` or `--no-self-healing`. The
+override binds that invocation only and never rewrites the header. It is recorded in the session
+completion report and in the session retro's `## Harness Changes` section, **not** as a row: a row
+describes friction in a named artifact, and an override is neither.
 
 A later row may CLOSE an earlier one by beginning its `Problem` cell with `Closes row {N}.` The
 earlier row is never edited, because its `Outcome` records what happened at the time, not what
@@ -107,14 +133,15 @@ thin row is.
 
 - `#` - monotonically increasing; read the last row to get the next number.
 - `Session` - the session id (`2.3.b`, `3.5`, `4.1`), `0`/`1` for Phase 0/1, or `review` for a repair
-  driven by a `docs/reviews/` report rather than by friction hit inside a session.
+  driven by a `reviews/` report rather than by friction hit inside a session.
 - `Type` - `1` (contradiction, fixed unilaterally), `2` (ambiguity, human decided), `2-fw`
   (`simulator/`, always human-decided).
 - `Artifact` - the repo-relative path of the harness file at fault.
 - `Problem` - one sentence. What was needed, what was found instead.
 - `Outcome` - `fixed` / `declined` / `deferred`. `declined` means the human decided the harness was
-  right and the agent proceeded on the stated reading.
-- `Ref` - the `harness:` commit sha for `fixed`; empty otherwise.
+  right and the agent proceeded on the stated reading. Under self-healing OFF a Type 1 row is
+  `deferred`, never `fixed`: the contradiction was recorded and worked around, not repaired.
+- `Ref` - the `harness:` commit sha for `fixed`; `-` otherwise.
 
 **Keep rows thin.** Do not restate the change - git holds the diff with perfect fidelity, and a
 prose copy drifts. The row answers *why, which session, what type, what outcome*;
@@ -136,6 +163,12 @@ authoritative source; another application is a peer, not a specification.
 Reads **within** `applications/{app-name}/` are unrestricted, including sibling aggregates already
 implemented in earlier sessions.
 
+**A completed application kept as a worked example is exempt, read-only.** `/author-spec` reads
+`applications/trainticket/` for exactly this reason: a finished run cannot be led to its own answers,
+so consulting one for the *shape* of a spec pair is not a peer-as-specification read. The exemption
+covers reading only - importing an entity, rule or boundary from the example into the spec being
+written is still forbidden, and it never extends to the application currently being generated.
+
 If a cross-application read happens anyway, log it in `harness-log.md` naming the file read and the
 gap that drove it: Type 1 if a doc or skill demonstrably failed to supply what was needed, Type 2
 otherwise.
@@ -154,6 +187,10 @@ that comes to mind is a leaked answer for the next application the harness is po
 
 This rule binds the harness artifacts only. `harness-log.md` rows are **exempt** and should name the
 functionality that triggered the fix - that is the provenance the end-of-run retrospective needs.
+
+Naming a **completed** application as a human-readable worked example is not a violation either: the
+rule protects the application currently being generated, and a finished run cannot be led to its own
+answers.
 
 ---
 

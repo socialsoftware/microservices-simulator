@@ -121,12 +121,34 @@ here; if it changes, edit the skill, not this file.
 
 ---
 
+## Spec Authoring
+
+**Before Phase 0.** The pipeline starts from the spec pair listed under § "Required Inputs", written
+into `applications/{app-name}/`. Every later phase treats the pair as given: Phase 1 does not
+question an aggregate boundary, and no Phase 2 session adds a functionality the domain model omitted.
+
+Write it with [`docs/templates/domain-model-template.md`](templates/domain-model-template.md) and
+[`docs/templates/aggregate-grouping-template.md`](templates/aggregate-grouping-template.md), which
+define the section numbers and table shapes the harness parses; `/author-spec <pointer to the
+application being modelled>`, which interviews you through the design tree and writes the pair; and
+`applications/trainticket/`, a finished pair kept as a worked example. `HARNESS.md` § 5 and the
+templates own the detail.
+
+### Does not update
+plan.md does not exist yet. Phase 1 creates it.
+
+---
+
 ## Phase 0 — Bootstrap
 
 **One session. No plan.md exists yet.** Produces the Maven scaffold, exception classes,
 `BeanConfigurationSagas.groovy` (infrastructure beans only — no domain beans yet), and Spock test
 base classes, all produced from the checked-in scaffold templates under
 `.claude/skills/boot-strap/templates/`.
+
+It also creates `applications/{app-name}/harness-log.md` and is the **sole declarer** of the run's
+self-healing mode, written into that file's header and never rewritten afterwards. `--self-healing`
+turns the mode on; absent, it is off (`AGENTS.md` § "Harness evolution").
 
 The full procedure — exact files read, every transformation applied, and the complete produced-file
 list — is authoritatively defined in
@@ -148,11 +170,10 @@ plan.md does not exist yet. Phase 1 creates it.
 - `docs/concepts/rule-enforcement-patterns.md` — the pattern taxonomy and classification flowchart
 
 ### Produces
-`applications/{app-name}/plan.md` and an empty `applications/{app-name}/harness-log.md` (header
-and schema per `.claude/skills/_shared/conventions.md` § "Harness log"), using the structure
-defined in
-`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above). The agent
-must:
+`applications/{app-name}/plan.md` only, using the structure defined in
+`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above).
+`harness-log.md` belongs to Phase 0: this phase **halts** if it is absent rather than creating one,
+because creating it here would create it without a declared mode. The agent must:
 
 1. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
 2. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
@@ -163,7 +184,8 @@ must:
 4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 
 ### Does not modify
-Any source file. Output is plan.md and harness-log.md only.
+Any source file, and not the `harness-log.md` header. Output is plan.md, plus any harness-log rows
+this session's own friction produced.
 
 ---
 
@@ -221,31 +243,59 @@ implement, and both close a session through
 [`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md),
 so they produce the same retro shape and the same one-commit-per-session history.
 
-The manager buys context quality, not speed: slices run sequentially, each with a fresh narrow
-context, instead of one agent holding a whole heavy session at once. It owns the self-healing gate,
-the harness-log rows and every commit; slices report friction and halt on Type 2 (`AGENTS.md`
-§ "Harness evolution"). Its contract for a slice is
-[`.claude/agents/aggregate-slice.md`](../.claude/agents/aggregate-slice.md).
+Slices run strictly sequentially, each with a fresh narrow context, instead of one agent holding a
+whole heavy session at once. The manager owns the self-healing gate, the harness-log rows and every
+commit; slices report friction and halt on Type 2 (`AGENTS.md` § "Harness evolution"). Its contract
+for a slice is [`.claude/agents/aggregate-slice.md`](../.claude/agents/aggregate-slice.md).
+
+What the choice actually trades:
+
+| Axis | `/implement-aggregate` | `/implement-aggregate-full` |
+|------|------------------------|------------------------------|
+| **Scheduled checkpoints** | One per session, so four per aggregate. Each ends in a completion report you read before invoking the next. | One per aggregate. The manager runs `a` through `d` and reports at the boundary. |
+| **Unscheduled halts** | Type 2 and `2-fw` halt and wait for you. | **Identical.** A slice halts, the manager surfaces the block verbatim and waits. |
+| **Token cost** | Lower. One agent, one context per session. | Higher. Every slice reads the session sub-file and its concept docs from cold, and the manager holds its own context on top. |
+| **Context quality** | Degrades across a long session as one context accumulates the whole of it. | Higher per unit of work. Each slice starts fresh and narrow, which is the property the topology exists to buy. |
+| **Failure blast radius** | One session. You see the result before the next one starts. | Up to a whole aggregate. A wrong reading can be repeated across four sessions before you next look. |
+
+**`-full` is not unattended.** It reduces how often you are asked to *start* something, not how often
+you are asked to *decide* something: the Type 2 and `2-fw` gates are the same gates, they fire on the
+same friction, and they wait just as long. Budget for being interrupted either way.
 
 Applications whose plan.md predates slicing are not migrated: `/implement-aggregate-full` halts
 rather than guessing a slice list. Run `/implement-aggregate` on them, or regenerate the plan.
 
-### Aggregate-boundary checkpoint
+### Harness maintenance: `/review-artifacts`
 
-After the last session of aggregate `{N}` is committed and before the first session of aggregate
-`{N+1}` begins, run `/review-artifacts` in a fresh session.
+`/review-artifacts` is not a phase of this pipeline. It is a static maintenance pass over the harness
+itself - `docs/`, `.claude/`, `AGENTS.md`, `HARNESS.md` - that collects the debris hand-editing and
+mid-run repair leave behind: paths that no longer resolve, two files prescribing different things, a
+piece of knowledge that lost its single owner, a domain noun leaked in from the application being
+generated. It reports; it does not repair.
 
-**This step is human-invoked, under both entry points.** `/implement-aggregate-full` stops at the
-aggregate boundary and tells the human to run it; it never runs it itself and never continues to
-`{N+1}`.
+**It is always human-invoked, under both entry points.** `/implement-aggregate-full` stops at the
+aggregate boundary and tells the human it is available; it never runs it itself and never continues
+to `{N+1}` either way.
 
-The harness is self-healing (`AGENTS.md` § "Harness evolution"), so sessions repair `docs/` and
-`.claude/skills/` mid-run under the Type 1 gate. The artifacts therefore change while they are being
-read, and a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a` is about to follow. The
-boundary is the last moment that contradiction is cheap to find. It also runs the neutral-domain
-check that keeps this run's domain nouns out of the harness.
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session. That cost is why the guidance below is a
+recommendation rather than a step.
 
-It reports; it does not repair. Act on its Critical and Major findings before starting `{N+1}`.
+**When it is worth running,** in descending order:
+
+1. **After any substantial change to the harness** - a refactor, a batch of doc rewrites, a new or
+   retired skill. This is what it is for, and the run that follows reads whatever the edits left
+   behind.
+2. **After each finished aggregate, under self-healing ON** (`AGENTS.md` § "Harness evolution").
+   There, sessions repair `docs/` and `.claude/skills/` under the Type 1 gate, so the artifacts
+   change *while* they are being read: a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a`
+   is about to follow, and the aggregate boundary is the last moment that contradiction is cheap.
+   Act on its Critical and Major findings, in their own `harness:` commits, before starting `{N+1}`.
+3. **Occasionally under OFF, if you want the neutral-domain sweep early.** Under OFF the harness
+   cannot drift mid-run - the bucket must stay clean and the session commit halts if it is not - so
+   there is nothing new for it to find between aggregates except nouns the run itself could not have
+   introduced. Once at the end of the run is usually enough, and its findings are acted on between
+   runs rather than at a boundary.
 
 ---
 
@@ -263,7 +313,7 @@ Example: `applications/{app-name}/retros/retro-2.3.b-Shipment.md`
 A single commit covering the implementation files, the retro file and any `harness-log.md` rows is
 then issued automatically, in the message format defined in `session-completion.md` § "Commit".
 
-The retro template, both assembly modes and the commit step are owned by
+The retro template, both assembly topologies and the commit step are owned by
 [`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md).
 Under `/implement-aggregate` the retro is synthesised from the single agent's conversation context;
 under `/implement-aggregate-full` the manager merges the retro fragment each slice returned, which
