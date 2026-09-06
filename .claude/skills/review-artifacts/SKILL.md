@@ -15,12 +15,19 @@ reads files directly from disk. The only write is the report file produced at th
 committed and before the first session of aggregate `{N+1}` begins — and once more before a run
 starts, after a round of harness edits.
 
-Running it during a run is the point, not a violation. The harness is self-healing
-(`AGENTS.md` § "Harness evolution"): sessions repair `docs/` and `.claude/skills/` mid-run under the
-Type 1 gate, so the artifacts change *while* they are being read. A Type 1 fix made in `2.4.c` can
+Running it during a run is the point, not a violation, and most of what it catches holds in both
+self-healing modes. Aggregate `{N}` is the first consumer of every pattern it exercised, so the
+boundary is where a misread doc surfaces as a wrong implementation while only one aggregate has been
+built on it. It also runs the neutral-domain check that keeps this run's domain nouns out of the
+harness, which protects the *next* application the harness is pointed at and is the reason the
+boundary matters even on a run that changed nothing.
+
+Mid-run harness drift is a third reason, and it applies **only under self-healing ON**
+(`AGENTS.md` § "Harness evolution"). There, sessions repair `docs/` and `.claude/skills/` under the
+Type 1 gate, so the artifacts change *while* they are being read: a fix made in `2.4.c` can
 contradict a doc that `2.5.a` is about to read, and the aggregate boundary is the last moment that
-contradiction is cheap. A self-healing harness needs more static consistency checking during a run,
-not less.
+contradiction is cheap. Under OFF no such drift exists, and the first two reasons still stand on
+their own.
 
 **What it is not:** it does not evaluate how the harness performed on a real run. That is
 `/harness-retrospective`, which reads a completed run's `harness-log.md`, retros and reviews.
@@ -220,8 +227,9 @@ Scan skill files for instructions containing:
 `.claude/skills/_shared/conventions.md` § "Neutral domain" forbids a harness fix from naming any
 entity, aggregate or operation of the application currently being generated. The rule exists because
 fixes are authored while looking at one specific aggregate, and the vivid example that comes to mind
-is a leaked answer for the next application the harness is pointed at. Self-healing makes that risk
-continuous, so this check is what turns the rule from a disclaimer into a control.
+is a leaked answer for the next application the harness is pointed at. This check is what turns the
+rule from a disclaimer into a control, and under self-healing ON, where harness fixes land mid-run,
+the risk it controls is continuous rather than confined to edits made between runs.
 
 Skip this check only when no run is in progress (no `plan.md` anywhere under `applications/`); say so
 in the report rather than omitting the section.
@@ -468,7 +476,7 @@ Output to the conversation (not to the report file):
    (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
    completed run belongs to `/harness-retrospective`.
 6. **Running during a generation run is expected.** Unchecked `- [ ]` boxes in a `plan.md` are not a
-   precondition failure - this skill is the aggregate-boundary checkpoint of a self-healing harness
+   precondition failure - this skill is the aggregate-boundary checkpoint, in both self-healing modes
    (`AGENTS.md` § "Harness evolution"). Never halt on them.
 7. **Report, do not repair.** The findings are for a human or a later session to act on. This skill
    writes exactly one file. A Critical finding does not license fixing the artifact here.
