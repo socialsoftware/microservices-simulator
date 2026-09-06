@@ -495,22 +495,69 @@ Replay mode is activated before Spring startup. The simulator captures the exact
 
 There are two separate multiplicities: different handler routes for one event, and
 different eligible aggregate instances within one route. `ScenarioGenerator` retains
-the base workload and creates separate route/placement variants, each with
-`List.of(consequence)`, subject to extraction support and catalogue caps. It does not
-combine deliveries to several routes in one generated workload. Within the selected
-route, `EventApplicationService` requires exactly one eligible aggregate; zero or
-multiple receivers hard-stop. This is narrower than normal application event processing,
-which can traverse several subscribers and invoke different routes. Delivery order
-across all interested listeners is therefore not qualified by these scenarios.
+the base and singleton workloads and can combine distinct routes of the exact same
+trigger/emission. Set `verifiers.scenario-catalog.max-event-consequences-per-workload=3`
+to admit ordered subsets of up to three routes; default 1 preserves prior generation.
+Subsets, orders and placements after the trigger are deterministic and subject to the
+catalogue cap. Expansion visits each base, its singleton variants and then combinations;
+with combinations enabled, the cap can omit later bases/singletons as well as combinations. Different emission sites/trigger occurrences are not combined. With three
+routes and no later forward step there are 15 nonempty ordered route selections, plus
+the base workload. Existing package list/action identities represent the combinations.
 
-Each selected delivery is one atomic normal action, placed after its trigger among
-outer forward steps. It adds no fault bit or recovery checkpoint; the consumer's internal
-steps are not independently interleaved with outer actions. A completed scenario is the
-end of that selected action schedule, not proof that every possible listener has run.
-The [Portuguese event example](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-o-que-executamos-atualmente)
-illustrates the distinction and its effect on the successful positive control.
+Within each selected route, `EventApplicationService` still requires exactly one eligible
+aggregate at delivery time. Zero or multiple receivers hard-stop, including eligibility
+lost after an earlier delivery. There is no automatic no-op/retry policy for such a case.
+Selected deliveries can therefore run in sequence against the same captured event while
+normal application polling stays suppressed. Preparing one receiver does not establish
+readiness for every other selected route; all need a coherent supported setup. The qualified combination path uses source-derived
+setup. Existing event prerequisite descriptors still select singleton event workloads;
+propagating the new limit does not turn them into multi-route selectors.
 
-An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay currently supports one exact local subscriber only—no fan-out, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
+Each delivery is one atomic normal action, placed after its trigger among outer forward
+steps. It adds no fault bit or recovery checkpoint; the consumer's internal steps are
+not independently interleaved with outer actions. A completed scenario is the end of
+that selected action schedule, not proof that every possible listener has run. See the
+[Portuguese event example](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-combinacoes-limitadas)
+for isolated and combined horizons and explicit invalid preparation.
+
+An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay supports multiple selected routes of one event, with one exact local subscriber per route—no automatic multi-object fan-out within a route, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
+
+### Combined-event qualification
+
+The ordinary generated Quizzes package was regenerated with a maximum of three
+consequences per workload (1172 exported workloads, not 1172 runtime-qualified cases).
+One coherent `RemoveCourseExecutionQuizAnswerReceiverTest` setup was frozen for eight
+fresh Docker/JVM/H2 attempts. No production application code or scoring category changed.
+
+| Selected deliveries | Vector | Result | ImpactV2 |
+| --- | --- | --- | --- |
+| None | 000 | SUCCESS/EXACT | COMPLETE 2 |
+| QuizAnswer | 000 | SUCCESS/EXACT | COMPLETE 1 |
+| Quiz | 000 | SUCCESS/EXACT | COMPLETE 1 |
+| QuizAnswer then Quiz | 000 | SUCCESS/EXACT | COMPLETE 0 |
+| Quiz then QuizAnswer | 000 | SUCCESS/EXACT | COMPLETE 0 |
+| QuizAnswer then Quiz | 001 | COMPENSATED/EXACT; both masked by trigger fault | COMPLETE 1 |
+| Quiz then QuizAnswer | 001 | COMPENSATED/EXACT; both masked by trigger fault | COMPLETE 1 |
+| QuizAnswer, Quiz, Tournament | 000 | First two delivered, then missing Tournament receiver; INCOMPLETE | INVALID/null |
+
+The first five counts are exclusively deleted-dependency observations. Quiz becomes
+INACTIVE and QuizAnswer becomes DELETED when their respective handlers run. Both combined
+orders reuse the same event identity within their attempt, with distinct route/action,
+writer and receiver evidence. Both trigger-fault results instead count the Course's
+residual decrement (2 to 1), with the offering still ACTIVE and no event delivery.
+The last attempt preserves earlier successful deliveries without reporting a complete
+zero. Successful three-route application replay is not claimed; generic three-route
+replay and edge conditions have separate fixture coverage.
+
+This campaign extends the observation horizon of the earlier successful positive control;
+it does not overwrite the older 30-pair campaign or imply universal event convergence.
+Reproduce with `python3 verifiers/experiments/combined-event-deliveries/run.py --output
+verifiers/target/combined-event-deliveries/NEW_RUN` from the repository root.
+Full evidence is in `verifiers/target/combined-event-deliveries/run-02/`; the initial
+`run-01` generation launcher failure occurred before any scenario and remains recorded.
+[Retained report copies](evidence/combined-events-2026-09-06/README.md) and the
+[Portuguese explanation](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-combinacoes-limitadas)
+provide the current result and its limits.
 
 ### Report
 
@@ -533,7 +580,7 @@ Execution reports live outside the package and must not alias package artifacts 
 Supported:
 
 - persisted setup-candidate Saga/local single- and multi-participant workloads;
-- deterministic sequential replay, including one exact local event consequence;
+- deterministic sequential replay, including bounded selected routes of one exact local event;
 - current provider-backed or validated source-derived setup outside measurement;
 - binary forward faults;
 - persisted compensation schedules;
@@ -1330,14 +1377,15 @@ That focused enriched package's role sizes are: accounting 22,015 bytes; Sagas 6
 
 ### Regression proof
 
-Local consolidation was validated in the primary checkout with JDK 21: **775 verifier
-tests**, **136 simulator tests**, and **17 focused Quizzes tests**, all passing without
-failures, errors or skips. Logs are in
-`verifiers/target/local-consolidation-validation/{verifiers,simulator,quizzes-focused}.log`.
-The complete verifier run includes the final dedicated event-receiver fixture; its
-nested-input cohort assertions now account for that fixture's additional Question and
-Quiz while checking their exact source provenance. The Quizzes run is a selected suite,
-not a claim that every application test was executed.
+The combined-event change passed **798 verifier tests across 48 suites**, with no
+failures, errors or skips, on JDK 21. An isolated source snapshot avoided active IDE
+rewrites of compiled classes/generated sources in the primary checkout. The retained
+log is `verifiers/target/combined-event-deliveries/validation/verifiers-full.log`.
+The full run includes 161 ScenarioExecutor cases and 15 dummyapp event-package cases.
+No simulator or Quizzes production source changed in this extension; the preceding
+consolidation's 136 simulator and 17 selected Quizzes tests remain separate proof in
+`verifiers/target/local-consolidation-validation/`. The eight Docker attempts above
+supply the new actual application persistence evidence.
 
 Focused qualification covers exact producer identity and target exclusion, typed nested
 bindings, package determinism, route identity, state-only preflight, and real application
@@ -1350,7 +1398,7 @@ evidence and are not added to either unit/regression-suite total.
 - Event-expanded setup can prepare a receiver when the existing source fixture already contains it, as the qualified QuizAnswer example proves. It does not infer receiver-only state or compose independent test contexts. Earlier triple route exports need regeneration before exact-consumer requalification.
 - The seven state-only setups previously rejected by the preflight parent now pass a targeted Docker rerun. The old complete report and newer package generations still need to be distinguished; the targeted repair does not qualify every newer workload.
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
-- Event-consequence extraction supports one conservative direct producer shape and one unique local consumer. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, fan-out, recursion, nested event chains, and unresolved routes are rejected diagnostically.
+- Event-consequence extraction supports one conservative direct producer shape and exact local consumer routes; each selected route still requires one unique runtime subscriber. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, multi-object fan-out within one route, recursion, nested event chains, and unresolved routes are rejected diagnostically.
 - Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Setup translation now also handles the observed `Arrays.asList(...)`, bounded string concatenation, and `QuizDto` shapes. Other expressions remain blocked rather than being guessed.
 - Static setup candidacy is conservative prediction. The newly attached setups have full static validation, but broad runtime preflight has not yet been repeated for them.
 - The setup dispatcher admits only explicitly registered signatures. The known StartQuiz and LeaveTournament gaps are fixed and their bounded preflight passes; unregistered signatures still fail closed. The parent preserves validated expected failure reports from nonzero workers; crashes, absent or malformed reports and mismatched identities remain invalid attempts.

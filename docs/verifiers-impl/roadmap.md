@@ -34,6 +34,23 @@ Search requires a selected set of repeatably executable workloads and an informa
 justified objective. It does not require every accepted input to become executable.
 The breadth and representativeness of that selected set bound the thesis claim.
 
+## Next implementation sequence after the event extension
+
+1. **Complete:** bounded same-event route combinations and the eight-attempt Quizzes
+   comparison are qualified. Review the selected horizons in the meeting note. The implementation package is `issues/2026-09-06-combined-event-deliveries/`.
+2. Add a bounded causal-anomaly observation as complementary information. Start by
+   specifying one pattern such as reading an exact version produced by a Saga that
+   later compensates that effect. Establish the transaction/Saga boundary, exact read
+   provenance and positive/negative controls. Do not require a developer-written business
+   harm rule to report a demonstrated pattern. Keep anomaly findings distinct from the
+   existing affected-object count; broader isolation classification remains outside this
+   first detector. This is planned, not implemented.
+3. Measure execution cost and define deterministic/random search baselines, then evaluate
+   GA on the declared experiment space. Cost/baseline preparation can proceed alongside
+   the bounded anomaly specification; do not wait for every anomaly type, fan-out shape
+   or asynchronous chain. Any choice to use anomaly findings as fitness must explicitly
+   define the objective rather than silently mix count units.
+
 ## Current next work
 
 Start with the [Portuguese meeting note](reunioes/2026-09-08.md) for the domain and a

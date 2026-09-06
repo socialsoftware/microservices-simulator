@@ -1,0 +1,444 @@
+{
+  "scope": "Isolated JDK21 full verifier run; primary target reports intentionally not counted due active IDE class rewriting.",
+  "suiteCount": 48,
+  "totals": {
+    "tests": 798,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0
+  },
+  "suites": [
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.ApplicationsFileTreeParserSpec",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.ApplicationsFileTreeParserSpec.xml",
+      "sha256": "45eeb5f9b8941ebef99907c4f66303d04e50924367b29e910cceb4996f97f701"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.ScenarioGeneratorApplicationSpec",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.ScenarioGeneratorApplicationSpec.xml",
+      "sha256": "92e64149018e2290017e675c39052104f37423bd170095d707754eb70a04c6d9"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.VerifiersConfigurationSpec",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.VerifiersConfigurationSpec.xml",
+      "sha256": "7b4e435e3f60d069d2c7d2f563729099bfff6c52f686f81ecf7ee4fd824331a8"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.CurrentDynamicNormalizationSpec",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.CurrentDynamicNormalizationSpec.xml",
+      "sha256": "ee992204887846dcfb0b6662b6f8b854e72c468bd0cbed5edc42e2ffdd126cdf"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DefaultProcessRunnerSpec",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DefaultProcessRunnerSpec.xml",
+      "sha256": "cbac06ab088072384295071364d2845d4c85b29ee479e285b9cf61c2fe4e49a5"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicArtifactWriterSpec",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicArtifactWriterSpec.xml",
+      "sha256": "ea8ceffdc80d9c814f662870678cff18f06bb50de8c2406f44009e80bf3aae63"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicCurrentReaderCorruptionSpec",
+      "tests": 20,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicCurrentReaderCorruptionSpec.xml",
+      "sha256": "b73e550b7663f1cddc99e55b63957a67bd351153b285e450ae09d70e01415799"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestDiscoverySpec",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestDiscoverySpec.xml",
+      "sha256": "7591f4a8eb3b92b510dcc8fe8c90612d0d8b3a296dabaf53224754ae2ea7ce71"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceReaderSpec",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceReaderSpec.xml",
+      "sha256": "35793d1b86c7f73f3a981910f27f075b6db4d134b1133a88c8d742b4e597cb6f"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicInputMapWriterSpec",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicInputMapWriterSpec.xml",
+      "sha256": "72efc3450847240a766ea28db717a4f2a15a900ab0ad0aad0a04478f9a10f2f2"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicRawEvidenceLifecycleSpec",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicRawEvidenceLifecycleSpec.xml",
+      "sha256": "3ccdf79a84ed1e2d1e79308d62d73e6aa1a24263f0960b8767a1a6f267b2d858"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.SurefireTestRunReporterSpec",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.SurefireTestRunReporterSpec.xml",
+      "sha256": "a2a55529e788301ce0b845fce65d4819a69cee9e905b241d58d9375395cbc2be"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ImpactV2AssessorSpec",
+      "tests": 10,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ImpactV2AssessorSpec.xml",
+      "sha256": "87444ba5a0e5bd791c95ae6efc9c3b298570b81b8408cb994fd66f7dd660b836"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioDateMaterializationSpec",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioDateMaterializationSpec.xml",
+      "sha256": "9e961434257dce611d3c95d1fe942d4f9ba4ef72feafd23e806c25610377a9cb"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorOrchestratorSpec",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorOrchestratorSpec.xml",
+      "sha256": "3b5ede746f0ed06ff29d362db45f4461ca2422d9d0d9a0b7d4e442c1117fcfd1"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluatorSpec",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluatorSpec.xml",
+      "sha256": "c46fd68500a31e2934104b6491ca9aa2e132ad8ad34dcd1ff2b627de7d2ee983"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec",
+      "tests": 161,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec.xml",
+      "sha256": "22a1020aa3c7f19b1d3ed01770edee0458df5988985a342a609d4bad868a92ea"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorWrapperSpec",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorWrapperSpec.xml",
+      "sha256": "122696f38a1f6a034c93da6c73a14a7f9f669c5fb5a7fd240626bd42d6ed51d4"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioSetupPreflightProcessOrchestratorSpec",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioSetupPreflightProcessOrchestratorSpec.xml",
+      "sha256": "31685e2b523efa96a997c9bf2691f659c5b2c246acdeca5b980bbf9c8031f9a7"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappAccountingFixtureFoundationSpec",
+      "tests": 26,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappAccountingFixtureFoundationSpec.xml",
+      "sha256": "e156b21d9e630f44cfc3cebb1624d16fcb00680be3729cc340cb404ebbac92fa"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappEventConsequencePackageSpec",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappEventConsequencePackageSpec.xml",
+      "sha256": "a7c49a84ee94f21dabbeff368bc83982ec18c0948afdcc4c28f4b565c427b34e"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EventConsequenceStaticBoundarySpec",
+      "tests": 19,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EventConsequenceStaticBoundarySpec.xml",
+      "sha256": "20f6e0b510547d7ffc7d68e4c4ecb3213644bc7580db7e1771eacbce54935ec6"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelectionSpec",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelectionSpec.xml",
+      "sha256": "2c2109a09dc147659f8081083b3dba02a8565ac11a92b0f990b96538ffd51593"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.PrerequisiteScenarioGeneratorSpec",
+      "tests": 9,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.PrerequisiteScenarioGeneratorSpec.xml",
+      "sha256": "064a6ba534269027f1b4a2eaa9ca9b2e28fbd741fa45f7bddde4dbb924c87064"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGeneratorSpec",
+      "tests": 14,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGeneratorSpec.xml",
+      "sha256": "457a57e0831987019bd9db3a1814abe9da298875bc6f2f5c978f1117547a88e5"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorSpec",
+      "tests": 28,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorSpec.xml",
+      "sha256": "f6156e33aea1036a0cf955f52501fea8f7889c9cdda6e38d6e786ef8074f66c8"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioModelSpec",
+      "tests": 91,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioModelSpec.xml",
+      "sha256": "03e32ef0f0f5af0cd4bd06a6942254c89902791483d31fe6982c5475221e419a"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculatorSpec",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculatorSpec.xml",
+      "sha256": "7a3bd06270166f9e566019acdf304f0cb84be2ff372b078368c62ea5e7134719"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapterSpec",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapterSpec.xml",
+      "sha256": "29a6fb6871d4e241cb05ec3106613274492c32691f491eb172557d27a366d414"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.InputRecipeMapperSpec",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.InputRecipeMapperSpec.xml",
+      "sha256": "efef3736d83a8becea3c53c037836186bf4fb76df963483f5a5a1ed1ba0d72e6"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedParticipantSpec",
+      "tests": 8,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedParticipantSpec.xml",
+      "sha256": "d5bb67f3b4eb7ecb3a13af22b20bf1f07edfb2c3552ba1c50f073db142efeba3"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedPropertySpec",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedPropertySpec.xml",
+      "sha256": "6f8316e52f1e70d9f8386f1f90fbcd6aa5b9066b9abc4f7561e3989d97d2c12d"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.CurrentExecutableArtifactContractSpec",
+      "tests": 30,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.CurrentExecutableArtifactContractSpec.xml",
+      "sha256": "5dc5f20e37adc629fb51f3184a3dd3af9a0fd860f49e0164db19ebd1fb461345"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.OnDemandFaultScenarioServiceSpec",
+      "tests": 23,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.OnDemandFaultScenarioServiceSpec.xml",
+      "sha256": "101638f5ad815f5f9ae83e9be2e5ed9b222f09a0dea4c05be4006ce4e1b4029b"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.StaticAnalysisArtifactWriterContractSpec",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.StaticAnalysisArtifactWriterContractSpec.xml",
+      "sha256": "38340293cd12e4114f7ffed999a41abe25ff8250c00a76876c39c8054c2ce292"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisStateSpec",
+      "tests": 4,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisStateSpec.xml",
+      "sha256": "4fb75f921dda982726ced9eba9079581b8b8767b1cea26a0ea09c93aa0d5b445"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndexSpec",
+      "tests": 6,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndexSpec.xml",
+      "sha256": "9c0de20746bb3d25ffd1f5a544c9814b096d27c9befa6d8488150ea37efdfe4c"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassificationSpec",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassificationSpec.xml",
+      "sha256": "bcc7ad593e6d8686eeb34d83b2b9d2920cc8148ff169d341e6934afe8c44e78a"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassifierSpec",
+      "tests": 13,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassifierSpec.xml",
+      "sha256": "ec4e926eec5824e678fb6ad04bbba331b83252380467287ae4d882bea26afa1e"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitorSpec",
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitorSpec.xml",
+      "sha256": "84778746f8085c942b7e46fc3d0589f2b6bd1faf63a0d2e78ac8be2392ad7633"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventConsequenceVisitorDummyappSpec",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventConsequenceVisitorDummyappSpec.xml",
+      "sha256": "79b42a5785e62f7d4c8899a29c84ddb730dac9d2ffff617966f30c835139c5f8"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventHandlingBridgeVisitorDummyappSpec",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventHandlingBridgeVisitorDummyappSpec.xml",
+      "sha256": "46bf5f491c71606c93ac4308e786ce3808affa911e5a03dc1230156eaa8cf019"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorDummyappSpec",
+      "tests": 32,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorDummyappSpec.xml",
+      "sha256": "6b277018a2a4c47e8881bb1201b8e0033ec7312e178779c76a28a3332a194683"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorSpec",
+      "tests": 18,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorSpec.xml",
+      "sha256": "9ee03af9132c1f953dcc3108a682235b6c2ef640c104b1fe0e96de527c190398"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.ServiceVisitorSpec",
+      "tests": 15,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.ServiceVisitorSpec.xml",
+      "sha256": "0793b72fb8d5a16b0e1b39987298be9ef260cad9c84d4684f33ba4af4cb04691"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.SourceDerivedSharedSagaWorkloadAnalysisSpec",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.SourceDerivedSharedSagaWorkloadAnalysisSpec.xml",
+      "sha256": "50bc954b29645666f6c792839cb73eb582f22ca34fc5772e5d595566e338a403"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityCreationSiteVisitorSpec",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityCreationSiteVisitorSpec.xml",
+      "sha256": "042a08f76ba78657b4c9c2f9d4b567aa132563fa85747aaa845fbf3089df415f"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityVisitorSpec",
+      "tests": 37,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "source": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/combined-event-validation-ve2c5q68/verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityVisitorSpec.xml",
+      "sha256": "e744475836b209a0fdb0e9e595c083e7ddfd207e3d8a210fee2081b8cbbe6e3d"
+    }
+  ]
+}

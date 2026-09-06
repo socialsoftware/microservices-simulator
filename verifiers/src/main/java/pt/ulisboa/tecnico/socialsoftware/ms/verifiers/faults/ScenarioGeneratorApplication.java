@@ -73,6 +73,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     private final int scenarioCatalogMaxCatalogScenarios;
     private final int scenarioCatalogMaxInputVariantsPerSaga;
     private final int scenarioCatalogMaxSchedulesPerInputTuple;
+    private final int scenarioCatalogMaxEventConsequencesPerWorkload;
     private final RecoveryScheduleCap scenarioCatalogRecoveryScheduleCap;
     private final boolean scenarioCatalogAllowTypeOnlyFallback;
     private final String scenarioCatalogInputPolicy;
@@ -101,6 +102,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
             @Value("${verifiers.scenario-catalog.max-catalog-scenarios:100}") int scenarioCatalogMaxCatalogScenarios,
             @Value("${verifiers.scenario-catalog.max-input-variants-per-saga:3}") int scenarioCatalogMaxInputVariantsPerSaga,
             @Value("${verifiers.scenario-catalog.max-schedules-per-input-tuple:20}") int scenarioCatalogMaxSchedulesPerInputTuple,
+            @Value("${verifiers.scenario-catalog.max-event-consequences-per-workload:1}") int scenarioCatalogMaxEventConsequencesPerWorkload,
             @Value("${verifiers.scenario-catalog.recovery-schedule-cap:20}") String scenarioCatalogRecoveryScheduleCap,
             @Value("${verifiers.scenario-catalog.allow-type-only-fallback:false}") boolean scenarioCatalogAllowTypeOnlyFallback,
             @Value("${verifiers.scenario-catalog.input-policy:RESOLVED_OR_REPLAYABLE}") String scenarioCatalogInputPolicy,
@@ -132,6 +134,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         this.scenarioCatalogMaxCatalogScenarios = scenarioCatalogMaxCatalogScenarios;
         this.scenarioCatalogMaxInputVariantsPerSaga = scenarioCatalogMaxInputVariantsPerSaga;
         this.scenarioCatalogMaxSchedulesPerInputTuple = scenarioCatalogMaxSchedulesPerInputTuple;
+        this.scenarioCatalogMaxEventConsequencesPerWorkload = scenarioCatalogMaxEventConsequencesPerWorkload;
         this.scenarioCatalogRecoveryScheduleCap = RecoveryScheduleCap.parse(scenarioCatalogRecoveryScheduleCap);
         this.scenarioCatalogAllowTypeOnlyFallback = scenarioCatalogAllowTypeOnlyFallback;
         this.scenarioCatalogInputPolicy = Objects.requireNonNull(scenarioCatalogInputPolicy, "scenarioCatalogInputPolicy cannot be null");
@@ -326,7 +329,9 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 scenarioCatalogAllowTypeOnlyFallback,
                 parseInputPolicy(scenarioCatalogInputPolicy),
                 parseScheduleStrategy(scenarioCatalogScheduleStrategy),
-                scenarioCatalogDeterministicSeed
+                scenarioCatalogDeterministicSeed,
+                100000,
+                scenarioCatalogMaxEventConsequencesPerWorkload
         );
 
         // COUNT_ONLY is an analysis package, not an executable catalog with
@@ -638,7 +643,7 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 config.includeSingles(), config.maxSagaSetSize(), Math.max(0, cap),
                 config.maxInputVariantsPerSaga(), config.maxSchedulesPerInputTuple(),
                 config.allowTypeOnlyFallback(), config.inputPolicy(), config.scheduleStrategy(),
-                config.deterministicSeed(), config.maxGroupedSagaSetRows());
+                config.deterministicSeed(), config.maxGroupedSagaSetRows(), config.maxEventConsequencesPerWorkload());
     }
 
     static CatalogSelection prioritizeCatalogWorkloads(List<WorkloadPlan> prerequisiteWorkloads,

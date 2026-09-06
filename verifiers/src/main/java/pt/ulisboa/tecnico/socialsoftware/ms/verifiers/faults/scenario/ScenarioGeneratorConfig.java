@@ -13,7 +13,21 @@ public record ScenarioGeneratorConfig(
         InputPolicy inputPolicy,
         ScheduleStrategy scheduleStrategy,
         long deterministicSeed,
-        int maxGroupedSagaSetRows) {
+        int maxGroupedSagaSetRows,
+        int maxEventConsequencesPerWorkload) {
+
+    /** Compatibility constructor: existing callers retain one selected delivery per workload. */
+    public ScenarioGeneratorConfig(boolean exportEnabled, GenerationStrategy generationStrategy,
+                                   CatalogWriteMode catalogWriteMode, boolean includeSingles,
+                                   int maxSagaSetSize, int maxCatalogScenarios, int maxInputVariantsPerSaga,
+                                   int maxSchedulesPerInputTuple, boolean allowTypeOnlyFallback,
+                                   InputPolicy inputPolicy, ScheduleStrategy scheduleStrategy,
+                                   long deterministicSeed, int maxGroupedSagaSetRows) {
+        this(exportEnabled, generationStrategy, catalogWriteMode, includeSingles, maxSagaSetSize,
+                maxCatalogScenarios, maxInputVariantsPerSaga, maxSchedulesPerInputTuple,
+                allowTypeOnlyFallback, inputPolicy, scheduleStrategy, deterministicSeed,
+                maxGroupedSagaSetRows, 1);
+    }
 
     public ScenarioGeneratorConfig(boolean exportEnabled,
                                    GenerationStrategy generationStrategy,
@@ -51,6 +65,9 @@ public record ScenarioGeneratorConfig(
     }
 
     public ScenarioGeneratorConfig {
+        if (maxEventConsequencesPerWorkload < 1) {
+            throw new IllegalArgumentException("maxEventConsequencesPerWorkload must be at least 1");
+        }
         generationStrategy = generationStrategy == null ? GenerationStrategy.INTERACTION_PRUNED : generationStrategy;
         catalogWriteMode = catalogWriteMode == null ? CatalogWriteMode.WRITE_WORKLOADS : catalogWriteMode;
         inputPolicy = inputPolicy == null ? InputPolicy.RESOLVED_OR_REPLAYABLE : inputPolicy;

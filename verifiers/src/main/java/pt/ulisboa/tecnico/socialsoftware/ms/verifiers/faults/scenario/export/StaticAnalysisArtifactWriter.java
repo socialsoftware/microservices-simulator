@@ -817,7 +817,7 @@ public final class StaticAnalysisArtifactWriter {
         return new ScenarioGeneratorConfig(config.exportEnabled(), config.generationStrategy(), config.catalogWriteMode(),
                 config.includeSingles(), config.maxSagaSetSize(), config.maxCatalogScenarios(), config.maxInputVariantsPerSaga(),
                 config.maxSchedulesPerInputTuple(), fallback, config.inputPolicy(), config.scheduleStrategy(),
-                config.deterministicSeed(), config.maxGroupedSagaSetRows());
+                config.deterministicSeed(), config.maxGroupedSagaSetRows(), config.maxEventConsequencesPerWorkload());
     }
 
     private Map<String, Object> accounting(String targetApplication,
@@ -850,6 +850,9 @@ public final class StaticAnalysisArtifactWriter {
         result.put("sagaSetSelection", config.generationStrategy() == ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE
                 ? "all" : config.allowTypeOnlyFallback() ? "withTypeOnlyFallback" : "strict");
         result.put("acceptedInputStatuses", acceptedStatuses(config.inputPolicy()));
+        if (config.maxEventConsequencesPerWorkload() > 1) {
+            result.put("maxEventConsequencesPerWorkload", config.maxEventConsequencesPerWorkload());
+        }
         if (config.maxInputVariantsPerSaga() > 0) result.put("maxInputsPerSaga", config.maxInputVariantsPerSaga());
         if (config.scheduleStrategy() != ScenarioGeneratorConfig.ScheduleStrategy.SERIAL && config.maxSchedulesPerInputTuple() > 0) {
             result.put("maxStepSchedulesPerInputCombination", config.maxSchedulesPerInputTuple());

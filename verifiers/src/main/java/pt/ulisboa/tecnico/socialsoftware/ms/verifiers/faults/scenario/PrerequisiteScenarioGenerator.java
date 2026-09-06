@@ -83,7 +83,7 @@ public final class PrerequisiteScenarioGenerator {
                 ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
                 ScenarioGeneratorConfig.ScheduleStrategy.ORDER_PRESERVING_INTERLEAVING,
                 baseConfig.deterministicSeed(),
-                baseConfig.maxGroupedSagaSetRows());
+                baseConfig.maxGroupedSagaSetRows(), baseConfig.maxEventConsequencesPerWorkload());
         WorkloadGenerationResult generated = ScenarioGenerator.generate(
                 targetDefinitions, boundInputs, eventDefinitions, targetedConfig);
 

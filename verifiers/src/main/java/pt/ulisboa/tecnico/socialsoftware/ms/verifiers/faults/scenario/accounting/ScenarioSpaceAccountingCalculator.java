@@ -378,7 +378,7 @@ public final class ScenarioSpaceAccountingCalculator {
                 config.inputPolicy(),
                 config.scheduleStrategy(),
                 config.deterministicSeed(),
-                config.maxGroupedSagaSetRows());
+                config.maxGroupedSagaSetRows(), config.maxEventConsequencesPerWorkload());
     }
 
     private List<String> sortedPair(String left, String right) {

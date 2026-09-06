@@ -20,6 +20,7 @@ Do not start from old issue packages or Git history when answering a current-beh
 | Question | Read |
 |---|---|
 | What will we discuss with the advisor, in Portuguese? | [Meeting note — 8 September](reunioes/2026-09-08.md) |
+| What changes when several listeners process the same event? | [Combined-event qualification](current-state.md#combined-event-qualification) and [Portuguese case](reunioes/2026-09-08.md#34-um-evento-com-varios-listeners-combinacoes-limitadas) |
 | What does the current potential-impact score measure? | [ImpactV2 contract](current-state.md#impactv2-assessment) and [latest qualification](current-state.md#owned-cycle-coverage-and-control-requalification) |
 | How do Quizzes, the four runs, and the impact question fit together? | [`Current state — Quizzes impact example`](current-state.md#understanding-impact-through-quizzes) |
 | What does the verifier determine? | [`Current state — short version`](current-state.md#the-short-version) |

@@ -369,6 +369,9 @@ public final class ScenarioGenerator {
             Set<String> participantSagaFqns = base.participants().stream()
                     .map(SagaInstance::sagaFqn)
                     .collect(java.util.stream.Collectors.toSet());
+            // A group is one scheduled producer occurrence and one static emission site.
+            // Route selections never cross event occurrences, even when event types match.
+            Map<List<String>, LinkedHashMap<String, EventConsequence>> routeGroups = new LinkedHashMap<>();
             for (EventConsequenceDefinition definition : definitions) {
                 if (!participantSagaFqns.contains(definition.triggerSagaFqn())
                         || participantSagaFqns.contains(definition.downstreamSagaFqn())) {
@@ -400,6 +403,9 @@ public final class ScenarioGenerator {
                         definition.eventProcessingClassFqn(), definition.eventProcessingMethodName(),
                         definition.facadeClassFqn(), definition.facadeMethodName(),
                         definition.downstreamSagaFqn(), definition.deliveryPolicy(), definition.diagnostics());
+                routeGroups.computeIfAbsent(List.of(trigger.deterministicId(),
+                                definition.emissionSite().deterministicId()), ignored -> new LinkedHashMap<>())
+                        .putIfAbsent(consequenceId, consequence);
                 int triggerForwardIndex = base.forwardSchedule().indexOf(trigger);
                 for (int placement = triggerForwardIndex + 1; placement <= base.forwardSchedule().size(); placement++) {
                     if (expanded.size() >= cap) {
@@ -422,8 +428,100 @@ public final class ScenarioGenerator {
                     }
                 }
             }
+            // Keep the existing base/singleton ordering and identities before adding combinations.
+            if (config.maxEventConsequencesPerWorkload() > 1) {
+                for (LinkedHashMap<String, EventConsequence> group : routeGroups.values()) {
+                    List<EventConsequence> routes = group.values().stream()
+                            .sorted(Comparator.comparing(EventConsequence::deterministicId)).toList();
+                    if (routes.size() > config.maxEventConsequencesPerWorkload()) {
+                        counts.merge("eventConsequenceRouteGroupsLimited", 1, Integer::sum);
+                        warnings.add("maxEventConsequencesPerWorkload=" + config.maxEventConsequencesPerWorkload()
+                                + " limits same-event route selections; larger subsets were not generated");
+                    }
+                    int limit = Math.min(routes.size(), config.maxEventConsequencesPerWorkload());
+                    for (int size = 2; size <= limit; size++) {
+                        boolean complete = enumerateOrderedRoutes(routes, size, new ArrayList<>(), selection ->
+                                enumerateConsequencePlacements(base, selection, expanded, cap, counts));
+                        if (!complete) {
+                            warnings.add("reached maxCatalogScenarios=" + cap
+                                    + "; remaining event-consequence combinations/placements were not emitted");
+                            counts.merge("workloadsCapped", 1, Integer::sum);
+                            counts.merge("eventConsequenceExpansionCapEncounters", 1, Integer::sum);
+                            break outer;
+                        }
+                    }
+                }
+            }
         }
         return expanded;
+    }
+
+    /** Streams ordered subsets; false from the sink stops traversal at the catalogue bound. */
+    private static boolean enumerateOrderedRoutes(List<EventConsequence> routes, int size,
+                                                   List<EventConsequence> selected,
+                                                   java.util.function.Predicate<List<EventConsequence>> sink) {
+        if (selected.size() == size) {
+            return sink.test(List.copyOf(selected));
+        }
+        for (EventConsequence route : routes) {
+            if (selected.contains(route)) continue;
+            selected.add(route);
+            boolean complete = enumerateOrderedRoutes(routes, size, selected, sink);
+            selected.removeLast();
+            if (!complete) return false;
+        }
+        return true;
+    }
+
+    private static boolean enumerateConsequencePlacements(WorkloadPlan base, List<EventConsequence> selected,
+                                                           LinkedHashMap<String, WorkloadPlan> expanded,
+                                                           int cap, Map<String, Integer> counts) {
+        int triggerIndex = -1;
+        for (int index = 0; index < base.forwardSchedule().size(); index++) {
+            if (base.forwardSchedule().get(index).deterministicId().equals(selected.getFirst().triggerScheduledStepId())) {
+                triggerIndex = index;
+                break;
+            }
+        }
+        return enumerateConsequencePlacements(base, selected, new ArrayList<>(), triggerIndex + 1,
+                expanded, cap, counts);
+    }
+
+    private static boolean enumerateConsequencePlacements(WorkloadPlan base, List<EventConsequence> selected,
+                                                           List<Integer> placements, int firstPlacement,
+                                                           LinkedHashMap<String, WorkloadPlan> expanded,
+                                                           int cap, Map<String, Integer> counts) {
+        if (placements.size() == selected.size()) {
+            if (expanded.size() >= cap) return false;
+            List<NormalActionRef> normal = new ArrayList<>();
+            int eventIndex = 0;
+            for (int index = 0; index <= base.forwardSchedule().size(); index++) {
+                while (eventIndex < selected.size() && placements.get(eventIndex) == index) {
+                    normal.add(NormalActionRef.eventConsequence(normal.size(), selected.get(eventIndex++).deterministicId()));
+                }
+                if (index < base.forwardSchedule().size()) {
+                    normal.add(NormalActionRef.forward(normal.size(), base.forwardSchedule().get(index).deterministicId()));
+                }
+            }
+            WorkloadPlan plan = withWorkloadId(new WorkloadPlan(
+                    WorkloadPlan.SCHEMA_VERSION, null, base.kind(), base.executionShape(),
+                    base.participants(), base.acceptedInputs(), base.forwardSchedule(), selected, normal,
+                    base.prerequisiteBaseline(), base.setupPlan(), base.conflictEvidence(),
+                    base.faultSlots(), base.compensationCheckpoints(), base.warnings()));
+            if (expanded.putIfAbsent(plan.deterministicId(), plan) == null) {
+                counts.merge("eventConsequenceWorkloadsEmitted", 1, Integer::sum);
+                counts.merge("eventConsequencePlacementsEmitted", 1, Integer::sum);
+                counts.merge("eventConsequenceCombinedWorkloadsEmitted", 1, Integer::sum);
+            }
+            return true;
+        }
+        for (int placement = firstPlacement; placement <= base.forwardSchedule().size(); placement++) {
+            placements.add(placement);
+            boolean complete = enumerateConsequencePlacements(base, selected, placements, placement, expanded, cap, counts);
+            placements.removeLast();
+            if (!complete) return false;
+        }
+        return true;
     }
 
     private static List<NormalActionRef> normalScheduleWithConsequence(List<ScheduledStep> forwardSchedule,

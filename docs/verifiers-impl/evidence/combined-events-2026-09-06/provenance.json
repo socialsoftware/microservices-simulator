@@ -1,0 +1,97 @@
+[
+  {
+    "file": "comparison.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/comparison.json",
+    "sha256": "28d25392d3e7634e93f92d72fb6f9099e663ffa0ddbfe653061028ca0c05cbd0"
+  },
+  {
+    "file": "plan.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/plan.json",
+    "sha256": "771a17574a89956ede0d98068d64c4c3fbbe8b5a243c543e298507c68c808fa2"
+  },
+  {
+    "file": "broader-selection.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/selection/broader-selection.json",
+    "sha256": "50e304db16c63f5c660a49510f3db781ed15cfc31796a856b7cd33e6b4c473cd"
+  },
+  {
+    "file": "answer/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer/execution.impact-v2.json",
+    "sha256": "7fe6d884595643462f665c7b0a8e26dc960768f835c8e8211244cc93ee05d6d2"
+  },
+  {
+    "file": "answer/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer/execution.json",
+    "sha256": "dbd787f4f2c1063d7dc272e9b17019c32c1abfa66b8be24fffdf1d375f6691d0"
+  },
+  {
+    "file": "answer-quiz/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz/execution.impact-v2.json",
+    "sha256": "cb5dae3d3b06066a44bdfa980cc10793e40e2c33868dccfb0ab3792f8f4d2ccf"
+  },
+  {
+    "file": "answer-quiz/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz/execution.json",
+    "sha256": "89cf4641084b12ffd0409ab6a432dfc1a9962ddd760b4dc1d42f120987dbaab3"
+  },
+  {
+    "file": "answer-quiz-missing-tournament/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz-missing-tournament/execution.impact-v2.json",
+    "sha256": "3260c62886a0ac4f8b50465c633b0f70f036b9d45936e817ed1bb8fe1b7cd801"
+  },
+  {
+    "file": "answer-quiz-missing-tournament/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz-missing-tournament/execution.json",
+    "sha256": "737fc215a0f39cde31446836ac6bfe42bb318f6d374df8b5b31be001d672544b"
+  },
+  {
+    "file": "answer-quiz-trigger-fault/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz-trigger-fault/execution.impact-v2.json",
+    "sha256": "eff2097746dec00d1fc8c757178d78db37411f7fbdb3655ba09b31ba991b78e0"
+  },
+  {
+    "file": "answer-quiz-trigger-fault/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/answer-quiz-trigger-fault/execution.json",
+    "sha256": "09fb6d8889507e45615075ca8bb4a8c26d05e9b4547e0ac9188fa7191d81048a"
+  },
+  {
+    "file": "none/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/none/execution.impact-v2.json",
+    "sha256": "a6c329195e88a8a38164d25031dba785cbb003930c26abec32e96812e6ced734"
+  },
+  {
+    "file": "none/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/none/execution.json",
+    "sha256": "8a576126b54e4cf224f9542cf768ecda885ac1589f1c564bcbd47739f1f5fe1a"
+  },
+  {
+    "file": "quiz/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz/execution.impact-v2.json",
+    "sha256": "35f28881ee01f883d680154df4f1b2eb3f2f6ce0a87ee1482ef24b19f3420dad"
+  },
+  {
+    "file": "quiz/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz/execution.json",
+    "sha256": "5088d40792f380591d2a01f5a7bc717ff6dd34b3375cb78196e23411d91e6958"
+  },
+  {
+    "file": "quiz-answer/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz-answer/execution.impact-v2.json",
+    "sha256": "66a5e3f63dce129aef9ae5e5e296956856f7ec3dd885943000c42bb111ba7e94"
+  },
+  {
+    "file": "quiz-answer/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz-answer/execution.json",
+    "sha256": "6198b6f473a9afc9597484b3277cc2127aad661b75e6bd7de2e9744239e57aea"
+  },
+  {
+    "file": "quiz-answer-trigger-fault/execution.impact-v2.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz-answer-trigger-fault/execution.impact-v2.json",
+    "sha256": "000d43a774d10749fbb1e6016d3d9643b121d574f13f77ca056284c391b0ee25"
+  },
+  {
+    "file": "quiz-answer-trigger-fault/execution.json",
+    "source": "verifiers/target/combined-event-deliveries/run-02/broader/attempts/quiz-answer-trigger-fault/execution.json",
+    "sha256": "4ee1c4e5543103b781237d240dd54337df6f6699b053e8b171b97da41fc96660"
+  }
+]

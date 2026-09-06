@@ -1,0 +1,123 @@
+{
+  "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/combined-event-deliveries/run-02/generated/quizzes-20260906-180214-888/scenario-catalog-manifest.json",
+  "manifestSha256": "ff9f8c214d8c76abe6029d59d0f0455136e66b2967ff4deb9fac1ee8f444ee67",
+  "rows": [
+    {
+      "cohort": "broader",
+      "caseId": "none",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "81789d8c0f7b9ece3416090482ecc533bf54aa9f1b4247dcb2b06dbe86639301",
+      "faultScenarioId": "9c7422f427cca156e13a3d6243cd1010b566d761259a4be0827cff0142b5f3e9",
+      "faultVector": "000",
+      "deliveryOrder": [],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "answer",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "63799c6abca418040aefde68cf4e517046372dbf8ca5c964078a7a35e7bfd604",
+      "faultScenarioId": "da58e3ef69b0962f66917c0e0dbb2d34686b5453a1b91f850cfa48491aa61a38",
+      "faultVector": "000",
+      "deliveryOrder": [
+        "answer"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "quiz",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "2b4b0d635e762dbc8ee9dabbe866a790982f168c4b39e6780b2b7dfd3e97409f",
+      "faultScenarioId": "9c942a32287643ff8d8a25059b8408b3c95da7b29af650eb9e95631cc7986474",
+      "faultVector": "000",
+      "deliveryOrder": [
+        "quiz"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "answer-quiz",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultScenarioId": "b16c51234c68da3c6e26de05d0b8ee8ae03a2ea0f718309e0c1da33002832097",
+      "faultVector": "000",
+      "deliveryOrder": [
+        "answer",
+        "quiz"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "quiz-answer",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultScenarioId": "99ed9137375a616330cadf74d30277fe90c6e69e7985724b27dcca46a6dbe3c0",
+      "faultVector": "000",
+      "deliveryOrder": [
+        "quiz",
+        "answer"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "answer-quiz-trigger-fault",
+      "role": "trigger-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultScenarioId": "ade6fcc5b4fdffdcf5c2a111c07e91b7b2dfc1e93b18982d84ec214dd72cc4ec",
+      "faultVector": "001",
+      "deliveryOrder": [
+        "answer",
+        "quiz"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "quiz-answer-trigger-fault",
+      "role": "trigger-fault",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultScenarioId": "35e0d928ebc4d4c188c98169955df4aca42c1fca0575df0f50f244b4eb17e2dd",
+      "faultVector": "001",
+      "deliveryOrder": [
+        "quiz",
+        "answer"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    },
+    {
+      "cohort": "broader",
+      "caseId": "answer-quiz-missing-tournament",
+      "role": "control",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "inputId": "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e",
+      "workloadId": "c9d47b563505536d7a93ab3f43c70bcd31619de0e1f736633f47d55cc2a34639",
+      "faultScenarioId": "99307e40c89fa83602cc9975f519cd0586a57be93cf68cace01d76de24225d32",
+      "faultVector": "000",
+      "deliveryOrder": [
+        "answer",
+        "quiz",
+        "tournament"
+      ],
+      "setupId": "setup-654acaf9d57124996c605c08"
+    }
+  ],
+  "maxConcurrentAttempts": 2
+}

@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceNo
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserver
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
@@ -2081,6 +2082,140 @@ class ScenarioExecutorSpec extends Specification {
         packageChecksums(maskedPackage.directory) == maskedBefore
     }
 
+    def 'three selected routes share one captured event and preserve execution order and separate writer evidence'() {
+        given:
+        def workload = combinedEventWorkload(routeOrder)
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def before = packageChecksums(packageFixture.directory)
+        def service = new TrackingSagaUnitOfWorkService()
+        def stateObserver = new MultiRoutePersistentStateObserver()
+        def handling = new MultiRouteEventHandling(service.fixtureEventService, stateObserver)
+        def runtime = new TrackingRuntimeContext(service, [
+                (MultiRouteEventHandling): handling, (PersistentStateObserver): stateObserver])
+        def output = outsidePackageOutput(packageFixture, 'combined-events.json')
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, output, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.scheduleConformance() == 'EXACT'
+        report.actualActions()*.status() == ['COMPLETED'] * 5
+        def deliveries = report.actualActions().findAll { it.kind() == 'EVENT_CONSEQUENCE' }
+        deliveries*.eventEvidence()*.eventHandlingMethodName() == routeOrder.collect { "handle${it}" }
+        deliveries*.eventEvidence()*.eventId().unique().size() == 1
+        deliveries.every { it.sourceFaultSlotId() == null && it.sourceCompensationCheckpointId() == null }
+        handling.invocations*.route == routeOrder
+        handling.invocations.every { it.event.is(service.fixtureEventService.events.values().first()) }
+        handling.invocations*.writer*.kind() == ['EVENT_CONSUMER'] * 3
+        handling.invocations*.writer*.actionId() == deliveries*.actionId()
+        handling.invocations*.boundary == [null, null, null]
+        def evidence = MAPPER.readTree(output.resolveSibling('combined-events.impact-v2.json').toFile())
+                .path('eventDeliveries').toList()
+        evidence.collect { it.path('writer').path('actionId').asText() } == deliveries*.actionId()
+        evidence.collect { it.path('receiverBefore').path('identity').path('aggregateId').asInt() } ==
+                routeOrder.collect { MultiRouteEventHandling.RECEIVERS[it] }
+        packageChecksums(packageFixture.directory) == before
+        EventReplayCoordinator.currentSelectedEvent().isEmpty()
+        ImpactWriterContext.current().isEmpty()
+
+        where:
+        routeOrder << [['A', 'B', 'C'], ['C', 'A', 'B']]
+    }
+
+    def 'all selected routes are masked when their common trigger never completes'() {
+        given:
+        def workload = combinedEventWorkload(['A', 'B', 'C'])
+        def scenario = scenarios(workload, assignedFault ? '10' : '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def handling = new MultiRouteEventHandling(service.fixtureEventService, new MultiRoutePersistentStateObserver())
+        def runtime = new TrackingRuntimeContext(service, [(MultiRouteEventHandling): handling])
+        if (assignedFault) FixtureWorkflow.emitEvents('solo', 'first', 1)
+        else FixtureWorkflow.failBodyWithDomainException('solo', 'first')
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, null, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.actualActions().findAll { it.kind() == 'EVENT_CONSEQUENCE' }*.status() == [expected] * 3
+        handling.invocations.isEmpty()
+        service.fixtureEventService.events.isEmpty()
+
+        where:
+        assignedFault || expected
+        true          || 'MASKED_BY_TRIGGER_FAULT'
+        false         || 'MASKED_BY_TRIGGER_FAILURE'
+    }
+
+    def 'a later selected route rechecks current eligibility and stops subsequent routes on replay failure'() {
+        given:
+        def workload = combinedEventWorkload(['A', 'B', 'C'])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def stateObserver = new MultiRoutePersistentStateObserver()
+        def handling = new MultiRouteEventHandling(service.fixtureEventService, stateObserver)
+        handling.afterFirst = changeAfterFirst
+        handling.secondMode = secondMode
+        def runtime = new TrackingRuntimeContext(service, [
+                (MultiRouteEventHandling): handling, (PersistentStateObserver): stateObserver])
+        def output = outsidePackageOutput(packageFixture, 'combined-failure.json')
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, output, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'UNEXPECTED_EXECUTION_FAILURE'
+        report.scheduleConformance() == 'INCOMPLETE'
+        report.hardStopReason() == expected
+        report.actualActions().findAll { it.kind() == 'EVENT_CONSEQUENCE' }*.status() ==
+                ['COMPLETED', expected, 'NOT_REACHED']
+        handling.invocations*.route == invokedRoutes
+        def evidence = MAPPER.readTree(output.resolveSibling('combined-failure.impact-v2.json').toFile())
+        evidence.path('assessmentStatus').asText() == 'INVALID'
+        evidence.path('completeScore').isNull()
+        evidence.path('eventDeliveries').size() == 1
+        EventReplayCoordinator.currentSelectedEvent().isEmpty()
+        ImpactWriterContext.current().isEmpty()
+
+        where:
+        changeAfterFirst | secondMode  || expected                                    | invokedRoutes
+        'NONE'           | 'FAIL'      || 'EVENT_CONSEQUENCE_FAILED'                   | ['A', 'B']
+        'NONE'           | 'RECURSIVE' || 'RECURSIVE_EVENT_CONSEQUENCE_UNSUPPORTED'     | ['A', 'B']
+        'REMOVE_SECOND'  | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'               | ['A']
+        'ACK_SECOND'     | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'               | ['A']
+        'ADD_SECOND'     | 'SUCCESS'   || 'MULTIPLE_MATCHING_SUBSCRIBERS_UNSUPPORTED'   | ['A']
+        'MUTATE_EVENT'   | 'SUCCESS'   || 'EVENT_REPLAY_CONTROL_FAILED'                 | ['A']
+    }
+
     def 'event consequence is causally masked when its trigger fails at runtime'() {
         given:
         def workload = eventWorkload()
@@ -2530,6 +2665,33 @@ class ScenarioExecutorSpec extends Specification {
                 withoutId.compensationCheckpoints(), withoutId.warnings())
     }
 
+    private static WorkloadPlan combinedEventWorkload(List<String> routes) {
+        def base = eventWorkload()
+        def original = base.eventConsequences()[0]
+        def consequences = routes.collect { route ->
+            String method = "handle${route}"
+            String handler = [A: RouteAHandler, B: RouteBHandler, C: RouteCHandler][route].name
+            String id = ScenarioIdGenerator.eventConsequenceId(original.triggerScheduledStepId(),
+                    original.emissionSite(), MultiRouteEventHandling.name, method, handler,
+                    'dummyapp.FixtureEventProcessing', 'process', 'dummyapp.FixtureFacade', 'startSaga',
+                    'dummyapp.DownstreamFunctionalitySagas', EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER)
+            new EventConsequence(id, original.triggerScheduledStepId(), original.emissionSite(), FixtureEvent.name,
+                    MultiRouteEventHandling.name, method, handler, 'dummyapp.FixtureEventProcessing', 'process',
+                    'dummyapp.FixtureFacade', 'startSaga', 'dummyapp.DownstreamFunctionalitySagas',
+                    EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
+        }
+        def normal = [NormalActionRef.forward(0, base.forwardSchedule()[0].deterministicId())]
+        consequences.each { normal.add(NormalActionRef.eventConsequence(normal.size(), it.deterministicId())) }
+        normal.add(NormalActionRef.forward(normal.size(), base.forwardSchedule()[1].deterministicId()))
+        def draft = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
+                base.participants(), base.acceptedInputs(), base.forwardSchedule(), consequences, normal,
+                null, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
+        new WorkloadPlan(draft.schemaVersion(), ScenarioIdGenerator.workloadPlanId(draft), draft.kind(),
+                draft.executionShape(), draft.participants(), draft.acceptedInputs(), draft.forwardSchedule(),
+                draft.eventConsequences(), draft.normalSchedule(), draft.prerequisiteBaseline(), draft.conflictEvidence(),
+                draft.faultSlots(), draft.compensationCheckpoints(), draft.warnings())
+    }
+
     private static WorkloadPlan prerequisiteWorkload() {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def oldInput = base.acceptedInputs()[0]
@@ -2820,6 +2982,95 @@ class ScenarioExecutorSpec extends Specification {
                                            SagaUnitOfWorkService unitOfWorkService,
                                            SagaUnitOfWork unitOfWork) {
             throw new IllegalArgumentException('constructor body failed after exact conversion')
+        }
+    }
+
+    static class MultiRouteEventHandling {
+        static final Map<String, Integer> RECEIVERS = [A: 101, B: 201, C: 301]
+        final List<Map> invocations = []
+        final Map<String, Integer> counts = [A: 1, B: 1, C: 1]
+        final Set<String> acknowledged = [] as Set
+        String afterFirst = 'NONE'
+        String secondMode = 'SUCCESS'
+        private final EventApplicationService applicationService = new EventApplicationService()
+
+        MultiRouteEventHandling(EventService eventService, PersistentStateObserver observer) {
+            ReflectionTestUtils.setField(applicationService, 'eventService', eventService)
+            ReflectionTestUtils.setField(applicationService, 'persistentStateObserver', observer)
+        }
+
+        void handleA() { applicationService.handleSubscribedEvent(FixtureEvent, new RouteAHandler(this)) }
+        void handleB() { applicationService.handleSubscribedEvent(FixtureEvent, new RouteBHandler(this)) }
+        void handleC() { applicationService.handleSubscribedEvent(FixtureEvent, new RouteCHandler(this)) }
+    }
+
+    static abstract class RouteHandler extends EventHandler {
+        final MultiRouteEventHandling owner
+        final String route
+
+        RouteHandler(MultiRouteEventHandling owner, String route) {
+            super(mock(JpaRepository))
+            this.owner = owner
+            this.route = route
+        }
+
+        @Override
+        Set<Integer> getAggregateIds() {
+            int start = MultiRouteEventHandling.RECEIVERS[route]
+            int count = owner.counts[route]
+            count == 0 ? [] as Set : (start..<(start + count)) as Set
+        }
+
+        @Override
+        Set<EventSubscription> getEventSubscriptions(Integer aggregateId,
+                Class<? extends pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event> eventClass) {
+            [new EventSubscription(Math.abs('solo'.hashCode()),
+                    owner.acknowledged.contains(route) ? Long.MAX_VALUE : 0L, FixtureEvent.simpleName) {}] as Set
+        }
+
+        @Override
+        void handleEvent(Integer aggregateId, pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event) {
+            owner.invocations.add([route: route, event: event, writer: ImpactWriterContext.current().orElse(null),
+                                   boundary: FaultVectorProviderHolder.currentBoundary().orElse(null)])
+            if (route == 'B') {
+                if (owner.secondMode == 'FAIL') throw new IllegalStateException('second route failed')
+                if (owner.secondMode == 'RECURSIVE') EventReplayCoordinator.beforeEventRegistration()
+            }
+            if (route == 'A') {
+                if (owner.afterFirst == 'REMOVE_SECOND') owner.counts.B = 0
+                if (owner.afterFirst == 'ACK_SECOND') owner.acknowledged.add('B')
+                if (owner.afterFirst == 'ADD_SECOND') owner.counts.B = 2
+                if (owner.afterFirst == 'MUTATE_EVENT') event.publisherAggregateVersion++
+            }
+        }
+    }
+
+    static class RouteAHandler extends RouteHandler {
+        RouteAHandler(MultiRouteEventHandling owner) { super(owner, 'A') }
+    }
+    static class RouteBHandler extends RouteHandler {
+        RouteBHandler(MultiRouteEventHandling owner) { super(owner, 'B') }
+    }
+    static class RouteCHandler extends RouteHandler {
+        RouteCHandler(MultiRouteEventHandling owner) { super(owner, 'C') }
+    }
+
+    static class MultiRoutePersistentStateObserver extends FixturePersistentStateObserver {
+        MultiRoutePersistentStateObserver() { super(null) }
+
+        @Override
+        PersistentStateObserver.EligibilityObservation observeEligibility(Integer aggregateId,
+                pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event, String stage) {
+            def snapshot = new ImpactEvidence.AggregateSnapshot(
+                    new ImpactEvidence.AggregateIdentity('FixtureReceiver', aggregateId), 1L,
+                    'ACTIVE', 'FixtureReceiver', [:], [])
+            new PersistentStateObserver.EligibilityObservation(new ImpactEvidence.Projection(snapshot, []), true)
+        }
+
+        @Override
+        PersistentStateObserver.EligibilityObservation observeEligibility(ImpactEvidence.AggregateIdentity identity,
+                pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event event, String stage) {
+            observeEligibility(identity.aggregateId(), event, stage)
         }
     }
 

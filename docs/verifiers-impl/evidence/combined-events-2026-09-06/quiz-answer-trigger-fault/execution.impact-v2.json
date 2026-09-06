@@ -1,0 +1,1006 @@
+{
+  "schemaVersion" : "microservices-simulator.scenario-impact-v2-assessment.v1",
+  "executionAttemptId" : "6548413e-6ba1-4b67-b09b-f147c5d3177e",
+  "packageManifestPath" : "/reports/combined-event-deliveries/run-02/generated/quizzes-20260906-180214-888/scenario-catalog-manifest.json",
+  "workloadPlanId" : "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+  "faultScenarioId" : "35e0d928ebc4d4c188c98169955df4aca42c1fca0575df0f50f244b4eb17e2dd",
+  "executionTerminalStatus" : "COMPENSATED",
+  "scheduleConformance" : "EXACT",
+  "assessmentStatus" : "COMPLETE",
+  "collectionStatus" : "OBSERVED",
+  "horizon" : "FINAL_SCHEDULED_ACTION",
+  "completeScore" : 1,
+  "observedAffectedObjectCount" : 1,
+  "categoryResults" : [ {
+    "category" : "DELETED_DEPENDENCY",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 3,
+    "candidates" : [ {
+      "aggregate" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "eventId" : null
+    } ],
+    "positiveObjectCount" : 0,
+    "findings" : [ ],
+    "unknownReasons" : [ ]
+  }, {
+    "category" : "FAILED_OPERATION_RESIDUAL",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 1,
+    "candidates" : [ {
+      "aggregate" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "eventId" : null
+    } ],
+    "positiveObjectCount" : 1,
+    "findings" : [ {
+      "category" : "FAILED_OPERATION_RESIDUAL",
+      "reason" : "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+      "affectedObject" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "relatedObject" : null,
+      "eventId" : null,
+      "actionIds" : [ "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77" ],
+      "versions" : [ 14, 17 ]
+    } ],
+    "unknownReasons" : [ ]
+  }, {
+    "category" : "UNRESOLVED_DELIVERED_EVENT",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 0,
+    "candidates" : [ ],
+    "positiveObjectCount" : 0,
+    "findings" : [ ],
+    "unknownReasons" : [ ]
+  } ],
+  "baseline" : [ {
+    "identity" : {
+      "aggregateType" : "SagaCourse",
+      "aggregateId" : 1
+    },
+    "version" : 14,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse",
+    "frameworkMetadata" : {
+      "rowId" : 13,
+      "creationTimestamp" : "2026-09-06T18:04:23.591090",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "predecessorVersion" : 10,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "courseExecutionCount" : 2,
+      "courseQuestionCount" : 1,
+      "name" : "BLCM",
+      "state" : "ACTIVE",
+      "type" : "TECNICO"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 2
+    },
+    "version" : 15,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 14,
+      "creationTimestamp" : "2026-09-06T18:04:23.619205",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "predecessorVersion" : 6,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "TESTBLCM",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 1,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2026-09-06T19:29:22.434057",
+      "state" : "ACTIVE",
+      "students" : [ ]
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 8
+    },
+    "version" : 13,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 12,
+      "creationTimestamp" : "2026-09-06T18:04:23.579875",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "ACRONYM_1",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 10,
+        "execution" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2026-09-06T19:29:23.548116",
+      "state" : "ACTIVE",
+      "students" : [ ]
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 5
+    },
+    "version" : 8,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 8,
+      "creationTimestamp" : "2026-09-06T18:04:23.322824",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content One",
+      "creationDate" : "2026-09-06T18:04:23.321045",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Two",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 3,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 4,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 7
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 7,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 7,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuiz",
+      "aggregateId" : 6
+    },
+    "version" : 11,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz",
+    "frameworkMetadata" : {
+      "rowId" : 10,
+      "creationTimestamp" : "2026-09-06T18:04:23.433524",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "availableDate" : "2026-09-06T18:09:23.370622",
+      "conclusionDate" : "2026-09-06T18:29:23.370907",
+      "creationDate" : "2026-09-06T18:04:23.432021",
+      "lastModifiedTime" : "2026-09-06T18:04:23.432168",
+      "quizCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 6,
+        "quiz" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaQuiz"
+        }
+      },
+      "quizQuestions" : [ {
+        "content" : "Content One",
+        "questionAggregateId" : 5,
+        "questionVersion" : 8,
+        "quiz" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title One"
+      } ],
+      "quizType" : "IN_CLASS",
+      "resultsDate" : "2026-09-06T19:09:23.370950",
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 8,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 8,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuizAnswer",
+      "aggregateId" : 7
+    },
+    "version" : 12,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.SagaQuizAnswer",
+    "frameworkMetadata" : {
+      "rowId" : 11,
+      "creationTimestamp" : "2026-09-06T18:04:23.518847",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "answerCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 6,
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        }
+      },
+      "answerDate" : "2026-09-06T18:04:23.517170",
+      "completed" : false,
+      "creationDate" : null,
+      "questionAnswers" : [ ],
+      "quiz" : {
+        "quizAggregateId" : 6,
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        },
+        "quizQuestionsAggregateIds" : [ 5 ],
+        "quizVersion" : 11
+      },
+      "state" : "ACTIVE",
+      "student" : {
+        "name" : "USER_NAME_1",
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        },
+        "studentAggregateId" : 3,
+        "studentState" : "ACTIVE"
+      }
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "AnonymizeStudentEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesAnonymizeStudent"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesRemoveCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "InvalidateQuizEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesInvalidateQuiz"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "UpdateStudentNameEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesUpdateStudentName"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 4
+    },
+    "version" : 7,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 7,
+      "creationTimestamp" : "2026-09-06T18:04:23.203069",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_1",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 4,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 3
+    },
+    "version" : 5,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 5,
+      "creationTimestamp" : "2026-09-06T18:04:23.022801",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "predecessorVersion" : 4,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_1",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_1"
+    },
+    "dependencies" : [ ]
+  } ],
+  "finalState" : [ {
+    "identity" : {
+      "aggregateType" : "SagaCourse",
+      "aggregateId" : 1
+    },
+    "version" : 17,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse",
+    "frameworkMetadata" : {
+      "rowId" : 15,
+      "creationTimestamp" : "2026-09-06T18:04:23.750926",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "predecessorVersion" : 14,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "courseExecutionCount" : 1,
+      "courseQuestionCount" : 1,
+      "name" : "BLCM",
+      "state" : "ACTIVE",
+      "type" : "TECNICO"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 2
+    },
+    "version" : 15,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 14,
+      "creationTimestamp" : "2026-09-06T18:04:23.619205",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "predecessorVersion" : 6,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "TESTBLCM",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 1,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2026-09-06T19:29:22.434057",
+      "state" : "ACTIVE",
+      "students" : [ ]
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 8
+    },
+    "version" : 13,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 12,
+      "creationTimestamp" : "2026-09-06T18:04:23.579875",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "ACRONYM_1",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 10,
+        "execution" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2026-09-06T19:29:23.548116",
+      "state" : "ACTIVE",
+      "students" : [ ]
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 5
+    },
+    "version" : 8,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 8,
+      "creationTimestamp" : "2026-09-06T18:04:23.322824",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content One",
+      "creationDate" : "2026-09-06T18:04:23.321045",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Two",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 3,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 4,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 7
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 7,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 7,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuiz",
+      "aggregateId" : 6
+    },
+    "version" : 11,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz",
+    "frameworkMetadata" : {
+      "rowId" : 10,
+      "creationTimestamp" : "2026-09-06T18:04:23.433524",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "availableDate" : "2026-09-06T18:09:23.370622",
+      "conclusionDate" : "2026-09-06T18:29:23.370907",
+      "creationDate" : "2026-09-06T18:04:23.432021",
+      "lastModifiedTime" : "2026-09-06T18:04:23.432168",
+      "quizCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 6,
+        "quiz" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaQuiz"
+        }
+      },
+      "quizQuestions" : [ {
+        "content" : "Content One",
+        "questionAggregateId" : 5,
+        "questionVersion" : 8,
+        "quiz" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title One"
+      } ],
+      "quizType" : "IN_CLASS",
+      "resultsDate" : "2026-09-06T19:09:23.370950",
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 8,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 8,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuizAnswer",
+      "aggregateId" : 7
+    },
+    "version" : 12,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.SagaQuizAnswer",
+    "frameworkMetadata" : {
+      "rowId" : 11,
+      "creationTimestamp" : "2026-09-06T18:04:23.518847",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "answerCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 6,
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        }
+      },
+      "answerDate" : "2026-09-06T18:04:23.517170",
+      "completed" : false,
+      "creationDate" : null,
+      "questionAnswers" : [ ],
+      "quiz" : {
+        "quizAggregateId" : 6,
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        },
+        "quizQuestionsAggregateIds" : [ 5 ],
+        "quizVersion" : 11
+      },
+      "state" : "ACTIVE",
+      "student" : {
+        "name" : "USER_NAME_1",
+        "quizAnswer" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaQuizAnswer"
+        },
+        "studentAggregateId" : 3,
+        "studentState" : "ACTIVE"
+      }
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "AnonymizeStudentEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesAnonymizeStudent"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesRemoveCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesUnerollStudentFromCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "InvalidateQuizEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesInvalidateQuiz"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuizAnswer",
+        "aggregateId" : 7
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 6,
+      "eventType" : "UpdateStudentNameEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.subscribe.QuizAnswerSubscribesUpdateStudentName"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 4
+    },
+    "version" : 7,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 7,
+      "creationTimestamp" : "2026-09-06T18:04:23.203069",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_1",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 4,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 3
+    },
+    "version" : 5,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 5,
+      "creationTimestamp" : "2026-09-06T18:04:23.022801",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "predecessorVersion" : 4,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_1",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_1"
+    },
+    "dependencies" : [ ]
+  } ],
+  "committedWrites" : [ {
+    "sequence" : 1,
+    "aggregate" : {
+      "identity" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "version" : 17,
+      "lifecycleState" : "ACTIVE",
+      "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse",
+      "frameworkMetadata" : {
+        "rowId" : 15,
+        "creationTimestamp" : "2026-09-06T18:04:23.750926",
+        "predecessorIdentity" : {
+          "aggregateType" : "SagaCourse",
+          "aggregateId" : 1
+        },
+        "predecessorVersion" : 14,
+        "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+        "semanticLockState" : "NOT_IN_SAGA"
+      },
+      "applicationData" : {
+        "courseExecutionCount" : 1,
+        "courseQuestionCount" : 1,
+        "name" : "BLCM",
+        "state" : "ACTIVE",
+        "type" : "TECNICO"
+      },
+      "dependencies" : [ ]
+    },
+    "writer" : {
+      "kind" : "SAGA",
+      "executionAttemptId" : "6548413e-6ba1-4b67-b09b-f147c5d3177e",
+      "workloadPlanId" : "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "sagaInstanceId" : "p1",
+      "actionId" : "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77",
+      "phase" : "FORWARD",
+      "functionalityName" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+      "stepName" : "updateCourseExecutionCountStep",
+      "eventId" : null
+    }
+  } ],
+  "eventDeliveries" : [ ],
+  "coverageGaps" : [ ]
+}
