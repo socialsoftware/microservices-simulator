@@ -1,5 +1,7 @@
 # Harness Log - quizzes-full-2
 
+**Self-healing:** on
+
 Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
 
 | # | Session | Type | Artifact | Problem | Outcome | Ref |
