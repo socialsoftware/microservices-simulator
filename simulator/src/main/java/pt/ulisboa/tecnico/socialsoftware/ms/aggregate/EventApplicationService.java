@@ -74,8 +74,8 @@ public class EventApplicationService {
             }
         }
         if (eligibleSubscribers.isEmpty()) {
-            throw new EventReplayException("SELECTED_SUBSCRIBER_NOT_FOUND",
-                    "selected event has no eligible subscriber for the persisted route");
+            selection.recordNoEligibleSubscriber();
+            return;
         }
         if (eligibleSubscribers.size() != 1) {
             throw new EventReplayException("MULTIPLE_MATCHING_SUBSCRIBERS_UNSUPPORTED",

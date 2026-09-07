@@ -116,6 +116,11 @@ public final class EventReplayCoordinator {
                                 boolean published) {
     }
 
+    public enum SelectedEventOutcome {
+        DELIVERED,
+        NO_ELIGIBLE_SUBSCRIBER
+    }
+
     public static final class Activation implements AutoCloseable {
         private boolean closed;
 
@@ -176,7 +181,8 @@ public final class EventReplayCoordinator {
         private final String expectedEventTypeFqn;
         private final String expectedHandlerClassFqn;
         private Integer subscriberAggregateId;
-        private int deliveries;
+        private SelectedEventOutcome outcome;
+        private boolean invalidOutcome;
         private boolean closed;
 
         private SelectedEventScope(CapturedEvent event,
@@ -200,22 +206,37 @@ public final class EventReplayCoordinator {
         }
 
         public void recordDelivery(Integer subscriberAggregateId) {
-            deliveries++;
-            if (deliveries != 1) {
-                throw new EventReplayException("EVENT_REPLAY_CONTROL_FAILED",
-                        "selected event was dispatched more than once");
-            }
+            recordOutcome(SelectedEventOutcome.DELIVERED);
             this.subscriberAggregateId = subscriberAggregateId;
+        }
+
+        public void recordNoEligibleSubscriber() {
+            recordOutcome(SelectedEventOutcome.NO_ELIGIBLE_SUBSCRIBER);
+        }
+
+        private void recordOutcome(SelectedEventOutcome selectedOutcome) {
+            if (outcome != null) {
+                invalidOutcome = true;
+                throw new EventReplayException("EVENT_REPLAY_CONTROL_FAILED",
+                        "selected event handling produced more than one replay outcome");
+            }
+            outcome = selectedOutcome;
         }
 
         public Integer subscriberAggregateId() {
             return subscriberAggregateId;
         }
 
+        public SelectedEventOutcome outcome() {
+            return outcome;
+        }
+
         public void verifyCompleted() {
-            if (deliveries != 1) {
+            if (outcome == null || invalidOutcome) {
                 throw new EventReplayException("EVENT_REPLAY_CONTROL_FAILED",
-                        "selected event handling method did not dispatch exactly once");
+                        invalidOutcome
+                                ? "selected event handling produced conflicting or repeated replay outcomes"
+                                : "selected event handling method produced no replay outcome");
             }
         }
 

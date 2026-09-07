@@ -1,0 +1,17 @@
+{
+  "schemaVersion": "empty-event-delivery-proof.v1",
+  "baseRevision": "f2aefae64611882216292db1a96922ee5d814185",
+  "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+  "productionFilesMatched": 791,
+  "buildAndDependencyFilesUnchanged": 1777,
+  "providerSourceSha256": "829835da60d99ea953d0b2e599f80247f1c2f000405545686b371d474ab3e2ce",
+  "rawDirectory": "verifiers/target/empty-event-delivery/run-01",
+  "rawManifestHashes": {
+    "build-provenance.json": "a6bb55c6862dd6e6d20c052dcbc8a6f11da31b1c96ea891b34072aef54ba5551",
+    "production-hashes.json": "fc63e6a9b85c1a69701acc47b31e6864263d3aafc916665719c56a10782d2253",
+    "selection.json": "25201e5aa19191b2b4b5b022d145633c638eb7dadafb46be3ad477595f7beb4c",
+    "comparison.json": "ffe940a0e38e5fbcd1616108a21b0998ef70d67d39ef2be83ac914939921c6a7"
+  },
+  "qualification": "6 fresh serial Docker/JVM/H2 attempts; original package hashes unchanged; v6 results preserve historical comparisons",
+  "scope": "Source-backed continuation/healthy/masking controls; existing provider-backed Question positive; no score or Quizzes production changes"
+}

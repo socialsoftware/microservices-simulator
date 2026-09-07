@@ -95,7 +95,7 @@ class ScenarioExecutorSpec extends Specification {
         def report = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(service))
 
         then:
-        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v5'
+        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v6'
         report.executionAttemptId()
         report.workloadPlanId() == workload.deterministicId()
         report.faultScenarioId() == scenario.deterministicId()
@@ -119,7 +119,7 @@ class ScenarioExecutorSpec extends Specification {
         packageChecksums(packageFixture.directory) == before
         Files.isRegularFile(output)
         def json = MAPPER.readTree(output.toFile())
-        json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v5'
+        json.path('schemaVersion').asText() == 'microservices-simulator.scenario-execution-report.v6'
         json.path('plannedActions').size() == 4
         json.path('actualActions').size() == 4
         def impactV2Output = output.resolveSibling('execution-report.impact-v2.json')
@@ -2297,7 +2297,7 @@ class ScenarioExecutorSpec extends Specification {
         }
 
         then:
-        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v5'
+        report.schemaVersion() == 'microservices-simulator.scenario-execution-report.v6'
         report.terminalStatus() == 'SUCCESS'
         report.scheduleConformance() == 'EXACT'
         report.actualActions()*.kind() == ['FORWARD', 'EVENT_CONSEQUENCE', 'FORWARD']
@@ -2394,6 +2394,61 @@ class ScenarioExecutorSpec extends Specification {
         routeOrder << [['A', 'B', 'C'], ['C', 'A', 'B']]
     }
 
+    def 'an empty selected route completes explicitly and later actions continue without delivery evidence'() {
+        given:
+        def workload = eventWorkload()
+        def scenario = scenarios(workload, '00').find { candidate ->
+            candidate.actions()*.kind() == [FaultScenarioActionKind.FORWARD,
+                                            FaultScenarioActionKind.EVENT_CONSEQUENCE,
+                                            FaultScenarioActionKind.FORWARD]
+        }
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def stateObserver = new FixturePersistentStateObserver(null)
+        def handling = new FixtureEventHandling(service.fixtureEventService, 0, 'SUCCESS', stateObserver)
+        def runtime = new TrackingRuntimeContext(service, [
+                (FixtureEventHandling): handling, (PersistentStateObserver): stateObserver])
+        def output = outsidePackageOutput(packageFixture, 'event-empty.json')
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, output, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.scheduleConformance() == 'EXACT'
+        report.actualActions()*.status() == ['COMPLETED', 'NO_ELIGIBLE_SUBSCRIBER', 'COMPLETED']
+        report.actualActions()[1].with {
+            bodyOutcome() == 'NOT_RUN'
+            commitOutcome() == 'NOT_APPLICABLE'
+            eventEvidence().eventId() != null
+            eventEvidence().eventTypeFqn() == FixtureEvent.name
+            eventEvidence().eventHandlingMethodName() == 'handleFixtureEvents'
+            eventEvidence().subscriberAggregateId() == null
+        }
+        report.actualActions().last().runtimeStepName() == 'second'
+        def evidence = MAPPER.readTree(output.resolveSibling('event-empty.impact-v2.json').toFile())
+        evidence.path('assessmentStatus').asText() == 'COMPLETE'
+        evidence.path('completeScore').asInt() == 0
+        evidence.path('eventDeliveries').isEmpty()
+        evidence.path('categoryResults').find {
+            it.path('category').asText() == 'UNRESOLVED_DELIVERED_EVENT'
+        }.with {
+            path('candidateCount').asInt() == 0
+            path('unknownReasons').isEmpty()
+        }
+        EventReplayCoordinator.currentSelectedEvent().isEmpty()
+        ImpactWriterContext.current().isEmpty()
+    }
+
     def 'all selected routes are masked when their common trigger never completes'() {
         given:
         def workload = combinedEventWorkload(['A', 'B', 'C'])
@@ -2427,7 +2482,56 @@ class ScenarioExecutorSpec extends Specification {
         false         || 'MASKED_BY_TRIGGER_FAILURE'
     }
 
-    def 'a later selected route rechecks current eligibility and stops subsequent routes on replay failure'() {
+    def 'a later empty route rechecks current eligibility while independent deliveries and following actions continue'() {
+        given:
+        def workload = combinedEventWorkload(['A', 'B', 'C'])
+        def scenario = scenarios(workload, '00')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def service = new TrackingSagaUnitOfWorkService()
+        def stateObserver = new MultiRoutePersistentStateObserver()
+        def handling = new MultiRouteEventHandling(service.fixtureEventService, stateObserver)
+        handling.afterFirst = changeAfterFirst
+        def runtime = new TrackingRuntimeContext(service, [
+                (MultiRouteEventHandling): handling, (PersistentStateObserver): stateObserver])
+        def output = outsidePackageOutput(packageFixture, 'combined-empty.json')
+        FixtureWorkflow.emitEvents('solo', 'first', 1)
+        def gate = activateEventReplay()
+
+        when:
+        def report
+        try {
+            report = new ScenarioExecutor().execute(
+                    options(packageFixture.manifest, output, scenario.deterministicId()), runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        report.terminalStatus() == 'SUCCESS'
+        report.scheduleConformance() == 'EXACT'
+        report.actualActions()*.status() ==
+                ['COMPLETED', 'COMPLETED', 'NO_ELIGIBLE_SUBSCRIBER', 'COMPLETED', 'COMPLETED']
+        handling.invocations*.route == ['A', 'C']
+        report.actualActions()[2].eventEvidence().subscriberAggregateId() == null
+        report.actualActions().last().runtimeStepName() == 'second'
+        def evidence = MAPPER.readTree(output.resolveSibling('combined-empty.impact-v2.json').toFile())
+        evidence.path('assessmentStatus').asText() == 'PARTIAL'
+        evidence.path('completeScore').isNull()
+        evidence.path('eventDeliveries').size() == 2
+        evidence.path('categoryResults').find {
+            it.path('category').asText() == 'UNRESOLVED_DELIVERED_EVENT'
+        }.with {
+            path('candidateCount').asInt() == 2
+            path('unknownReasons')*.path('reason')*.asText() ==
+                    ['FINAL_RECEIVER_OBSERVATION_UNAVAILABLE', 'FINAL_RECEIVER_OBSERVATION_UNAVAILABLE']
+        }
+
+        where:
+        changeAfterFirst << ['REMOVE_SECOND', 'ACK_SECOND']
+    }
+
+    def 'a later selected route rechecks current eligibility and hard stops on genuine replay failure'() {
         given:
         def workload = combinedEventWorkload(['A', 'B', 'C'])
         def scenario = scenarios(workload, '00')[0]
@@ -2471,8 +2575,6 @@ class ScenarioExecutorSpec extends Specification {
         changeAfterFirst | secondMode  || expected                                    | invokedRoutes
         'NONE'           | 'FAIL'      || 'EVENT_CONSEQUENCE_FAILED'                   | ['A', 'B']
         'NONE'           | 'RECURSIVE' || 'RECURSIVE_EVENT_CONSEQUENCE_UNSUPPORTED'     | ['A', 'B']
-        'REMOVE_SECOND'  | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'               | ['A']
-        'ACK_SECOND'     | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'               | ['A']
         'ADD_SECOND'     | 'SUCCESS'   || 'MULTIPLE_MATCHING_SUBSCRIBERS_UNSUPPORTED'   | ['A']
         'MUTATE_EVENT'   | 'SUCCESS'   || 'EVENT_REPLAY_CONTROL_FAILED'                 | ['A']
     }
@@ -2647,8 +2749,8 @@ class ScenarioExecutorSpec extends Specification {
         emissions | subscribers | handlerMode || expected
         0         | 1           | 'SUCCESS'   || 'EXPECTED_EVENT_NOT_EMITTED'
         2         | 1           | 'SUCCESS'   || 'MULTIPLE_MATCHING_EVENTS_UNSUPPORTED'
-        1         | 0           | 'SUCCESS'   || 'SELECTED_SUBSCRIBER_NOT_FOUND'
         1         | 2           | 'SUCCESS'   || 'MULTIPLE_MATCHING_SUBSCRIBERS_UNSUPPORTED'
+        1         | 1           | 'SELECTION_FAIL' || 'EVENT_CONSEQUENCE_FAILED'
         1         | 1           | 'FAIL'      || 'EVENT_CONSEQUENCE_FAILED'
         1         | 1           | 'RECURSIVE' || 'RECURSIVE_EVENT_CONSEQUENCE_UNSUPPORTED'
     }
@@ -3428,6 +3530,7 @@ class ScenarioExecutorSpec extends Specification {
 
         @Override
         Set<Integer> getAggregateIds() {
+            if (mode == 'SELECTION_FAIL') throw new IllegalStateException('subscriber selection failed')
             subscriberCount == 0 ? [] as Set : (99..<(99 + subscriberCount)) as Set
         }
 

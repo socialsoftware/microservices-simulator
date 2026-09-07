@@ -289,6 +289,65 @@ class ImpactV2AssessorSpec extends Specification {
         category(cleared, 'UNRESOLVED_DELIVERED_EVENT').positiveObjectCount() == 0
     }
 
+    def 'empty event attempts neither create delivery candidates nor hide an independent delivered event finding'() {
+        given:
+        def item = id('com.example.dummyapp.item.aggregate.Item', 1)
+        def unchanged = snapshot(item, 1, 'ACTIVE', [name: 'same'])
+
+        when: 'the completed schedule contains only a confirmed empty route attempt'
+        def emptyOnly = assess(execution('SUCCESS', 'EXACT', [noEligibleEventAction('p1', 8)]),
+                [], [], [], [])
+
+        then:
+        emptyOnly.assessmentStatus() == 'COMPLETE'
+        emptyOnly.completeScore() == 0
+        category(emptyOnly, 'UNRESOLVED_DELIVERED_EVENT').with {
+            candidateCount() == 0
+            positiveObjectCount() == 0
+            unknownReasons().empty
+        }
+
+        when: 'another route in the same schedule has exact unresolved-delivery evidence'
+        def mixed = assess(execution('SUCCESS', 'EXACT', [
+                noEligibleEventAction('p1', 8), successfulEventAction('p1', 9)
+        ]), [], [], [], [delivery(9, unchanged, unchanged, unchanged, true)])
+
+        then:
+        mixed.assessmentStatus() == 'COMPLETE'
+        mixed.completeScore() == 1
+        category(mixed, 'UNRESOLVED_DELIVERED_EVENT').with {
+            candidateCount() == 1
+            positiveObjectCount() == 1
+            findings()*.eventId() == [9]
+            unknownReasons().empty
+        }
+
+        when: 'independent deletion and failed-recovery effects coexist with the empty route'
+        def source = id('com.example.dummyapp.item.aggregate.Item', 2)
+        def target = id('com.example.dummyapp.order.aggregate.Order', 3)
+        def dependency = new ImpactEvidence.Dependency(source, target, 3, 1L,
+                'OrderChanged', 'OrderSubscription')
+        def sourceState = snapshot(source, 1, 'ACTIVE', [name: 'source'], [dependency])
+        def targetBefore = snapshot(target, 1, 'ACTIVE', [status: 'open'])
+        def targetDeleted = snapshot(target, 2, 'DELETED', [status: 'open'])
+        def independent = assess(execution('COMPENSATED', 'EXACT', [
+                failedAction('p1'), noEligibleEventAction('p1', 8)
+        ], [compensatedParticipant('p1')], [compensatedLifecycle('p1')]),
+                [sourceState, targetBefore], [sourceState, targetDeleted],
+                [write(1, targetDeleted, sagaWriter('p1', 'recover-order', 'RECOVERY'))], [])
+
+        then:
+        independent.assessmentStatus() == 'COMPLETE'
+        independent.completeScore() == 2
+        category(independent, 'DELETED_DEPENDENCY').positiveObjectCount() == 1
+        category(independent, 'FAILED_OPERATION_RESIDUAL').positiveObjectCount() == 1
+        category(independent, 'UNRESOLVED_DELIVERED_EVENT').with {
+            candidateCount() == 0
+            positiveObjectCount() == 0
+            unknownReasons().empty
+        }
+    }
+
     def 'partial projection keeps positive lower bound and null complete score'() {
         given:
         def item = id('com.example.dummyapp.item.aggregate.Item', 1)
@@ -457,11 +516,17 @@ class ImpactV2AssessorSpec extends Specification {
         action('event-action', 'EVENT_CONSEQUENCE', saga, 'COMPLETED', eventId, subscriberId)
     }
 
+    private static ScenarioExecutionReport.ActionOutcome noEligibleEventAction(String saga, int eventId) {
+        action('empty-event-action', 'EVENT_CONSEQUENCE', saga, 'NO_ELIGIBLE_SUBSCRIBER', eventId, 0)
+    }
+
     private static ScenarioExecutionReport.ActionOutcome action(String actionId, String kind, String saga,
                                                                  String status, Integer eventId,
                                                                  int subscriberId = 1) {
         def eventEvidence = eventId == null ? null : new ScenarioExecutionReport.EventRuntimeEvidence(
-                eventId, 'OrderChanged', 2, 1L, true, subscriberId, 'FixtureHandling', 'handle', 'FixtureHandler')
+                eventId, 'OrderChanged', 2, 1L, true,
+                status == 'NO_ELIGIBLE_SUBSCRIBER' ? null : subscriberId,
+                'FixtureHandling', 'handle', 'FixtureHandler')
         new ScenarioExecutionReport.ActionOutcome(actionId, kind, saga, null, null,
                 eventId == null ? null : 'event-consequence', null, null, null, null, actionId,
                 0, 0, status, status == 'COMPLETED' ? 'SUCCEEDED' : 'NOT_RUN',

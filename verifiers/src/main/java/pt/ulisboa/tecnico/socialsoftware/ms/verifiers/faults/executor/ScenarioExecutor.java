@@ -1065,8 +1065,11 @@ public final class ScenarioExecutor {
             selection.verifyCompleted();
             ScenarioExecutionReport.EventRuntimeEvidence evidence = eventEvidence(
                     consequence, captured, selection.subscriberAggregateId());
+            String status = selection.outcome() == EventReplayCoordinator.SelectedEventOutcome.DELIVERED
+                    ? "COMPLETED"
+                    : "NO_ELIGIBLE_SUBSCRIBER";
             return EventActionResult.completed(eventOutcome(action, plannedPosition, actualPosition,
-                    "COMPLETED", evidence, null));
+                    status, evidence, null));
         } catch (Throwable failure) {
             Throwable cause = unwrap(failure);
             String reason = cause instanceof EventReplayException replayFailure
@@ -1129,7 +1132,9 @@ public final class ScenarioExecutor {
                 null, null, action.action().sourceEventConsequenceId(), action.sourceScheduledStepId(),
                 action.sourceStepId(), action.runtimeStepName(), null, action.action().occurrenceId(),
                 plannedPosition, actualPosition, status,
-                "COMPLETED".equals(status) ? "SUCCEEDED" : status.startsWith("MASKED_") ? "NOT_RUN" : "FAILED",
+                "COMPLETED".equals(status) ? "SUCCEEDED"
+                        : "NO_ELIGIBLE_SUBSCRIBER".equals(status) || status.startsWith("MASKED_")
+                        ? "NOT_RUN" : "FAILED",
                 "NOT_APPLICABLE", null, evidence, List.of(),
                 failure == null ? null : failure.getClass().getName(),
                 failure == null ? null : failure.getMessage());

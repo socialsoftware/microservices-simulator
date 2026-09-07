@@ -1,0 +1,30 @@
+c1 r1 control: PASS 0.02s
+c1 r2 control: INVALID_REPORT 0.02s
+c1 r1 control: PROCESS_FAILURE 0.02s
+c1 r1 control: PROCESS_FAILURE 0.02s
+c1 r2 control: INVALID_REPORT 0.02s
+c1 r1 control: INFRASTRUCTURE_FAILURE 0.00s
+c1 r1 control: INVALID_REPORT 0.02s
+c1 r1 control: INVALID_REPORT 0.02s
+c1 r1 control: SEMANTIC_DIVERGENCE 0.02s
+c1 r1 control: PASS 0.02s
+c1 r2 control: PROCESS_FAILURE 0.02s
+c1 r1 control: PASS 0.05s
+test_current_and_historical_execution_schemas_are_explicitly_supported (test_run.RunnerTests.test_current_and_historical_execution_schemas_are_explicitly_supported) ... ok
+test_existing_attempt_is_not_overwritten (test_run.RunnerTests.test_existing_attempt_is_not_overwritten) ... ok
+test_failed_process_and_missing_report_are_retained_without_score (test_run.RunnerTests.test_failed_process_and_missing_report_are_retained_without_score) ... ok
+test_launch_failure_is_retained (test_run.RunnerTests.test_launch_failure_is_retained) ... ok
+test_malformed_json_is_retained (test_run.RunnerTests.test_malformed_json_is_retained) ... ok
+test_maven_cache_must_match_prepared_module_jars (test_run.RunnerTests.test_maven_cache_must_match_prepared_module_jars) ... ok
+test_mismatched_identity_is_invalid_not_zero (test_run.RunnerTests.test_mismatched_identity_is_invalid_not_zero) ... ok
+test_new_ids_do_not_change_semantics (test_run.RunnerTests.test_new_ids_do_not_change_semantics) ... ok
+test_package_drift_rejected (test_run.RunnerTests.test_package_drift_rejected) ... ok
+test_semantic_difference_remains_visible (test_run.RunnerTests.test_semantic_difference_remains_visible) ... ok
+test_summary_keeps_failure_denominator_and_rejects_changed_artifacts (test_run.RunnerTests.test_summary_keeps_failure_denominator_and_rejects_changed_artifacts) ... ok
+test_timeout_kills_process_and_retains_log_and_command (test_run.RunnerTests.test_timeout_kills_process_and_retains_log_and_command) ... ok
+test_valid_zero_is_distinct_from_missing_or_invalid (test_run.RunnerTests.test_valid_zero_is_distinct_from_missing_or_invalid) ... ok
+
+----------------------------------------------------------------------
+Ran 13 tests in 0.425s
+
+OK

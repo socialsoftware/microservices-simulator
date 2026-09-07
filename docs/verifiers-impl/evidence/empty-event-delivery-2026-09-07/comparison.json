@@ -1,0 +1,371 @@
+{
+  "schemaVersion": "empty-event-delivery-qualification.v1",
+  "passed": true,
+  "attempts": 6,
+  "rows": [
+    {
+      "case": "w01-no-fault",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": {
+        "path": "verifiers/target/space-map-setup-qualification-03/runtime/w01-no-fault/execution.json",
+        "sha256": "4bd731acfdd866fcc06f608cb813266b0cefc9042d8a21e947f292e65888a30d",
+        "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE",
+        "conformance": "INCOMPLETE",
+        "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND"
+      },
+      "terminalStatus": "SUCCESS",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "NO_ELIGIBLE_SUBSCRIBER",
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "NO_ELIGIBLE_SUBSCRIBER",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "NO_ELIGIBLE_SUBSCRIBER",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 0,
+      "emptySelections": 2,
+      "assessment": "COMPLETE",
+      "score": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "b53acf3a47f1069026584bb0063207b5fe2ec7707d401f2f58f0328b796225d3",
+        "execution.json": "6230e2adb2b11b7d0f0da87823aae68e32073903443a1f31ab98c6a332727e83",
+        "impact-v1.json": "30d7511f13f849cb80f25461c95f12d91949619a3dee08ef425d646a3192649c",
+        "process.json": "3c86fe79bac3f8dbc96ec33436bb855950e760202f38f4f3aaf5fed15b7eff3f"
+      }
+    },
+    {
+      "case": "update-tournament-no-fault",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": {
+        "path": "verifiers/target/space-map-setup-qualification-03/runtime/update-tournament-no-fault/execution.json",
+        "sha256": "a4eb491d14cc84a0a32ab9f0c42637432797aca86b36a3406d1c0bf971c8139d",
+        "terminalStatus": "SUCCESS",
+        "conformance": "EXACT",
+        "hardStopReason": null
+      },
+      "terminalStatus": "SUCCESS",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "COMPLETED"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 1,
+      "emptySelections": 0,
+      "assessment": "COMPLETE",
+      "score": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "b558852fc9bcd7a8e1cf69111203cbeccf8a56a0d695a6b60105f867f5c7b81c",
+        "execution.json": "1d305033628eac6d5998dfe418a726c40d94fb22c82ca2673b8b06a865946639",
+        "impact-v1.json": "15ad237a15a08a4798d77f1f5e086540b6a6ae9e5abf64545b059e6806cf39ef",
+        "process.json": "246886d871cbca17d067a1e9ee37c697eac156a78b1b89cd290757c00e95e322"
+      }
+    },
+    {
+      "case": "update-tournament-trigger-fault",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": {
+        "path": "verifiers/target/space-map-setup-qualification-03/runtime/update-tournament-trigger-fault/execution.json",
+        "sha256": "84126b2e3836548b9fcafaff105ef14e2ac14d6eb8cd1a32a1d8e4388b660efe",
+        "terminalStatus": "COMPENSATED",
+        "conformance": "EXACT",
+        "hardStopReason": null
+      },
+      "terminalStatus": "COMPENSATED",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "MASKED_BY_TRIGGER_FAULT"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "ASSIGNED_FAULT",
+          "NOT_RUN",
+          "NOT_RUN"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "MASKED_BY_TRIGGER_FAULT",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 0,
+      "emptySelections": 0,
+      "assessment": "COMPLETE",
+      "score": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "2806ffb0ca2d1a82520537036d9391c55b29f8ad0cf7d978c00dbcf2392b226c",
+        "execution.json": "11276c33d3ac32e5bdd1f990f96b8ddcf862211d6c597b75510a1303d0b02548",
+        "impact-v1.json": "46558329fbea2bef7faba53083935cd218a60ad018f707f468077f0fc73ece5f",
+        "process.json": "73033a5190dc62b852049b592073cc13744d4ef3ee4137b0055526e8c8d01d31"
+      }
+    },
+    {
+      "case": "answer-quiz-missing-tournament",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": {
+        "path": "docs/verifiers-impl/evidence/combined-events-2026-09-06/answer-quiz-missing-tournament/execution.json",
+        "sha256": "737fc215a0f39cde31446836ac6bfe42bb318f6d374df8b5b31be001d672544b",
+        "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE",
+        "conformance": "INCOMPLETE",
+        "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND"
+      },
+      "terminalStatus": "SUCCESS",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "COMPLETED",
+        "COMPLETED",
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_APPLICABLE"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_APPLICABLE"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "NO_ELIGIBLE_SUBSCRIBER",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 2,
+      "emptySelections": 1,
+      "assessment": "COMPLETE",
+      "score": 0,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "d5d2f77bfca525c0619d2e99f338da197cddd8df2f97a0376348d140065e28dd",
+        "execution.json": "b4ecdd14e28ef2d29e15b8f7f849c9dbe1268af06b278bc9ce543ce2225ec607",
+        "impact-v1.json": "0904ddbdcf54c258f7f5d6702679426ebd6b9d4da0030e02607e8e0b9b01f19d",
+        "process.json": "2b81ca37146e831b17fabf699b2ddaf3eb22156fe71fd2909d78d1fc17498fa1"
+      }
+    },
+    {
+      "case": "unresolved-question-positive",
+      "fixture": "existing-qualification-only-provider",
+      "observer": true,
+      "baseline": {
+        "path": "verifiers/target/impact-v2-qualification/run-03/event-current.execution.json",
+        "sha256": "c7b4204ebd12525a05d116c8b87ee8cd0ce4b78c032e112d8ac40acb743b2155",
+        "terminalStatus": "SUCCESS",
+        "conformance": "EXACT",
+        "hardStopReason": null
+      },
+      "terminalStatus": "SUCCESS",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "COMPLETED"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 1,
+      "emptySelections": 0,
+      "assessment": "COMPLETE",
+      "score": 1,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 1
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "a81b6adbb1eef9f28298c2bf295f170392db838523ce02c82f04b5f6576bae13",
+        "execution.json": "5b87dc7e6c33511176607e61d6cde31391f5c9b6e372fc0358d52994683da1d6",
+        "impact-v1.json": "559ce5301307210bb5917f1ba7db1884bc14d045c124139bd0e905905d1deab1",
+        "process.json": "6d21b7785c8c4a6994b20a8b1f6a8d2abaa1be409afcfb15f4f62094e043e438"
+      }
+    },
+    {
+      "case": "w01-observer-off",
+      "fixture": "source-derived",
+      "observer": false,
+      "baseline": null,
+      "terminalStatus": "SUCCESS",
+      "conformance": "EXACT",
+      "hardStopReason": null,
+      "eventStatuses": [
+        "NO_ELIGIBLE_SUBSCRIBER",
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "actionTrace": [
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "NOT_RUN"
+        ],
+        [
+          "FORWARD",
+          "COMPLETED",
+          "SUCCEEDED",
+          "SUCCEEDED"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "NO_ELIGIBLE_SUBSCRIBER",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ],
+        [
+          "EVENT_CONSEQUENCE",
+          "NO_ELIGIBLE_SUBSCRIBER",
+          "NOT_RUN",
+          "NOT_APPLICABLE"
+        ]
+      ],
+      "actualDeliveries": 0,
+      "emptySelections": 2,
+      "assessment": "UNAVAILABLE",
+      "score": null,
+      "categories": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "coverageGaps": 0,
+      "hashes": {
+        "execution.impact-v2.json": "cb29d62e0fb2b4d04ba09d8ed2a177705bcfe4c6eb25f984b98a8b69067159bf",
+        "execution.json": "5ba3c4254057b354b0d0fd6331a814c7ba1c8d671be1fac952c81daacb9f1a26",
+        "impact-v1.json": "54e9a4e1df028c12fb4a5bff9b5d8760fc1e4603281a369ca01e705e0c3547d2",
+        "process.json": "5185aeed9cde7a9c33481301423390a132cfc6e75abdcfc6cea1b31a9cca66ff"
+      }
+    }
+  ]
+}

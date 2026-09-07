@@ -1,0 +1,90 @@
+{
+  "selection": "Fixed continuation cases plus existing positive/healthy/masking controls; no new outcomes used.",
+  "fixtureNow": "2026-09-07T16:54:15",
+  "rows": [
+    {
+      "case": "w01-no-fault",
+      "manifest": "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json",
+      "scenario": "0054da5db992416997cc9ca7e150a3992669a0631410029ecdabc67849d31271",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": "verifiers/target/space-map-setup-qualification-03/runtime/w01-no-fault/execution.json"
+    },
+    {
+      "case": "update-tournament-no-fault",
+      "manifest": "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json",
+      "scenario": "e4adf1b55ee9370cf0afb648aac2a20a9960227c849f9e6cc2af691e684ef9af",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": "verifiers/target/space-map-setup-qualification-03/runtime/update-tournament-no-fault/execution.json"
+    },
+    {
+      "case": "update-tournament-trigger-fault",
+      "manifest": "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json",
+      "scenario": "f08728e387e09af8e71c48774852d0830f73069967451effb10f499185a8a282",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": "verifiers/target/space-map-setup-qualification-03/runtime/update-tournament-trigger-fault/execution.json"
+    },
+    {
+      "case": "answer-quiz-missing-tournament",
+      "manifest": "verifiers/target/combined-event-deliveries/run-02/generated/quizzes-20260906-180214-888/scenario-catalog-manifest.json",
+      "scenario": "99307e40c89fa83602cc9975f519cd0586a57be93cf68cace01d76de24225d32",
+      "fixture": "source-derived",
+      "observer": true,
+      "baseline": "docs/verifiers-impl/evidence/combined-events-2026-09-06/answer-quiz-missing-tournament/execution.json"
+    },
+    {
+      "case": "unresolved-question-positive",
+      "manifest": "verifiers/target/impact-v2-qualification/run-03/package/scenario-catalog-manifest.json",
+      "scenario": "3045c9920d9f0ec98f21e7edca0db896ab879e8b3eecf59834b7c6c98c4f788a",
+      "fixture": "existing-qualification-only-provider",
+      "observer": true,
+      "baseline": "verifiers/target/impact-v2-qualification/run-03/event-current.execution.json"
+    },
+    {
+      "case": "w01-observer-off",
+      "manifest": "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json",
+      "scenario": "0054da5db992416997cc9ca7e150a3992669a0631410029ecdabc67849d31271",
+      "fixture": "source-derived",
+      "observer": false,
+      "baseline": null
+    }
+  ],
+  "packageHashes": {
+    "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json": {
+      "accounting.json": "0db4412f778e5770940e6283ee6c9224262fc6de16d93da83f1d050667073008",
+      "fault-scenarios.jsonl": "2e78f01e31beb0c87f2bb5560d6518983fb5e699f9b515a563ffdd33a7ab6dd5",
+      "inputs.jsonl": "fe46e4fcf11b2d454d4db9d6cd4c1bc4afec4381b694d7c0d2a10b075303471c",
+      "interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+      "requests.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sagas.jsonl": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+      "scenario-catalog-manifest.json": "93297e9449dcf7e1050ddc5c82aa25117bd0f93ba6a3dc715a70bb6c90c6b521",
+      "setups.jsonl": "23d4e38edeedaafd2e74ee8bf12d16e17ff6fb61a5db49fac3374be769cd50ea",
+      "workloads.jsonl": "7102df937ad4511f01bc75a0b5d07e9720e65103c7adc6d2bd4781acc43269d9"
+    },
+    "verifiers/target/combined-event-deliveries/run-02/generated/quizzes-20260906-180214-888/scenario-catalog-manifest.json": {
+      "accounting.json": "5e3a11a8489c437796fd94cbb03125e286236cd8454d52d82d6a7873f1d4851d",
+      "fault-scenarios.jsonl": "c9cc631fc5dbb1e2a64c3cf418bc798575c020d29c243ee468df9f0fa3b0f5f3",
+      "inputs.jsonl": "9ec2345b8f8d1ebfd85118bceb5ffc3f41dcba0a4bf047bdd6b9ebd5916b6c83",
+      "interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+      "requests.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sagas.jsonl": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+      "scenario-catalog-manifest.json": "ff9f8c214d8c76abe6029d59d0f0455136e66b2967ff4deb9fac1ee8f444ee67",
+      "setups.jsonl": "0481cf8bc7b7c1ad23384e10b89e75131de632c7f51c8c5cd60a60f2ec915583",
+      "workloads.jsonl": "01b992b65e16655ca852ddd51c4b188b7040abb7847cf0dd81cc197c8e593e94"
+    },
+    "verifiers/target/impact-v2-qualification/run-03/package/scenario-catalog-manifest.json": {
+      "accounting.json": "39936b70a3858fb360270daeb3ad27c0c8727c15bcf89e40aaf9f51c70d4f525",
+      "fault-scenarios.jsonl": "951394ae9d76ef5d4117c2f4d8226f611756a5dab9def02dea7dbddb9ed3041a",
+      "inputs.jsonl": "49192a1eb84165482bc5d02f67abc79cd48e8508f3576ece635dae542ddd388c",
+      "interactions.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "requests.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "sagas.jsonl": "9d98e37959a3635aef484de6dd63d5e2b683693e30352ae21f8f7c2927bcbfd0",
+      "scenario-catalog-manifest.json": "9196a0a733181003dbf2e477eec6730b89f85466ca505569447e7af5b2f56df5",
+      "selection.json": "36754be85716baf97cef0904a3a38a9ef94d544ac2149986a69be5a07807f389",
+      "setups.jsonl": "f2c5b536b3a5f461d51ab794e44397954bee16b885d16457707ce6e590828ae2",
+      "workloads.jsonl": "8211bfe4e32fc2900498df2e1c3ffd9d640ac25569e5921690658d2e3382d990"
+    }
+  }
+}

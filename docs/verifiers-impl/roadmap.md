@@ -48,7 +48,12 @@ The breadth and representativeness of that selected set bound the thesis claim.
    Keep findings distinct from the existing affected-object count; no business-harm rule
    is required. Restored updates, runtime result binding and broader isolation
    classification remain separate future work.
-3. Measure execution cost and define deterministic/random search baselines, then evaluate
+3. **Complete:** controlled Saga/local replay records a current empty eligible set as
+   `NO_ELIGIBLE_SUBSCRIBER`, preserves exact schedule continuation, and keeps ImpactV2's
+   delivered-event category limited to actual deliveries. Execution-report v6 distinguishes this policy from
+   retained v5 hard-stop evidence. The implementation package is
+   `issues/2026-09-07-empty-event-delivery/`.
+4. Measure execution cost and define deterministic/random search baselines, then evaluate
    GA on the declared experiment space. Cost/baseline preparation can proceed alongside
    the bounded diagnostic qualification; do not wait for every anomaly type, fan-out shape
    or asynchronous chain. Any choice to use anomaly findings as fitness must explicitly
@@ -522,6 +527,13 @@ and its 60 broader attempts remain historical observations, not current recovery
 
 **Next priorities, with scoring policy held for discussion:**
 
+- **Decided and implemented, 7 September:** a selected route with a confirmed empty
+  eligible set completes explicitly and does not create an ImpactV2 delivery candidate.
+  Later scheduled actions continue; multiple receivers and genuine replay failures still
+  hard-stop. New reports use execution schema v6, while historical v5 outcomes retain
+  their original meaning. [Docker qualification evidence](evidence/empty-event-delivery-2026-09-07/README.md)
+  covers empty, delivered, masked, mixed-route, positive-impact, and observer-disabled
+  executions.
 - **Decided and implemented, 7 September:** a measured creation logically deleted by
   recovery no longer contributes a residual point by itself. Active dependencies remain
   independently scored. [Reassessment and contract](current-state.md#recovered-creation-remnants)

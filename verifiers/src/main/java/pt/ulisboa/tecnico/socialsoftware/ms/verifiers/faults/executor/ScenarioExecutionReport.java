@@ -31,7 +31,7 @@ public record ScenarioExecutionReport(
         List<Participant> participants,
         List<Blocker> blockers) {
 
-    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v5";
+    public static final String SCHEMA_VERSION = "microservices-simulator.scenario-execution-report.v6";
 
     public ScenarioExecutionReport {
         schemaVersion = schemaVersion == null || schemaVersion.isBlank() ? SCHEMA_VERSION : schemaVersion;

@@ -80,11 +80,89 @@ class EventReplayCoordinatorTest {
                              handler.getClass().getName())) {
             applicationService.handleSubscribedEvent(TestEvent.class, handler);
             selected.verifyCompleted();
+            assertThat(selected.outcome()).isEqualTo(EventReplayCoordinator.SelectedEventOutcome.DELIVERED);
             assertThat(selected.subscriberAggregateId()).isEqualTo(41);
         }
 
         verify(handler).handleEvent(41, event);
         assertThat(EventReplayCoordinator.currentSelectedEvent()).isEmpty();
+        EventReplayCoordinator.assertNoOpenThreadScope();
+    }
+
+    @Test
+    void confirmsAnEmptyEligibleSetWithTheSameOutcomeWhetherObservationIsEnabledOrDisabled() {
+        activate();
+        TestEvent event = event(18, 8, 30L);
+        EventReplayCoordinator.CapturedEvent captured = new EventReplayCoordinator.CapturedEvent(
+                18, TestEvent.class.getName(), 8, 30L, true);
+        EventService eventService = mock(EventService.class);
+        when(eventService.getEventForReplay(18)).thenReturn(event);
+        EventHandler handler = mock(EventHandler.class);
+        when(handler.getAggregateIds()).thenReturn(Set.of());
+        EventApplicationService applicationService = applicationService(eventService);
+
+        try (EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                captured, TestEvent.class.getName(), handler.getClass().getName())) {
+            applicationService.handleSubscribedEvent(TestEvent.class, handler);
+            selected.verifyCompleted();
+            assertThat(selected.outcome())
+                    .isEqualTo(EventReplayCoordinator.SelectedEventOutcome.NO_ELIGIBLE_SUBSCRIBER);
+            assertThat(selected.subscriberAggregateId()).isNull();
+        }
+
+        RecordingImpactObserver observer = new RecordingImpactObserver();
+        try (ImpactEvidenceObserverHolder.Scope ignored = ImpactEvidenceObserverHolder.install(observer);
+             EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                     captured, TestEvent.class.getName(), handler.getClass().getName())) {
+            applicationService.handleSubscribedEvent(TestEvent.class, handler);
+            selected.verifyCompleted();
+            assertThat(selected.outcome())
+                    .isEqualTo(EventReplayCoordinator.SelectedEventOutcome.NO_ELIGIBLE_SUBSCRIBER);
+        }
+
+        verify(handler, never()).handleEvent(anyInt(), any());
+        assertThat(observer.deliveries).isEmpty();
+        EventReplayCoordinator.assertNoOpenThreadScope();
+    }
+
+    @Test
+    void selectedEventScopeRejectsMissingRepeatedAndConflictingOutcomes() {
+        activate();
+        EventReplayCoordinator.CapturedEvent captured = new EventReplayCoordinator.CapturedEvent(
+                19, TestEvent.class.getName(), 9, 31L, true);
+
+        try (EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                captured, TestEvent.class.getName(), "handler")) {
+            assertThatThrownBy(selected::verifyCompleted)
+                    .isInstanceOf(EventReplayException.class)
+                    .extracting(failure -> ((EventReplayException) failure).reason())
+                    .isEqualTo("EVENT_REPLAY_CONTROL_FAILED");
+        }
+        try (EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                captured, TestEvent.class.getName(), "handler")) {
+            selected.recordNoEligibleSubscriber();
+            assertThatThrownBy(selected::recordNoEligibleSubscriber)
+                    .isInstanceOf(EventReplayException.class)
+                    .extracting(failure -> ((EventReplayException) failure).reason())
+                    .isEqualTo("EVENT_REPLAY_CONTROL_FAILED");
+            assertThatThrownBy(selected::verifyCompleted)
+                    .isInstanceOf(EventReplayException.class)
+                    .extracting(failure -> ((EventReplayException) failure).reason())
+                    .isEqualTo("EVENT_REPLAY_CONTROL_FAILED");
+        }
+        try (EventReplayCoordinator.SelectedEventScope selected = EventReplayCoordinator.beginSelectedEvent(
+                captured, TestEvent.class.getName(), "handler")) {
+            selected.recordDelivery(41);
+            assertThatThrownBy(selected::recordNoEligibleSubscriber)
+                    .isInstanceOf(EventReplayException.class)
+                    .extracting(failure -> ((EventReplayException) failure).reason())
+                    .isEqualTo("EVENT_REPLAY_CONTROL_FAILED");
+            assertThatThrownBy(selected::verifyCompleted)
+                    .isInstanceOf(EventReplayException.class)
+                    .extracting(failure -> ((EventReplayException) failure).reason())
+                    .isEqualTo("EVENT_REPLAY_CONTROL_FAILED");
+        }
+
         EventReplayCoordinator.assertNoOpenThreadScope();
     }
 

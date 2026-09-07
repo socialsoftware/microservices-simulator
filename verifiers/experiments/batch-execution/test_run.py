@@ -78,6 +78,18 @@ class RunnerTests(unittest.TestCase):
         self.assertEqual(3, len(result['reportHashes']))
         self.assertEqual(.001, result['sourceSetupSeconds'])
 
+    def test_current_and_historical_execution_schemas_are_explicitly_supported(self):
+        current = fixture()
+        current[0]['schemaVersion'] = 'microservices-simulator.scenario-execution-report.v6'
+        accepted = self.execute(self.write_reports_command(current))
+        self.assertEqual('PASS', accepted['status'])
+
+        unsupported = fixture()
+        unsupported[0]['schemaVersion'] = 'microservices-simulator.scenario-execution-report.v4'
+        rejected = self.execute(self.write_reports_command(unsupported, 2), 2)
+        self.assertEqual('INVALID_REPORT', rejected['status'])
+        self.assertIsNone(rejected['score'])
+
     def test_mismatched_identity_is_invalid_not_zero(self):
         values = fixture()
         values[2]['executionAttemptId'] = 'another-process'

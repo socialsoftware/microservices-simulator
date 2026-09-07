@@ -201,7 +201,7 @@ The Java visitors discover:
 - event producers through `Saga step -> command dispatch -> service -> direct registerEvent(new EventType(...))`;
 - event consumers through `EventHandling -> EventProcessing -> functionality -> Saga`.
 
-An **event consequence** is the deterministic atomic normal action joining one supported producer emission to one selected consumer route. The producer call must use a directly resolved `UnitOfWorkService` variable, pass the service method's single relevant `UnitOfWork` parameter, and construct the event directly. A step is rejected if any matching emission comes from compensation, even when it also has a supported forward emission. The selected `EventHandling` method must contain exactly one unconditional, unrepeated, direct `handleSubscribedEvent` delegation. The extractor also rejects ambiguous producer dispatch, multiple/repeated/conditional emissions, unresolved routes, non-Saga origins, recursion, and unsupported fan-out instead of guessing. Genuinely distinct globally selected routes remain distinct candidates. Event placement and the selected route participate in workload identity. Event consequences never own fault slots, vector bits, generated compensation, or compensation checkpoints.
+An **event consequence** is the deterministic atomic normal action joining one supported producer emission to one selected consumer route and attempting that route at its scheduled position. The attempt completes either with one exact delivery or with an explicit `NO_ELIGIBLE_SUBSCRIBER` result after successful eligibility enumeration. The producer call must use a directly resolved `UnitOfWorkService` variable, pass the service method's single relevant `UnitOfWork` parameter, and construct the event directly. A step is rejected if any matching emission comes from compensation, even when it also has a supported forward emission. The selected `EventHandling` method must contain exactly one unconditional, unrepeated, direct `handleSubscribedEvent` delegation. The extractor also rejects ambiguous producer dispatch, multiple/repeated/conditional emissions, unresolved routes, non-Saga origins, recursion, and unsupported fan-out instead of guessing. Genuinely distinct globally selected routes remain distinct candidates. Event placement and the selected route participate in workload identity. Event consequences never own fault slots, vector bits, generated compensation, or compensation checkpoints.
 
 Domain services are identified structurally through command-handler dispatch targets rather than package or class-name conventions. This prevents coordination facades from being treated as domain state services. The rationale is retained in [`decisions/2026-04-06-domain-service-vs-coordination-facade.md`](decisions/2026-04-06-domain-service-vs-coordination-facade.md).
 
@@ -517,7 +517,7 @@ Unmarked failures—including plain `SimulatorException`, service unavailability
 
 ### Event replay
 
-Replay mode is activated before Spring startup. The simulator captures the exact event only after persistence, suppresses unscoped scheduled polling, and allows one selected event id through one persisted `EventHandling` bean method and one eligible subscriber. The executor invokes that real Spring bean synchronously outside the fault-vector boundary and before the next outer action when the persisted route resolves to one `EventHandling` class.
+Replay mode is activated before Spring startup. The simulator captures the exact event only after persistence, suppresses unscoped scheduled polling, and attempts one selected event id through one persisted `EventHandling` bean method. The executor invokes that real Spring bean synchronously outside the fault-vector boundary and before the next outer action when the persisted route resolves to one `EventHandling` class. The replay scope requires exactly one explicit result: one eligible subscriber was delivered the event, or a successful current eligibility enumeration found none. Missing, repeated, or conflicting results remain replay-control failures even if application code catches the first control exception.
 
 There are two separate multiplicities: different handler routes for one event, and
 different eligible aggregate instances within one route. `ScenarioGenerator` retains
@@ -530,23 +530,27 @@ with combinations enabled, the cap can omit later bases/singletons as well as co
 routes and no later forward step there are 15 nonempty ordered route selections, plus
 the base workload. Existing package list/action identities represent the combinations.
 
-Within each selected route, `EventApplicationService` still requires exactly one eligible
-aggregate at delivery time. Zero or multiple receivers hard-stop, including eligibility
-lost after an earlier delivery. There is no automatic no-op/retry policy for such a case.
-Selected deliveries can therefore run in sequence against the same captured event while
+Within each selected route, `EventApplicationService` enumerates eligibility at delivery
+time. Exactly one receiver produces the existing delivery and observation evidence. Zero
+receivers produces `NO_ELIGIBLE_SUBSCRIBER`, with the captured event and route identity,
+no subscriber identity, no delivery record, body `NOT_RUN`, and no commit; the attempt is
+complete and later actions continue. More than one receiver still hard-stops. Selected
+route attempts can therefore run in sequence against the same captured event while
 normal application polling stays suppressed. Preparing one receiver does not establish
-readiness for every other selected route; all need a coherent supported setup. The qualified combination path uses source-derived
+delivery for every other selected route; setup must make each selection executable but
+may validly leave its eligible set empty. The qualified combination path uses source-derived
 setup. Existing event prerequisite descriptors still select singleton event workloads;
 propagating the new limit does not turn them into multi-route selectors.
 
-Each delivery is one atomic normal action, placed after its trigger among outer forward
+Each selected route attempt is one atomic normal action, placed after its trigger among outer forward
 steps. It adds no fault bit or recovery checkpoint; the consumer's internal steps are
 not independently interleaved with outer actions. A completed scenario is the end of
-that selected action schedule, not proof that every possible listener has run. See the
+that selected action schedule, not proof that every possible listener has run. An empty
+attempt is not retried if a receiver becomes eligible later. See the
 [Portuguese event example](reunioes/2026-09-08.md#32-a-remocao-termina-mas-falta-avisar-os-objetos-dependentes)
 for isolated and combined horizons and explicit invalid preparation.
 
-An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events/subscribers, selected-route mismatch, recursive registration, replay-control failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay supports multiple selected routes of one event, with one exact local subscriber per route—no automatic multi-object fan-out within a route, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
+An event consequence is masked when its specific trigger occurrence has a pre-body assigned fault, fails before capturing a matching event, or is not reached. If the trigger body or commit captures the selected event and then fails, execution hard-stops as `TRIGGER_FAILED_AFTER_EVENT_EMISSION`; the event is not dispatched and ImpactV1 is not evaluated. This prevents an emitted-but-undelivered event from becoming a false zero. Missing or multiple matching events, multiple eligible subscribers, selected-route mismatch, recursive registration, replay-control failure, selection failure, and handler failure also hard-stop measured execution and leave ImpactV1 not evaluated. Replay supports multiple selected routes of one event, with at most one exact local subscriber per route—no automatic multi-object fan-out within a route, recursion, nested event chain, retry, TCC, remote, stream, or gRPC delivery.
 
 ### Combined-event qualification
 
@@ -587,12 +591,13 @@ provide the current result and its limits.
 
 ### Report
 
-`microservices-simulator.scenario-execution-report.v5` records:
+`microservices-simulator.scenario-execution-report.v6` records:
 
 - attempt, package, WorkloadPlan, FaultScenario, vector, and fault-provider identity;
 - separate prerequisite-provider or source-derived setup action/result/binding, cleanup, and baseline evidence;
 - planned and actual action order;
-- planned event route and actual persisted event/subscriber evidence;
+- planned event route and actual persisted event/subscriber evidence, including the
+  distinct `NO_ELIGIBLE_SUBSCRIBER` attempt status;
 - fault-slot realization or causal event masking;
 - action body, commit, and recovery outcomes;
 - participant setup/final state and skipped forwards;
@@ -600,6 +605,13 @@ provide the current result and its limits.
 - terminal status and schedule conformance.
 
 Execution reports live outside the package and must not alias package artifacts or impact reports.
+Version v6 changes only the action-status vocabulary and its meaning: v5 reports remain
+retained historical evidence under the earlier empty-selection hard-stop policy. The
+version bump prevents consumers from silently interpreting an empty attempt as a v5
+`COMPLETED` delivery; report structure and package schemas are unchanged.
+[Fresh Docker qualification](evidence/empty-event-delivery-2026-09-07/README.md) records
+the empty, delivered, mixed-route, positive-impact, fault-masked, and observer-disabled
+cases used to validate this policy.
 
 ### Current execution boundary
 
@@ -686,7 +698,7 @@ normal schedule and event deliveries. Its prepared production snapshot matches
 Saga (591 inputs excluded by that cap), but exhausted at 3,820 workloads below the
 50,000 global cap. Selection crossed eight of twenty eligible pair/triple combinations.
 
-The campaign made 159 discovery attempts and sixteen representative repetitions in
+Under the retained v5 policy, the campaign made 159 discovery attempts and sixteen representative repetitions in
 fresh Docker/JVM/H2 instances, with concurrency two. Discovery produced 119 COMPLETE
 assessments (111 zero, eight score one) and forty INVALID executions, all stopped by
 `SELECTED_SUBSCRIBER_NOT_FOUND` after successful source setup. All 175 report bundles
@@ -869,13 +881,22 @@ eligibility cannot produce a positive finding. Current persistence represents de
 through the aggregate lifecycle projection; a missing final snapshot is unknown rather
 than proof of physical deletion.
 
+`UNRESOLVED_DELIVERED_EVENT` considers only event-consequence actions with status
+`COMPLETED` and their exact delivery observations. `NO_ELIGIBLE_SUBSCRIBER` contributes
+neither a candidate nor a missing-delivery unknown. Other category findings and coverage
+gaps remain independent, so a completed schedule containing an empty attempt can still
+have a positive or partial ImpactV2 assessment. A complete zero remains bounded to the
+three implemented checks and the scheduled horizon; it is not a global undelivered-event
+claim.
+
 `COMPLETE` assessments have a numeric `completeScore`, including explicit zero. The score
 is the union of positive aggregate identities, so one object with multiple reasons counts
 once. `PARTIAL` assessments retain findings and `observedAffectedObjectCount` as a lower
 bound but serialize `completeScore` as null. Invalid executions and unavailable collection
 serialize both counts as null. Assessment failure is contained, retains raw evidence and
 adds `ASSESSMENT_FAILED`; it does not replace the application outcome. ImpactV1 semantics
-and the v5 execution report are unchanged.
+and the ImpactV2 v1 sidecar schema are unchanged; execution reports use v6 for the added
+empty-attempt status.
 
 ### Recovered-creation remnants
 
@@ -1280,7 +1301,9 @@ The Question aggregate's new version and the later event publisher version diffe
 are separate increments. The repaired embedded QuizQuestion stores the event version.
 Raw event-table rows are retained history, not a count of unprocessed work. The propagation
 horizon explicitly includes two selected-event attempts; the repaired second attempt is
-an expected ineligible replay, not an application failure. Unscoped scheduled polling is
+an expected ineligible replay. Under the current v6 policy, the same confirmed empty
+selection would report `NO_ELIGIBLE_SUBSCRIBER` rather than an application failure; this
+historical repaired control was not rerun for that statement. Unscoped scheduled polling is
 suppressed. No additional event-draining behavior is introduced into ScenarioExecutor.
 
 The observations cover declared persistent projections and identities, not every field
@@ -1430,7 +1453,7 @@ The corrected package under
 qualified `eventHandlingClass` and handler identities. The reader restores those values
 and execution loads the exact classes rather than searching by method or simple name;
 route ordering and ids were unchanged in that repair. The four event-reaching triple
-controls reported `SELECTED_SUBSCRIBER_NOT_FOUND`; their setup creates only CourseExecution
+controls reported `SELECTED_SUBSCRIBER_NOT_FOUND` under the retained v5 policy; their setup creates only CourseExecution
 and User state. A later export correction (below) found that workload-local route indices
 could still point at the wrong catalogue consumer. These historical reports demonstrate
 missing subscriber state for the restored route, but do not establish the intended
@@ -1493,7 +1516,7 @@ Three fresh Docker executions of persisted scenarios proved:
 | --- | --- | --- |
 | QuizAnswer route, vector `00` | `SUCCESS / EXACT` | One event delivered to QuizAnswer subscriber 7; publisher CourseExecution 2, selected student 3 |
 | Same route, vector `01` | `COMPENSATED / EXACT` | `MASKED_BY_TRIGGER_FAULT`; no delivery receipt |
-| Tournament route, vector `00`, same fixture | `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE` | `SELECTED_SUBSCRIBER_NOT_FOUND`; exact Tournament handler retained, no fallback to existing QuizAnswer |
+| Tournament route, vector `00`, same fixture | `UNEXPECTED_EXECUTION_FAILURE / INCOMPLETE` | Retained v5 `SELECTED_SUBSCRIBER_NOT_FOUND`; exact Tournament handler retained, no fallback to existing QuizAnswer |
 
 All three executed the source setup successfully, cleared one pending setup event and
 proved an empty event baseline before measurement. The two previously blocked StartQuiz

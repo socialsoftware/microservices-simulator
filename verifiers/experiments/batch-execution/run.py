@@ -25,6 +25,10 @@ DEFAULT_CASES = ['none', 'answer', 'quiz', 'answer-quiz', 'quiz-answer',
                  'answer-quiz-trigger-fault']
 REPORTS = ['execution.json', 'impact-v1.json', 'execution.impact-v2.json']
 LIMITS = {'MEDIUM_MEM_LIMIT': '3g', 'MEDIUM_MEM_RESERVATION': '512m', 'MEDIUM_CPUS': '2.0'}
+EXECUTION_SCHEMAS = {
+    'microservices-simulator.scenario-execution-report.v5',
+    'microservices-simulator.scenario-execution-report.v6',
+}
 
 
 def read(path):
@@ -65,7 +69,7 @@ def semantic(execution, v1, v2):
 def reports(directory, row, manifest):
     execution, v1, v2 = [read(directory / name) for name in REPORTS]
     validate_reports(execution, v1, v2, row['workloadId'], row['faultScenarioId'], row['faultVector'])
-    if execution['schemaVersion'] != 'microservices-simulator.scenario-execution-report.v5':
+    if execution['schemaVersion'] not in EXECUTION_SCHEMAS:
         raise ValueError('Wrong execution schema')
     if v1.get('schemaVersion') != 'microservices-simulator.scenario-impact-report.v1':
         raise ValueError('Wrong ImpactV1 schema')
