@@ -17,8 +17,8 @@ response delivers to Saga B the revision created by another Saga A, and compensa
 of that creation subsequently persists its deletion. It reports exposure without
 requiring harm or a later write by B. It is not a read of an uncommitted local transaction.
 
-Proposed glossary term for implementation: **exposure to a subsequently compensated
-creation (future)** — proven delivery of a revision created by another Saga, preceding
+Implemented glossary term: **exposure to a subsequently compensated
+creation** — proven delivery of a revision created by another Saga, preceding
 confirmed deletion by compensation of the creating step.
 
 ## 2. Goals
@@ -143,3 +143,10 @@ is separate work.
 None blocking the approved slice. The user selected creation followed by deletion with
 explicit adapters; including updates/general provenance would reopen the effect and
 instrumentation contract. See the two examples in DIAGNOSIS and the approved [PLAN](PLAN.md).
+
+## Implementation evidence
+
+M0 and M1 are committed and independently reviewed; M2 runtime qualification passed the
+fixed 22-run matrix. [RESULTS.md](RESULTS.md) records the actual coverage, ordinary/control
+separation, on/off equivalence, cost limitations and retained proof. No approved product
+behavior or non-goal changed during implementation.

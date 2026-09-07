@@ -713,11 +713,31 @@ individual verdicts are separate. `observedExposureCount` is a lower bound when 
 null without usable measurement. A proven positive can survive an interrupted prefix,
 reader recovery or later recreation; an unfinished prefix cannot establish complete absence.
 
-Framework and verifier qualification is recorded in the
-[approved issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
-Application adapters define the measured scope; Quizzes adapter/runtime qualification is
-the next milestone in that issue. Controlled positives and ordinary-executor persistence
-proof remain distinct because generated runtime result binding is outside this slice.
+Framework, verifier and Quizzes qualification is recorded in the
+[approved issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md) and
+[runtime results](../../issues/2026-09-07-compensated-saga-read/RESULTS.md).
+Quizzes registers two adapters under `sagas & local`: `GetQuizByIdCommand → QuizDto`
+(`SagaQuiz`) and `GetTournamentByIdCommand → TournamentDto` (`SagaTournament`). Each
+preserves the exact outer persistent identity/runtime type and returned revision. The
+Tournament's nested Quiz DTO has no revision even when its persisted reference does;
+that nested reference remains excluded.
+
+The fixed 22-run fresh-JVM Docker matrix proves the split StartQuiz positive, compensation
+before a failed read, a successfully completed producer with an overlapping read, and a
+FindQuiz reader that finishes without writes before A compensates. The ordinary executor
+control is separately `SUCCESS`/`EXACT` with an actual setup-backed Quiz delivery matching
+its baseline revision and zero exposure. Controlled positives bind B to A's actual created
+ID inside the harness; generated runtime result binding remains outside this slice.
+Enabled/disabled application facts, execution outcomes and ImpactV1/ImpactV2 reports match
+across all five pairs, with only explicitly recorded volatile execution metadata normalized.
+
+The serialized read-only cost sample retains two writes, one finding and a 34,964-byte
+sidecar. Its collector/report reachable graph measures 576 objects / 21,560 bytes, including
+shared references; this is not exclusive retained heap or peak allocation. Three noisy
+fresh-process timing pairs establish neither a speed improvement nor scaling. There is
+no retention cap: identity/revision joins are indexed, but per-call history/action scans
+can cost `O(R * W_same_identity + R * A)`. See the results for every sample, audit correction,
+source/build hash and reproduction command.
 
 ## ImpactV2 assessment
 

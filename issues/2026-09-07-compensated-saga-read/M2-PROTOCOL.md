@@ -39,6 +39,8 @@ Use the serialized reader-only positive as the fixed representative cost case. K
 existing ImpactV2/write collection enabled in both modes. Perform one excluded warmup
 pair, then three measured pairs, all in fresh JVMs. Order: warmup off/on; measured pairs
 on/off, off/on, on/off. Do not change repetitions based on observed duration.
+The excluded initial pair does not warm the JIT in subsequent fresh JVMs; these are
+fresh-process action costs, not steady-state throughput measurements.
 
 Measure the workflow action interval, excluding JVM/Spring startup and fixture setup;
 record startup/total wall time separately when available. Report each sample and the
@@ -47,6 +49,15 @@ Compare application outcomes and persistent facts, action/conformance outcomes, 
 where produced, and ImpactV2 assessments. Document every normalization of volatile run
 metadata; never normalize away application values, returned revisions, lifecycle,
 dependency structure, coverage or scores.
+
+Pre-measurement fixture clarification: both modes fix `DateHandler.now()` to
+`2030-01-01T12:00` using an experiment-only Mockito static mock with
+`CALLS_REAL_METHODS`, on the synchronous execution thread. The ordinary executor control
+uses the same clock wrapper. This keeps persisted application dates equal without
+normalizing them after execution. Mockito is already on the application test classpath;
+production code and dependencies are unchanged. The fixture and its overhead apply to
+both modes. Controlled fixtures request all two eligible questions, avoiding random
+subset selection. Record any remaining framework-only volatile metadata explicitly.
 
 Record delivered/unmapped/failed/excluded calls, copied committed-write count, retained
 diagnostic metadata/finding counts and serialized sidecar bytes. Measure the graph reachable

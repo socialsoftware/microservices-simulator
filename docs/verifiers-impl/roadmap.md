@@ -38,12 +38,13 @@ The breadth and representativeness of that selected set bound the thesis claim.
 
 1. **Complete:** bounded same-event route combinations and the eight-attempt Quizzes
    comparison are qualified. Review the selected horizons in the meeting note. The implementation package is `issues/2026-09-06-combined-event-deliveries/`.
-2. Complete Quizzes qualification of the approved compensated-creation read diagnostic.
-   The typed final-return hook, exact creation/delivery/explicit-compensation rule and
-   ordinary-executor sidecar are implemented and tested. The remaining milestone adds
-   audited Quiz/Tournament adapters, fresh controlled positive/control runs, ordinary
-   executor persistence proof and marginal-cost measurements. See
-   [the approved package](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
+2. **Complete:** the compensated-creation read diagnostic has a typed final-return hook,
+   exact creation/delivery/explicit-compensation rule, ordinary-executor sidecar and
+   audited Saga/local Quiz/Tournament adapters. The fixed 22-run Docker matrix qualifies
+   controlled positives/negatives, a read-only reader, nested-reference exclusion and
+   ordinary setup-backed persistence, with paired outcome/ImpactV1/ImpactV2 equivalence.
+   Cost/memory samples and their limits are published in the
+   [runtime results](../../issues/2026-09-07-compensated-saga-read/RESULTS.md).
    Keep findings distinct from the existing affected-object count; no business-harm rule
    is required. Restored updates, runtime result binding and broader isolation
    classification remain separate future work.

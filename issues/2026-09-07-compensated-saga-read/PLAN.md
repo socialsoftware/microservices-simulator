@@ -136,3 +136,20 @@ Any retention limit must produce `PARTIAL/TRUNCATED`, never silently drop facts.
 
 Approved execution boundary: the creation-deletion diagnostic with typed adapters, final
 return hook, and this three-milestone proof. Further routine approvals are not required.
+
+## 6. Execution reconciliation
+
+M0/M1 handoffs record reviewed implementation and passing focused suites. M2 implemented
+the two typed Quizzes adapters and controlled driver, completed the fixed 22-run Docker
+matrix and passed the final audit. See [RESULTS.md](RESULTS.md) and [HANDOFF-M2.md](HANDOFF-M2.md).
+The globally linear-cost hypothesis was not established: indexed identity/revision joins
+still include per-call history/fallback scans. No silent retention cap was introduced.
+Runtime evidence supports bounded correctness and paired outcome equivalence; three
+fresh-process pairs cannot establish a significant performance difference or scaling.
+
+Necessary implementation details included the experiment-only fixed clock, exact source
+recovery declarations, separate assessment timing and audited handling of runtime logs and
+volatile setup metadata. The initial failing auditor output is retained. No Java rerun was
+required for those audit-only corrections, as all measured source/binary/package hashes
+remained unchanged. Scope, score policy, generated binding boundary and commit authority
+remain as approved.
