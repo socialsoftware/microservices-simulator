@@ -256,7 +256,14 @@ public final class OnDemandFaultScenarioService {
                     "INVALID_GENERATION_RESULT", "Generated recovery counts do not match the requested cap");
         }
         Map<String, JsonNode> existingById = new LinkedHashMap<>();
-        for (JsonNode scenario : raw.faultScenarioRecords()) existingById.put(scenario.path("id").asText(), scenario);
+        Map<JsonNode, List<JsonNode>> existingByExecutableContent = new LinkedHashMap<>();
+        raw.faultScenarioRecords().stream()
+                .sorted(Comparator.comparing(scenario -> scenario.path("id").asText()))
+                .forEach(scenario -> {
+                    existingById.put(scenario.path("id").asText(), scenario);
+                    existingByExecutableContent.computeIfAbsent(executableContent(scenario), ignored -> new ArrayList<>())
+                            .add(scenario);
+                });
         List<JsonNode> additions = new ArrayList<>();
         List<String> generatedIds = new ArrayList<>();
         ExecutableArtifactWriter compactWriter = new ExecutableArtifactWriter();
@@ -264,12 +271,20 @@ public final class OnDemandFaultScenarioService {
             Map<String, Object> compact = compactWriter.currentFaultRecord(scenario, projected.workloadPlans());
             JsonNode node = objectMapper.valueToTree(compact);
             String id = node.path("id").asText();
-            generatedIds.add(id);
-            JsonNode existing = existingById.get(id);
-            if (existing == null) additions.add(node);
-            else if (!existing.equals(node)) {
+            JsonNode sameId = existingById.get(id);
+            if (sameId != null && !sameId.equals(node)) {
                 return failure(OnDemandFaultScenarioResult.Status.INTEGRITY_FAILURE, request, cap,
                         "FAULT_SCENARIO_ID_COLLISION", "FaultScenario id " + id + " has different semantic content");
+            }
+            List<JsonNode> equivalent = existingByExecutableContent.get(executableContent(node));
+            if (equivalent == null || equivalent.isEmpty()) {
+                additions.add(node);
+                existingById.put(id, node);
+                existingByExecutableContent.computeIfAbsent(executableContent(node), ignored -> new ArrayList<>())
+                        .add(node);
+                generatedIds.add(id);
+            } else {
+                generatedIds.add(equivalent.getFirst().path("id").asText());
             }
         }
         generatedIds.sort(String::compareTo);
@@ -278,7 +293,10 @@ public final class OnDemandFaultScenarioService {
             String key = prior.path("workload").asText() + "\u0000" + prior.path("faultVector").asText()
                     + "\u0000" + prior.path("effectiveRecoveryScheduleCap").asText();
             if (requestKey.equals(key)) {
-                return success(OnDemandFaultScenarioResult.Status.DEDUPLICATED, request, cap, generated, 0, generatedIds);
+                List<String> priorIds = new ArrayList<>();
+                prior.path("faultScenarioIds").forEach(value -> priorIds.add(value.asText()));
+                priorIds.sort(String::compareTo);
+                return success(OnDemandFaultScenarioResult.Status.DEDUPLICATED, request, cap, generated, 0, priorIds);
             }
         }
         List<JsonNode> mergedFaults = new ArrayList<>(raw.faultScenarioRecords());
@@ -320,6 +338,17 @@ public final class OnDemandFaultScenarioService {
             return failure(OnDemandFaultScenarioResult.Status.PERSISTENCE_FAILED, request, cap,
                     "PACKAGE_REVISION_FAILED", rootMessage(exception));
         }
+    }
+
+    private ObjectNode executableContent(JsonNode scenario) {
+        // The current package's workload owns setup, participants, slots, event origins and
+        // recovery semantics. Its fault record adds the vector and exact ordered action refs.
+        // Keep the persisted id out of this request-local equality check so historical ids survive.
+        ObjectNode content = objectMapper.createObjectNode();
+        content.set("workload", scenario.path("workload"));
+        content.set("faultVector", scenario.path("faultVector"));
+        content.set("actions", scenario.path("actions"));
+        return content;
     }
 
     private byte[] reviseCurrentManifest(Path manifestPath,

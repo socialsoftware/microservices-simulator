@@ -108,6 +108,136 @@ class OnDemandFaultScenarioServiceSpec extends Specification {
         current.accounting().path('faultScenarios').path('current').path('written').asInt() == idsAfterLarge.size()
     }
 
+    def 'eager scenario is reused by executable content after package projection changes internal identities'() {
+        given:
+        def workload = workload()
+        def generated = new WorkloadGenerationResult(WorkloadPlan.SCHEMA_VERSION,
+                new ScenarioGeneratorConfig(), [workload], [], [:], [])
+        def eager = EagerFaultScenarioGenerator.generate(generated, new RecoveryScheduleCap(3))
+        def eagerZero = eager.faultScenarios().find { it.assignedVector() == '0000' }
+        def fixture = CurrentPackageFixture.write([workload], eager.faultScenarios(), 3)
+        def projected = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+        def regeneratedZero = RecoveryScheduleGenerator.generate(projected.workloadPlans().first(), '0000', 3)
+                .faultScenarios().first()
+
+        expect: 'the package projection preserves execution but not the source identity inputs to the hash'
+        regeneratedZero.deterministicId() != eagerZero.deterministicId()
+        new ExecutableArtifactWriter().currentFaultRecord(regeneratedZero, projected.workloadPlans()).actions ==
+                new ScenarioCatalogPackageReader().readCurrent(fixture.manifest).faultScenarioRecords()
+                        .find { it.path('id').asText() == eagerZero.deterministicId() }.path('actions')
+                        .collect { action -> [(action.fieldNames().next()): action.elements().next().asText()] }
+
+        when:
+        def requested = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0000', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+
+        then:
+        requested.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        requested.addedFaultScenarioCount() == 0
+        requested.faultScenarioIds() == [eagerZero.deterministicId()]
+        current.faultScenarioRecords().size() == eager.faultScenarios().size()
+        current.requestRecords().first().path('faultScenarioIds')*.asText() == [eagerZero.deterministicId()]
+
+        when:
+        def repeated = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0000', '3'))
+
+        then:
+        repeated.status() == OnDemandFaultScenarioResult.Status.DEDUPLICATED
+        repeated.faultScenarioIds() == [eagerZero.deterministicId()]
+        new ScenarioCatalogPackageReader().readCurrent(fixture.manifest).faultScenarioRecords().size() ==
+                eager.faultScenarios().size()
+    }
+
+    def 'historical executable duplicates deterministically reuse the lowest retained id'() {
+        given:
+        def workload = workload()
+        def zero = RecoveryScheduleGenerator.generate(workload, '0000', 3).faultScenarios().first()
+        def high = new FaultScenario(zero.schemaVersion(), 'b' * 64, zero.workloadPlanId(),
+                zero.assignedVector(), zero.actions())
+        def low = new FaultScenario(zero.schemaVersion(), 'a' * 64, zero.workloadPlanId(),
+                zero.assignedVector(), zero.actions())
+        def fixture = CurrentPackageFixture.write([workload], [high, low], 3)
+
+        when:
+        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0000', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        result.addedFaultScenarioCount() == 0
+        result.faultScenarioIds() == ['a' * 64]
+        current.faultScenarioRecords()*.path('id')*.asText().toSet() == ['a' * 64, 'b' * 64] as Set
+        current.requestRecords().first().path('faultScenarioIds')*.asText() == ['a' * 64]
+    }
+
+    def 'different recovery action orders remain distinct executable scenarios'() {
+        given:
+        def workload = workload()
+        def recovery = RecoveryScheduleGenerator.generate(workload, '0011', 3)
+        assert recovery.faultScenarios().size() == 3
+        def fixture = CurrentPackageFixture.write([workload], [recovery.faultScenarios().first()], 3)
+
+        when:
+        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0011', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+        def matching = current.faultScenarioRecords().findAll {
+            it.path('workload').asText() == workload.deterministicId() && it.path('faultVector').asText() == '0011'
+        }
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        result.addedFaultScenarioCount() == 2
+        matching.size() == 3
+        matching*.path('actions')*.toString().toSet().size() == 3
+    }
+
+    def 'different participant step order is not executable-equivalent'() {
+        given:
+        def workload = workload()
+        def zero = RecoveryScheduleGenerator.generate(workload, '0000', 3).faultScenarios().first()
+        def reorderedActions = [zero.actions()[1], zero.actions()[0]] + zero.actions().drop(2)
+        def reordered = new FaultScenario(zero.schemaVersion(), 'c' * 64, zero.workloadPlanId(),
+                zero.assignedVector(), reorderedActions)
+        def fixture = CurrentPackageFixture.write([workload], [reordered], 3)
+
+        when:
+        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0000', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        result.addedFaultScenarioCount() == 1
+        current.faultScenarioRecords()*.path('actions')*.toString().toSet().size() == 2
+    }
+
+    def 'different event action order is not executable-equivalent'() {
+        given:
+        def workload = executableShapeWorkload(true)
+        def zero = RecoveryScheduleGenerator.generate(workload, '0000', 3).faultScenarios().first()
+        assert zero.actions()*.kind().take(3) == [FaultScenarioActionKind.FORWARD,
+                                                 FaultScenarioActionKind.EVENT_CONSEQUENCE,
+                                                 FaultScenarioActionKind.FORWARD]
+        def reorderedActions = [zero.actions()[0], zero.actions()[2], zero.actions()[1]] + zero.actions().drop(3)
+        def reordered = new FaultScenario(zero.schemaVersion(), 'd' * 64, zero.workloadPlanId(),
+                zero.assignedVector(), reorderedActions)
+        def fixture = CurrentPackageFixture.write([workload], [reordered], 3)
+
+        when:
+        def result = new OnDemandFaultScenarioService().request(new OnDemandFaultScenarioRequest(
+                fixture.manifest, workload.deterministicId(), '0000', '3'))
+        def current = new ScenarioCatalogPackageReader().readCurrent(fixture.manifest)
+
+        then:
+        result.status() == OnDemandFaultScenarioResult.Status.PERSISTED
+        result.addedFaultScenarioCount() == 1
+        current.faultScenarioRecords()*.path('actions')*.toString().toSet().size() == 2
+    }
+
     def 'default cap comes from accounting and a failed request is atomic'() {
         given:
         def workload = workload()

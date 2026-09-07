@@ -32,6 +32,12 @@ already persisted IDs and package compatibility. This experiment only adds an
 analysis view of equivalent action sequences, and compares their runtime summaries;
 it does not rewrite IDs or silently discard attempted cases.
 
+Follow-up status (2026-09-07): the separately approved on-demand correction now reuses
+an exact persisted compact `(workload, vector, ordered actions)` match and returns its
+retained ID. It preserves every historical record; if a retained package already has
+multiple matching IDs, new requests choose the lowest ID deterministically. The frozen
+175-ID campaign and its 125 executable-content tuples remain unchanged evidence.
+
 ## Source setup readiness is weaker than a useful no-fault control
 
 The w01 no-fault control successfully executes all setup actions and resolves shared

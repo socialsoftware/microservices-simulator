@@ -616,6 +616,12 @@ Before extending these baselines into adaptive search:
 - equivalent eager/request action sequences cannot silently inflate candidate diversity or consume duplicate search budget;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 
+The 2026-09-07 on-demand merge correction satisfies the executable-equivalence entry
+condition for future additions: regenerated schedules reuse exact persisted compact
+`(workload, vector, ordered actions)` content while retaining existing IDs. Historical
+duplicates remain in frozen packages and must still be grouped explicitly when those
+packages are analysed; no migration or retrospective candidate deletion is implied.
+
 ### Minimal design boundary
 
 - Search unit: one fixed WorkloadPlan.
