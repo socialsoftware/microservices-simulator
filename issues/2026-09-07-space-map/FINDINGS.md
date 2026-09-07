@@ -53,6 +53,21 @@ workload and is outside this campaign. Existing no-event or differently routed
 workloads would be separate workload/horizon controls, never replacements for the
 failed selected cases.
 
+Follow-up status (2026-09-07): exact facade targets in `setup()` now receive only their
+strict pre-target prefix. The regenerated `w01` control creates and activates the user
+but does not enroll it before the AddStudent participant; setup succeeds and all four
+forward steps complete. The control still stops at its first selected QuizAnswer route,
+whose receiver is absent. This resolves the repeated-target initial-state defect without
+weakening event replay or rewriting the original report.
+
+The forty historical INVALID executions divide into six route groups: `w01` and `w02`
+also had the corrected repeated-AddStudent failure; `w05` has a separate unassigned
+AddParticipant invariant failure; all six groups reach a selected QuizAnswer or Tournament
+route without an eligible receiver in at least some vectors. A source-backed singleton
+`UpdateStudentName -> Tournament` control proves the positive boundary with
+`SUCCESS / EXACT`, while its trigger-fault variant is `COMPENSATED / EXACT` and masks the
+delivery. See the compact [setup qualification](../../docs/verifiers-impl/evidence/space-map-setup-qualification-2026-09-07/map.md).
+
 ## A positive score needs its lifecycle interpretation
 
 In w07's vector `000000001`, the assigned fault at `solveQuizStep` follows successful

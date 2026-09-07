@@ -34,6 +34,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTra
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceOccurrence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueMetadata;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyValueRecipe;
@@ -210,6 +211,12 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 .map(trace -> trace.sourceClassFqn())
                 .filter(Objects::nonNull)
                 .collect(Collectors.toCollection(LinkedHashSet::new));
+        adaptedTraces.stream()
+                .filter(adaptedTrace -> "setup".equals(adaptedTrace.trace().callContextMethodName()))
+                .filter(adaptedTrace -> adaptedTrace.trace().originKind() == GroovyTraceOriginKind.FACADE_CALL)
+                .map(adaptedTrace -> adaptedTrace.trace().sourceClassFqn())
+                .filter(Objects::nonNull)
+                .forEach(setupSourceClasses::add);
         Map<String, InputVariant> inputsById = inputs.stream()
                 .collect(Collectors.toMap(InputVariant::deterministicId, input -> input,
                         (left, right) -> left, LinkedHashMap::new));
@@ -221,32 +228,33 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                             .sorted(Comparator.comparingInt(trace -> trace.occurrence() == null
                                     ? Integer.MAX_VALUE : trace.occurrence().orderIndex()))
                             .toList();
-            if (traces.isEmpty()) continue;
-
             Map<String, GroovyFacadeSetupActionTrace> setupActionByOccurrence = traces.stream()
                     .filter(trace -> trace.sourceOccurrence() != null)
                     .collect(Collectors.toMap(GroovyFacadeSetupActionTrace::sourceOccurrence,
                             trace -> trace, (left, right) -> left, LinkedHashMap::new));
-            Map<String, List<AdaptedTrace>> nestedSetupTargetsByInputId = adaptedTraces.stream()
+            Map<String, List<AdaptedTrace>> observedSetupTargetsByInputId = adaptedTraces.stream()
                     .filter(adaptedTrace -> Objects.equals(adaptedTrace.trace().sourceClassFqn(), sourceClassFqn))
                     .filter(adaptedTrace -> "setup".equals(adaptedTrace.trace().callContextMethodName()))
-                    .filter(adaptedTrace -> hasNestedSourceReference(
-                            adaptedTrace.trace().constructorArguments()))
+                    .filter(adaptedTrace -> adaptedTrace.trace().originKind() == GroovyTraceOriginKind.FACADE_CALL)
                     .collect(Collectors.groupingBy(AdaptedTrace::inputVariantId,
                             LinkedHashMap::new, Collectors.toList()));
-            Map<String, List<AdaptedTrace>> setupTargetsByInputId = nestedSetupTargetsByInputId.entrySet().stream()
+            Map<String, List<AdaptedTrace>> setupTargetsByInputId = observedSetupTargetsByInputId.entrySet().stream()
                     .filter(entry -> entry.getValue().stream().allMatch(adaptedTrace ->
                             adaptedTrace.trace().occurrence() != null
                                     && setupActionByOccurrence.containsKey(
                                     adaptedTrace.trace().occurrence().occurrenceId())))
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue,
                             (left, right) -> left, LinkedHashMap::new));
-            nestedSetupTargetsByInputId.entrySet().stream()
+            observedSetupTargetsByInputId.entrySet().stream()
                     .filter(entry -> !setupTargetsByInputId.containsKey(entry.getKey()))
                     .forEach(entry -> diagnostics.add("blocked setup-derived target for "
                             + sourceClassFqn + " input " + entry.getKey()
                             + ": missing exact target occurrence metadata"));
-            Set<String> setupTargetInputIds = nestedSetupTargetsByInputId.keySet();
+            Set<String> setupTargetInputIds = observedSetupTargetsByInputId.keySet();
+            Set<String> blockedSetupTargetInputIds = observedSetupTargetsByInputId.keySet().stream()
+                    .filter(inputId -> !setupTargetsByInputId.containsKey(inputId))
+                    .collect(Collectors.toUnmodifiableSet());
+            if (traces.isEmpty()) continue;
 
             LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligibleParticipants = new LinkedHashMap<>();
             adaptedTraces.stream()
@@ -281,9 +289,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 }
             }
 
-            LinkedHashMap<String, Integer> setupActionOrders = new LinkedHashMap<>();
-            traces.stream().filter(trace -> trace.occurrence() != null).forEach(trace ->
-                    setupActionOrders.put(trace.sourceOccurrence(), trace.occurrence().orderIndex()));
             setupTargetsByInputId.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(entry -> {
                 List<AdaptedTrace> distinctTargets = entry.getValue().stream()
                         .collect(Collectors.toMap(
@@ -307,25 +312,82 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         .filter(trace -> trace.occurrence().orderIndex() < targetOrder)
                         .toList();
                 if (prefix.isEmpty()) return;
-                InputVariant input = inputsById.get(entry.getKey());
-                if (input == null) return;
-                SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
-                        input.deterministicId(), target.trace().constructorArguments());
-                if (!eligibleForSetup(input, participant, prefix, mapper, readinessEvaluator,
-                        diagnostics, sourceClassFqn + "#setup-before-" + targetOccurrence)) {
-                    return;
-                }
-                var plan = mapper.map(prefix, List.of(participant));
+                LinkedHashMap<String, SetupPlanMapper.ParticipantSource> eligible = new LinkedHashMap<>();
+                LinkedHashMap<String, String> targetOccurrences = new LinkedHashMap<>();
+                Map<String, List<AdaptedTrace>> candidateTracesByInput = adaptedTraces.stream()
+                        .filter(candidate -> Objects.equals(candidate.trace().sourceClassFqn(), sourceClassFqn))
+                        .filter(candidate -> candidate.trace().occurrence() != null)
+                        .filter(candidate -> !blockedSetupTargetInputIds.contains(candidate.inputVariantId()))
+                        .collect(Collectors.groupingBy(AdaptedTrace::inputVariantId,
+                                LinkedHashMap::new, Collectors.toList()));
+                candidateTracesByInput.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                        .forEach(candidateEntry -> {
+                            List<AdaptedTrace> distinctCandidates = candidateEntry.getValue().stream()
+                                    .collect(Collectors.toMap(
+                                            candidate -> candidate.trace().occurrence().occurrenceId(),
+                                            candidate -> candidate,
+                                            (left, right) -> left,
+                                            LinkedHashMap::new))
+                                    .values().stream().toList();
+                            if (distinctCandidates.size() != 1) {
+                                diagnostics.add("blocked setup-prefix participant for " + sourceClassFqn
+                                        + " input " + candidateEntry.getKey()
+                                        + ": ambiguous target source occurrences");
+                                return;
+                            }
+                            AdaptedTrace candidate = distinctCandidates.getFirst();
+                            String candidateInputId = candidateEntry.getKey();
+                            List<AdaptedTrace> candidateSetupTargets = setupTargetsByInputId
+                                    .getOrDefault(candidateInputId, List.of());
+                            boolean prefixReplaysCandidate = candidateSetupTargets.stream()
+                                    .map(AdaptedTrace::trace)
+                                    .map(GroovyFullTraceResult::occurrence)
+                                    .filter(Objects::nonNull)
+                                    .anyMatch(occurrence -> occurrence.orderIndex() < targetOrder);
+                            if (prefixReplaysCandidate) return;
+                            InputVariant candidateInput = inputsById.get(candidateInputId);
+                            if (candidateInput == null) return;
+                            SetupPlanMapper.ParticipantSource participant = new SetupPlanMapper.ParticipantSource(
+                                    candidateInput.deterministicId(), candidate.trace().constructorArguments());
+                            if (eligibleForSetup(candidateInput, participant, prefix, mapper, readinessEvaluator,
+                                    diagnostics, sourceClassFqn + "#setup-before-" + targetOccurrence)) {
+                                eligible.put(candidateInput.deterministicId(), participant);
+                                targetOccurrences.put(candidateInput.deterministicId(),
+                                        candidate.trace().occurrence().occurrenceId());
+                            }
+                        });
+                if (!eligible.containsKey(entry.getKey())) return;
+                List<SetupPlanMapper.ParticipantSource> participants = eligible.values().stream()
+                        .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
+                        .toList();
+                var plan = mapper.map(prefix, participants);
                 SetupPlanValidator.ValidationResult validation = new SetupPlanValidator().validate(plan);
                 if (!validation.valid()) {
                     diagnostics.add("blocked setup-derived target for " + sourceClassFqn + " input "
-                            + input.deterministicId() + ": " + validation.diagnostics());
+                            + entry.getKey() + ": " + validation.diagnostics());
                     return;
                 }
-                bindings.add(new SourceSetupPlanBinding(List.of(input.deterministicId()), plan,
-                        sourceClassFqn, "setup", Map.of(input.deterministicId(), List.of(targetOccurrence)),
-                        targetOccurrence, Map.of(input.deterministicId(), targetOrder), setupActionOrders));
-                coveredInputIds.add(input.deterministicId());
+                List<String> inputVariantIds = participants.stream()
+                        .map(SetupPlanMapper.ParticipantSource::inputVariantId)
+                        .toList();
+                if (inputVariantIds.size() > 1) {
+                    LinkedHashMap<String, List<String>> targetsByInput = new LinkedHashMap<>();
+                    LinkedHashMap<String, Integer> targetOrders = new LinkedHashMap<>();
+                    inputVariantIds.forEach(inputId -> {
+                        targetsByInput.put(inputId, List.of(targetOccurrences.get(inputId)));
+                        // setup() happens-before every feature method; normalize that partial order.
+                        targetOrders.put(inputId, Objects.equals(inputId, entry.getKey()) ? 0 : 1);
+                    });
+                    bindings.add(new SourceSetupPlanBinding(inputVariantIds, plan,
+                            sourceClassFqn, "setup", targetsByInput, targetOccurrence,
+                            targetOrders, Map.of()));
+                }
+                SetupPlanMapper.ParticipantSource targetParticipant = eligible.get(entry.getKey());
+                var targetPlan = mapper.map(prefix, List.of(targetParticipant));
+                bindings.add(new SourceSetupPlanBinding(List.of(entry.getKey()), targetPlan,
+                        sourceClassFqn, "setup", Map.of(entry.getKey(), List.of(targetOccurrence)),
+                        targetOccurrence, Map.of(entry.getKey(), targetOrder), Map.of()));
+                coveredInputIds.addAll(inputVariantIds);
             });
             if (!coveredInputIds.isEmpty()) {
                 setupOnlyCoverageByClass.put(sourceClassFqn, Set.copyOf(coveredInputIds));
@@ -350,24 +412,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
             diagnostics.add("observed setup contexts had no extractable straight-line setup plan");
         }
         return bindings.stream().distinct().toList();
-    }
-
-    private boolean hasNestedSourceReference(List<GroovyTraceArgument> arguments) {
-        return arguments != null && arguments.stream().filter(Objects::nonNull)
-                .filter(argument -> argument.producerReference() == null)
-                .map(GroovyTraceArgument::recipe)
-                .anyMatch(recipe -> recipe != null && recipe.sourceReference() == null
-                        && containsSourceReferenceBelowRoot(recipe));
-    }
-
-    private boolean containsSourceReferenceBelowRoot(GroovyValueRecipe recipe) {
-        if (recipe == null) return false;
-        if (recipe.sourceReference() != null) return true;
-        if (recipe.children().stream().anyMatch(this::containsSourceReferenceBelowRoot)) return true;
-        return recipe.metadata() != null && recipe.metadata().assignments().stream()
-                .filter(Objects::nonNull)
-                .map(assignment -> assignment.valueRecipe())
-                .anyMatch(this::containsSourceReferenceBelowRoot);
     }
 
     private void adaptFeatureSetupBindings(

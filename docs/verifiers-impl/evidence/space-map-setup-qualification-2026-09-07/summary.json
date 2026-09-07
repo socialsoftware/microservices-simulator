@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "space-map-setup-qualification.v1",
+  "qualifiedPackage": {
+    "manifest": "verifiers/target/space-map-setup-qualification-03/generated-05/quizzes-20260907-110815-022/scenario-catalog-manifest.json",
+    "runtimeManifest": "verifiers/target/space-map-setup-qualification-03/generated-02/quizzes-20260907-103823-363/scenario-catalog-manifest.json",
+    "manifestSha256": "93297e9449dcf7e1050ddc5c82aa25117bd0f93ba6a3dc715a70bb6c90c6b521",
+    "workloads": 3820,
+    "faultScenarios": 12395
+  },
+  "structuralEquivalents": {
+    "w01": {"workloadId": "538fce71e410c8ec2811b67fe0e048f2346d1f706761e6b72ffb27a5b134e16d", "setupId": "setup-0268379c50749004aa44045d"},
+    "w02": {"workloadId": "e8551e314f11f58e52d0aed179489de7ec535166fde90561811830a4e8cd4964", "setupId": "setup-a918e48f28a6aaf8ff064578"},
+    "w03": {"workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481", "setupId": "setup-c1cd5474b6e47d197ed6ae3e"},
+    "w04": {"workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605", "setupId": "setup-c5c1f10fa44875c6769a997d"},
+    "w05": {"workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305", "setupId": "setup-4e9d27194fb0259d09ee8d2d"},
+    "w06": {"workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa", "setupId": "setup-3bee7a47c5076fb745fcb796"},
+    "w07": {"workloadId": "139d2d4a58098d78435943cb67ce81b932c584bd2b6bed91f75e09f6b6b672d8", "setupId": "setup-900b040cfe5d9cf4796c6a62"},
+    "w08": {"workloadId": "e56ee353ecfaf74bc470b9d83ccb7ee2d75fc9061889fa019d47276386058709", "setupId": null}
+  },
+  "runtimeChecks": [
+    {"name": "w01-no-fault", "faultScenarioId": "0054da5db992416997cc9ca7e150a3992669a0631410029ecdabc67849d31271", "vector": "0000", "setupStatus": "SUCCEEDED", "completedForwardActions": 4, "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE", "conformance": "INCOMPLETE", "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND", "reportSha256": "4bd731acfdd866fcc06f608cb813266b0cefc9042d8a21e947f292e65888a30d"},
+    {"name": "update-tournament-no-fault", "faultScenarioId": "e4adf1b55ee9370cf0afb648aac2a20a9960227c849f9e6cc2af691e684ef9af", "vector": "0", "setupStatus": "SUCCEEDED", "terminalStatus": "SUCCESS", "conformance": "EXACT", "reportSha256": "a4eb491d14cc84a0a32ab9f0c42637432797aca86b36a3406d1c0bf971c8139d"},
+    {"name": "update-tournament-trigger-fault", "faultScenarioId": "f08728e387e09af8e71c48774852d0830f73069967451effb10f499185a8a282", "vector": "1", "setupStatus": "SUCCEEDED", "terminalStatus": "COMPENSATED", "conformance": "EXACT", "eventStatus": "MASKED_BY_TRIGGER_FAULT", "reportSha256": "84126b2e3836548b9fcafaff105ef14e2ac14d6eb8cd1a32a1d8e4388b660efe"}
+  ]
+}

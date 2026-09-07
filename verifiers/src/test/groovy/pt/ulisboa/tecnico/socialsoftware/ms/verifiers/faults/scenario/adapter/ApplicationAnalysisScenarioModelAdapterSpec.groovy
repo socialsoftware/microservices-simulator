@@ -18,10 +18,12 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.Saga
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepFootprint
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisState
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFacadeSetupActionTrace
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyFullTraceResult
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyRuntimeCallRecipe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndex
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceOccurrence
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceValueReference
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceArgument
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovyTraceOriginKind
@@ -484,8 +486,54 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         given:
         def state = buildDummyappAnalysisState()
 
+        and: 'a second state simulates missing exact setup-action occurrence metadata'
+        def missingOccurrenceState = buildDummyappAnalysisState()
+        def missingOccurrenceTarget = missingOccurrenceState.groovyFullTraceResults.find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'createSetupItem' &&
+                    it.originKind() == GroovyTraceOriginKind.FACADE_CALL
+        }
+        assert missingOccurrenceTarget?.occurrence() != null
+        def missingOccurrenceAction = missingOccurrenceState.groovyFacadeSetupActionTraces.find {
+            it.sourceOccurrence() == missingOccurrenceTarget.occurrence().occurrenceId()
+        }
+        assert missingOccurrenceAction != null
+        missingOccurrenceState.groovyFacadeSetupActionTraces.remove(missingOccurrenceAction)
+        missingOccurrenceState.groovyFacadeSetupActionTraces << new GroovyFacadeSetupActionTrace(
+                missingOccurrenceAction.sourceClassFqn(), missingOccurrenceAction.callContextMethodName(),
+                'unmatched-' + missingOccurrenceAction.sourceOccurrence(), missingOccurrenceAction.facadeClassFqn(),
+                missingOccurrenceAction.methodKey(), missingOccurrenceAction.methodName(),
+                missingOccurrenceAction.arguments(), missingOccurrenceAction.declaredResultTypeFqn(),
+                missingOccurrenceAction.voidResult(), missingOccurrenceAction.blockers(),
+                missingOccurrenceAction.occurrence())
+        def laterOccurrence = new GroovySourceOccurrence(
+                missingOccurrenceTarget.occurrence().sourceClassFqn(),
+                missingOccurrenceTarget.occurrence().callContextMethodName(),
+                missingOccurrenceTarget.occurrence().occurrenceId() + '-later',
+                missingOccurrenceTarget.occurrence().orderIndex() + 1,
+                missingOccurrenceTarget.occurrence().initialPreparationPhase())
+        missingOccurrenceState.groovyFullTraceResults << new GroovyFullTraceResult(
+                missingOccurrenceTarget.sourceClassFqn(), 'laterSetupTarget',
+                missingOccurrenceTarget.sourceBindingName(), missingOccurrenceTarget.callContextMethodName(),
+                missingOccurrenceTarget.originKind(), missingOccurrenceTarget.sourceExpressionText(),
+                missingOccurrenceTarget.sagaClassFqn(), missingOccurrenceTarget.sourceMode(),
+                missingOccurrenceTarget.sourceModeConfidence(), missingOccurrenceTarget.sourceModeEvidence(),
+                missingOccurrenceTarget.constructorArguments(), missingOccurrenceTarget.workflowCalls(),
+                missingOccurrenceTarget.resolutionNotes(), missingOccurrenceTarget.traceText(), laterOccurrence)
+        missingOccurrenceState.groovyFacadeSetupActionTraces << new GroovyFacadeSetupActionTrace(
+                missingOccurrenceAction.sourceClassFqn(), missingOccurrenceAction.callContextMethodName(),
+                laterOccurrence.occurrenceId(), missingOccurrenceAction.facadeClassFqn(),
+                missingOccurrenceAction.methodKey(), missingOccurrenceAction.methodName(),
+                missingOccurrenceAction.arguments(), missingOccurrenceAction.declaredResultTypeFqn(),
+                missingOccurrenceAction.voidResult(), missingOccurrenceAction.blockers(), laterOccurrence)
+
         when:
         def result = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def missingOccurrenceResult = new ApplicationAnalysisScenarioModelAdapter().adapt(missingOccurrenceState)
+        def laterSetupInput = missingOccurrenceResult.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'laterSetupTarget'
+        }
         def setupHelperInput = result.inputVariants().find {
             it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
                     it.sourceMethodName() == 'createSetupItem' &&
@@ -501,6 +549,11 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
                     it.sourceMethodName() == 'createItemFromFeatureHelper' &&
                     it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
         }
+        def setupHelperOccurrence = state.groovyFullTraceResults.find {
+            it.sourceClassFqn() == 'com.example.dummyapp.GroovySetupHelperOwnershipSpec' &&
+                    it.sourceMethodName() == 'createSetupItem' &&
+                    it.sagaClassFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }?.occurrence()?.occurrenceId()
 
         then:
         setupHelperInput != null
@@ -527,6 +580,33 @@ class ApplicationAnalysisScenarioModelAdapterSpec extends VisitorTestSupport {
         featureHelperInput.inputRole() == InputRole.FEATURE_UNDER_TEST
         featureHelperInput.fixtureOrigin() == FixtureOrigin.DIRECT_FEATURE
         featureHelperInput.owners()*.testMethodName() == ['feature calls helper that creates item']
+
+        and: 'a setup call is never replayed as both preparation and measured input'
+        setupHelperOccurrence != null
+        !result.sourceSetupPlanBindings().any { binding ->
+            setupHelperInput.deterministicId() in binding.inputVariantIds() &&
+                    setupHelperOccurrence in binding.setupPlan().actions()*.sourceOccurrence()
+        }
+
+        and: 'the same fixture setup remains available to a distinct feature target'
+        result.sourceSetupPlanBindings().any { binding ->
+            directFeatureInput.deterministicId() in binding.inputVariantIds() &&
+                    binding.setupPlan().actions()*.methodKey().any { it.contains('#createItem(') }
+        }
+
+        and: 'missing exact occurrence metadata fails closed instead of replaying the complete fixture'
+        laterSetupInput != null
+        missingOccurrenceResult.sourceSetupPlanBindings().any {
+            laterSetupInput.deterministicId() in it.inputVariantIds()
+        }
+        !missingOccurrenceResult.sourceSetupPlanBindings().any {
+            setupHelperInput.deterministicId() in it.inputVariantIds()
+        }
+        missingOccurrenceResult.diagnostics().any {
+            it.contains('blocked setup-derived target') &&
+                    it.contains(setupHelperInput.deterministicId()) &&
+                    it.contains('missing exact target occurrence metadata')
+        }
     }
 
     def 'dummyapp adapter integration exports representative input recipe shapes'() {

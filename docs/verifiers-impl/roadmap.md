@@ -622,6 +622,16 @@ condition for future additions: regenerated schedules reuse exact persisted comp
 duplicates remain in frozen packages and must still be grouped explicitly when those
 packages are analysed; no migration or retrospective candidate deletion is implied.
 
+The same date's setup qualification removes a separate false-invalid source: a facade
+call promoted from `setup()` to a participant now receives only its strict pre-target
+prefix, shared with compatible later participants from the same source class. The corrected
+`w01` no-fault control completes all four forward steps before reaching its still-missing
+QuizAnswer receiver. A source-backed `UpdateStudentName -> Tournament` control completes
+`SUCCESS / EXACT`, and its single trigger-fault variant completes `COMPENSATED / EXACT`.
+This establishes setup/receiver separation for those controls; it does not qualify every
+selected receiver or make the original forty INVALID attempts valid. The compact proof is
+in [`space-map-setup-qualification-2026-09-07`](evidence/space-map-setup-qualification-2026-09-07/map.md).
+
 ### Minimal design boundary
 
 - Search unit: one fixed WorkloadPlan.

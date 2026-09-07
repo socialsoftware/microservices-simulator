@@ -274,6 +274,20 @@ remain ambiguous and blocked. This metadata is internal; persisted record shapes
 closed application setup dispatcher are unchanged. Existing fixture-only coverage retains
 priority, so this is an extension of supported preparation, not whole-test replay.
 
+Exact facade calls reached in `setup()` are also target occurrences when their extracted
+inputs are selected as participants. The complete fixture therefore cannot replay that
+call before measuring it. The adapter emits the strict action prefix before the target and
+may bind other compatible participant inputs from the same source class to that prefix.
+Frontier provenance makes this broader binding applicable only when the setup target is
+actually selected, so ordinary tuples that do not select it retain their complete setup
+without a second ambiguous candidate. If no one prefix can prepare every selected target,
+the tuple remains without source setup; actions are not deleted or reordered to force
+materializability.
+Missing or ambiguous exact occurrence metadata fails closed for both complete-fixture
+and shared-prefix selection; an affected setup target cannot re-enter through another
+target's prefix. Direct constructor inputs in `setup()` are not facade targets and remain
+eligible for ordinary complete-fixture preparation.
+
 Recipe readiness, catalog acceptance, static setup candidacy, runtime setup readiness, and successful execution are different stages. Do not collapse them into one “executable” count.
 
 ### Source-mode filtering

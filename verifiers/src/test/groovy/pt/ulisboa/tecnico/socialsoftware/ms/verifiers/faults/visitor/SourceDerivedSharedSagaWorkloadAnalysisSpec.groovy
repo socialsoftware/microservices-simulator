@@ -66,6 +66,10 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas'
     private static final String ADD_PARTICIPANT_FEATURE_TEST =
             'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndCreateTournamentTest'
+    private static final String REMOVE_STUDENT_TEST =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.execution.RemoveStudentFromCourseExecutionTest'
+    private static final String REMOVE_STUDENT =
+            'pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas'
 
     def 'unmodified Remove Add test proves one shared Tournament producer with semantic key footprints'() {
         given:
@@ -131,10 +135,39 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             "${it.stepKey()}|${it.aggregateName()}|${it.aggregateKeyText()}".toString()
         } as Set
 
+        and: 'the real RemoveStudent fixture exposes a setup AddStudent target and a later feature target'
+        def setupAddStudentInput = adapted.inputVariants().find {
+            it.sourceClassFqn() == REMOVE_STUDENT_TEST && it.callContextMethodName() == 'setup' &&
+                    it.sagaFqn() == ADD_STUDENT
+        }
+        def removeStudentInput = adapted.inputVariants().find {
+            it.sourceClassFqn() == REMOVE_STUDENT_TEST && it.callContextMethodName() == 'remove student successfully' &&
+                    it.sagaFqn() == REMOVE_STUDENT
+        }
+        def setupAddStudentBinding = adapted.sourceSetupPlanBindings().find { binding ->
+            binding.featureDerived() && binding.featureMethodName() == 'setup' &&
+                    setupAddStudentInput?.deterministicId() in binding.inputVariantIds()
+        }
+
         then: 'both map-returning helper inputs are recovered for every two-Saga feature in the ordinary test'
         targetTraces.count { it.sagaClassFqn == REMOVE } == 5
         targetTraces.count { it.sagaClassFqn == ADD } == 4
         targetTraces.every { it.sourceBindingName in ['remove', 'add'] }
+
+        and: 'the strict prefix prepares both the setup target and the later feature without replaying the target'
+        setupAddStudentInput != null
+        removeStudentInput != null
+        setupAddStudentBinding?.featureDerived()
+        setupAddStudentBinding.featureMethodName() == 'setup'
+        setupAddStudentBinding.setupPlan().actions()*.methodKey().every { !it.contains('#addStudent(') }
+        def removeStudentTupleSetup = ScenarioGenerator.setupPlanFor(new InputTupleJoiner.InputTuple(
+                [setupAddStudentInput, removeStudentInput], 'remove-student-fixture-tuple', []),
+                adapted.sourceSetupPlanBindings())
+        removeStudentTupleSetup != null
+        removeStudentTupleSetup.actions()*.methodKey().every { !it.contains('#addStudent(') }
+        removeStudentTupleSetup.participantBindings()*.inputVariantId.toSet().containsAll([
+                setupAddStudentInput.deterministicId(), removeStudentInput.deterministicId()
+        ])
 
         and: 'every Tournament command footprint maps its aggregate key to zero-based constructor argument 1'
         tournamentDispatches.size() == 4
@@ -268,7 +301,7 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         and: 'all accepted nested setup targets use exact pre-target prefixes'
         def inputsById = adapted.inputVariants().collectEntries { [(it.deterministicId()): it] }
         def nestedTargetBindings = adapted.sourceSetupPlanBindings().findAll {
-            it.featureDerived() && it.featureMethodName() == 'setup'
+            it.featureDerived() && it.featureMethodName() == 'setup' && it.inputVariantIds().size() == 1
         }
         def nestedSetupCohorts = [
                 (CREATE_QUESTION): nestedTargetBindings.findAll { binding ->
@@ -461,44 +494,35 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
         threeParticipant != null
         threeParticipant.setupPlan() == null
 
-        when: 'one naturally observed UpdateStudentName setup supplies its three Saga inputs'
+        when: 'a formerly accepted UpdateStudentName triple promotes one setup action to a participant'
         def naturalSagas = [ADD_STUDENT, GET_EXECUTION, UPDATE_STUDENT_NAME] as Set
-        def naturalBinding = adapted.sourceSetupPlanBindings().find { binding ->
-            def covered = adapted.inputVariants().findAll {
-                it.deterministicId() in binding.inputVariantIds()
-            }
-            covered*.sourceClassFqn.toSet() == [UPDATE_STUDENT_TEST] as Set &&
-                    covered*.sagaFqn.toSet().containsAll(naturalSagas)
-        }
-        assert naturalBinding != null: adapted.diagnostics().findAll { it.contains(UPDATE_STUDENT_TEST) }
         def naturalInputs = naturalSagas.collect { saga ->
             adapted.inputVariants().find {
-                it.sagaFqn() == saga && it.deterministicId() in naturalBinding.inputVariantIds()
+                it.sagaFqn() == saga && it.sourceClassFqn() == UPDATE_STUDENT_TEST &&
+                        (saga != ADD_STUDENT || it.callContextMethodName() == 'setup')
             }
         }
         assert naturalInputs.every { it != null }
-        def naturalDefinitions = adapted.sagaDefinitions().findAll { it.sagaFqn() in naturalSagas }
-        def naturalConfig = new ScenarioGeneratorConfig(true,
-                ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
-                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
-                true, 3, 20, 1, 1, false,
-                ScenarioGeneratorConfig.InputPolicy.ALLOW_UNRESOLVED,
-                ScenarioGeneratorConfig.ScheduleStrategy.SERIAL,
-                1234L)
-        def natural = ScenarioGenerator.generate(
-                naturalDefinitions, naturalInputs, [], [naturalBinding], naturalConfig)
-        def naturalSingleParticipant = natural.workloadPlans().find { it.participants().size() == 1 }
-        def naturalThreeParticipant = natural.workloadPlans().find { it.participants().size() == 3 }
+        def naturalInputIds = naturalInputs*.deterministicId.toSet()
+        def naturalBindings = adapted.sourceSetupPlanBindings().findAll { binding ->
+            binding.inputVariantIds().any { it in naturalInputIds }
+        }
+        def addStudentInput = naturalInputs.find { it.sagaFqn() == ADD_STUDENT }
+        def addStudentBinding = naturalBindings.find {
+            it.featureDerived() && it.featureMethodName() == 'setup' &&
+                    addStudentInput.deterministicId() in it.inputVariantIds()
+        }
 
-        then: 'the non-pair workload receives one source-ordered setup with exact participant bindings'
-        naturalSingleParticipant?.setupPlan() != null
-        naturalThreeParticipant != null
-        naturalThreeParticipant.setupPlan() != null
-        naturalThreeParticipant.setupPlan().participantBindings()*.inputVariantId.toSet() ==
-                naturalInputs*.deterministicId.toSet()
-        naturalThreeParticipant.setupPlan().actions()*.sourceOccurrence().toSet().size() ==
-                naturalThreeParticipant.setupPlan().actions().size()
-        new WorkloadPlanValidator().validate(naturalThreeParticipant).valid()
+        then: 'the strict prefix prepares the complete tuple without replaying AddStudent'
+        addStudentBinding?.featureDerived()
+        addStudentBinding.featureMethodName() == 'setup'
+        addStudentBinding.setupPlan().actions()*.methodKey().every { !it.contains('#addStudent(') }
+        naturalBindings.any { it.inputVariantIds().containsAll(naturalInputIds) }
+        def naturalSetup = ScenarioGenerator.setupPlanFor(new InputTupleJoiner.InputTuple(
+                naturalInputs, 'natural-incoherent-tuple', []),
+                adapted.sourceSetupPlanBindings())
+        naturalSetup != null
+        naturalSetup.actions()*.methodKey().every { !it.contains('#addStudent(') }
 
         and: 'an opt-in evidence path can publish only the selected focused workload'
         def focusedOutput = System.getProperty('checkpointC.packageOutput')

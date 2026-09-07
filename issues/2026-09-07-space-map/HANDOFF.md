@@ -14,7 +14,7 @@ positive sequences, and 23 invalid. The 42 equivalent-ID comparisons also matche
 - Added this issue's SPEC, PLAN, FINDINGS and handoff.
 - Canonical documentation and compact evidence are updated with the completed campaign.
 
-No Java production code, Quizzes domain behavior, ImpactV2 formula/category,
+For the original campaign, no Java production code, Quizzes domain behavior, ImpactV2 formula/category,
 anomaly policy, GA, meeting note, personal note, branch/worktree creation, push or merge is
 part of this change. The Java file in the experiment is a source-launched wrapper
 around the existing OnDemandFaultScenarioService.
@@ -66,3 +66,31 @@ Results: `verifiers/experiments/space-map/RESULTS.md`. Compact evidence:
 `docs/verifiers-impl/evidence/space-map-2026-09-07/`. Raw evidence:
 `verifiers/target/space-map/`. Canonical current-state and Outcome 6 roadmap were
 updated after the parallel task's M1 commit, preserving that task's changes.
+
+## Corrective follow-up
+
+The generic adapter now recognizes direct facade calls in `setup()` as selected targets,
+not only the earlier nested-reference subset. It emits a strict prefix before such a
+target, shares that prefix with compatible later participants from the same source class,
+and retains frontier provenance so the prefix cannot become an ambiguous setup for tuples
+that do not select that target. No persisted schema, executor contract, event semantics,
+ImpactV2 policy, or Quizzes application code changed.
+
+The regenerated `w01` structural equivalent has a three-action materializable setup with
+no AddStudent call. Docker replay confirms setup success and four completed forward steps;
+the remaining INVALID result is solely the absent first QuizAnswer receiver. A separate
+source-backed Tournament receiver completes `SUCCESS / EXACT`, and its trigger-fault
+variant completes `COMPENSATED / EXACT` with a masked event. `w02` and `w07` also gain
+strict-prefix setups, `w03`–`w06` retain their setup IDs, and `w08` remains blocked because
+no single prefix can prepare all three selected setup targets.
+
+Focused proof: 16 Spock tests pass in an isolated JDK 21 snapshot, including missing
+exact-occurrence metadata with another materializable setup frontier. The complete
+verifier suite executes 892 tests: 890 pass, while the two pre-existing
+`ApplicationsFileTreeParserSpec` fixture-inventory assertions still omit
+`com.example.dummyapp.diagnostics.ReadResponseFixture`. The qualified Docker
+package contains 3,820 workloads and 12,395 initial FaultScenarios. Compact evidence and
+hashes are in
+`docs/verifiers-impl/evidence/space-map-setup-qualification-2026-09-07/`; raw artifacts
+remain in `verifiers/target/space-map-setup-qualification-03/`. The original package,
+selection, 159 discovery attempts, and sixteen repeats remain unchanged.

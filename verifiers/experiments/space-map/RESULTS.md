@@ -214,3 +214,30 @@ produzido quando uma ação de setup também é promovida a participante, e a ex
 de um recetor elegível para **cada** entrega escolhida. Este trabalho não removeu
 ações do setup, não fabricou objetos recetores e não alterou a política de eventos
 para fazer os casos passar. Uma mudança nesses contratos requer uma proposta própria.
+
+## Corrective qualification — 7 September 2026
+
+The approved follow-up keeps every original result above immutable. It corrects the
+generic setup boundary for an exact facade call that is both in `setup()` and selected
+as a measured participant: only the strict prefix before that call is replayed, and the
+prefix may bind compatible later participants from the same source class.
+
+The regenerated `w01` equivalent confirms the distinction. Its setup creates the course
+execution and user and activates the user, but does not enroll the user. Setup succeeds,
+AddStudent and RemoveStudent complete all four forward steps, and only then does the first
+QuizAnswer delivery stop with `SELECTED_SUBSCRIBER_NOT_FOUND`. The earlier unassigned
+`already enrolled` failure is removed; the receiver gap is not hidden.
+
+A source-backed `UpdateStudentName -> Tournament` control completed `SUCCESS / EXACT`.
+Its single trigger-fault variant completed `COMPENSATED / EXACT` and reported the event
+as `MASKED_BY_TRIGGER_FAULT`. This proves the selected route when its receiver is present.
+It does not imply that the missing receivers in `w01`–`w06` can be synthesized from their
+different fixtures. `w08` remains without one coherent setup because its selected setup
+targets cannot all be preceded by a single replayable prefix.
+
+The six original event groups account for all forty INVALID attempts: 6/6/6/4/10/8 in
+`w01`–`w06`. Besides the corrected repeated AddStudent state in `w01` and `w02`, `w05`
+has its independent unassigned AddParticipant invariant failure. Every group also selects
+at least one route whose QuizAnswer or Tournament receiver is absent. The compact
+[qualification evidence](../../../docs/verifiers-impl/evidence/space-map-setup-qualification-2026-09-07/map.md)
+records the regenerated IDs, package/report hashes, and bounded three-run Docker proof.
