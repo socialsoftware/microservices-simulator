@@ -533,7 +533,11 @@ and its 60 broader attempts remain historical observations, not current recovery
   hard-stop. New reports use execution schema v6, while historical v5 outcomes retain
   their original meaning. [Docker qualification evidence](evidence/empty-event-delivery-2026-09-07/README.md)
   covers empty, delivered, masked, mixed-route, positive-impact, and observer-disabled
-  executions.
+  executions. The [full forty-invalid follow-up](evidence/empty-event-delivery-2026-09-07/forty-invalid/README.md)
+  is also complete: all forty assessments are now complete and zero, with 22 actual
+  deliveries preserved. Old setup recipes and unassigned application rejections remain
+  visible; regenerate and qualify no-fault controls before using these workloads for
+  new search. This does not requalify the other 119 original attempts.
 - **Decided and implemented, 7 September:** a measured creation logically deleted by
   recovery no longer contributes a residual point by itself. Active dependencies remain
   independently scored. [Reassessment and contract](current-state.md#recovered-creation-remnants)

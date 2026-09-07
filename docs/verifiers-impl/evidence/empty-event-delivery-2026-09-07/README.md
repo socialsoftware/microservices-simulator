@@ -54,3 +54,9 @@ disabled-observer attempt has an explicitly unavailable score. This is not a glo
 claim about events never delivered, future eligible receivers, all event routes, or
 domain correctness. Multiple eligible receivers and actual replay failures remain
 unsupported/error outcomes rather than empty selections.
+
+## Broader follow-up
+
+The later [repeat of all forty former-invalid discovery attempts](forty-invalid/README.md)
+is complete. All forty now have complete zero assessments; it preserves and explains
+unassigned application failures rather than presenting every execution as successful.

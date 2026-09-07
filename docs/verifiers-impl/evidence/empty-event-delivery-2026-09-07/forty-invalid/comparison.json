@@ -1,0 +1,1791 @@
+{
+  "actualDeliveries": 22,
+  "assessments": {
+    "COMPLETE": 40
+  },
+  "attempts": 40,
+  "attemptsWithUnassignedFailure": 10,
+  "conformance": {
+    "DEVIATED": 10,
+    "EXACT": 30
+  },
+  "distinctSequences": 23,
+  "emptySelections": 58,
+  "equalSequenceSemanticAgreement": true,
+  "hardStops": {},
+  "integrity": "PASS",
+  "processStatuses": {
+    "COMPLETE": 40
+  },
+  "scores": {
+    "0": 40
+  },
+  "terminals": {
+    "PARTIAL_COMPENSATED": 37,
+    "SUCCESS": 3
+  },
+  "validatedAttemptIds": 40,
+  "wallSeconds": 494.5129327910254,
+  "records": [
+    {
+      "actionModelKey": "94dbeed10a3df121fa912534c10600d3f058b5d5ca7d3715587b639661c1c7a2",
+      "assessment": "COMPLETE",
+      "caseId": "w01-01",
+      "conformance": "DEVIATED",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "6a39ea7a9dfa21f8dca614f5a12b5751a603ddae7f01a935791efce8da39d7f7",
+        "execution.json": "f6238474bde32c2f7a970b23512de4ddca6ac86d5d5e3cfc1e8ed100196a4691",
+        "impact-v1.json": "398ae43fc8d0cd2f7e0ae351f94280d7d0ddfa9e14a660a12314114f2e4cdc0c"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2.",
+          "runtimeStepName": "enrollStudentStep"
+        }
+      ],
+      "wallSeconds": 22.34832891600672,
+      "caseGroup": "w01",
+      "faultScenarioId": "2e0785b8284ce61b74830c4cd236e60d2c65cf98ad2483c854481ca29e3d7abb",
+      "faultVector": "0000",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "b531329d7d8177694aa8dccaf6c1605ee36f0b0d965db9241ad99bc12a9b1da4",
+        "execution.json": "953cd9b50bc78e566cfa92d8be133daa76001e99b2cc37634088627aa5177d76",
+        "impact-v1.json": "354e9316190be3d227abc7234d89e62a34fdf7e4d89249dc7c92b26a283e30cc"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "enrollStudentStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2."
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-01"
+    },
+    {
+      "actionModelKey": "94dbeed10a3df121fa912534c10600d3f058b5d5ca7d3715587b639661c1c7a2",
+      "assessment": "COMPLETE",
+      "caseId": "w01-02",
+      "conformance": "DEVIATED",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "efd56be2214502e03f0023b5723b4f95d256b3a57781a4169bbced1e02733f54",
+        "execution.json": "59d08f3d8cd3967ea1520784c8963383b2e9410902b9f1c64220c86a8642883d",
+        "impact-v1.json": "b477823dca2e0220e43b44ab1e4729c2b6c124310038652044564f3decd820b0"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2.",
+          "runtimeStepName": "enrollStudentStep"
+        }
+      ],
+      "wallSeconds": 23.221412082901224,
+      "caseGroup": "w01",
+      "faultScenarioId": "e10600fd6582a659af9df28fc74a749b28e456d6aea0f37d6f6d27d9341acf78",
+      "faultVector": "0000",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "b1e571208a95cc32ba9c539fe81fec7a7e85f1e6df3b5d4ff638a3e5b3dc2eb1",
+        "execution.json": "246a062db2934dbd6ce640310be6191431d63b9dc4ba0ec85a5c0106455343f1",
+        "impact-v1.json": "bafa21da2ab5610008caae6cfd0078594ceba610d6cb3984afe308239f94c0fb"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "enrollStudentStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2."
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-02"
+    },
+    {
+      "actionModelKey": "eed97d28de754f4feccda31b8ef7e54b4430b154bfdbe6d1260b8a89557ca7c8",
+      "assessment": "COMPLETE",
+      "caseId": "w01-07",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "544883e58ae5a9ac6272359f9d23928166bb10dcc22223a044ebd110163869ce",
+        "execution.json": "75936eda4cdbe1172a406e1d4790299381c0c784d3f4aa364050c6d7e1904c88",
+        "impact-v1.json": "424767e32a1741c2c090178e406ffc6637f3db85b6dd4035371c4d6f8702f1ec"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 22.03294599999208,
+      "caseGroup": "w01",
+      "faultScenarioId": "1f80757b6423198cd2cd5a53f8234a0ed3b20bd36ab9759ac8f144b05e59b5a7",
+      "faultVector": "0100",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "4c1fbb3708c776cd270b06f8c747bc42aa5aa905dfda17e61f4d47ca1688b932",
+        "execution.json": "e8a89374d6a1eda98377d7146584a31f876a8c079eebc8cb502fbf7553b28e9e",
+        "impact-v1.json": "0997cf814bd59d77d614f72e90896d66aa2adcea7d3146f162636ba231b5d57e"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-07"
+    },
+    {
+      "actionModelKey": "eed97d28de754f4feccda31b8ef7e54b4430b154bfdbe6d1260b8a89557ca7c8",
+      "assessment": "COMPLETE",
+      "caseId": "w01-08",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "de3b5efc36a46c6c001fc0c5c08842195d6e7c01245dd7285953132c36242cfb",
+        "execution.json": "495902139ec791eaacae81104165c0bdf1aa494cb5853f443b500daebe30b07c",
+        "impact-v1.json": "81b1b1d3d6e9afff89b332ffdcfd87488df54786aaf590e39f072a8bb74fc916"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 22.152378499973565,
+      "caseGroup": "w01",
+      "faultScenarioId": "d4f7510d8a547ba3de7c1e2fc19553d006c8c8c1680ac15606ad1362ce636a77",
+      "faultVector": "0100",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "63fce259294bfd45966588f50c7311fa33a21c495cf9e1c39207f52577efd6be",
+        "execution.json": "88b1d0fbf73f9e4b6db9ce36e038fb5cb57862e818e0584c40fa6544ac8a3cd6",
+        "impact-v1.json": "b204805edd1565d63cda997ab2ff22ac8555fe3de4ce6106dec7c7044f81d4e7"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-08"
+    },
+    {
+      "actionModelKey": "f368121ddea7a120fb54e10d90fd0091325c1d5651caf6c8cccd00eff0cf18c3",
+      "assessment": "COMPLETE",
+      "caseId": "w01-11",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "271d27566a56bd64a1c24f9470ab662ad075481646a0041927a393211f8a5b58",
+        "execution.json": "8427aba627b0673f9d75d75f7ff45a850b10a5f5ab187c1c2657e155aa595971",
+        "impact-v1.json": "68f3f2d8744ad85be4a14bb19e42649a230ba591179cbc8a829480900e9246b0"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 25.707124374923296,
+      "caseGroup": "w01",
+      "faultScenarioId": "6de7fcf7d1b2627fa0b07dc96004705acb5b6af408fd52faa4c2b5d27739d726",
+      "faultVector": "1000",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "4e3a2d64b41e5fcf4d06712657f056c4137002ceb92442df94568cf7c6261161",
+        "execution.json": "a72a7876a663117f9fe65e3b8a04b2a0c6f4432a08d248da0ce3d20b9cd49998",
+        "impact-v1.json": "a661b8e2a7c89c7c5f15e125a3a5eda87c0d7e604925e9ec528fe52092fb1fc6"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-11"
+    },
+    {
+      "actionModelKey": "f368121ddea7a120fb54e10d90fd0091325c1d5651caf6c8cccd00eff0cf18c3",
+      "assessment": "COMPLETE",
+      "caseId": "w01-12",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "df7cda6f1bf0487dc790539772eb25934f635c203b09ed3925efc01cca4b3fae",
+        "execution.json": "58d906846bc58a846f62664cef790331e7825ec98a7c9790bc16c2e13ae8cc70",
+        "impact-v1.json": "8332179c87b5b5eacecefd10418d6a63135c120b59a831b6f2396c0d902087f1"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 24.20501991698984,
+      "caseGroup": "w01",
+      "faultScenarioId": "83939db9bef32c6892f20edf3a4d4e961b8109f589f2de0a4d5b65b8fa030e20",
+      "faultVector": "1000",
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "7c217a472d5dcda68274aa95d5d782536ae6331fe44b1cc7326c0f4eee380584",
+        "execution.json": "d0600549bf0b23ecebbd90189937613ce71549f2ce38103498d7f610bf954252",
+        "impact-v1.json": "dfa79dbd47858a5cda214cd144c0b0be7e702d47318a4e00fafa14322b39b600"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w01-12"
+    },
+    {
+      "actionModelKey": "403a58f8b9aaffcb1b91cb2770f02505568d470b653f52e32b14d9f5d97b4d05",
+      "assessment": "COMPLETE",
+      "caseId": "w02-01",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "1cfab38a58d61c5a27d13092359f15d4f933a25d141dfa02be1c530144c80814",
+        "execution.json": "dd2867d80129a3650013394797e192b3c5766fa99b3f522ba245e449d494fb1a",
+        "impact-v1.json": "6991932dd21e48cf3ece7c47795089553ff8f524f44aca461ece557852913884"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2.",
+          "runtimeStepName": "enrollStudentStep"
+        }
+      ],
+      "wallSeconds": 24.474626790964976,
+      "caseGroup": "w02",
+      "faultScenarioId": "39a9f2f2c03d6ec6915f90f3a057fabcc5203248c1b5a2a6d88dac0e688826b0",
+      "faultVector": "000",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "f8d4bd9831fc2fd4ca58bb1bd902cefadd9cb4573d6553d00abcfe9d3cfcb3b3",
+        "execution.json": "e9c451b1ae6b1fb5f8339409c71ca6c072a148f86a86dfba016704466eb8c94e",
+        "impact-v1.json": "46e9d7cbc5af98ddc5064f62db7713c70a545b5b66becddb31dfae2c2a106ca4"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "enrollStudentStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2."
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-01"
+    },
+    {
+      "actionModelKey": "403a58f8b9aaffcb1b91cb2770f02505568d470b653f52e32b14d9f5d97b4d05",
+      "assessment": "COMPLETE",
+      "caseId": "w02-02",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "46a1850fd8806f894fff47b1e51dc437989835d6e4339c1d313f8eb79d23abb5",
+        "execution.json": "c0d068f32bf3322f1b851ed613ccf3edcdc542daed646d9a2f1b10271466a641",
+        "impact-v1.json": "fcdf90693c385b63cc42da883db5e021aae37fa5802dd7ef4f44d51da0e234c5"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2.",
+          "runtimeStepName": "enrollStudentStep"
+        }
+      ],
+      "wallSeconds": 23.507046417100355,
+      "caseGroup": "w02",
+      "faultScenarioId": "c7f62625c22cd631d6dfcd294aa2bbfd0c653a4649f90e43d319f6baacfbf560",
+      "faultVector": "000",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "b2f880c0b1dabc9db3f4aa3d47b94843b7a781d414029f494f9a01bd47431f5a",
+        "execution.json": "f8eaea2da9a0786e9e08cf2ac50088e1d2f8f1e2e8089384d9f587bf5b9bb13a",
+        "impact-v1.json": "1634b7f3f103a9aa73bf7c246ca0352ec40949aafce4d839f57ba189ba9814a1"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "enrollStudentStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2."
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-02"
+    },
+    {
+      "actionModelKey": "ab9b7465c132f08c7d75d09f163860f9f6875e1b52434757f93e5d4b26359d3b",
+      "assessment": "COMPLETE",
+      "caseId": "w02-05",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "93299ee6ec0fc02a91a579341bd922a5cd2b0d7141602be41d3d0716667e01d2",
+        "execution.json": "35edeb15461f259a48a8c889a058349f63038373d9c6be38a2b1817ce07aba6a",
+        "impact-v1.json": "f813bc50bac2bf2b203f7ad3bae1b4c8c99090d71c02b27585ce445590ddd5b4"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 28.10585270798765,
+      "caseGroup": "w02",
+      "faultScenarioId": "10548d5be5be9f9c232482d9267b09d3c488d33a208330c273c6cbd0ef41c832",
+      "faultVector": "010",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "a313573c13384861c9935426203730c9495374438a40a3c80948cbed6c79d95e",
+        "execution.json": "d4761f1bbe90b0ed8bf1acbaa5d6a496310cb5dabc9c7517415e9b04fea6c154",
+        "impact-v1.json": "b8893b248ef44f13a599a733f99b14b6d55f94462469e3aa1b21bb08dc7b60b9"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-05"
+    },
+    {
+      "actionModelKey": "ab9b7465c132f08c7d75d09f163860f9f6875e1b52434757f93e5d4b26359d3b",
+      "assessment": "COMPLETE",
+      "caseId": "w02-06",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "29d4bcee337931d3262c1b05f5aa22c312baca1173f9703c08e88f1a8c2c02fb",
+        "execution.json": "5fbcc9c2f90b17f480997bfe6af41dcc3a7ba7b96d494fd3445a8a55ba9dbcc0",
+        "impact-v1.json": "554d02d592a447e6f70f52c54ec0115d2e9155917c8df5e56074e5cf3608c2ef"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 28.18837949994486,
+      "caseGroup": "w02",
+      "faultScenarioId": "90ea7f77790f439fe4008f0bfa7f11820bdd3ba52cff1f129ea5be25b3c3b424",
+      "faultVector": "010",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "9a6c659e0ab9865e0fceaf08010b2452573ff03566568301ef32041b190294d8",
+        "execution.json": "62c378ae3254dd91fcff56b1be40066b911e94e3eeacf6c1af2599ceb17be26e",
+        "impact-v1.json": "315a62d28f4dd4d898d894d2f98cc90db058602a66437ba4c07c4caef7ad96a6"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-06"
+    },
+    {
+      "actionModelKey": "d5162fdca6f5ca28971710710462f5b57329147d52bcaf0ccf50828503ac497a",
+      "assessment": "COMPLETE",
+      "caseId": "w02-08",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "23ce1240312ad63d2d25fd2e4fb119c377828cf2e8d9e4a428a75cdc7b871b4e",
+        "execution.json": "aeea3df68f836dd4289673c1a785090c76650f19e7a455811dd6cf000c6c07d1",
+        "impact-v1.json": "c495a27d0f987868a8e121db1ae29f6a5b6f9693c55ee3d6f75f49ecc5e3f1b6"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 26.852259290986694,
+      "caseGroup": "w02",
+      "faultScenarioId": "462380dd651c97b4a2140525e1c96ee762b63181d543eaffe142e992d2020e69",
+      "faultVector": "100",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "22f47a4c59624387e00522161c1d5afbc3e7b86673d4f9f5b78d442fce43f230",
+        "execution.json": "5476fb613b4a057544ef7b9b2bb8b81cc2330ca4c0ee71a1e7e8fea6226d3dfc",
+        "impact-v1.json": "f9ee4efbcd09d3ddc947f26a5a62e01489c094e5e130defb322c74489e26b146"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-08"
+    },
+    {
+      "actionModelKey": "d5162fdca6f5ca28971710710462f5b57329147d52bcaf0ccf50828503ac497a",
+      "assessment": "COMPLETE",
+      "caseId": "w02-09",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "33313c7a678d84297df5ae1023e6a19a1c5932f2c2bd69ffb4044ee78f2e96c3",
+        "execution.json": "ab572ba170df1cc794147aec30eedae15598ea0b0d6cc793534f05fb42372aa0",
+        "impact-v1.json": "2762d04ff67b12f3e9244d5b17630b2216368c817e6cbaf3e5174d483c0e544b"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 26.31486466701608,
+      "caseGroup": "w02",
+      "faultScenarioId": "adc87ba2ab7d677b33560369d1ab75ce1ed644bafaa29be97ed50d626fb1cb32",
+      "faultVector": "100",
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "54fd947ff2912a04f23661618f6ddcdd8c0791ef2f1d7a3c1a79d99aa0de1242",
+        "execution.json": "44776d4a28bc8a68d5e4a3c139df8263dcd0c014d3d7108460816e78e1b69b02",
+        "impact-v1.json": "0f10854f76287b88566166e333027dbe63b4c8a9f81d2dc9f6ad19cc1272f711"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w02-09"
+    },
+    {
+      "actionModelKey": "f088f62618007f63ef3ee9a42222335284d4098aba960909427c1a2294137df2",
+      "assessment": "COMPLETE",
+      "caseId": "w03-01",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "09dd207803ecbc1a41560ac2d3f28e29e3e99045ae6f06928115af8d77d3bbe0",
+        "execution.json": "8aac7fbf3cdb38962c183422b751931e08bf343a87c754ac0189102472e02ba2",
+        "impact-v1.json": "5867e436019527ed4c75a20b89c7243e9ea1ab0526b390789b9033d691af54db"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "SUCCESS",
+      "unassignedFailures": [],
+      "wallSeconds": 25.574274291982874,
+      "caseGroup": "w03",
+      "faultScenarioId": "23e10324fa6a18b7646011e5f39f1ff38436541454bded030ba59ed3de912cf4",
+      "faultVector": "000",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "4233084e79ef608114c9a155bd11bc1f6a38d936f4ebd25b7db21fdf18e5ba01",
+        "execution.json": "ccb2a4f61e866b05d8525b6ac91a15c2477ede90404eba0b48314ddf33326e80",
+        "impact-v1.json": "115da33436416ddcb9786e654136fa18342781f47470c317c22711302574c3f3"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-01"
+    },
+    {
+      "actionModelKey": "f088f62618007f63ef3ee9a42222335284d4098aba960909427c1a2294137df2",
+      "assessment": "COMPLETE",
+      "caseId": "w03-02",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "3f544157d298263e4dd8b0dc35656a60c524d60807989f0ecf4d13d4c7b93020",
+        "execution.json": "a66af5196523d51459fdf66a26ca72d369622de96baf558773045f8a36bf03f5",
+        "impact-v1.json": "ad19dc19ca1b4449a0d7db03c33fd721c1dfc65da80440cff6b7219eac11c706"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "SUCCESS",
+      "unassignedFailures": [],
+      "wallSeconds": 25.01338354195468,
+      "caseGroup": "w03",
+      "faultScenarioId": "fd8646d6350a45fef47dc759ab7560f3662ddfefef03fa46ee0f778186a620ca",
+      "faultVector": "000",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "e64e4cd87010702cbb9f42e9191e4b226b830a7c9b40f948e6c69c7b4ca95333",
+        "execution.json": "2ca9ff729fdd6da60ae092d58c1457947b98e9d52304418735e2f59c1ac115e3",
+        "impact-v1.json": "e831f21d3395996f09ff20e5fdb33ed9328b4a11a196e74999af8ed767403846"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-02"
+    },
+    {
+      "actionModelKey": "c0af39b1ebac33f13d0f4f666a084ecbd58f0b834f988bd0aef306780ce2abe3",
+      "assessment": "COMPLETE",
+      "caseId": "w03-03",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "cf3ae4546b0fcf92728f1fda19d083dbe8edfd1fec90f67de3b97c81b1e45c69",
+        "execution.json": "991c39efa50f259dc2ced75c6df1009a42356a1f12a7c2c2c951a35c07ccfb3e",
+        "impact-v1.json": "01a362e9b7a69950648448b9c61ab3775c869f92f5b9a080a60e7ca38278376d"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 22.69617675000336,
+      "caseGroup": "w03",
+      "faultScenarioId": "2e7f083c563caabfed942b7ff09a9758ea4ccb7100f62643e7f7c5185c6b8a93",
+      "faultVector": "001",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "8b7bc72da5b4c5c4354f3bde7019648e64492738621d31c010d21f09b21ba10d",
+        "execution.json": "cda454cb7694ba4827e17dad4017fd0212db060e3e551e7f8ae8fc218f3cb162",
+        "impact-v1.json": "209277063bc178d22af8c2a399ca063840c9d8f562bc3e45c0f021752d54baca"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-03"
+    },
+    {
+      "actionModelKey": "c0af39b1ebac33f13d0f4f666a084ecbd58f0b834f988bd0aef306780ce2abe3",
+      "assessment": "COMPLETE",
+      "caseId": "w03-04",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "2cb08016f6cb8d538017839985dade1b3d6277af8d73017462a933b67d3249d8",
+        "execution.json": "49a9479a4fd0086d6c7cbb4aceda2f3a30cb9878976b6ed8c1802f5373cfa10d",
+        "impact-v1.json": "02e018424e55c498493a9a9a0c7fdb669bc54ae9b3e7813ee83f9114e4d482b1"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 22.16081570798997,
+      "caseGroup": "w03",
+      "faultScenarioId": "3ef290d968cd6539bd3ed2d722e2f0dfaeea5f87e6c386352ad61b2338630c84",
+      "faultVector": "001",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "d9c37bb53d14b639953a941554a48c1ebd96c3916a9ac3b58a6ffad69986961c",
+        "execution.json": "8bee09bbb8d940e15e97c64a0a9d9a5215841ea8780f299ba0f0e5365d43e9b6",
+        "impact-v1.json": "ae2993087f0c85e3a3c4d5aae6d1e6d171a859c58ee381302390258e27758ebf"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-04"
+    },
+    {
+      "actionModelKey": "db29706c1575f00021c1d3ccf2be8a21d5deb5a8bcd1dada6581b9bb9352274d",
+      "assessment": "COMPLETE",
+      "caseId": "w03-05",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "08eb7198d3eeda39b1d71a484989a17da4f32e9bf2e8c1a4c1791b1c4d3d8e15",
+        "execution.json": "3861eb6aa928b1ed0d504cc3d215ec53f7c3c3b0da242ce6bf73786c30074f74",
+        "impact-v1.json": "8d0caef946d31608b2f5d17ff506f55807190b343e17efafb58f69b093f281c3"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.84792445797939,
+      "caseGroup": "w03",
+      "faultScenarioId": "6e0eb15bce2130fb97aebff82b93bb3ef90361e05aafaaf34c7e393e5d4933ee",
+      "faultVector": "010",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "b75ac92f8b8556f88f1a608a9551af132c85c50dacbb95273d9ace76c3dadd9a",
+        "execution.json": "843cd5e70cb79f8bb636293113960da09135169bd13dddb458b021e33a8e0622",
+        "impact-v1.json": "9004f877eacce72bb300d9304c0ab959aa4e9b8b65c5b458fa2f0d5ebb4560cb"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-05"
+    },
+    {
+      "actionModelKey": "db29706c1575f00021c1d3ccf2be8a21d5deb5a8bcd1dada6581b9bb9352274d",
+      "assessment": "COMPLETE",
+      "caseId": "w03-06",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "2845aa7feee35e1ac3707df4a54b702aa3ec7edde0eef340b91b5ea736c065e5",
+        "execution.json": "03fa6434711a25ebc9affcfd4603be1ace160e6a14dd8e4f8fe1884cfc3746fc",
+        "impact-v1.json": "0c1d2394d36b206344975a9f45e49615968e7c80321155accc1767580f9eaf96"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.824415625073016,
+      "caseGroup": "w03",
+      "faultScenarioId": "9e37673e8928dde4cdc34601f5d1d9eaaad2916a27c62060cf5574e77dd01d61",
+      "faultVector": "010",
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "d92f2d12f8fcfb95fceefcf7e5de5a467cada160d89d094011c2075401188b81",
+        "execution.json": "aaa0ee2f77826f0aaeddc6a3b9d236f864ca861932d372447e7ed3810afe0b30",
+        "impact-v1.json": "8975d41b3b3886a1d6cc27e9fb36a2c9334e9aed215e2a9ec413e3f6f743eb70"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w03-06"
+    },
+    {
+      "actionModelKey": "aefd7a11f555d66b8c0b081e558f75d5c7ba3a681f16b4d340b73c42bccd49b3",
+      "assessment": "COMPLETE",
+      "caseId": "w04-01",
+      "conformance": "DEVIATED",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "c9389cf09bfb95f002de1fc04147ffc924487555b62ae500d693ba115ce3e9af",
+        "execution.json": "d02b69010e2f32a65b8eac8a50b440fae82d6139ef9430c204a4c572ff92bca5",
+        "impact-v1.json": "039f7513152c0955c711c9ce449afccc60b8e2bcc46a8f541e9b75eba47531b4"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+          "runtimeStepName": "updateStudentNameStep"
+        }
+      ],
+      "wallSeconds": 22.059226125013083,
+      "caseGroup": "w04",
+      "faultScenarioId": "35ed5effc731d3dc247744a28df97b60498883fd3d6f76761790e5d5e7d13fd2",
+      "faultVector": "000",
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "3d292a16f82315faabbc896eeb8a90d7d8450a4531c172946e5a280061b40015",
+        "execution.json": "5abefc8129ff2a79bec808ad217592049277e50d9077ceaaf3758510a264cd8a",
+        "impact-v1.json": "39cd62d840003928bb4df6070b85cfc997d9e46d563a3b383dda85ea3359a24c"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+          "runtimeStepName": "updateStudentNameStep"
+        }
+      ],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w04-01"
+    },
+    {
+      "actionModelKey": "aefd7a11f555d66b8c0b081e558f75d5c7ba3a681f16b4d340b73c42bccd49b3",
+      "assessment": "COMPLETE",
+      "caseId": "w04-02",
+      "conformance": "DEVIATED",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "95a040dd5769de249e622d4930f38dd61b00866dc7fbabca4b55fe260adfef92",
+        "execution.json": "f1736708cb64b87e3d6a2dbe3ac3c95154e46be38ee5c49a8eeb6f983ed6ad1c",
+        "impact-v1.json": "5466bede13db1d6136def554be40031b19c229ea208e3111a85c03110e61232c"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+          "runtimeStepName": "updateStudentNameStep"
+        }
+      ],
+      "wallSeconds": 22.04552058293484,
+      "caseGroup": "w04",
+      "faultScenarioId": "e1c57b42c12be5e5b89b6f8c1d214dd4b5149bfb47a069608b0975288c610e6a",
+      "faultVector": "000",
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "09108c088cdde967d9700f22ff41f1a7c7174cdf5dfe6d6e25279c60a898f4fa",
+        "execution.json": "4a0a79be4a690c1d0726b79c3b8e9f927b331b6a70af9d047a21a4de3eb5a37d",
+        "impact-v1.json": "20c3d52969b4ae29a7807a145937bbba73379c46e0502928b47ce01e1c14ac5c"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+          "runtimeStepName": "updateStudentNameStep"
+        }
+      ],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w04-02"
+    },
+    {
+      "actionModelKey": "634e99975fbff967330cc7897ac3f4b68a00d0294957071900c6c7c33391278b",
+      "assessment": "COMPLETE",
+      "caseId": "w04-03",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "39a664001be8fe1e43550a6c26665bbd5f4e2b60a59ec080cae046d0abb381eb",
+        "execution.json": "4a40b1e87af0c98b0c31e471d04f8f2a3919f01ba5f1cff14ec80c67a530c171",
+        "impact-v1.json": "1783bfbc2f2a232c65443b1585e29b7f96d450cd904eb3662ab2a47114dc9198"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.24863208294846,
+      "caseGroup": "w04",
+      "faultScenarioId": "3852b7467ecd50639b0fbca76bfeea6fb099126797b45618af7d3cbf828d53df",
+      "faultVector": "001",
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "313b3ff6d42af1aa3a296d2db0a3e4f782460697b89e8a410b05118742f751d1",
+        "execution.json": "b67da052153cac7b3348657b94e526e824b8ed16adb98c5090cb33c579efff0e",
+        "impact-v1.json": "a063ae2a9fa73c010065e422932df616e97fa750a95d4a22100f48056c6e2358"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w04-03"
+    },
+    {
+      "actionModelKey": "634e99975fbff967330cc7897ac3f4b68a00d0294957071900c6c7c33391278b",
+      "assessment": "COMPLETE",
+      "caseId": "w04-04",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "9f164da159ea0da45e72c7a6187a786b29bd3e1da5ea9955021159c623df6171",
+        "execution.json": "a50c52744877a89c9accc5116072ae2e7c8eca48ddeea8a34b06b5eb7d9c539a",
+        "impact-v1.json": "e9d1611b47ccb2195a056a5cc15739ba9e0d0b4649c52b104d7450bf3afb6a9d"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.23495070799254,
+      "caseGroup": "w04",
+      "faultScenarioId": "9b9b1950d4546e6ec582334f0c2b259bdd7a650b9f2a988f0639bca9cfb77ae8",
+      "faultVector": "001",
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "8792cf3fc4e37bdd526b7469a4395455916a5463025d432674ba25f1ee1b6001",
+        "execution.json": "8c2e51cd9ec6fa82f74b2b6d540a77109f94da66db0d6c2fa4cb1e85f4ad5ba0",
+        "impact-v1.json": "571bab173305ee7893eb5abe122401941149550c0bcd865169bc42269b902002"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w04-04"
+    },
+    {
+      "actionModelKey": "40f2cbe190adc089654a5307d4b200952193138892ebc025a74cdd91441899e5",
+      "assessment": "COMPLETE",
+      "caseId": "w05-01",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "4800ff2dff46f18fe1bf00cd38cd919d32ad0f7fc32c585651d945ffc1fe1dcc",
+        "execution.json": "9cbf318f6e013de44c7cdb351e8887b05577d0dc225559a29be7c292f21f1a13",
+        "impact-v1.json": "5f55615d0a83c1665affac53b18ae31e3e55461830ff9264ad345f2aa14e30a1"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants",
+          "runtimeStepName": "addParticipantStep"
+        }
+      ],
+      "wallSeconds": 22.490961333969608,
+      "caseGroup": "w05",
+      "faultScenarioId": "0692147ce4109eddf74649b29ad05111ce964a28caffe7d07e1b0e95e4ddb32b",
+      "faultVector": "0000",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "5534dcd05cea5be3a98a8e68548b452caedc71a2b07c0898dec881cdc769c870",
+        "execution.json": "aa18c874faa8244094bfed1e8a5014a810261ffdec4ba888230c4fb7aba3f303",
+        "impact-v1.json": "1443604b9a4a3627a7306e6af4ae670e92197a0baa2ae46880b38368c83bd2bb"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "addParticipantStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants"
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 1,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-01"
+    },
+    {
+      "actionModelKey": "40f2cbe190adc089654a5307d4b200952193138892ebc025a74cdd91441899e5",
+      "assessment": "COMPLETE",
+      "caseId": "w05-02",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "07bcd5bbf708ab1150d897d7cbe570e566926302f472c51be7df211ef44f2dff",
+        "execution.json": "03118a9ff137b211cd3531f8e3c90938358f859fe7794890da0a7d56169c512e",
+        "impact-v1.json": "b9b448d57cfb1bc2bd82c7c4404c1c80de20b4839b65546f24d4af30a5a4dab6"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants",
+          "runtimeStepName": "addParticipantStep"
+        }
+      ],
+      "wallSeconds": 22.46389395801816,
+      "caseGroup": "w05",
+      "faultScenarioId": "a597f65db9ce35ba2271bee952c95d9b990d6592b6c9eb337d1b46c2a7e5c3fd",
+      "faultVector": "0000",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "b895f0e21fa9302655d4eca72e9409dcf4fb9241aced54ad81fa994d48c4c0ae",
+        "execution.json": "cb56970125ebe2be0104057a1b8ac71214fc604f75f8097144e63e9b7ea24b6d",
+        "impact-v1.json": "8f8404f7f88eabdf3921555c0fe5c82a8f772f7e3c223dcd2198839aac1edf0e"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "addParticipantStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants"
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 1,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-02"
+    },
+    {
+      "actionModelKey": "73b83e6cf13fe9c2eb4ea8bbe2cb0946c793429b74f66bd7e018dec9376823de",
+      "assessment": "COMPLETE",
+      "caseId": "w05-03",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "9fcf1492c24d8b7daa29950f9af061e22e22e30a4195f863eb809752094363a5",
+        "execution.json": "93598062c2f3177595eab324bee9257aa87acd84c9217892ad3a79857ffc35f7",
+        "impact-v1.json": "30c01739cc31833135c82b145ac73de3f6b267704ef86e8ebf8a5aee65f3c761"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 24.703136582975276,
+      "caseGroup": "w05",
+      "faultScenarioId": "de89738ed0cc922b102235f92c2a068dd8bd8c7b92f2122a1a1effcf97219a99",
+      "faultVector": "0001",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "9553c01a39387b4daa2e865eadf0770661dbfda17ac71f30403869d8a2e00db1",
+        "execution.json": "512389318feddfa15c17d5348a4b8d91a3568f93f4eefb443cff428954e7e288",
+        "impact-v1.json": "4b19ecc2999757235569adb3f6837dfb4674be93fbc143611f7717dd00e17335"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-03"
+    },
+    {
+      "actionModelKey": "73b83e6cf13fe9c2eb4ea8bbe2cb0946c793429b74f66bd7e018dec9376823de",
+      "assessment": "COMPLETE",
+      "caseId": "w05-04",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "69635ad8bcf64abcd4b41aee8538c426f4bc2be3fd228a7d17403fbbfb29dd8c",
+        "execution.json": "b72516c77b0a3903eec81727bdf2b554bc7e3c40fc61deb2fa8246c8afd1ea34",
+        "impact-v1.json": "5f58e2b6a7983a7a6ae54832da443db41f87c50b20650fd3afde0fd237876016"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 25.429505083011463,
+      "caseGroup": "w05",
+      "faultScenarioId": "e8955ee51c01a2725c1c72bfb2cdd6792f47b171dd69375a138aefa97e6874f9",
+      "faultVector": "0001",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "63c67938ea50b59ebd6df8d3dc671952e0b08e5d9a61571de83d5be4e7c33439",
+        "execution.json": "b754c8d32f3d478483a00e88d51df6e687a36c7e906893617517131c2255a685",
+        "impact-v1.json": "8e31287062beae95dfaa66c963401698bee38cb2a8f3177f1f70fa697877cce4"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-04"
+    },
+    {
+      "actionModelKey": "b742f9c07986eaf44ba88696ad8e43f3b47b920307e86ef6e777829d4dac186b",
+      "assessment": "COMPLETE",
+      "caseId": "w05-05",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "4ca73ac5aa756d4b1c0d72b738dda686338f6da60d3f5177c306c50bc243c7e3",
+        "execution.json": "63d46c06f591b65d9563e878281c1538b8c6766f409f96123c6c15b916e49d4e",
+        "impact-v1.json": "e1049f3d83b5a72c6cbeb372f578b055cbc8525e2ea0058fad5e3683d887db18"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 25.142702957964502,
+      "caseGroup": "w05",
+      "faultScenarioId": "6651364ca9134fc33678c1f97adc187ba344e50ae8ec7badedc0ade42fe25db8",
+      "faultVector": "0010",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "9720f4675a47d107baeb2fa9339bf017eb5fecd46aabd8e05048ead9f23867e1",
+        "execution.json": "8ff4deee47a1c3fe7b587d6db1fad14184e419f2ce0b144e9a918c88d32a8dad",
+        "impact-v1.json": "18afb643e75fb6875453df9d31a1d6e7038feac85fc5b297bf2b25e5185fc6f8"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-05"
+    },
+    {
+      "actionModelKey": "b742f9c07986eaf44ba88696ad8e43f3b47b920307e86ef6e777829d4dac186b",
+      "assessment": "COMPLETE",
+      "caseId": "w05-06",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "9b6f05171e616f40e59318439e064767260da52c300b829d528da4e4753e83b8",
+        "execution.json": "eff212401d11636003698c79b64a651da928cdf6fe367a227db199f225742773",
+        "impact-v1.json": "a0e9393dbbfee35c070439e0e64bf0570970b342af5aab10e0fc3685c82ad036"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.101781916921027,
+      "caseGroup": "w05",
+      "faultScenarioId": "9bf2289c4cc7bb2200fb9789514cf19eb1d2d21459a2f4bcd6f5ec4c9bc3bcc5",
+      "faultVector": "0010",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "5c8f101a90437968cd884a494258e834491d0be7c0984180936216c24cb649b0",
+        "execution.json": "bffa2b93616dd0d33de9d3d9eb1810f52ed597b4c02cbe2140f1795f2f0235b1",
+        "impact-v1.json": "c51a681d7e0a0895613f245ce3c3b71e22b4d92d5927feb77f0fb5e349a453a7"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-06"
+    },
+    {
+      "actionModelKey": "708386fb3bbf643b7425cce01a8dfa02df1f6e41342076ff977d9129d740d9d1",
+      "assessment": "COMPLETE",
+      "caseId": "w05-11",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "172c5620e8a2a763e363bd13eac3d5db21fc2ec695bc55ec1453e72e0c1811cc",
+        "execution.json": "0f4ae8e093b5e569b598c0f9303b53a59f2da015031ac21102febe0398457ed2",
+        "impact-v1.json": "10caac23650faa8e03e71f4a6d8beb8f5576dd57fb9f80f7dd6520400ede369f"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants",
+          "runtimeStepName": "addParticipantStep"
+        }
+      ],
+      "wallSeconds": 25.606218875036575,
+      "caseGroup": "w05",
+      "faultScenarioId": "2798007bd3c602f20f417fa19a9d9770616c8efff04a9bb936328bb9c840b55b",
+      "faultVector": "1000",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "d6f5eb59670f9a661c1a1de30da19f3025bba84d8161e59e3137dbbf5467629d",
+        "execution.json": "1170db001942ada45fe6f3476af15af0915b3ede35f828ebb04987a5e9174c04",
+        "impact-v1.json": "4dd3f108da1513868920852aba1258186e6289485ac2dadbe2983f9d99188993"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "addParticipantStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants"
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 1,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-11"
+    },
+    {
+      "actionModelKey": "708386fb3bbf643b7425cce01a8dfa02df1f6e41342076ff977d9129d740d9d1",
+      "assessment": "COMPLETE",
+      "caseId": "w05-12",
+      "conformance": "DEVIATED",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "d6ecdf20629c0e6badcb768dd9572994fa9f019f3fb6d882727df21db36efefc",
+        "execution.json": "c4f51950affa3fbc849a2c8d19c650be45ba089007c47720bef11e5673f08e08",
+        "impact-v1.json": "375b4ef900c4fac585e59173bf9ac5f7be628d554ec210a6245daadaa45be06a"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [
+        {
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants",
+          "runtimeStepName": "addParticipantStep"
+        }
+      ],
+      "wallSeconds": 25.451208374928683,
+      "caseGroup": "w05",
+      "faultScenarioId": "3c93b5c3cc6eb2d317d6e093f3cb1710290cc0b1a5552f1b272adad8cc2612d9",
+      "faultVector": "1000",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "c509fea93e38fd1da4c0d2d1657e97d6429d844a91b6779c312ee3ba2da4c455",
+        "execution.json": "2af3106d974faefe2164e4d7bf71102d718cc1ce6e401eb62a2fe378abc9959d",
+        "impact-v1.json": "6af4212ba3bb9e76ae1d61be8ce9df3f1ad9fb3b1fdb0e90271120cc27f8bd86"
+      },
+      "oldUnassignedFailures": [
+        {
+          "runtimeStepName": "addParticipantStep",
+          "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+          "exceptionMessage": "Aggregate 12 breaks invariants"
+        }
+      ],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 1,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-12"
+    },
+    {
+      "actionModelKey": "33c6c4068a44aaf9c454275855c84e45e9ce01ccc2127c5dedb5c5039fd279be",
+      "assessment": "COMPLETE",
+      "caseId": "w05-13",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "e95feb56c3ac7759fa43563bf24dd2f4adabf4ce27abd5bbc61fcdd4311ba6b9",
+        "execution.json": "478e04c0aaa39a3ec4a59a3383eb318db469cad724d6a8897f8076042efa20c0",
+        "impact-v1.json": "485928a4797e826ea8f735bdf26040fe2d138caf67c9059c4bd4797a0af44bd1"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 30.028057124931365,
+      "caseGroup": "w05",
+      "faultScenarioId": "176cd13fecd98bce67ff93d8e77b170926f5d590c8c4147aea648875b8709c0c",
+      "faultVector": "1001",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "121479a69f3ada1bd368ffaf65e9714d743ef2cbeb7923809538ffeab9e7441c",
+        "execution.json": "13160a39b4bf6f7986444515898b19eb46c8ba015d17142de849989e50b226a0",
+        "impact-v1.json": "87cd448bcde7e16a56c13f3dcfa47c67f78fc92f8d736fe46e6207596ba619b8"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-13"
+    },
+    {
+      "actionModelKey": "8dbf098d314172c6829830d33ba732729ff81311ee104872cad56d7f38affed6",
+      "assessment": "COMPLETE",
+      "caseId": "w05-14",
+      "conformance": "EXACT",
+      "deliveries": 1,
+      "emptySelections": 1,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "4f1b1a8b81a778ab1a9d9996c6f2cc299a5d76d7840e53ea8cf60cc6dd0869e1",
+        "execution.json": "d59ba043c2bcbe8a58b939d99c4fdd70a93d1cacc886baf6c351c9bbafc938cc",
+        "impact-v1.json": "e7569dc918169ac4e496b1d3f20db6c9d1f0ca2c375ffb859b19ecc797267b64"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 30.289363167015836,
+      "caseGroup": "w05",
+      "faultScenarioId": "f62d264f14af20b398f04b0c53fcf5a932306fb02fedf717f2d11459217a1633",
+      "faultVector": "1010",
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "035cb5c1646d9293d2dec307859cf87a070063d41e9ad0981054d3c7b343ebab",
+        "execution.json": "0b4d27af8c632c1d122163d13d67ff56064b8f65b47bd1f78403536c45d7eaa2",
+        "impact-v1.json": "7929922cbdcccac95859d7bd5ed97b830aaa1987f85ddd0c9942129c2b1ac9ac"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w05-14"
+    },
+    {
+      "actionModelKey": "0b9ad3f22a23ac625574a80038479e6e57fb5e658749c38623833f329d89a310",
+      "assessment": "COMPLETE",
+      "caseId": "w06-01",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "4d4161fffeccc3d780a38aa4bc6b831647666e25fba7453a62ee8bf52aaf21c6",
+        "execution.json": "9655d50b873e222e6657db3152cc4babde92d0f2e4d30dbd35ad1718fc708593",
+        "impact-v1.json": "5e62e667af693c7c31cf33d779f9b160b6b44c6d09fdfa630c0050c72a47ee59"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "SUCCESS",
+      "unassignedFailures": [],
+      "wallSeconds": 25.834851833060384,
+      "caseGroup": "w06",
+      "faultScenarioId": "c21b40aa89bb955435f0cbdc781584f62d37da67a1ec295b70bd6196fee0a64a",
+      "faultVector": "00000",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "aa9b7bd49897a547f4cb9f09d7641da1a6f92ab012b3f598e8aed57c7e0342b5",
+        "execution.json": "d28fdb3b0c9e4488fb9ba25df6596e03bb1c05397626db29b57d4ebc3c14e9cb",
+        "impact-v1.json": "929baf2a0c1b713b24c9d6eaee8e46cf92d55609024a483b488266f927f76a8f"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-01"
+    },
+    {
+      "actionModelKey": "bd17c78f1c91b43574a06bd6f4b2ed1210754e54cbdaabd87c43192956d3c4e8",
+      "assessment": "COMPLETE",
+      "caseId": "w06-02",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "80b83969b368921dab494a5437641b5bf54bd31db81dfbd565e8519dad88435d",
+        "execution.json": "20740157570a20413d465a95df09954da4a5dd2a896b34e4626dda81b558b7a1",
+        "impact-v1.json": "23a2b46dcbba72db1d1cdb570b5e9634df1ade0d45d2904b9ff8e71a23ce8853"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 25.43287104193587,
+      "caseGroup": "w06",
+      "faultScenarioId": "52fe64261871c7c5c8de7a1d2778bca5ab610cbe616e00f34cfd15a28cadbef8",
+      "faultVector": "00001",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "9be7866098f1baac459eb9bdae4e4d39dc779b28f7ae17ea74d7a525a3c4a4ad",
+        "execution.json": "f030ef9c8c06ab5a913c024f5f412133c52dade08f5f5309f0573b1152583cf1",
+        "impact-v1.json": "c5afcd3a2fc78398d73695cb374cd190fee5c8a1e2d0a9b0505d0367925e2472"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-02"
+    },
+    {
+      "actionModelKey": "3b01426edd79c55919e49a86bddc970ea9fae13cff2288e77fc6159593a4593b",
+      "assessment": "COMPLETE",
+      "caseId": "w06-03",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "07d1f615ad5ef9a3f86a57272fed118c9e15df1d1802c2c96f21871a44851193",
+        "execution.json": "ccadc393b6ff836215759b633cb485215a3cc18c24175b0291acc8b7d4604c9d",
+        "impact-v1.json": "6962a688c8c1e4f481c594f2a158b167ba2065826f7c369c8c7c69227fd8e6e9"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 26.272523334017023,
+      "caseGroup": "w06",
+      "faultScenarioId": "1581dd61b951ac7889b5b281b3afb09c48ff343bf9b50be082bdc3c98084a956",
+      "faultVector": "00010",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "c5b0e2e490bdbaf9a55247e339764cadc1375bd6dd0477b2df3afcb091c1b996",
+        "execution.json": "dbc6dcc0c953afb883e242ac18858027129b206ba9cb0d25b2f958e5fe51735f",
+        "impact-v1.json": "e03c0ae85cc46650d73596756f189b3d2b27d13dd05483778f30de200d856a9b"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-03"
+    },
+    {
+      "actionModelKey": "3b01426edd79c55919e49a86bddc970ea9fae13cff2288e77fc6159593a4593b",
+      "assessment": "COMPLETE",
+      "caseId": "w06-04",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "09fb906710da6697ee7f12462a84697716738363ac0fd3b00223b3f29b8456aa",
+        "execution.json": "a370115c0bcaf98ce820b01883c6399478c30c052e31a9d57734e27d69c579b1",
+        "impact-v1.json": "9d8c66598ee818d62b706a7120f900b03d921a8ecf757ec5951d89e17755c421"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 26.579341665958054,
+      "caseGroup": "w06",
+      "faultScenarioId": "623d0ad9d0a3a0028d6d3c185bd0d4ae046cb2b5b68c701d60fe8c4a8d8880d6",
+      "faultVector": "00010",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "a706819cced397d7e567e111f4df9465600d6526925cdcbe22e12c08886f9f59",
+        "execution.json": "6bc78faeaf757e66987673ff1bb6c51b6c3a5db9e1dd120de4afe84e4c453d66",
+        "impact-v1.json": "cb9640cfe61ed150fdbb2cc64bc5590275a4a3c980a4aac86bf1a9157dd7e2c6"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-04"
+    },
+    {
+      "actionModelKey": "5adfd5b31f62e737d6ebdafda98710742200441481f09a57dec2223312f218d6",
+      "assessment": "COMPLETE",
+      "caseId": "w06-05",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "58f3117fd6aade133d358f0230b35946741c9ae10d5788f5790ec938b1c2cc36",
+        "execution.json": "197007a37379f4102564952f33653515a8b171038cf3fb3fdbda19a4cfb964c8",
+        "impact-v1.json": "18e988fccda8ce10e2494fd41b32c842cb4eddfa3b8f7ad6d00fbc608a2791eb"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.67846741701942,
+      "caseGroup": "w06",
+      "faultScenarioId": "3808821c251c152ae4ab61a9077431ac77bb86cce84317f1f7813e56f50a12ab",
+      "faultVector": "00100",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "de2fe5ee9c49048b4a81627a7ab3d41726f02473e676c5651cbcc97c91e1e152",
+        "execution.json": "51aa4eb573ecc682afd75beb2a118064b7b1e7d5683f4fc445d88f25143ed960",
+        "impact-v1.json": "8b7cb6fb60251c1c60cf256a593d3d3bcea1233126557c35d12b42c91dc1e32f"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-05"
+    },
+    {
+      "actionModelKey": "5adfd5b31f62e737d6ebdafda98710742200441481f09a57dec2223312f218d6",
+      "assessment": "COMPLETE",
+      "caseId": "w06-06",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "afe7cca93a5716d73e853c20756d439cbeeb9c15c157d28a9f3c07f113b91ea3",
+        "execution.json": "7f13d062a2f6c62640e0e79fb9c7e75825651bb88bbd5ecd47f3c7e8444e8ef4",
+        "impact-v1.json": "552235bf278f73cee5f5c479138692c4c1fcbd11e23c6dc7c08fe1ab525b6c40"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 23.910287166945636,
+      "caseGroup": "w06",
+      "faultScenarioId": "c075fbfba59590302524e658a6f86c797e4e50fb504fb2d86fe02f6802f36935",
+      "faultVector": "00100",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "0a2251e34255a4040159c4d1a947b0d9de9674bd60694a96c80d85e6b61838f9",
+        "execution.json": "646abdb6e122c4d0b527301426a98246a4425c25de45e62675b71d7f20a988d2",
+        "impact-v1.json": "8dad8cd297af5d9aae9db143b6d4023fcb970a326ede8d8938dadba7c084c242"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-06"
+    },
+    {
+      "actionModelKey": "4f2e624a415c85fd71b39b097e3e30db6f4b86e9a5751b9f5c3f0fa6edf8cbd4",
+      "assessment": "COMPLETE",
+      "caseId": "w06-07",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "49d869f720d308a285fbac23936f0a933b2ef97abca35f8ae1c69ace54fd6798",
+        "execution.json": "3232d8ef28d9bbb9b6a209aa1b58ff410d5f4e100e48634cee68f86862296e1e",
+        "impact-v1.json": "bed33730230fbc7d174d2bcb1f0b08a55d10ff8b51d0ff9773beb3acc411d51d"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 26.462942332960665,
+      "caseGroup": "w06",
+      "faultScenarioId": "59f77c018075d2001f26bfe6615ee61e9bd40d7932025d6eb7a3db7157a9dead",
+      "faultVector": "00101",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "737212328805d0ee2e9152d8787e832fb264db402a6324ad4d0d76b19edc3b5a",
+        "execution.json": "0c3c5d88cd981874aac0456bb140a5c86e3909a5fe5654a83a5c1003b874c2ef",
+        "impact-v1.json": "b50227a68740a25b416d999db16cae8f82595f168cfb1efff634b00a79e2730b"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-07"
+    },
+    {
+      "actionModelKey": "eff1f791378756bdcd49b78f38544682375ec7215c4a6b74a7f881645ac63844",
+      "assessment": "COMPLETE",
+      "caseId": "w06-08",
+      "conformance": "EXACT",
+      "deliveries": 0,
+      "emptySelections": 2,
+      "exitCode": 0,
+      "hardStop": null,
+      "oldHardStop": "SELECTED_SUBSCRIBER_NOT_FOUND",
+      "oldTerminal": "UNEXPECTED_EXECUTION_FAILURE",
+      "processStatus": "COMPLETE",
+      "reportHashes": {
+        "execution.impact-v2.json": "2f503f192cf4fd55556d35609611385e8fe5bcd8ff8758686206c4fa76ee54ef",
+        "execution.json": "9cc19bf9e378b8eb32e02e6110c2fe6605657069be951c0a14d0758609c9e666",
+        "impact-v1.json": "cd486388bc9bb61d3a6d2d30f61a712dfd608d0d2215fc177a0aa145b940d6c2"
+      },
+      "score": 0,
+      "sourceSetup": "SUCCEEDED",
+      "terminal": "PARTIAL_COMPENSATED",
+      "unassignedFailures": [],
+      "wallSeconds": 24.711581458104774,
+      "caseGroup": "w06",
+      "faultScenarioId": "ac8cd01a116d43bee070b662b9b5d1f99dbe36228699f271c925ee111538619a",
+      "faultVector": "00110",
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa",
+      "oldReportHashes": {
+        "execution.impact-v2.json": "48e07ad092252186fe2abd8594bc5cc64be1d6b2f4062a6289647da1dad62b32",
+        "execution.json": "011c12902a5c3d8b1bfca638923d77b568f2fba138e10218195dda81f24a08e6",
+        "impact-v1.json": "ca9c0192d78e0a5f6a5c55a519ac5c988bc81c3ac44cba24dde4d7a2d92bb245"
+      },
+      "oldUnassignedFailures": [],
+      "newlyReachedUnassignedFailures": [],
+      "impactV1Score": 0,
+      "conditionCounts": {
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "reportDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01/c2/r01-w06-08"
+    }
+  ]
+}

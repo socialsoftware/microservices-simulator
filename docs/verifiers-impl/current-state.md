@@ -706,6 +706,17 @@ had distinct attempt IDs; all sixteen repetitions matched their original semanti
 summaries and hard-stop reasons. Setup readiness and shared bindings therefore do not
 establish event receiver eligibility or a useful no-fault control.
 
+The [current-runtime repeat of all forty invalid IDs](evidence/empty-event-delivery-2026-09-07/forty-invalid/README.md)
+now completes all forty assessments at ImpactV2 score 0: 58 empty route attempts and
+22 actual deliveries, with no remaining replay hard stops. These are 23 distinct action
+sequences. The old packages are unchanged: three executions end SUCCESS and 37
+PARTIAL_COMPENSATED; ten contain unassigned application exceptions and supported
+DEVIATED conformance. Two equivalent IDs newly reach a rejected name update after
+removing the student; eight already contained their exceptions in the old evidence.
+This qualifies continuation, not healthy controls for every workload or all 159 old
+attempts. Regenerate old setup recipes and qualify no-fault controls before adopting
+these workloads for new search.
+
 An identity limitation became visible after selection: eager/request records contained
 175 IDs for 125 equal-workload/vector/ordered-action sequences. The frozen 159-ID sample
 attempted 117 sequences (94 COMPLETE, including six positive sequences; 23 invalid).

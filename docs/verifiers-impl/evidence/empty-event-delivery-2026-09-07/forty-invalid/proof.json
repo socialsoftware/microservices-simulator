@@ -1,0 +1,20 @@
+{
+  "revision": "ad747affc6f398374b895cdd9360700c779bfa3c",
+  "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+  "build": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/empty-event-delivery/run-01/prepared-build",
+  "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/space-map/prepared/package/scenario-catalog-manifest.json",
+  "rawDirectory": "verifiers/target/empty-event-delivery/forty-invalid-01",
+  "rawFileHashes": {
+    "timing.json": "b5eeb19144a286632813d74b8559ba378388b1e4b8be02abd5af050120780f6a",
+    "attempts.json": "6903f0abb8520c948387f215eaf5bf68bda0f7e103fef2c5b958378193b14cd9",
+    "comparison.json": "d4704f955c96f0421d85b695a97f29efe5d56d04ba29557aaaf51bb1fc0037c1",
+    "selection.json": "5fe8ecbef8ba21f8c9562ee779fe52f97fbbfcfc7d29c36366f9dc351aa252f1"
+  },
+  "selection": "All forty INVALID original discovery IDs, unchanged package and fault scenarios; 23 distinct action sequences.",
+  "integrity": "Production, compiled/dependency files, image, package, historical report and launcher hashes verified before and after.",
+  "repetitions": 1,
+  "concurrency": 2,
+  "timeoutSeconds": 180,
+  "retries": 0,
+  "limits": "Not a rerun of all 159 original attempts; old setup recipes retained; no source regeneration or production edits."
+}

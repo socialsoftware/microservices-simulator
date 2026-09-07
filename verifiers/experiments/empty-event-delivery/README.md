@@ -2,7 +2,8 @@
 
 This fixed comparison exercises the explicit `NO_ELIGIBLE_SUBSCRIBER` replay outcome.
 It reuses retained packages without changing their actions, inputs, IDs or setup.
-It is not a rerun of the full forty-invalid campaign and does not synthesize receivers.
+The initial six-case qualification does not cover the full forty-invalid campaign.
+The separate follow-up below repeats that cohort without synthesizing receivers.
 
 The six attempts are selected before observing new outcomes:
 
@@ -50,3 +51,35 @@ serially with a 180-second per-attempt guard. Reports/logs remain under the outp
 from empty selection, the known positive, masking and observer parity. It verifies
 original package hashes again after execution. Preserve failures instead of rerunning
 into an existing case directory. Historical reports retain their old replay policy.
+
+## Follow-up: the forty previously invalid attempts
+
+The user approved repeating all forty historical discovery attempts that ended with
+`SELECTED_SUBSCRIBER_NOT_FOUND`. This is a direct experiment route: reuse existing
+execution tooling and the qualified v6 build; preserve the old package, inputs, IDs,
+fault vectors and ordered actions; inspect every result; update evidence and canonical
+status. No production changes or new scenario generation are part of this follow-up.
+
+```sh
+python3 verifiers/experiments/empty-event-delivery/rerun_invalid.py run \
+  --output verifiers/target/empty-event-delivery/NEW_FORTY_RUN
+python3 verifiers/experiments/empty-event-delivery/rerun_invalid.py summarize \
+  --output verifiers/target/empty-event-delivery/NEW_FORTY_RUN
+```
+
+The selection is all forty INVALID discovery IDs from the original space map, rather
+than a sample chosen for expected success. They represent 23 distinct ordered action
+sequences. Each is attempted once in a fresh Docker/JVM/H2 instance, with concurrency
+two and the reusable runner's named-container timeout/cleanup. Every attempt is retained;
+there is no replacement or retry. Source/build/dependency/image/package and historical
+report identities are checked before and after execution. The summarizer validates
+report joins even when a process returns nonzero; such a process never earns a score.
+
+The old package retains its old source-derived setup, including known preparation
+problems. This is a comparison of existing packages on the current runtime, not a
+regeneration of workloads using the later setup-extraction correction. Runtime changes
+since the original campaign also include the recovered-creation scoring refinement;
+this comparison must not attribute every difference solely to empty-route handling.
+
+The completed [forty-attempt results](../../../docs/verifiers-impl/evidence/empty-event-delivery-2026-09-07/forty-invalid/README.md)
+include the distinction between complete assessment and successful application operations.
