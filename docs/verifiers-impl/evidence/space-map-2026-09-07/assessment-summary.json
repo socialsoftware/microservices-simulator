@@ -1,0 +1,1226 @@
+{
+  "discoveryAssessmentStatuses": {
+    "COMPLETE": 119,
+    "INVALID": 40
+  },
+  "discoveryExecutionStatuses": {
+    "COMPLETE": 119,
+    "EXECUTION_INVALID": 40
+  },
+  "groups": [
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 8,
+        "INVALID": 6
+      },
+      "caseGroup": "w01",
+      "completeActionModels": 6,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 8
+      },
+      "conformance": {
+        "DEVIATED": 4,
+        "EXACT": 4,
+        "INCOMPLETE": 6
+      },
+      "connectedRuntimeBindingAttempts": 14,
+      "discoveryAttempts": 14,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w01-01",
+            "w01-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w01-03",
+            "w01-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w01-05",
+            "w01-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w01-07",
+            "w01-08"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w01-11",
+            "w01-12"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 8,
+        "EXECUTION_INVALID": 6
+      },
+      "generatedActionModels": 9,
+      "generatedCandidateIds": 14,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 6
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w01-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2.",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "enrollStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas::enrollStudentStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "removeStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas::removeStudentStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        },
+        {
+          "caseId": "w01-02",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Student with aggregate id 3 is already enrolled in course execution 2.",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "enrollStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas::enrollStudentStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "removeStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas::removeStudentStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w01-03",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w01-07",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "AddStudent",
+        "RemoveStudentFromCourseExecution"
+      ],
+      "scoreDistribution": {
+        "0": 8
+      },
+      "selectedActionModels": 9,
+      "setupStatuses": {
+        "SUCCEEDED": 14
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 8,
+        "UNEXPECTED_EXECUTION_FAILURE": 6
+      },
+      "unassignedRuntimeFailureAttempts": 6,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 4,
+        "INVALID": 6
+      },
+      "caseGroup": "w02",
+      "completeActionModels": 3,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "conformance": {
+        "DEVIATED": 2,
+        "EXACT": 2,
+        "INCOMPLETE": 6
+      },
+      "connectedRuntimeBindingAttempts": 10,
+      "discoveryAttempts": 10,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w02-01",
+            "w02-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w02-03",
+            "w02-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w02-05",
+            "w02-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w02-08",
+            "w02-09"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 4,
+        "EXECUTION_INVALID": 6
+      },
+      "generatedActionModels": 6,
+      "generatedCandidateIds": 10,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 6
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w02-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2.",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "enrollStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas::enrollStudentStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        },
+        {
+          "caseId": "w02-02",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2.",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "enrollStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas::enrollStudentStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w02-10",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w02-05",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "AddStudent",
+        "UpdateStudentName"
+      ],
+      "scoreDistribution": {
+        "0": 4
+      },
+      "selectedActionModels": 6,
+      "setupStatuses": {
+        "SUCCEEDED": 10
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 4,
+        "UNEXPECTED_EXECUTION_FAILURE": 6
+      },
+      "unassignedRuntimeFailureAttempts": 4,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 4,
+        "INVALID": 6
+      },
+      "caseGroup": "w03",
+      "completeActionModels": 3,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "conformance": {
+        "EXACT": 4,
+        "INCOMPLETE": 6
+      },
+      "connectedRuntimeBindingAttempts": 10,
+      "discoveryAttempts": 10,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w03-01",
+            "w03-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w03-03",
+            "w03-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w03-05",
+            "w03-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w03-07",
+            "w03-08"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 4,
+        "EXECUTION_INVALID": 6
+      },
+      "generatedActionModels": 6,
+      "generatedCandidateIds": 10,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 6
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w03-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        },
+        {
+          "caseId": "w03-02",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w03-07",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w03-01",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "UpdateStudentName",
+        "AddParticipant"
+      ],
+      "scoreDistribution": {
+        "0": 4
+      },
+      "selectedActionModels": 6,
+      "setupStatuses": {
+        "SUCCEEDED": 10
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 2,
+        "PARTIAL_COMPENSATED": 2,
+        "UNEXPECTED_EXECUTION_FAILURE": 6
+      },
+      "unassignedRuntimeFailureAttempts": 0,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 8,
+        "INVALID": 4
+      },
+      "caseGroup": "w04",
+      "completeActionModels": 6,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 8
+      },
+      "conformance": {
+        "EXACT": 8,
+        "INCOMPLETE": 4
+      },
+      "connectedRuntimeBindingAttempts": 12,
+      "discoveryAttempts": 12,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w04-01",
+            "w04-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w04-03",
+            "w04-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w04-06",
+            "w04-07"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w04-10",
+            "w04-11"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 8,
+        "EXECUTION_INVALID": 4
+      },
+      "generatedActionModels": 8,
+      "generatedCandidateIds": 12,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 4
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w04-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "removeStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas::removeStudentStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        },
+        {
+          "caseId": "w04-02",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "removeStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas::removeStudentStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w04-08",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w04-01",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "RemoveStudentFromCourseExecution",
+        "UpdateStudentName"
+      ],
+      "scoreDistribution": {
+        "0": 8
+      },
+      "selectedActionModels": 8,
+      "setupStatuses": {
+        "SUCCEEDED": 12
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 3,
+        "PARTIAL_COMPENSATED": 5,
+        "UNEXPECTED_EXECUTION_FAILURE": 4
+      },
+      "unassignedRuntimeFailureAttempts": 0,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 7,
+        "INVALID": 10
+      },
+      "caseGroup": "w05",
+      "completeActionModels": 6,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 7
+      },
+      "conformance": {
+        "EXACT": 7,
+        "INCOMPLETE": 10
+      },
+      "connectedRuntimeBindingAttempts": 17,
+      "discoveryAttempts": 17,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w05-01",
+            "w05-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w05-03",
+            "w05-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w05-05",
+            "w05-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w05-07",
+            "w05-08"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w05-11",
+            "w05-12"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 7,
+        "EXECUTION_INVALID": 10
+      },
+      "generatedActionModels": 12,
+      "generatedCandidateIds": 17,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 10
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w05-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Aggregate 12 breaks invariants",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "addParticipantStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        },
+        {
+          "caseId": "w05-02",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Aggregate 12 breaks invariants",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "addParticipantStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+              "status": "FAILED"
+            },
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "updateStudentNameStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w05-16",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w05-01",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "GetCourseExecutionById",
+        "UpdateStudentName",
+        "AddParticipant"
+      ],
+      "scoreDistribution": {
+        "0": 7
+      },
+      "selectedActionModels": 12,
+      "setupStatuses": {
+        "SUCCEEDED": 17
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 2,
+        "PARTIAL_COMPENSATED": 5,
+        "UNEXPECTED_EXECUTION_FAILURE": 10
+      },
+      "unassignedRuntimeFailureAttempts": 4,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 24,
+        "INVALID": 8
+      },
+      "caseGroup": "w06",
+      "completeActionModels": 22,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 24
+      },
+      "conformance": {
+        "DEVIATED": 12,
+        "EXACT": 12,
+        "INCOMPLETE": 8
+      },
+      "connectedRuntimeBindingAttempts": 32,
+      "discoveryAttempts": 32,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w06-03",
+            "w06-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w06-05",
+            "w06-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w06-09",
+            "w06-10"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w06-26",
+            "w06-27"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 24,
+        "EXECUTION_INVALID": 8
+      },
+      "generatedActionModels": 36,
+      "generatedCandidateIds": 42,
+      "hardStops": {
+        "SELECTED_SUBSCRIBER_NOT_FOUND": 8
+      },
+      "noFaultControl": [
+        {
+          "caseId": "w06-01",
+          "executionStatus": "EXECUTION_INVALID",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayException",
+              "exceptionMessage": "selected event has no eligible subscriber for the persisted route",
+              "faultOrigin": null,
+              "kind": "EVENT_CONSEQUENCE",
+              "runtimeStepName": "anonymizeStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas::anonymizeStudentStep#0",
+              "status": "SELECTED_SUBSCRIBER_NOT_FOUND"
+            }
+          ],
+          "hardStopReason": "SELECTED_SUBSCRIBER_NOT_FOUND",
+          "score": null,
+          "terminalStatus": "UNEXPECTED_EXECUTION_FAILURE"
+        }
+      ],
+      "positiveActionModels": 0,
+      "positiveObjectStatePatterns": {},
+      "positiveScenarioIds": [],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w06-16",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w06-03",
+          "comparable": true,
+          "originalStatus": "EXECUTION_INVALID",
+          "repeatStatus": "EXECUTION_INVALID",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "AnonymizeStudent",
+        "GetCourseExecutionById",
+        "RemoveStudentFromCourseExecution"
+      ],
+      "scoreDistribution": {
+        "0": 24
+      },
+      "selectedActionModels": 28,
+      "setupStatuses": {
+        "SUCCEEDED": 32
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 10,
+        "PARTIAL_COMPENSATED": 14,
+        "UNEXPECTED_EXECUTION_FAILURE": 8
+      },
+      "unassignedRuntimeFailureAttempts": 12,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 32
+      },
+      "caseGroup": "w07",
+      "completeActionModels": 24,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 28,
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 1, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "conformance": {
+        "EXACT": 32
+      },
+      "connectedRuntimeBindingAttempts": 32,
+      "discoveryAttempts": 32,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w07-01",
+            "w07-02"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-03",
+            "w07-04"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-05",
+            "w07-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-08",
+            "w07-09"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-10",
+            "w07-11"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-13",
+            "w07-14"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-15",
+            "w07-16"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w07-24",
+            "w07-25"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 32
+      },
+      "generatedActionModels": 24,
+      "generatedCandidateIds": 34,
+      "hardStops": {},
+      "noFaultControl": [
+        {
+          "caseId": "w07-01",
+          "executionStatus": "COMPLETE",
+          "failedActions": [],
+          "hardStopReason": null,
+          "score": 0,
+          "terminalStatus": "SUCCESS"
+        },
+        {
+          "caseId": "w07-02",
+          "executionStatus": "COMPLETE",
+          "failedActions": [],
+          "hardStopReason": null,
+          "score": 0,
+          "terminalStatus": "SUCCESS"
+        }
+      ],
+      "positiveActionModels": 3,
+      "positiveObjectStatePatterns": {
+        "SagaQuizAnswer:ABSENT->DELETED": 4
+      },
+      "positiveScenarioIds": [
+        "b285059c6827b811bf6456addf186053ea919b0da84188448efe391cf2b45cb4",
+        "e57e933710f15d44e359eaa4f4a99a6358ec8aac20978c84f379017518fce31b",
+        "83335489549aa6783fe2ad6f1b889e869f93d64377d30443340991fe592de1aa",
+        "31b328f365c91e65885e2f84fe2a66fcdda31aa2c6b74cedf0c710a2f67d7256"
+      ],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w07-12",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w07-26",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "AddParticipant",
+        "SolveQuizAsync"
+      ],
+      "scoreDistribution": {
+        "0": 28,
+        "1": 4
+      },
+      "selectedActionModels": 24,
+      "setupStatuses": {
+        "SUCCEEDED": 32
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 14,
+        "PARTIAL_COMPENSATED": 16,
+        "SUCCESS": 2
+      },
+      "unassignedRuntimeFailureAttempts": 0,
+      "validityDifferencesAcrossRecoveries": {}
+    },
+    {
+      "assessmentStatuses": {
+        "COMPLETE": 32
+      },
+      "caseGroup": "w08",
+      "completeActionModels": 24,
+      "conditionSignaturesCompleteOnly": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 28,
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 1, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "conformance": {
+        "DEVIATED": 18,
+        "EXACT": 14
+      },
+      "connectedRuntimeBindingAttempts": 32,
+      "discoveryAttempts": 32,
+      "equivalentIdChecks": [
+        {
+          "caseIds": [
+            "w08-02",
+            "w08-03"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-05",
+            "w08-06"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-07",
+            "w08-08"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-09",
+            "w08-10"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-11",
+            "w08-12"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-13",
+            "w08-14"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-19",
+            "w08-20"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseIds": [
+            "w08-27",
+            "w08-28"
+          ],
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "executionStatuses": {
+        "COMPLETE": 32
+      },
+      "generatedActionModels": 24,
+      "generatedCandidateIds": 36,
+      "hardStops": {},
+      "noFaultControl": [
+        {
+          "caseId": "w08-01",
+          "executionStatus": "COMPLETE",
+          "failedActions": [
+            {
+              "bodyOutcome": "FAILED",
+              "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+              "exceptionMessage": "Student with aggregate id 4 is already enrolled in course execution 2.",
+              "faultOrigin": "UNASSIGNED_RUNTIME",
+              "kind": "FORWARD",
+              "runtimeStepName": "enrollStudentStep",
+              "sourceStepId": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas::enrollStudentStep#0",
+              "status": "FAILED"
+            }
+          ],
+          "hardStopReason": null,
+          "score": 0,
+          "terminalStatus": "PARTIAL_COMPENSATED"
+        }
+      ],
+      "positiveActionModels": 3,
+      "positiveObjectStatePatterns": {
+        "SagaQuizAnswer:ABSENT->DELETED": 4
+      },
+      "positiveScenarioIds": [
+        "9fcc6c64201a8e2053f84da30257e3eca88000ef642d8cb633de262c6894e26f",
+        "d07c5890141b8fd9ecd02668382d5cd10734fa222dc23853af7b9cc1b941a13b",
+        "4f554b836b6fd13260ce60da9482ecb59c4384ba2d43e7fdaa125ad6f82ecf3f",
+        "47b7bb8c536c5dac303e6a9cbc5ac0a4f902fc3c22e7da1a2e0ac37ed92ba989"
+      ],
+      "recoveryOutcomeDifferences": {},
+      "repeatChecks": [
+        {
+          "caseId": "w08-05",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        },
+        {
+          "caseId": "w08-29",
+          "comparable": true,
+          "originalStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "sameHardStopReason": true,
+          "sameSemantic": true
+        }
+      ],
+      "sagas": [
+        "AddStudent",
+        "AddParticipant",
+        "SolveQuizAsync"
+      ],
+      "scoreDistribution": {
+        "0": 28,
+        "1": 4
+      },
+      "selectedActionModels": 24,
+      "setupStatuses": {
+        "SUCCEEDED": 32
+      },
+      "terminalStatuses": {
+        "COMPENSATED": 10,
+        "PARTIAL_COMPENSATED": 22
+      },
+      "unassignedRuntimeFailureAttempts": 18,
+      "validityDifferencesAcrossRecoveries": {}
+    }
+  ],
+  "totalAttempts": 175,
+  "validatedReportAttemptIds": 175
+}

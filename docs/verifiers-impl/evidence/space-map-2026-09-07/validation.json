@@ -1,0 +1,29 @@
+{
+  "pythonTests": [
+    {
+      "suite": "space-map",
+      "command": "python3 -m unittest discover -s verifiers/experiments/space-map -p 'test_*.py'",
+      "tests": 12,
+      "result": "PASS",
+      "log": "space-map-tests.log",
+      "logSha256": "72f09eca554e87a45b7156c6109520cf15e8b6ec157dc5c033610649b49b8698"
+    },
+    {
+      "suite": "batch-execution",
+      "command": "python3 -m unittest discover -s verifiers/experiments/batch-execution -p 'test_*.py'",
+      "tests": 12,
+      "result": "PASS",
+      "log": "batch-tests.log",
+      "logSha256": "48dc2daf43b3c7837d0f2a9ccd2955687f627c8f04a5f45cc596590a3f2a851a"
+    }
+  ],
+  "validatedReportBundles": 175,
+  "uniqueExecutionAttemptIds": 175,
+  "discoveryIds": 159,
+  "distinctActionSequencesAttempted": 117,
+  "representativeRepeatComparisons": 16,
+  "stableRepresentativeComparisons": 16,
+  "equivalentIdComparisons": 42,
+  "stableEquivalentIdComparisons": 42,
+  "finalClosureRepeatedRuntimeCampaign": false
+}

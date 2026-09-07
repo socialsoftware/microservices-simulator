@@ -1,0 +1,844 @@
+{
+  "configuration": {
+    "acceptedInputStatuses": [
+      "fullyResolved",
+      "runtimeDependent"
+    ],
+    "catalogWriteMode": "catalog-writing",
+    "maxEventConsequencesPerWorkload": 3,
+    "maxInputsPerSaga": 10,
+    "maxRecoverySchedulesPerVector": 1,
+    "maxWorkloadsWritten": 50000,
+    "sagaSetSelection": "strict",
+    "sagaSetSizes": [
+      1,
+      2,
+      3
+    ],
+    "targetApplication": "quizzes"
+  },
+  "events": {
+    "emissionSites": 10,
+    "resolvedEventRoutes": 16
+  },
+  "faultScenarios": {
+    "current": {
+      "possibleForComputedVectors": 13458,
+      "vectorsComputed": 11086,
+      "written": 11086
+    },
+    "initial": {
+      "possibleForComputedVectors": 13458,
+      "vectorsComputed": 11086,
+      "written": 11086
+    }
+  },
+  "inputs": {
+    "accepted": 218,
+    "acceptedByStatus": {
+      "runtimeDependent": 218
+    },
+    "found": 899,
+    "materializability": {
+      "affectedInputsByReason": {
+        "callReceiverNotReady": 126,
+        "eventPayloadPlaceholder": 23,
+        "loopDependentMutation": 1,
+        "propertyReceiverNotReady": 163,
+        "transformReceiverNotReady": 151,
+        "unknownValue": 163,
+        "unmaterializableReceiver": 82,
+        "unresolvedPlaceholder": 12,
+        "unresolvedVariable": 173,
+        "unsupportedTransform": 1
+      },
+      "blocked": 194,
+      "materializable": 24
+    },
+    "notAccepted": 681,
+    "notAcceptedByReason": {
+      "inputPolicyRejected": 4,
+      "maxInputsPerSaga": 591,
+      "sourceModeRejected": 86
+    }
+  },
+  "interactions": {
+    "direct": {
+      "byEvidence": {
+        "exact": 0,
+        "symbolic": 1168,
+        "typeOnly": 347,
+        "unknown": 0
+      },
+      "total": 1515
+    },
+    "sagaSets": {
+      "strict": {
+        "connectedBySize": {
+          "2": 459,
+          "3": 5007
+        },
+        "withAcceptedInputsBySize": {
+          "2": 27,
+          "3": 7
+        }
+      },
+      "withTypeOnlyFallback": {
+        "connectedBySize": {
+          "2": 594,
+          "3": 8421
+        },
+        "withAcceptedInputsBySize": {
+          "2": 242,
+          "3": 2130
+        }
+      }
+    }
+  },
+  "sagas": {
+    "bySaga": [
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 65,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.AnswerQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 53
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 29,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.ConcludeQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 19
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 12,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuestionFromQuizAnswerFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 11
+      },
+      {
+        "acceptedInputs": 2,
+        "blockedInputs": 2,
+        "fallbackDirectInteractions": 12,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 11
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 12,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveUserFromQuizAnswerFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 11
+      },
+      {
+        "acceptedInputs": 8,
+        "blockedInputs": 8,
+        "fallbackDirectInteractions": 44,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 4,
+        "stepCount": 3,
+        "strictDirectInteractions": 33
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 12,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 11
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 31,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 83,
+        "stepCount": 2,
+        "strictDirectInteractions": 28
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 63,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 18,
+        "stepCount": 2,
+        "strictDirectInteractions": 58
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 47,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.CreateCourseExecutionFunctionalitySagas",
+        "materializableInputs": 10,
+        "notAcceptedInputs": 55,
+        "stepCount": 4,
+        "strictDirectInteractions": 7
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 13,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 53,
+        "stepCount": 1,
+        "strictDirectInteractions": 12
+      },
+      {
+        "acceptedInputs": 2,
+        "blockedInputs": 2,
+        "fallbackDirectInteractions": 13,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 12
+      },
+      {
+        "acceptedInputs": 4,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 13,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas",
+        "materializableInputs": 4,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 0
+      },
+      {
+        "acceptedInputs": 6,
+        "blockedInputs": 6,
+        "fallbackDirectInteractions": 72,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 65
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 63,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 13,
+        "stepCount": 2,
+        "strictDirectInteractions": 58
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 28,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 26
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 28,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 17,
+        "stepCount": 1,
+        "strictDirectInteractions": 26
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 71,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 79,
+        "stepCount": 4,
+        "strictDirectInteractions": 39
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 25,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.DeleteTopicInQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 19
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 13,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionByAggregateIdFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 10
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 13,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.FindQuestionsByCourseFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 10
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 66,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.RemoveQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 49
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 57,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 42
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 84,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsAsyncFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 52
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 84,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 52
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 25,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateTopicInQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 19
+      },
+      {
+        "acceptedInputs": 4,
+        "blockedInputs": 4,
+        "fallbackDirectInteractions": 95,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 3,
+        "strictDirectInteractions": 63
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 11,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 11,
+        "stepCount": 1,
+        "strictDirectInteractions": 7
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 11,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.GetAvailableQuizzesFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 0
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 20,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveCourseExecutionFromQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 15
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 11,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.RemoveQuizQuestionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 7
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 11,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuestionInQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 7
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 45,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.UpdateQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 31
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 33,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 84,
+        "stepCount": 2,
+        "strictDirectInteractions": 11
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 42,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 39
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 10,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.FindTopicsByCourseFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 9
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 10,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.GetTopicByIdFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 9
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 42,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 39
+      },
+      {
+        "acceptedInputs": 6,
+        "blockedInputs": 6,
+        "fallbackDirectInteractions": 50,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 47
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 50,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 45,
+        "stepCount": 2,
+        "strictDirectInteractions": 47
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 37,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 6,
+        "stepCount": 1,
+        "strictDirectInteractions": 35
+      },
+      {
+        "acceptedInputs": 3,
+        "blockedInputs": 3,
+        "fallbackDirectInteractions": 92,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 86
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 147,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 6,
+        "strictDirectInteractions": 71
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 158,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 30,
+        "stepCount": 7,
+        "strictDirectInteractions": 81
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.DeleteTopicFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 59,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindParticipantFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 55
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 60,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetClosedTournamentsForCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetOpenedTournamentsForCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.GetTournamentsForCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 24,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.InvalidateQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 22
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 92,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 86
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 37,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveCourseExecutionFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 35
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 112,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 14,
+        "stepCount": 3,
+        "strictDirectInteractions": 86
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 37,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveUserFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 35
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 168,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 7,
+        "strictDirectInteractions": 144
+      },
+      {
+        "acceptedInputs": 1,
+        "blockedInputs": 1,
+        "fallbackDirectInteractions": 168,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 7,
+        "strictDirectInteractions": 144
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 37,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateParticipantAnswerFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 35
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 37,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 35
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 10,
+        "fallbackDirectInteractions": 135,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 22,
+        "stepCount": 5,
+        "strictDirectInteractions": 110
+      },
+      {
+        "acceptedInputs": 9,
+        "blockedInputs": 9,
+        "fallbackDirectInteractions": 92,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 8,
+        "stepCount": 3,
+        "strictDirectInteractions": 86
+      },
+      {
+        "acceptedInputs": 2,
+        "blockedInputs": 2,
+        "fallbackDirectInteractions": 3,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 2
+      },
+      {
+        "acceptedInputs": 10,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 10,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas",
+        "materializableInputs": 10,
+        "notAcceptedInputs": 79,
+        "stepCount": 1,
+        "strictDirectInteractions": 0
+      },
+      {
+        "acceptedInputs": 2,
+        "blockedInputs": 2,
+        "fallbackDirectInteractions": 3,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 2
+      },
+      {
+        "acceptedInputs": 2,
+        "blockedInputs": 2,
+        "fallbackDirectInteractions": 17,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 2,
+        "strictDirectInteractions": 10
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 3,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.FindUserByIdFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 2
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 3,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.GetStudentsFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 0
+      },
+      {
+        "acceptedInputs": 0,
+        "blockedInputs": 0,
+        "fallbackDirectInteractions": 3,
+        "fqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.GetTeachersFunctionalitySagas",
+        "materializableInputs": 0,
+        "notAcceptedInputs": 0,
+        "stepCount": 1,
+        "strictDirectInteractions": 0
+      }
+    ],
+    "found": 68,
+    "withAcceptedInputs": 36,
+    "withoutAcceptedInputs": 32
+  },
+  "setups": {
+    "providerBacked": {
+      "setups": 2,
+      "workloads": 3
+    },
+    "sourceDerived": {
+      "blocked": 0,
+      "materializable": 2363
+    }
+  },
+  "workloads": {
+    "all": {
+      "bySagaSetSize": {
+        "1": 36,
+        "2": 630,
+        "3": 7140
+      },
+      "inputBoundTotal": 1550127,
+      "total": 7806
+    },
+    "selected": {
+      "bySagaSetSize": {
+        "1": 36,
+        "2": 27,
+        "3": 7
+      },
+      "inputBoundTotal": 403,
+      "total": 70
+    },
+    "setup": {
+      "blocked": {
+        "bySagaSetSize": {
+          "1": 64,
+          "2": 34,
+          "3": 18
+        },
+        "total": 116
+      },
+      "withSourceSetup": {
+        "bySagaSetSize": {
+          "1": 154,
+          "2": 84,
+          "3": 49
+        },
+        "total": 287
+      },
+      "withoutSetup": {
+        "bySagaSetSize": {
+          "1": 0,
+          "2": 0,
+          "3": 0
+        },
+        "total": 0
+      }
+    },
+    "written": {
+      "total": 3820
+    }
+  }
+}

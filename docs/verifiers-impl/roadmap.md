@@ -591,6 +591,14 @@ One deterministic run and seeds 11, 29, 47, 71, 101 consume equal budgets per wo
 This establishes the evaluation/reporting boundary, not superiority or adaptive search.
 See the dated results for actual validity, discovery, coverage and repeatability.
 
+**Additional space qualification:** the [eight-workload structural map](../../verifiers/experiments/space-map/RESULTS.md)
+adds source-derived pairs/triples, including a fully covered 24-vector
+AddParticipant/SolveQuizAsync calibration space with three current-metric positives.
+The signal is a persisted DELETED residual after compensation; its research meaning
+remains explicit. Event receiver gaps, no-fault domain failures and equal action
+sequences under different eager/request IDs remain qualification findings. The fixed
+sample and sixteen stable repeats support this map, not an adaptive-search claim.
+
 ### Goal
 
 For one fixed useful WorkloadPlan, search persisted fault vectors under a finite execution budget and return high-impact distinct experiments.
@@ -603,6 +611,7 @@ Before extending these baselines into adaptive search:
 - environment reset is defined;
 - the chosen fixed workload offers useful discrimination under the existing COMPLETE ImpactV2 contract; historical application-rule labels remain separate evidence;
 - arbitrary valid vectors can be persisted idempotently through the current on-demand path;
+- equivalent eager/request action sequences cannot silently inflate candidate diversity or consume duplicate search budget;
 - invalid/infrastructure attempts cannot masquerade as zero fitness.
 
 ### Minimal design boundary

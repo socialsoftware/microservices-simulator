@@ -1,0 +1,72 @@
+{
+  "buildFileCount": 2669,
+  "buildHashesFingerprint": "d4102ec90bc76806b47df1b09ea655c0ca9bdc5daf599cc7e6a7c3c9ae953773",
+  "checkoutSourceDriftAtExport": [
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/local/LocalCommandGateway.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/impact/ImpactEvidenceObserver.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/impact/ImpactEvidenceObserverHolder.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadObservationContext.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseAdapter.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseEvidence.java",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseObservation.java",
+    "simulator/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/local/LocalCommandGatewayReadResponseTest.java",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ImpactV2EvidenceCollector.java",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureAssessor.java",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureCollector.java",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureReport.java",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureSpec.groovy",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutorSpec.groovy",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/visitor/GroovyClosureBoundarySpec.groovy",
+    "verifiers/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/FixtureWorkflow.java"
+  ],
+  "checkoutSourceDriftAtFreeze": [
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/visitor/GroovyClosureBoundarySpec.groovy"
+  ],
+  "containerLimits": {
+    "MEDIUM_CPUS": "2.0",
+    "MEDIUM_MEM_LIMIT": "3g",
+    "MEDIUM_MEM_RESERVATION": "512m"
+  },
+  "dependencyCount": 306,
+  "dependencyHashesFingerprint": "4b1d626535344bd6d7f8efbb7eea92e1840b180d39944f552372d3e1227b7fb9",
+  "experimentSha256": "3235e28a3c5748585c13abeacc611b9a5da017139a684d085ff0d8ac507e56e4",
+  "generationResult": {
+    "exitCode": 0,
+    "status": "EXITED",
+    "wallSeconds": 23.8769828749937
+  },
+  "imageIdAtStartAndEnd": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+  "maxExecutionConcurrency": 2,
+  "packageHashes": {
+    "accounting": "2cc582cd7031080e61d3c07e469cbe962fa69afd4ef12db3ae97ef044403cc64",
+    "faultScenarios": "f925b90781536b76de196d5ef2fb3eed0a09890f299a775ea1ce775272600a2e",
+    "inputs": "fe46e4fcf11b2d454d4db9d6cd4c1bc4afec4381b694d7c0d2a10b075303471c",
+    "interactions": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "manifest": "8b055070f81ff1cf504244ab59e64ffa20e4f129e565b3377cbd7e1eec02e873",
+    "requests": "dc4b76cc0da32e15eefd1771a8e2ffd2801ddd5cfed6b5abd3dd254f0daa415d",
+    "sagas": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "setups": "85361a1da44d9d0f323e8f9a2e2af95a7a444e67f7c3995e2d212b9e2c405dbd",
+    "workloads": "0bd0813cfe29819980af203febccf45da1ddc9a41fec692eb4424c5246593c80"
+  },
+  "postprocessingScripts": {
+    "analyze.py": "584927153d841a6d95ef3f0b941710f142763cdceac697ce358bf1c345b7b951",
+    "export.py": "87a463e1b7a355d51665f8acdf5fb307fa31a722b5365de6725d3da340f78028"
+  },
+  "preparationSeconds": 224.07546591595747,
+  "pythonVersionAtExport": "3.14.7 (main, Aug  5 2026, 10:29:49) [Clang 17.0.0 (clang-1700.6.4.2)]",
+  "rawRoot": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/space-map",
+  "scriptHashes": {
+    "verifiers/experiments/batch-execution/run.py": "516018e02e9c84a4f9095ace498ef772a65422054b55f7683f84bef29673584a",
+    "verifiers/experiments/impact-v2-broader/run-prepared.sh": "72bd9b72e0962c1bc8607827aed6e7cd0c2af1dbd1bd2fe392c55ca1f1522b17",
+    "verifiers/experiments/impact-v2-broader/validate_assessment.py": "8abdfaa55ef18885ca8cbec40d02bd22533918f35194490ed097799913e3a141",
+    "verifiers/experiments/space-map/RequestBatch.java": "53fd3f32c25a4acb9069a2c633d4d3a517c2371fb825a1ae9781af158f5391c1",
+    "verifiers/experiments/space-map/map.py": "c8d1d20e06ff6f73153b5323ae21529cc21c35932dfd296bcf40a0924d4534ce",
+    "verifiers/experiments/space-map/request-prepared.sh": "d98da64c70c3e631c83888cb153fcc0592427961309616929033c62fc0f30ece"
+  },
+  "snapshotVerifiedBeforeAndAfter": true,
+  "sourceFileCount": 1014,
+  "sourceHashesFingerprint": "37e20b72a2089ee6c615d563ac09afc875b6cf7541979c9d32e53cfc0eb5aa89",
+  "timeoutSeconds": 120,
+  "wallSeconds": 2604.488940084004
+}

@@ -1,0 +1,362 @@
+{
+  "discoveryAttempts": 159,
+  "medianAttemptSeconds": 28.25637345801806,
+  "repeatAttempts": 16,
+  "scopes": [
+    {
+      "attempts": 14,
+      "canonicalVectors": 9,
+      "caseGroup": "w01",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 8
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 14,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w01-03",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w01-07",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 9,
+      "sagas": [
+        "AddStudent",
+        "RemoveStudentFromCourseExecution"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 8
+      },
+      "statuses": {
+        "COMPLETE": 8,
+        "PROCESS_FAILURE": 6
+      },
+      "sumAttemptSeconds": 306.340619503113,
+      "uncappedRequestedRecoveries": 9,
+      "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650"
+    },
+    {
+      "attempts": 10,
+      "canonicalVectors": 6,
+      "caseGroup": "w02",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 10,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w02-10",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w02-05",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 6,
+      "sagas": [
+        "AddStudent",
+        "UpdateStudentName"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 4
+      },
+      "statuses": {
+        "COMPLETE": 4,
+        "PROCESS_FAILURE": 6
+      },
+      "sumAttemptSeconds": 281.46064596110955,
+      "uncappedRequestedRecoveries": 6,
+      "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df"
+    },
+    {
+      "attempts": 10,
+      "canonicalVectors": 6,
+      "caseGroup": "w03",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 10,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w03-07",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w03-01",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 6,
+      "sagas": [
+        "UpdateStudentName",
+        "AddParticipant"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 4
+      },
+      "statuses": {
+        "COMPLETE": 4,
+        "PROCESS_FAILURE": 6
+      },
+      "sumAttemptSeconds": 322.07809420797275,
+      "uncappedRequestedRecoveries": 6,
+      "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481"
+    },
+    {
+      "attempts": 12,
+      "canonicalVectors": 6,
+      "caseGroup": "w04",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 8
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 12,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w04-08",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w04-01",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 6,
+      "sagas": [
+        "RemoveStudentFromCourseExecution",
+        "UpdateStudentName"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 8
+      },
+      "statuses": {
+        "COMPLETE": 8,
+        "PROCESS_FAILURE": 4
+      },
+      "sumAttemptSeconds": 326.55455854098545,
+      "uncappedRequestedRecoveries": 8,
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605"
+    },
+    {
+      "attempts": 17,
+      "canonicalVectors": 12,
+      "caseGroup": "w05",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 7
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 17,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w05-16",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w05-01",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 12,
+      "sagas": [
+        "GetCourseExecutionById",
+        "UpdateStudentName",
+        "AddParticipant"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 7
+      },
+      "statuses": {
+        "COMPLETE": 7,
+        "PROCESS_FAILURE": 10
+      },
+      "sumAttemptSeconds": 541.5244272931013,
+      "uncappedRequestedRecoveries": 12,
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305"
+    },
+    {
+      "attempts": 32,
+      "canonicalVectors": 18,
+      "caseGroup": "w06",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 24
+      },
+      "distinctPositiveScenarios": 0,
+      "generatedScenarios": 42,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w06-16",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w06-03",
+          "firstStatus": "PROCESS_FAILURE",
+          "repeatStatus": "PROCESS_FAILURE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 18,
+      "sagas": [
+        "AnonymizeStudent",
+        "GetCourseExecutionById",
+        "RemoveStudentFromCourseExecution"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 24
+      },
+      "statuses": {
+        "COMPLETE": 24,
+        "PROCESS_FAILURE": 8
+      },
+      "sumAttemptSeconds": 960.4909384189523,
+      "uncappedRequestedRecoveries": 36,
+      "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa"
+    },
+    {
+      "attempts": 32,
+      "canonicalVectors": 24,
+      "caseGroup": "w07",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 28,
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 1, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "distinctPositiveScenarios": 4,
+      "generatedScenarios": 34,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w07-12",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w07-26",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 24,
+      "sagas": [
+        "AddParticipant",
+        "SolveQuizAsync"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 28,
+        "1": 4
+      },
+      "statuses": {
+        "COMPLETE": 32
+      },
+      "sumAttemptSeconds": 961.496207789809,
+      "uncappedRequestedRecoveries": 24,
+      "workloadId": "8d4c46bcb8700b2fd70e4911d4a5730f6d374a185c2b307ef629d3b5f55dccf0"
+    },
+    {
+      "attempts": 32,
+      "canonicalVectors": 72,
+      "caseGroup": "w08",
+      "conditionSignatures": {
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 0, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 28,
+        "{\"DELETED_DEPENDENCY\": 0, \"FAILED_OPERATION_RESIDUAL\": 1, \"UNRESOLVED_DELIVERED_EVENT\": 0}": 4
+      },
+      "distinctPositiveScenarios": 4,
+      "generatedScenarios": 36,
+      "recoveryCappedRequests": 0,
+      "repeats": [
+        {
+          "caseId": "w08-05",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        },
+        {
+          "caseId": "w08-29",
+          "firstStatus": "COMPLETE",
+          "repeatStatus": "COMPLETE",
+          "stableSemantic": true,
+          "stableSignature": true
+        }
+      ],
+      "requestedVectors": 24,
+      "sagas": [
+        "AddStudent",
+        "AddParticipant",
+        "SolveQuizAsync"
+      ],
+      "sampledRecoveryOutcomeDifferences": {},
+      "scoreDistribution": {
+        "0": 28,
+        "1": 4
+      },
+      "statuses": {
+        "COMPLETE": 32
+      },
+      "sumAttemptSeconds": 1004.1947419160861,
+      "uncappedRequestedRecoveries": 24,
+      "workloadId": "73f6802f8ddfc7511dcbf3c3503efed120ebf3736ed5bfe8bc1f3cafe1ce37db"
+    }
+  ],
+  "statuses": {
+    "COMPLETE": 119,
+    "PROCESS_FAILURE": 40
+  },
+  "uniqueExecutionAttemptIds": 129,
+  "wallSeconds": 2604.488940084004
+}

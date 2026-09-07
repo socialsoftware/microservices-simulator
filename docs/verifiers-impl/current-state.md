@@ -660,6 +660,40 @@ stable COMPLETE zero results each. The historical 14-zero/15-two landscape is a 
 post-run reference check, not a newly executed complete 29-row landscape. These results
 qualify the bounded evaluation path and expose flat additional spaces, not GA benefit.
 
+### Bounded structural space map (2026-09-07)
+
+The [space-map experiment](../../verifiers/experiments/space-map/RESULTS.md) selected
+eight source-derived Quizzes pair/triple workloads before scores, with fixed setup,
+normal schedule and event deliveries. Its prepared production snapshot matches
+`ebea5526d` and predates the Saga-read diagnostic. Generation retained ten inputs per
+Saga (591 inputs excluded by that cap), but exhausted at 3,820 workloads below the
+50,000 global cap. Selection crossed eight of twenty eligible pair/triple combinations.
+
+The campaign made 159 discovery attempts and sixteen representative repetitions in
+fresh Docker/JVM/H2 instances, with concurrency two. Discovery produced 119 COMPLETE
+assessments (111 zero, eight score one) and forty INVALID executions, all stopped by
+`SELECTED_SUBSCRIBER_NOT_FOUND` after successful source setup. All 175 report bundles
+had distinct attempt IDs; all sixteen repetitions matched their original semantic
+summaries and hard-stop reasons. Setup readiness and shared bindings therefore do not
+establish event receiver eligibility or a useful no-fault control.
+
+An identity limitation became visible after selection: eager/request records contained
+175 IDs for 125 equal-workload/vector/ordered-action sequences. The frozen 159-ID sample
+attempted 117 sequences (94 COMPLETE, including six positive sequences; 23 invalid).
+All 42 equivalent-ID comparisons matched. The experiment reports both denominators;
+it does not change package IDs or the production identity contract. Eight generated
+recovery sequences and 48 unrequested vectors remain outside execution coverage.
+
+The clearest additional calibration workload is AddParticipant/SolveQuizAsync: all
+24 canonical vectors were covered, three positive and 21 zero, with a SUCCESS/EXACT
+no-fault control. Its positive is FAILED_OPERATION_RESIDUAL for a SagaQuizAnswer absent
+at baseline and persisted as DELETED after compensation. This is the current metric's
+persistent-difference signal, not proof of a functional defect or Saga interaction
+synergy. The eleven-step triple also has sampled positives, but its no-fault control
+already encounters an unassigned duplicate-enrolment failure. Neither these small
+spaces nor the experiment establishes GA benefit. Detailed caps, lifecycle evidence,
+costs and findings are linked from the dated results.
+
 ## ImpactV1
 
 The simulator emits a structured invariant event only when `SagaUnitOfWorkService.registerChanged` reaches the existing `Aggregate.verifyInvariants()` boundary and that verification throws. Instrumentation records context and rethrows the identical application exception; evidence recording must not replace domain behavior.

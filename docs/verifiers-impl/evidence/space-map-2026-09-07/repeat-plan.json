@@ -1,0 +1,114 @@
+[
+  {
+    "caseGroup": "w01",
+    "caseId": "w01-03",
+    "faultScenarioId": "109cff2851da850e35664c7aab0767998c7d559f14da77a4d736c9ff00fec421",
+    "faultVector": "0001",
+    "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650"
+  },
+  {
+    "caseGroup": "w01",
+    "caseId": "w01-07",
+    "faultScenarioId": "1f80757b6423198cd2cd5a53f8234a0ed3b20bd36ab9759ac8f144b05e59b5a7",
+    "faultVector": "0100",
+    "workloadId": "98d4f29dcba4fdca37b2718bf5ca4a109018be9cf8a7b692f4fa985b7d144650"
+  },
+  {
+    "caseGroup": "w02",
+    "caseId": "w02-10",
+    "faultScenarioId": "31041baece2eaa017352007d2b22b8103ce7f3fcb178aaa90121a37279347e68",
+    "faultVector": "101",
+    "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df"
+  },
+  {
+    "caseGroup": "w02",
+    "caseId": "w02-05",
+    "faultScenarioId": "10548d5be5be9f9c232482d9267b09d3c488d33a208330c273c6cbd0ef41c832",
+    "faultVector": "010",
+    "workloadId": "f2469f5f436302340c4fedd764885607174c0f42d341fd6594bfbb86bf6c35df"
+  },
+  {
+    "caseGroup": "w03",
+    "caseId": "w03-07",
+    "faultScenarioId": "611619c6d734dca11ea1a5626201c261cf51f6dc3d51189c1b0ba805df581c16",
+    "faultVector": "100",
+    "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481"
+  },
+  {
+    "caseGroup": "w03",
+    "caseId": "w03-01",
+    "faultScenarioId": "23e10324fa6a18b7646011e5f39f1ff38436541454bded030ba59ed3de912cf4",
+    "faultVector": "000",
+    "workloadId": "5eeaebb9c4c2651f29e6931d89feabc9a16fdd7afc9a341ecf0c9f2bdec39481"
+  },
+  {
+    "caseGroup": "w04",
+    "caseId": "w04-08",
+    "faultScenarioId": "0f82828ad7ecac85a148931b62ab25a0245f8d6b9358ce7fe4daf7de932800b0",
+    "faultVector": "011",
+    "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605"
+  },
+  {
+    "caseGroup": "w04",
+    "caseId": "w04-01",
+    "faultScenarioId": "35ed5effc731d3dc247744a28df97b60498883fd3d6f76761790e5d5e7d13fd2",
+    "faultVector": "000",
+    "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605"
+  },
+  {
+    "caseGroup": "w05",
+    "caseId": "w05-16",
+    "faultScenarioId": "08adbf1b2be3f8a3158579945dade5ae6efb9208f8049aee87ec9c2d0955014c",
+    "faultVector": "1101",
+    "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305"
+  },
+  {
+    "caseGroup": "w05",
+    "caseId": "w05-01",
+    "faultScenarioId": "0692147ce4109eddf74649b29ad05111ce964a28caffe7d07e1b0e95e4ddb32b",
+    "faultVector": "0000",
+    "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305"
+  },
+  {
+    "caseGroup": "w06",
+    "caseId": "w06-16",
+    "faultScenarioId": "0b93ca9dfc52fc6bec97cf1bec586268626cd983af95c71a1886cccf8777598e",
+    "faultVector": "01010",
+    "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa"
+  },
+  {
+    "caseGroup": "w06",
+    "caseId": "w06-03",
+    "faultScenarioId": "1581dd61b951ac7889b5b281b3afb09c48ff343bf9b50be082bdc3c98084a956",
+    "faultVector": "00010",
+    "workloadId": "794eb8199ee3d535e8630c498b1ad366e0096f900ee6472dab6f7312aca390fa"
+  },
+  {
+    "caseGroup": "w07",
+    "caseId": "w07-12",
+    "faultScenarioId": "150138457e9fabefa8546f2e1916b3b3e26df9234720e11ff95b7afc45ad3929",
+    "faultVector": "000100000",
+    "workloadId": "8d4c46bcb8700b2fd70e4911d4a5730f6d374a185c2b307ef629d3b5f55dccf0"
+  },
+  {
+    "caseGroup": "w07",
+    "caseId": "w07-26",
+    "faultScenarioId": "31b328f365c91e65885e2f84fe2a66fcdda31aa2c6b74cedf0c710a2f67d7256",
+    "faultVector": "100000001",
+    "workloadId": "8d4c46bcb8700b2fd70e4911d4a5730f6d374a185c2b307ef629d3b5f55dccf0"
+  },
+  {
+    "caseGroup": "w08",
+    "caseId": "w08-05",
+    "faultScenarioId": "1defbd018efadb8bf1207661b44993356820946ec3bb87ffe9d4ec4f8c91ef29",
+    "faultVector": "00000000100",
+    "workloadId": "73f6802f8ddfc7511dcbf3c3503efed120ebf3736ed5bfe8bc1f3cafe1ce37db"
+  },
+  {
+    "caseGroup": "w08",
+    "caseId": "w08-29",
+    "faultScenarioId": "47b7bb8c536c5dac303e6a9cbc5ac0a4f902fc3c22e7da1a2e0ac37ed92ba989",
+    "faultVector": "10010000001",
+    "workloadId": "73f6802f8ddfc7511dcbf3c3503efed120ebf3736ed5bfe8bc1f3cafe1ce37db"
+  }
+]

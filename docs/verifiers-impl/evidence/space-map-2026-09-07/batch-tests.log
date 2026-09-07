@@ -1,0 +1,15 @@
+c1 r1 control: PROCESS_FAILURE 0.02s
+.c1 r1 control: PROCESS_FAILURE 0.02s
+c1 r2 control: INVALID_REPORT 0.02s
+.c1 r1 control: INFRASTRUCTURE_FAILURE 0.00s
+.c1 r1 control: INVALID_REPORT 0.02s
+..c1 r1 control: INVALID_REPORT 0.02s
+...c1 r1 control: SEMANTIC_DIVERGENCE 0.02s
+.c1 r1 control: PASS 0.02s
+c1 r2 control: PROCESS_FAILURE 0.02s
+..c1 r1 control: PASS 0.02s
+.
+----------------------------------------------------------------------
+Ran 12 tests in 0.330s
+
+OK
