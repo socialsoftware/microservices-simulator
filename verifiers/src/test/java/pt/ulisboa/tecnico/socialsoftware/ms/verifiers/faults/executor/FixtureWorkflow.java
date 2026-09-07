@@ -40,6 +40,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
     private static final Map<String, Integer> INVARIANT_SIGNALS = new LinkedHashMap<>();
     private static final Set<String> INVARIANT_REJECTIONS = new HashSet<>();
     private static final Map<String, Integer> EVENT_EMISSIONS = new LinkedHashMap<>();
+    private static final Map<String, Runnable> BODY_CALLBACKS = new LinkedHashMap<>();
     public static int constructorCalls;
 
     private final String participant;
@@ -75,6 +76,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
 
     private void runBody(String key, String stepName, SagaUnitOfWork unitOfWork) {
         BODIES.add(key);
+        if (BODY_CALLBACKS.containsKey(key)) BODY_CALLBACKS.get(key).run();
         if (IMPLICIT_STATE_STEPS.contains(key)) {
             unitOfWork.savePreviousState(Math.abs(key.hashCode()), GenericSagaState.NOT_IN_SAGA);
         }
@@ -152,6 +154,10 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         EVENT_EMISSIONS.put(participant + ":" + stepName, count);
     }
 
+    public static void bodyCallback(String participant, String stepName, Runnable callback) {
+        BODY_CALLBACKS.put(participant + ":" + stepName, callback);
+    }
+
     public static void rejectInvariantOnWrite(String participant, String stepName) {
         INVARIANT_REJECTIONS.add(participant + ":" + stepName);
     }
@@ -185,6 +191,7 @@ public class FixtureWorkflow extends WorkflowFunctionality {
         INVARIANT_SIGNALS.clear();
         INVARIANT_REJECTIONS.clear();
         EVENT_EMISSIONS.clear();
+        BODY_CALLBACKS.clear();
         constructorCalls = 0;
     }
 

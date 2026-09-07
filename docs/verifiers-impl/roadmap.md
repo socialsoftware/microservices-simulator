@@ -38,16 +38,18 @@ The breadth and representativeness of that selected set bound the thesis claim.
 
 1. **Complete:** bounded same-event route combinations and the eight-attempt Quizzes
    comparison are qualified. Review the selected horizons in the meeting note. The implementation package is `issues/2026-09-06-combined-event-deliveries/`.
-2. Add a bounded causal-anomaly observation as complementary information. Start by
-   specifying one pattern such as reading an exact version produced by a Saga that
-   later compensates that effect. Establish the transaction/Saga boundary, exact read
-   provenance and positive/negative controls. Do not require a developer-written business
-   harm rule to report a demonstrated pattern. Keep anomaly findings distinct from the
-   existing affected-object count; broader isolation classification remains outside this
-   first detector. This is planned, not implemented.
+2. Complete Quizzes qualification of the approved compensated-creation read diagnostic.
+   The typed final-return hook, exact creation/delivery/explicit-compensation rule and
+   ordinary-executor sidecar are implemented and tested. The remaining milestone adds
+   audited Quiz/Tournament adapters, fresh controlled positive/control runs, ordinary
+   executor persistence proof and marginal-cost measurements. See
+   [the approved package](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
+   Keep findings distinct from the existing affected-object count; no business-harm rule
+   is required. Restored updates, runtime result binding and broader isolation
+   classification remain separate future work.
 3. Measure execution cost and define deterministic/random search baselines, then evaluate
    GA on the declared experiment space. Cost/baseline preparation can proceed alongside
-   the bounded anomaly specification; do not wait for every anomaly type, fan-out shape
+   the bounded diagnostic qualification; do not wait for every anomaly type, fan-out shape
    or asynchronous chain. Any choice to use anomaly findings as fitness must explicitly
    define the objective rather than silently mix count units.
 

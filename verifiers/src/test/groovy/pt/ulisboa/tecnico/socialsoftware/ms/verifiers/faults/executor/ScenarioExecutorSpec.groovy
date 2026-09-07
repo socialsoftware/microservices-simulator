@@ -22,6 +22,13 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObse
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContext
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseAdapter
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseEvidence
+import org.springframework.mock.env.MockEnvironment
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.export.DynamicArtifactWriter
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicObservation
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicAttributionLink
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.model.DynamicEvidenceJoinResult
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventReplayCoordinator
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork
@@ -70,6 +77,7 @@ class ScenarioExecutorSpec extends Specification {
     def cleanup() {
         FaultVectorProviderHolder.clear()
         System.clearProperty(ImpactV2EvidenceCollector.ENABLED_PROPERTY)
+        System.clearProperty(SagaReadExposureCollector.ENABLED_PROPERTY)
     }
 
     def 'all-zero persisted scenario replays every action and commits each participant at its own final forward action'() {
@@ -224,6 +232,259 @@ class ScenarioExecutorSpec extends Specification {
         then:
         !collector.started()
         0 * runtime._
+    }
+
+    def 'Spring opt-in persists separate Saga read metadata and preserves ordinary execution and both impact reports'() {
+        given:
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def snapshots = new ImpactEvidence.SnapshotBatch([new ImpactEvidence.AggregateSnapshot(
+                new ImpactEvidence.AggregateIdentity('DummyAggregate', 7), 10L, 'ACTIVE', 'DummyAggregate',
+                new ImpactEvidence.FrameworkMetadata(null, null, null, null, null, null), [secret: 'not for diagnostic'], [])], [])
+        def results = []
+
+        when:
+        [false, true].each { enabled ->
+            FixtureWorkflow.reset()
+            FixtureWorkflow.recordInvariantSignals('solo', 'first', 1)
+            def output = outsidePackageOutput(packageFixture, "read-${enabled}.json")
+            def impact = outsidePackageOutput(packageFixture, "impact-${enabled}.json")
+            def observer = mock(PersistentStateObserver)
+            when(observer.snapshotAll()).thenReturn(snapshots)
+            def adapter = fixtureReadAdapter()
+            def contract = new ReadResponseEvidence.Contract(adapter.contractId(), adapter.contractVersion(),
+                    adapter.commandType().name, adapter.responseType().name, adapter.aggregateType(), adapter.runtimeType())
+            FixtureWorkflow.bodyCallback('solo', 'first', {
+                def current = ImpactEvidenceObserverHolder.current()
+                if (ImpactEvidenceObserverHolder.isReadObservationEnabled(current)) {
+                    ImpactEvidenceObserverHolder.readResponse(current, new ReadResponseEvidence.Observation(
+                            ImpactWriterContext.current().orElse(null), 'SagaCommand', contract.commandType(), contract.responseType(),
+                            false, ReadResponseEvidence.Outcome.DELIVERED, contract, snapshots.aggregates()[0].identity(), 10L, null))
+                }
+            } as Runnable)
+            def runtime = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService(), [
+                    (PersistentStateObserver): observer, (ReadResponseAdapter): adapter,
+                    (Environment): new MockEnvironment().withProperty(SagaReadExposureCollector.ENABLED_PROPERTY, enabled.toString())])
+            def execution = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId(), impact), runtime)
+            results << [execution: execution, output: output, bodies: new ArrayList(FixtureWorkflow.BODIES),
+                        impact: MAPPER.readTree(impact.toFile()), v2: MAPPER.readTree(output.resolveSibling("read-${enabled}.impact-v2.json").toFile())]
+        }
+        def sidecar = ScenarioExecutor.sagaReadOutputPath(results[1].output)
+        def diagnostic = MAPPER.readTree(sidecar.toFile())
+
+        then:
+        !Files.exists(ScenarioExecutor.sagaReadOutputPath(results[0].output))
+        diagnostic.path('schemaVersion').asText() == SagaReadExposureReport.SCHEMA_VERSION
+        diagnostic.path('collectionCoverage').asText() == 'COMPLETE_WITHIN_SCOPE'
+        diagnostic.path('observedExposureCount').asInt() == 0
+        diagnostic.path('calls').size() == 1
+        diagnostic.path('assessments')[0].path('reason').asText() == 'REVISION_PREEXISTS_MEASUREMENT'
+        diagnostic.path('artifacts').find { it.path('role').asText() == 'PACKAGE_MANIFEST' }.path('sha256').asText() == sha256(packageFixture.manifest)
+        diagnostic.path('artifacts').find { it.path('role').asText() == 'EXECUTION_REPORT' }.path('sha256').asText() == sha256(results[1].output)
+        !Files.readString(sidecar).contains('not for diagnostic')
+        !diagnostic.has('impactScore')
+        results*.bodies.unique().size() == 1
+        results*.execution*.actualActions().unique().size() == 1
+        results*.execution*.participants().unique().size() == 1
+        results*.execution*.terminalStatus().unique() == ['SUCCESS']
+        results*.execution*.scheduleConformance().unique() == ['EXACT']
+        results*.impact*.path('impactScore')*.asInt() == [1, 1]
+        results*.v2*.path('categoryResults').unique().size() == 1
+        results*.v2*.path('committedWrites').unique().size() == 1
+        results*.v2*.path('eventDeliveries').unique().size() == 1
+        results*.v2*.path('coverageGaps').unique().size() == 1
+    }
+
+    def 'Spring false overrides JVM diagnostic true and default execution creates no sidecar'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'spring-disabled.json')
+        def runtime = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService(), [
+                (Environment): new MockEnvironment().withProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'false')])
+
+        expect:
+        new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime).terminalStatus() == 'SUCCESS'
+        !Files.exists(ScenarioExecutor.sagaReadOutputPath(output))
+    }
+
+    @Unroll
+    def 'Saga read sidecar honestly reports unmeasured or unavailable dependencies: dryRun=#dryRun writeEnabled=#writeEnabled'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        System.setProperty(ImpactV2EvidenceCollector.ENABLED_PROPERTY, writeEnabled.toString())
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'unavailable-reads.json')
+
+        when:
+        new ScenarioExecutor().execute(new ScenarioExecutorOptions(packageFixture.manifest, output, scenario.deterministicId(), dryRun),
+                runtime(new TrackingSagaUnitOfWorkService()))
+        def diagnostic = MAPPER.readTree(ScenarioExecutor.sagaReadOutputPath(output).toFile())
+
+        then:
+        diagnostic.path('collectionCoverage').asText() == 'UNAVAILABLE'
+        diagnostic.path('observedExposureCount').isNull()
+        diagnostic.path('calls').size() == 0
+        diagnostic.path('collectionReason').asText() == reason
+
+        where:
+        dryRun | writeEnabled | reason
+        true   | true         | 'MEASUREMENT_NOT_STARTED'
+        false  | false        | 'WRITE_COLLECTION_DISABLED'
+        false  | true         | 'WRITE_OBSERVER_UNAVAILABLE'
+    }
+
+    @Unroll
+    def 'Saga read sidecar rejects #linkKind aliases of #targetKind before application execution'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'alias-reads.json')
+        Files.createDirectories(output.parent)
+        def impact = output.resolveSibling('impact.json')
+        def sidecar = ScenarioExecutor.sagaReadOutputPath(output)
+        def targets = [execution: output, impact: impact, impactV2: output.resolveSibling('alias-reads.impact-v2.json'),
+                       manifest: packageFixture.manifest, workload: packageFixture.directory.resolve('workloads.jsonl')]
+        Path target = targets[targetKind]
+        if (!Files.exists(target)) Files.writeString(target, 'protected')
+        def before = Files.readAllBytes(target)
+        if (linkKind == 'symbolic') Files.createSymbolicLink(sidecar, target)
+        else Files.createLink(sidecar, target)
+
+        when:
+        new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId(), impact), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        thrown(IllegalArgumentException)
+        Arrays.equals(Files.readAllBytes(target), before)
+        FixtureWorkflow.BODIES.empty
+
+        where:
+        [linkKind, targetKind] << [['symbolic', 'hard'], ['execution', 'impact', 'impactV2', 'manifest', 'workload']].combinations()
+    }
+
+    def 'Saga read sidecar write failure preserves the main execution outcome'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def packageFixture = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(packageFixture, 'sidecar-failure.json')
+        Files.createDirectories(ScenarioExecutor.sagaReadOutputPath(output))
+
+        when:
+        def execution = new ScenarioExecutor().execute(options(packageFixture.manifest, output, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        execution.terminalStatus() == 'SUCCESS'
+        MAPPER.readTree(output.toFile()).path('terminalStatus').asText() == 'SUCCESS'
+        FixtureWorkflow.BODIES == ['solo:first']
+    }
+
+    @Unroll
+    def 'Saga read sidecar protects manifest role #role at a custom path through a #linkKind alias'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def pkg = writePackage(workload, [scenario])
+        if (role.startsWith('dynamic')) attachAliasDynamicEvidence(pkg)
+        def manifest = MAPPER.readTree(pkg.manifest.toFile())
+        Path original = pkg.directory.resolve(manifest.path('files').path(role).path('path').asText())
+        String customPath = "nested/protected-${role}.jsonl"
+        Path target = pkg.directory.resolve(customPath)
+        Files.createDirectories(target.parent)
+        Files.move(original, target)
+        manifest.path('files').path(role).put('path', customPath)
+        MAPPER.writeValue(pkg.manifest.toFile(), manifest)
+        assert new ScenarioCatalogPackageReader().readCurrent(pkg.manifest) != null
+        def output = outsidePackageOutput(pkg, 'all-roles.json')
+        Files.createDirectories(output.parent)
+        def sidecar = ScenarioExecutor.sagaReadOutputPath(output)
+        if (linkKind == 'symbolic') Files.createSymbolicLink(sidecar, target)
+        else Files.createLink(sidecar, target)
+        def before = sha256(target)
+
+        when:
+        new ScenarioExecutor().execute(options(pkg.manifest, output, scenario.deterministicId()), runtime(new TrackingSagaUnitOfWorkService()))
+
+        then:
+        def failure = thrown(IllegalArgumentException)
+        failure.message.contains('must not alias scenario package input')
+        sha256(target) == before
+        FixtureWorkflow.BODIES.empty
+
+        where:
+        [linkKind, role] << [['symbolic', 'hard'], ['sagas', 'inputs', 'interactions', 'setups', 'requests',
+                                                  'dynamicObservations', 'dynamicAttributionLinks']].combinations()
+    }
+
+    def 'failed observer installation produces unavailable null diagnostic while preserving existing replay behavior'() {
+        given:
+        System.setProperty(SagaReadExposureCollector.ENABLED_PROPERTY, 'true')
+        def workload = workload(['solo'], [['solo', 'first']])
+        def scenario = scenarios(workload, '0')[0]
+        def pkg = writePackage(workload, [scenario])
+        def output = outsidePackageOutput(pkg, 'occupied-observer.json')
+        def observer = mock(PersistentStateObserver)
+        when(observer.snapshotAll()).thenReturn(new ImpactEvidence.SnapshotBatch([], []))
+        def runtime = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService(), [
+                (PersistentStateObserver): observer, (ReadResponseAdapter): fixtureReadAdapter()])
+        def occupied = ImpactEvidenceObserverHolder.install(Stub(ImpactEvidenceObserver))
+
+        when:
+        def execution
+        try { execution = new ScenarioExecutor().execute(options(pkg.manifest, output, scenario.deterministicId()), runtime) }
+        finally { occupied.close() }
+        def diagnostic = MAPPER.readTree(ScenarioExecutor.sagaReadOutputPath(output).toFile())
+        def impact = MAPPER.readTree(output.resolveSibling('occupied-observer.impact-v2.json').toFile())
+
+        then:
+        execution.terminalStatus() == 'SUCCESS'
+        execution.scheduleConformance() == 'EXACT'
+        FixtureWorkflow.BODIES == ['solo:first']
+        diagnostic.path('collectionCoverage').asText() == 'UNAVAILABLE'
+        diagnostic.path('observedExposureCount').isNull()
+        diagnostic.path('collectionReason').asText() == 'OBSERVER_INSTALL_FAILED'
+        diagnostic.path('calls').size() == 0
+        impact.path('collectionStatus').asText() == 'PARTIAL'
+        impact.path('coverageGaps')*.path('reason')*.asText() == ['OBSERVER_INSTALL_FAILED']
+    }
+
+    private static void attachAliasDynamicEvidence(Map pkg) {
+        def workload = pkg.workloads[0]
+        def input = workload.participants()[0].inputVariantId()
+        def saga = workload.participants()[0].sagaFqn()
+        def step = workload.forwardSchedule()[0].stepId().split('::')[-1]
+        def observation = new DynamicObservation('event-1', 'stepStarted', 1L, '2026-09-07T00:00:00Z', 'thread',
+                new DynamicObservation.TestIdentity('execution-1', 'dummyapp.AliasSpec', 'observes'), saga, 'invocation-1', step,
+                input, 'forward', null, null, null, null, null)
+        def link = new DynamicAttributionLink('execution-1', saga, 'invocation-1', 'exactInput', ['event-1'], input, [], null)
+        def accounting = [testOutcomes: [passed: 1, failed: 0],
+                observations: [total: 1, byKind: [stepStarted: 1, stepFinished: 0, commandSent: 0, aggregateAccessed: 0, invariantViolation: 0], withoutTestContext: 0],
+                sagaInvocations: [total: 1, byStatus: [exactInput: 1, testAndShape: 0, shapeOnly: 0, ambiguous: 0, unmatched: 0]],
+                uniqueInputEvidence: [exactInput: 1, testAndShape: 0, shapeOnly: 0],
+                workloadParticipantEvidence: [allInputsObservedInOneCommonTest: 1, allInputsObservedAcrossSeparateTests: 0,
+                        someInputsObserved: 0, noInputsObserved: 0]]
+        new DynamicArtifactWriter().write(new DynamicEvidenceJoinResult([observation], [link], accounting, [], 1, 100L), pkg.manifest)
+    }
+
+    private ReadResponseAdapter fixtureReadAdapter() {
+        Stub(ReadResponseAdapter) {
+            commandType() >> pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command
+            responseType() >> Object
+            contractId() >> 'dummyapp.fixture.outer'
+            contractVersion() >> '1'
+            aggregateType() >> 'DummyAggregate'
+            runtimeType() >> 'DummyAggregate'
+        }
     }
 
     def 'ImpactV2 collector retains a callback failure as a coverage gap'() {
@@ -3360,7 +3621,7 @@ class ScenarioExecutorSpec extends Specification {
         def <T> List<T> beans(Class<T> type) {
             if (type == ScenarioPrerequisiteProvider) return prerequisiteProviders as List<T>
             if (type == ScenarioSetupActionDispatcher) return setupDispatchers as List<T>
-            []
+            extraBeans.values().findAll { type.isInstance(it) } as List<T>
         }
 
         @Override

@@ -4,6 +4,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserver;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidenceObserverHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.PersistentStateObserver;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadObservationContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseEvidence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,6 +17,7 @@ final class ImpactV2EvidenceCollector implements ImpactEvidenceObserver {
     private final String workloadPlanId;
     private final String faultScenarioId;
     private final ImpactV2Assessor assessor;
+    private final SagaReadExposureCollector sagaReads;
     private final AtomicLong sequence = new AtomicLong();
     private final List<ImpactEvidence.CommittedWrite> writes = new ArrayList<>();
     private final List<ImpactEvidence.EventDelivery> deliveries = new ArrayList<>();
@@ -31,47 +34,63 @@ final class ImpactV2EvidenceCollector implements ImpactEvidenceObserver {
 
     ImpactV2EvidenceCollector(String attemptId, String workloadPlanId, String faultScenarioId,
                               ImpactV2Assessor assessor) {
+        this(attemptId, workloadPlanId, faultScenarioId, assessor, null);
+    }
+
+    ImpactV2EvidenceCollector(String attemptId, String workloadPlanId, String faultScenarioId,
+                              SagaReadExposureCollector sagaReads) {
+        this(attemptId, workloadPlanId, faultScenarioId, new ImpactV2Assessor(), sagaReads);
+    }
+
+    private ImpactV2EvidenceCollector(String attemptId, String workloadPlanId, String faultScenarioId,
+                                      ImpactV2Assessor assessor, SagaReadExposureCollector sagaReads) {
         this.attemptId = attemptId;
         this.workloadPlanId = workloadPlanId;
         this.faultScenarioId = faultScenarioId;
         this.assessor = assessor;
+        this.sagaReads = sagaReads;
     }
 
     void start(ScenarioRuntimeContext runtimeContext) {
         if (!Boolean.parseBoolean(System.getProperty(ENABLED_PROPERTY, "true"))) {
             collectionStatus = "UNAVAILABLE";
             collectionReason = "COLLECTION_DISABLED";
+            diagnostic(value -> value.unavailable("WRITE_COLLECTION_DISABLED"));
             return;
         }
-        try {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER")) {
             stateObserver = (PersistentStateObserver) runtimeContext.bean(PersistentStateObserver.class);
             ImpactEvidence.SnapshotBatch snapshot = stateObserver.snapshotAll();
             baseline = snapshot.aggregates();
             gaps.addAll(snapshot.gaps());
             collectionStatus = gaps.isEmpty() ? "OBSERVED" : "PARTIAL";
             collectionReason = gaps.isEmpty() ? null : "BASELINE_COVERAGE_GAPS";
+            diagnostic(value -> value.begin(snapshot, SagaReadExposureCollector.contracts(runtimeContext)));
         } catch (RuntimeException failure) {
             stateObserver = null;
             collectionStatus = "UNAVAILABLE";
             collectionReason = "OBSERVER_UNAVAILABLE";
             gaps.add(gap("BASELINE", "observer", "OBSERVER_UNAVAILABLE", failure));
+            diagnostic(value -> value.unavailable("WRITE_OBSERVER_UNAVAILABLE"));
         }
     }
 
     synchronized void finish() {
         if (stateObserver == null) return;
-        try {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER")) {
             ImpactEvidence.SnapshotBatch snapshot = stateObserver.snapshotAll();
             finalState = snapshot.aggregates();
             gaps.addAll(snapshot.gaps());
+            snapshot.gaps().forEach(gap -> diagnostic(value -> value.coverageGap(gap)));
         } catch (RuntimeException failure) {
             collectionStatus = "PARTIAL";
             collectionReason = "FINAL_SNAPSHOT_FAILED";
             gaps.add(gap("FINAL", "observer", "FINAL_SNAPSHOT_FAILED", failure));
+            diagnostic(value -> value.coverageGap(gap("FINAL", "observer", "FINAL_SNAPSHOT_FAILED", failure)));
         }
         List<ImpactEvidence.EventDelivery> horizonDeliveries = new ArrayList<>();
         for (ImpactEvidence.EventDelivery delivery : List.copyOf(deliveries)) {
-            try {
+            try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER")) {
                 PersistentStateObserver.HorizonObservation observation = stateObserver.observeAtHorizon(delivery);
                 horizonDeliveries.add(observation.delivery());
                 gaps.addAll(observation.gaps());
@@ -91,13 +110,24 @@ final class ImpactV2EvidenceCollector implements ImpactEvidenceObserver {
 
     boolean started() { return stateObserver != null; }
 
-    void recordObserverFailures(ImpactEvidenceObserverHolder.Scope scope) {
-        scope.drainFailures().forEach(this::coverageGap);
+    void observationUnavailable(String reason) {
+        diagnostic(value -> value.unavailable(reason));
+    }
+
+    synchronized void recordObserverFailures(ImpactEvidenceObserverHolder.Scope scope) {
+        scope.drainFailures().forEach(gap -> {
+            gaps.add(gap);
+            collectionStatus = "PARTIAL";
+            collectionReason = "COVERAGE_GAPS";
+            diagnostic(value -> value.retainedWriteFailure(gap));
+        });
+        scope.drainReadFailures().forEach(gap -> diagnostic(value -> value.readFailure(gap)));
     }
 
     @Override public synchronized void committedWrite(ImpactEvidence.AggregateSnapshot aggregate,
                                                        ImpactEvidence.Writer writer) {
         writes.add(new ImpactEvidence.CommittedWrite(sequence.incrementAndGet(), aggregate, writer));
+        diagnostic(value -> value.committedWrite(aggregate, writer));
         if (!ownedWriter(writer)) {
             gaps.add(new ImpactEvidence.CoverageGap("WRITE", aggregate.identity().toString(),
                     "WRITER_IDENTITY_UNAVAILABLE",
@@ -123,8 +153,26 @@ final class ImpactV2EvidenceCollector implements ImpactEvidenceObserver {
 
     @Override public synchronized void coverageGap(ImpactEvidence.CoverageGap gap) {
         gaps.add(gap);
+        diagnostic(value -> value.coverageGap(gap));
         collectionStatus = "PARTIAL";
         collectionReason = "COVERAGE_GAPS";
+    }
+
+    @Override public boolean isReadObservationEnabled() {
+        return sagaReads != null && started() && sagaReads.isReadObservationEnabled();
+    }
+
+    @Override public void readResponse(ReadResponseEvidence.Observation observation) {
+        if (sagaReads != null) sagaReads.readResponse(observation);
+    }
+
+    private void diagnostic(java.util.function.Consumer<SagaReadExposureCollector> operation) {
+        if (sagaReads == null) return;
+        try {
+            operation.accept(sagaReads);
+        } catch (RuntimeException failure) {
+            sagaReads.failure("DIAGNOSTIC_COLLECTION_FAILED");
+        }
     }
 
     ImpactV2EvidenceReport report(ScenarioExecutionReport execution) {

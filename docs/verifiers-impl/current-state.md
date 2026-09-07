@@ -151,6 +151,15 @@ It is an extent measure, not a business-harm or severity oracle. Coverage gaps a
 attempts remain distinct from an evaluated zero. Partial reports retain an observed
 affected-object lower bound while their complete score remains null.
 
+### Exposure to a subsequently compensated creation
+
+**Exposure to a subsequently compensated creation** is proven delivery to one Saga of
+the exact revision created by another Saga, before confirmed logical deletion by explicit
+compensation of that creating step/occurrence. It records exposure even when the reader
+only reads, finishes successfully, or later compensates. It requires neither final harm
+nor a subsequent write by the reader. The diagnostic is separate from ImpactV1/ImpactV2;
+restored updates and arbitrary value propagation remain outside this first slice.
+
 ### Benchmark observation
 
 A **benchmark observation** is an application-side evaluation record joined to one persisted package, FaultScenario, execution attempt, and ImpactV1 report. The current Quizzes RemoveTournament–AddParticipant benchmark applies one bounded final-state predicate: an active Tournament still referring to the observed deleted Quiz is `HARMFUL_FOR_RULE`. A valid observation additionally requires the latest raw persisted Tournament Saga-state column to decode through `SagaStateConverter` as exact `GenericSagaState.NOT_IN_SAGA`; SQL null, missing, malformed, wrong-class, or different-state evidence is `NOT_EVALUATED`. `NO_BROKEN_REFERENCE` means only that the predicate is false after this proof succeeds; it is not a global safety claim.
@@ -666,6 +675,50 @@ When `--impact-output-path` is supplied, ScenarioExecutor installs an attempt-sc
 
 ImpactV1 does not detect silent compensation errors, postcondition failures, final-state divergence, or general business harm. The count and score are currently numerically identical because this first model has no weighting.
 
+## Saga read exposure diagnostic
+
+The Saga/local executor has a separate opt-in diagnostic,
+`microservices.simulator.saga-read-exposure.enabled=true`. With the flag disabled it creates
+no new read-exposure sidecar. With it enabled, `execution-report.json` additionally produces
+`execution-report.saga-read-exposure.json`, schema
+`microservices-simulator.saga-read-exposure.v1`. The gateway and executor resolve this flag
+from the same Spring environment. Existing write collection remains a prerequisite;
+disabling it with `-Dmicroservices.simulator.impact.enabled=false` produces `UNAVAILABLE`
+read evidence without implicitly re-enabling collection.
+
+An explicit typed `ReadResponseAdapter` declares exact command/response classes, persistent
+logical/runtime types and outer identity/revision extraction. `LocalCommandGateway.send`
+observes the actual successful final return, including after JSON deserialization and UoW
+merge/error handling. Failed calls are never deliveries. Setup, observer callbacks, probes,
+recovery and event consumers cannot become application readers. Missing or changed forward
+Saga attribution is a coverage gap. Internal reads, lists/predicates, nested references and
+in-memory DTO reuse are not globally covered by this hook.
+
+The diagnostic composes with `ImpactV2EvidenceCollector` inside the existing observer scope.
+It copies metadata from the existing baseline and confirmed writes, adding its own common
+write/read observation order without extra persistence queries. ImpactV2's write/event
+sequence and read-independent gap list remain separate. It requires covered prior absence,
+a unique forward creation with no predecessor, exact delivery to another Saga before the
+producer completes, and a later same-producer recovery tombstone whose direct predecessor
+is the delivered revision. Source occurrence/checkpoint facts and successful explicit
+compensation must prove the same creating step. Runtime fallback's name-based source choice
+is accepted only when uniquely supported; missing or ambiguous provenance is `UNKNOWN`.
+
+The sidecar retains metadata-only baseline/write/read facts, adapter/source contracts,
+action/checkpoint joins, artifact hashes, per-call assessments and deduplicated findings.
+Repeated deliveries for one producer/reader/revision share a finding; different readers
+remain distinct. It contains no DTO payload, application projection or impact score.
+Execution validity, `COMPLETE_WITHIN_SCOPE`/`PARTIAL`/`UNAVAILABLE` collection coverage and
+individual verdicts are separate. `observedExposureCount` is a lower bound when partial and
+null without usable measurement. A proven positive can survive an interrupted prefix,
+reader recovery or later recreation; an unfinished prefix cannot establish complete absence.
+
+Framework and verifier qualification is recorded in the
+[approved issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
+Application adapters define the measured scope; Quizzes adapter/runtime qualification is
+the next milestone in that issue. Controlled positives and ordinary-executor persistence
+proof remain distinct because generated runtime result binding is outside this slice.
+
 ## ImpactV2 assessment
 
 The collection path is concrete instrumentation, not free-text log inference:
@@ -688,14 +741,8 @@ explains why persistent-effect measurement was prioritized and what causal analy
 would additionally require. This is an explicit current scope boundary, not evidence
 that concurrency-anomaly detection is unsuitable for the thesis.
 
-The framework also provides an opt-in final-return hook in `LocalCommandGateway` for
-explicit typed `ReadResponseAdapter` contracts. It records the outer identity/revision
-actually delivered, including after JSON deserialization, under the current forward
-Saga action. Setup, probes, recovery and observer callbacks are excluded; failed calls
-are never deliveries. Read-observation failures are retained separately from ImpactV2
-gaps. This hook alone does not assess compensated-creation exposure; the complementary
-collector and sidecar are tracked in the approved
-[implementation issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
+The complementary [compensated-creation read diagnostic](#saga-read-exposure-diagnostic)
+uses a separate exact-response hook and sidecar; it changes none of these three checks.
 
 Ordinary ScenarioExecutor attempts write
 `microservices-simulator.scenario-impact-v2-assessment.v1` beside the execution report:

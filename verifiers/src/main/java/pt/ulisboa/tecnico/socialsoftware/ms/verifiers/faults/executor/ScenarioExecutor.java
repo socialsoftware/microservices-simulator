@@ -96,6 +96,15 @@ public final class ScenarioExecutor {
                 "Scenario ImpactV2 evidence report");
         rejectExecutionOutputAlias(options.outputPath(), impactV2Output);
         rejectExecutionOutputAlias(options.impactOutputPath(), impactV2Output);
+        boolean observeSagaReads = SagaReadExposureCollector.enabled(runtimeContext);
+        Path sagaReadOutput = observeSagaReads ? sagaReadOutputPath(options.outputPath()) : null;
+        if (observeSagaReads) {
+            rejectPackageOutputAlias(options.packagePath(), sagaReadOutput, selectedPackage,
+                    "Saga read exposure report");
+            rejectExecutionOutputAlias(options.outputPath(), sagaReadOutput);
+            rejectExecutionOutputAlias(options.impactOutputPath(), sagaReadOutput);
+            rejectExecutionOutputAlias(impactV2Output, sagaReadOutput);
+        }
         String attemptId = UUID.randomUUID().toString();
         FaultScenario scenario = selectedPackage == null ? null : selectedPackage.faultScenario();
         WorkloadPlan workload = selectedPackage == null ? null : selectedPackage.workloadPlan();
@@ -103,9 +112,15 @@ public final class ScenarioExecutor {
                 ? null
                 : new ImpactV1Collector(DynamicEvidenceRecorderHolder.getRecorder(), attemptId,
                 workload == null ? null : workload.deterministicId());
+        SagaReadExposureCollector sagaReadCollector = observeSagaReads ? new SagaReadExposureCollector(attemptId,
+                workload == null ? null : workload.deterministicId(),
+                scenario == null ? options.faultScenarioId() : scenario.deterministicId(),
+                SagaReadExposureReport.SourceContract.from(workload)) : null;
+        SagaReadExposureReport.ArtifactReference packageReference = observeSagaReads
+                ? SagaReadExposureReport.ArtifactReference.file("PACKAGE_MANIFEST", manifestPath(options.packagePath())) : null;
         ImpactV2EvidenceCollector impactV2Collector = new ImpactV2EvidenceCollector(attemptId,
                 workload == null ? null : workload.deterministicId(),
-                scenario == null ? options.faultScenarioId() : scenario.deterministicId());
+                scenario == null ? options.faultScenarioId() : scenario.deterministicId(), sagaReadCollector);
         ScenarioExecutionReport report;
         if (scenario == null) {
             report = selectionFailureReport(options, attemptId, null, options.faultScenarioId(),
@@ -124,6 +139,9 @@ public final class ScenarioExecutor {
             try {
                 writeImpactReport(options, failedReport, findings(impactCollector));
                 writeImpactV2Evidence(impactV2Output, impactV2Collector.report(failedReport));
+                writeSagaReadEvidence(sagaReadOutput, sagaReadCollector, failedReport, packageReference,
+                        new SagaReadExposureReport.ArtifactReference("EXECUTION_REPORT", String.valueOf(options.outputPath()),
+                                null, "UNAVAILABLE", "EXECUTION_REPORT_WRITE_FAILED"));
             } catch (RuntimeException impactWriteFailure) {
                 failure.addSuppressed(impactWriteFailure);
             }
@@ -131,6 +149,8 @@ public final class ScenarioExecutor {
         }
         writeImpactReport(options, report, findings(impactCollector));
         writeImpactV2Evidence(impactV2Output, impactV2Collector.report(report));
+        writeSagaReadEvidence(sagaReadOutput, sagaReadCollector, report, packageReference,
+                observeSagaReads ? SagaReadExposureReport.ArtifactReference.file("EXECUTION_REPORT", options.outputPath()) : null);
         return report;
     }
 
@@ -372,6 +392,7 @@ public final class ScenarioExecutor {
         try {
             observationScope = ImpactEvidenceObserverHolder.install(impactV2Collector);
         } catch (RuntimeException failure) {
+            impactV2Collector.observationUnavailable("OBSERVER_INSTALL_FAILED");
             impactV2Collector.coverageGap(new ImpactEvidence.CoverageGap(
                     "ATTEMPT", attemptId, "OBSERVER_INSTALL_FAILED", failureDetails(failure)));
             try {
@@ -1852,6 +1873,23 @@ public final class ScenarioExecutor {
         List<Path> packageInputs = new ArrayList<>();
         packageInputs.add(manifestPath(packagePath).toAbsolutePath().normalize());
         packageInputs.addAll(linkedArtifacts);
+        // The executor model projection retains only three paths. Protect every artifact in the
+        // actual role-keyed manifest, including static/dynamic roles and custom relative paths.
+        try {
+            var declaredFiles = mapper.readTree(manifestPath(packagePath).toFile()).path("files");
+            if (!declaredFiles.isObject()) {
+                throw new IllegalArgumentException("Cannot safely enumerate scenario package artifacts");
+            }
+            declaredFiles.elements().forEachRemaining(artifact -> {
+                String relativePath = artifact.path("path").asText(null);
+                if (relativePath == null || relativePath.isBlank()) {
+                    throw new IllegalArgumentException("Cannot safely resolve scenario package artifact path");
+                }
+                packageInputs.add(packageRoot.resolve(relativePath).normalize());
+            });
+        } catch (IOException failure) {
+            throw new IllegalArgumentException("Cannot safely enumerate scenario package artifacts", failure);
+        }
         for (Path packageInput : packageInputs) {
             Path normalizedInput = packageInput.toAbsolutePath().normalize();
             if (output.equals(normalizedInput) || sameFile(output, normalizedInput)) {
@@ -1865,7 +1903,7 @@ public final class ScenarioExecutor {
         if (executionOutputPath == null || impactOutputPath == null) return;
         Path executionOutput = outputIdentity(executionOutputPath);
         Path impactOutput = outputIdentity(impactOutputPath);
-        if (executionOutput.equals(impactOutput)) {
+        if (executionOutput.equals(impactOutput) || sameFile(executionOutputPath, impactOutputPath)) {
             throw new IllegalArgumentException("Scenario impact report output path must not alias scenario execution report "
                     + executionOutput);
         }
@@ -1952,6 +1990,26 @@ public final class ScenarioExecutor {
                 : name + ".impact-v2.json";
         Path parent = executionOutput.getParent();
         return parent == null ? Path.of(derived) : parent.resolve(derived);
+    }
+
+    static Path sagaReadOutputPath(Path executionOutput) {
+        if (executionOutput == null) return null;
+        String name = executionOutput.getFileName().toString();
+        String stem = name.endsWith(".json") ? name.substring(0, name.length() - 5) : name;
+        return executionOutput.resolveSibling(stem + ".saga-read-exposure.json");
+    }
+
+    private void writeSagaReadEvidence(Path output, SagaReadExposureCollector collector,
+                                       ScenarioExecutionReport execution,
+                                       SagaReadExposureReport.ArtifactReference packageReference,
+                                       SagaReadExposureReport.ArtifactReference executionReference) {
+        if (output == null || collector == null) return;
+        try {
+            write(output, collector.report(execution, List.of(packageReference, executionReference)));
+        } catch (RuntimeException | IOException failure) {
+            logger.warn("Failed to write Saga read exposure report to {}; preserving scenario execution outcome",
+                    output, failure);
+        }
     }
 
     private void writeImpactV2Evidence(Path output, ImpactV2EvidenceReport report) {
