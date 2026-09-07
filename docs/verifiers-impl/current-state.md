@@ -688,6 +688,15 @@ explains why persistent-effect measurement was prioritized and what causal analy
 would additionally require. This is an explicit current scope boundary, not evidence
 that concurrency-anomaly detection is unsuitable for the thesis.
 
+The framework also provides an opt-in final-return hook in `LocalCommandGateway` for
+explicit typed `ReadResponseAdapter` contracts. It records the outer identity/revision
+actually delivered, including after JSON deserialization, under the current forward
+Saga action. Setup, probes, recovery and observer callbacks are excluded; failed calls
+are never deliveries. Read-observation failures are retained separately from ImpactV2
+gaps. This hook alone does not assess compensated-creation exposure; the complementary
+collector and sidecar are tracked in the approved
+[implementation issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md).
+
 Ordinary ScenarioExecutor attempts write
 `microservices-simulator.scenario-impact-v2-assessment.v1` beside the execution report:
 `execution-report.json` becomes `execution-report.impact-v2.json`. Collection begins only

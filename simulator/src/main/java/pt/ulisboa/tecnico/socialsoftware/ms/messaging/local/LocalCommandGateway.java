@@ -15,6 +15,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandResponse;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.MessagingObjectMapperProvider;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceProperties;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseAdapter;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseObservation;
+
+import java.util.List;
 
 @Component
 @Profile("local")
@@ -28,6 +32,12 @@ public class LocalCommandGateway extends CommandGateway {
 
     @Value("${local.messaging.serialize:false}")
     private boolean serializeMessages;
+
+    @Value("${microservices.simulator.saga-read-exposure.enabled:false}")
+    private boolean sagaReadExposureEnabled;
+
+    @Autowired(required = false)
+    private List<ReadResponseAdapter<?, ?>> readResponseAdapters = List.of();
 
     @Autowired
     public LocalCommandGateway(ApplicationContext applicationContext, RetryRegistry retryRegistry, LocalCommandService localCommandService, MessagingObjectMapperProvider mapperProvider) {
@@ -51,6 +61,19 @@ public class LocalCommandGateway extends CommandGateway {
             logger.warning("Failed to record dynamic evidence COMMAND_SENT: " + e.getMessage());
         }
 
+        ReadResponseObservation observation = sagaReadExposureEnabled
+                ? ReadResponseObservation.begin(command, serializeMessages, readResponseAdapters) : null;
+        try {
+            Object result = dispatch(command);
+            if (observation != null) observation.delivered(result);
+            return result;
+        } catch (RuntimeException | Error failure) {
+            if (observation != null) observation.failed(failure);
+            throw failure;
+        }
+    }
+
+    private Object dispatch(Command command) {
         logger.info("Executing command via LocalCommandService: " + command.getClass().getSimpleName() + " (serialization=" + serializeMessages + ")");
 
         if (serializeMessages) {

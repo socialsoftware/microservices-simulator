@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadObservationContext;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseEvidence;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -29,8 +31,35 @@ public final class ImpactEvidenceObserverHolder {
         return enabled(observer);
     }
 
+    public static boolean isReadObservationEnabled(ImpactEvidenceObserver target) {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER_CALLBACK")) {
+            return target.isReadObservationEnabled();
+        } catch (RuntimeException failure) {
+            retainReadFailure(target, "READ_OBSERVER_ENABLEMENT_FAILED", failure);
+            return false;
+        }
+    }
+
+    /** Read failures have their own channel and never enter ImpactV2's retained gaps. */
+    public static void readResponse(ImpactEvidenceObserver target, ReadResponseEvidence.Observation observation) {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER_CALLBACK")) {
+            target.readResponse(observation);
+        } catch (RuntimeException failure) {
+            retainReadFailure(target, "READ_OBSERVER_CALLBACK_FAILED", failure);
+        }
+    }
+
+    public static synchronized void retainReadFailure(ImpactEvidenceObserver target, String reason,
+                                                      RuntimeException failure) {
+        logger.warn("Read observation failed; preserving application outcome ({})", reason, failure);
+        if (activeScope != null && activeScope.installed == target) {
+            activeScope.retainRead(new ImpactEvidence.CoverageGap("READ_OBSERVATION", null, reason,
+                    failure.getClass().getName()));
+        }
+    }
+
     private static boolean enabled(ImpactEvidenceObserver current) {
-        try {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER_CALLBACK")) {
             return current.isEnabled();
         } catch (RuntimeException failure) {
             logger.warn("Impact observer failed while checking enablement; disabling observation for this call", failure);
@@ -80,7 +109,7 @@ public final class ImpactEvidenceObserverHolder {
                                java.util.function.Consumer<ImpactEvidenceObserver> call,
                                String fact) {
         if (!enabled(current)) return;
-        try {
+        try (ReadObservationContext.Scope ignored = ReadObservationContext.exclude("OBSERVER_CALLBACK")) {
             call.accept(current);
         } catch (RuntimeException failure) {
             logger.warn("Impact observer failed while recording {}; swallowing to preserve application outcome", fact,
@@ -112,6 +141,7 @@ public final class ImpactEvidenceObserverHolder {
         private final ImpactEvidenceObserver installed;
         private final ImpactEvidenceObserver previous;
         private final List<ImpactEvidence.CoverageGap> failures = new ArrayList<>();
+        private final List<ImpactEvidence.CoverageGap> readFailures = new ArrayList<>();
         private boolean closed;
 
         private Scope(ImpactEvidenceObserver installed, ImpactEvidenceObserver previous) {
@@ -132,6 +162,16 @@ public final class ImpactEvidenceObserverHolder {
             List<ImpactEvidence.CoverageGap> result = List.copyOf(failures);
             failures.clear();
             return result;
+        }
+
+        public synchronized List<ImpactEvidence.CoverageGap> drainReadFailures() {
+            List<ImpactEvidence.CoverageGap> result = List.copyOf(readFailures);
+            readFailures.clear();
+            return result;
+        }
+
+        private synchronized void retainRead(ImpactEvidence.CoverageGap gap) {
+            readFailures.add(gap);
         }
 
         private synchronized void retain(ImpactEvidence.CoverageGap gap) {
