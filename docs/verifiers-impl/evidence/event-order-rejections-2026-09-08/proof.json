@@ -1,0 +1,21 @@
+{
+  "attempts": 8,
+  "integrity": "PASS",
+  "wallSeconds": 130.63889416703023,
+  "rawDirectory": "verifiers/target/event-order-rejections/run-01",
+  "rawHashes": {
+    "attempts.json": "3d2dbe6d45d68158648a0bc38ab57f1d3c0026aa9d53dd194164f3c4719ce58d",
+    "comparison.json": "a8db7f43211c402044308bfcbb63a8b895766d6702a75ea24123481a3bbe51cb",
+    "fixture-checks.json": "8671b09b536236039c10ee24c7058ceee627da5e4a5a6191c95c265130d07327",
+    "selection.json": "393de4727d37fbaabc91488ea18f5181dce1f3bf02dbf55f0e435ad7257ef44f",
+    "proof.json": "a41333b1e5d23a661159977deb628c2cd637c9a73b2700c0966af429329c29f7"
+  },
+  "toolHashes": {
+    "verifiers/experiments/event-order-rejections/check_fixtures.py": "2e2ec0239f9cee5e40e37ec9849c8c63a0415085b658554bede282096fa2a1be",
+    "verifiers/experiments/event-order-rejections/run.py": "4165b21b7b4bd603438c414f01075a3409603eb657cd836bb5b67acf5986c744",
+    "verifiers/experiments/event-order-rejections/test_compare.py": "5d55b500b8d2fe069b0bbf7ee8b99847a87d19fa8583415e59fdcbdf6d627b06",
+    "verifiers/experiments/event-order-rejections/compare.py": "ff0cb44879abb9844f0d93e9b518ad6a518e5437972eb672331166bee1fb6c39"
+  },
+  "review": "Root inspected pair structure, report joins and recorded invariants; baseline/time and final-state checks passed. Comparator guards unclassified runtime failures. No production changes.",
+  "productionProvenance": "verifiers/target/empty-event-delivery/run-01/build-provenance.json"
+}

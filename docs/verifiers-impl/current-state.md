@@ -736,6 +736,24 @@ already encounters an unassigned duplicate-enrolment failure. Neither these smal
 spaces nor the experiment establishes GA benefit. Detailed caps, lifecycle evidence,
 costs and findings are linked from the dated results.
 
+### Matched event-order rejection qualification (2026-09-08)
+
+The [matched-pair experiment](evidence/event-order-rejections-2026-09-08/README.md)
+compares existing workloads differing only in one selected event attempt's position.
+In two fresh repetitions, Tournament enrolment succeeds with the name update delivered
+before enrolment and is rejected by invariants with delivery after enrolment. A negative
+control still rejects updating a removed enrolment in both positions. All eight ImpactV2
+scores remain complete zero. The comparison is research tooling under
+`verifiers/experiments/event-order-rejections/`, not an executor feature or score category.
+
+Its positive verdict requires matched input/setup/action contracts, actual delivery to
+the same source-setup receiver role, target success versus failure, and an exact invariant
+rejection on that receiver. Arbitrary runtime exceptions and unavailable controls cannot
+establish the observation. Quizzes-specific baseline/time checks qualify these fixtures;
+the tool does not infer universal prerequisites, legitimate operations or business harm.
+The final participant collection differs between the Tournament orders, so persistent
+object score zero does not imply equal operation outcomes or equal final state.
+
 ## ImpactV1
 
 The simulator emits a structured invariant event only when `SagaUnitOfWorkService.registerChanged` reaches the existing `Aggregate.verifyInvariants()` boundary and that verification throws. Instrumentation records context and rethrows the identical application exception; evidence recording must not replace domain behavior.

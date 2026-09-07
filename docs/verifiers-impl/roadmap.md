@@ -545,6 +545,13 @@ and its 60 broader attempts remain historical observations, not current recovery
   experiments. Recompute reference expectations when adopting this policy for new search
   runs; those spaces are now flat under this metric. Application-owned timestamp policy
   remains open and unchanged.
+- **Qualified, 8 September:** [matched event-order comparisons](evidence/event-order-rejections-2026-09-08/README.md)
+  distinguish a Tournament enrolment rejected only with late name propagation from an
+  expected removed-enrolment rejection in both placements. Eight executions and ten
+  comparison tests pass; ImpactV2 remains zero and unchanged. The small research comparator
+  requires invariant-backed rejection for a positive. Decide how to expose/select these
+  separate observations after reviewing the meeting note; ordinary-executor integration,
+  automatic pairing and use as fitness remain future decisions.
 - Address the separately observed Quizzes defects in bounded application changes with
   their own tests. Newly exposed: `TournamentTopic.buildDto()` drops the course ID used
   to restore embedded topics during compensation. The current event consumer's missing

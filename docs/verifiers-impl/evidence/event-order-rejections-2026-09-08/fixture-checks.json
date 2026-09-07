@@ -1,0 +1,292 @@
+{
+  "passed": true,
+  "excludedTimeFields": [
+    "availableDate",
+    "conclusionDate",
+    "creationDate",
+    "endDate",
+    "endTime",
+    "lastModifiedTime",
+    "resultsDate",
+    "startTime"
+  ],
+  "baselineComparison": "Same typed identities, lifecycle and application projections except listed time fields; setup producer roles independently joined by comparator.",
+  "records": [
+    {
+      "caseId": "tournament-late",
+      "repetition": 1,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:53:06.551042"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:07.151988"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:07.241931"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:07.432153"
+        },
+        {
+          "path": "SagaQuiz/availableDate",
+          "value": "2026-09-07T23:33:07.469064"
+        },
+        {
+          "path": "SagaQuiz/conclusionDate",
+          "value": "2026-09-08T00:33:07.469272"
+        },
+        {
+          "path": "SagaQuiz/creationDate",
+          "value": "2026-09-07T23:28:07.677875"
+        },
+        {
+          "path": "SagaQuiz/lastModifiedTime",
+          "value": "2026-09-07T23:28:07.677998"
+        },
+        {
+          "path": "SagaQuiz/resultsDate",
+          "value": "2026-09-08T00:33:07.469272"
+        },
+        {
+          "path": "SagaTournament/endTime",
+          "value": "2026-09-08T00:33:07.469272"
+        },
+        {
+          "path": "SagaTournament/lastModifiedTime",
+          "value": "2026-09-07T23:28:07.701925"
+        },
+        {
+          "path": "SagaTournament/startTime",
+          "value": "2026-09-07T23:33:07.469064"
+        }
+      ],
+      "secondsBeforeTournamentStart": 299.469064,
+      "finalCreator": "UpdatedName",
+      "finalParticipants": []
+    },
+    {
+      "caseId": "tournament-early",
+      "repetition": 1,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:53:21.541162"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:22.333910"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:22.388780"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:28:22.450230"
+        },
+        {
+          "path": "SagaQuiz/availableDate",
+          "value": "2026-09-07T23:33:22.473112"
+        },
+        {
+          "path": "SagaQuiz/conclusionDate",
+          "value": "2026-09-08T00:33:22.473242"
+        },
+        {
+          "path": "SagaQuiz/creationDate",
+          "value": "2026-09-07T23:28:22.557573"
+        },
+        {
+          "path": "SagaQuiz/lastModifiedTime",
+          "value": "2026-09-07T23:28:22.557703"
+        },
+        {
+          "path": "SagaQuiz/resultsDate",
+          "value": "2026-09-08T00:33:22.473242"
+        },
+        {
+          "path": "SagaTournament/endTime",
+          "value": "2026-09-08T00:33:22.473242"
+        },
+        {
+          "path": "SagaTournament/lastModifiedTime",
+          "value": "2026-09-07T23:28:22.568366"
+        },
+        {
+          "path": "SagaTournament/startTime",
+          "value": "2026-09-07T23:33:22.473112"
+        }
+      ],
+      "secondsBeforeTournamentStart": 300.473112,
+      "finalCreator": "UpdatedName",
+      "finalParticipants": [
+        "UpdatedName"
+      ]
+    },
+    {
+      "caseId": "removed-student-late",
+      "repetition": 1,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:53:36.478600"
+        }
+      ],
+      "finalEnrolmentCount": 0
+    },
+    {
+      "caseId": "removed-student-early",
+      "repetition": 1,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:53:53.065085"
+        }
+      ],
+      "finalEnrolmentCount": 0
+    },
+    {
+      "caseId": "removed-student-early",
+      "repetition": 2,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:54:09.335058"
+        }
+      ],
+      "finalEnrolmentCount": 0
+    },
+    {
+      "caseId": "removed-student-late",
+      "repetition": 2,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:54:25.627326"
+        }
+      ],
+      "finalEnrolmentCount": 0
+    },
+    {
+      "caseId": "tournament-early",
+      "repetition": 2,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:54:40.651057"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:41.431279"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:41.507907"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:41.557131"
+        },
+        {
+          "path": "SagaQuiz/availableDate",
+          "value": "2026-09-07T23:34:41.641935"
+        },
+        {
+          "path": "SagaQuiz/conclusionDate",
+          "value": "2026-09-08T00:34:41.642089"
+        },
+        {
+          "path": "SagaQuiz/creationDate",
+          "value": "2026-09-07T23:29:41.744179"
+        },
+        {
+          "path": "SagaQuiz/lastModifiedTime",
+          "value": "2026-09-07T23:29:41.744289"
+        },
+        {
+          "path": "SagaQuiz/resultsDate",
+          "value": "2026-09-08T00:34:41.642089"
+        },
+        {
+          "path": "SagaTournament/endTime",
+          "value": "2026-09-08T00:34:41.642089"
+        },
+        {
+          "path": "SagaTournament/lastModifiedTime",
+          "value": "2026-09-07T23:29:41.766022"
+        },
+        {
+          "path": "SagaTournament/startTime",
+          "value": "2026-09-07T23:34:41.641935"
+        }
+      ],
+      "secondsBeforeTournamentStart": 299.641935,
+      "finalCreator": "UpdatedName",
+      "finalParticipants": [
+        "UpdatedName"
+      ]
+    },
+    {
+      "caseId": "tournament-late",
+      "repetition": 2,
+      "observedTimes": [
+        {
+          "path": "SagaExecution/endDate",
+          "value": "2026-09-08T00:54:58.563640"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:59.134778"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:59.207192"
+        },
+        {
+          "path": "SagaQuestion/creationDate",
+          "value": "2026-09-07T23:29:59.244671"
+        },
+        {
+          "path": "SagaQuiz/availableDate",
+          "value": "2026-09-07T23:34:59.267681"
+        },
+        {
+          "path": "SagaQuiz/conclusionDate",
+          "value": "2026-09-08T00:34:59.267804"
+        },
+        {
+          "path": "SagaQuiz/creationDate",
+          "value": "2026-09-07T23:29:59.346280"
+        },
+        {
+          "path": "SagaQuiz/lastModifiedTime",
+          "value": "2026-09-07T23:29:59.346400"
+        },
+        {
+          "path": "SagaQuiz/resultsDate",
+          "value": "2026-09-08T00:34:59.267804"
+        },
+        {
+          "path": "SagaTournament/endTime",
+          "value": "2026-09-08T00:34:59.267804"
+        },
+        {
+          "path": "SagaTournament/lastModifiedTime",
+          "value": "2026-09-07T23:29:59.362555"
+        },
+        {
+          "path": "SagaTournament/startTime",
+          "value": "2026-09-07T23:34:59.267681"
+        }
+      ],
+      "secondsBeforeTournamentStart": 300.267681,
+      "finalCreator": "UpdatedName",
+      "finalParticipants": []
+    }
+  ]
+}

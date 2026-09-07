@@ -1,0 +1,311 @@
+{
+  "attempts": 8,
+  "pairs": [
+    {
+      "early": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "e1",
+          "s3",
+          "e2"
+        ],
+        "caseId": "removed-student-early",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "NO_ELIGIBLE_SUBSCRIBER",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+        "executionAttemptId": "fea9cad2-813c-4c19-be2b-04eee56c2258",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": null,
+        "repetition": 1,
+        "reportHashes": {
+          "execution.impact-v2.json": "16af62617f9cfb472436a3c014878ae07208b91acad46215348133bb1d798678",
+          "execution.json": "8ef1d2e0bf6f842181f81a5e16cae2b2cc2ccf9053eec5230f688f83b6b7f14c",
+          "impact-v1.json": "739f44d2eb7916a0cebc417c7e4633f0b9fc61d6608dede453ee40378c676720"
+        },
+        "targetSaga": "p2",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "late": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "e1",
+          "e2"
+        ],
+        "caseId": "removed-student-late",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "NO_ELIGIBLE_SUBSCRIBER",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+        "executionAttemptId": "84d6a34a-d7b7-4fe0-b1dd-839730d679f1",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": null,
+        "repetition": 1,
+        "reportHashes": {
+          "execution.impact-v2.json": "4d50d4720f47e7ec460b276c921852d7a2c952674aca60a9503266f172b24cb0",
+          "execution.json": "7a41f67c55defe3316243f354199a400014913de319bc56cf57212cda2c134a9",
+          "impact-v1.json": "2e673f25713af59bea30e98e8d31cf39d7cc54d5887376f3e50e783763fb4e18"
+        },
+        "targetSaga": "p2",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "pair": "removed-student",
+      "rejectedOrder": null,
+      "repetition": 1,
+      "verdict": "REJECTED_IN_BOTH"
+    },
+    {
+      "early": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "e1",
+          "s3",
+          "e2"
+        ],
+        "caseId": "removed-student-early",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "NO_ELIGIBLE_SUBSCRIBER",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+        "executionAttemptId": "b69ef090-4435-47da-b1ca-45731b19aacb",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": null,
+        "repetition": 2,
+        "reportHashes": {
+          "execution.impact-v2.json": "df1f850731f836155100e166df744247824ecd18322dab4fe5f14ebbfc20b6ae",
+          "execution.json": "753f36a951e943ec86e384b5b7cd477270640b4fae6c3fe534464e3bfc9467cd",
+          "impact-v1.json": "ce3caab08d1516f7b8d2dcd325b572ac43fbaaabffb08e038a939e2c44cd8cfe"
+        },
+        "targetSaga": "p2",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "late": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "e1",
+          "e2"
+        ],
+        "caseId": "removed-student-late",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "NO_ELIGIBLE_SUBSCRIBER",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Student with aggregate id 3 not found in course execution 2.",
+        "executionAttemptId": "a76f899c-568f-43e2-afbc-9a8040a679a2",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": null,
+        "repetition": 2,
+        "reportHashes": {
+          "execution.impact-v2.json": "35c1ed319e6cfb3df97880518be3a7897928314e3dfbe43a29c6528befc5bbae",
+          "execution.json": "f24e225cbc7ca0c74707a4dd44be7fd8e84346685916ac50b4fbd916e542764d",
+          "impact-v1.json": "6621aca287bf8f94249ea54bd8284df386ecc9ad71340525da32aafb555b2820"
+        },
+        "targetSaga": "p2",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas::updateStudentNameStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "pair": "removed-student",
+      "rejectedOrder": null,
+      "repetition": 2,
+      "verdict": "REJECTED_IN_BOTH"
+    },
+    {
+      "early": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "e1",
+          "s4",
+          "e2"
+        ],
+        "caseId": "tournament-early",
+        "comparable": true,
+        "conformance": "EXACT",
+        "eventStatus": "COMPLETED",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent",
+        "exceptionClass": null,
+        "exceptionMessage": null,
+        "executionAttemptId": "0e528e12-5213-4121-b6e0-32b1b174a7d1",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.UpdateStudentNameEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": "setup-action-14",
+        "repetition": 1,
+        "reportHashes": {
+          "execution.impact-v2.json": "630cdf1b73723afe5d384dbc7480fdec218ccc6f2cef86fbd2f717eb6bfc42e9",
+          "execution.json": "55728b2fe65c28e10bf38710cc7a0eea0b3930e4d64c91ed2b4ea5fdfa831355",
+          "impact-v1.json": "a800c7881257ed7203406a1eeb03ae086529d1d0e8bd3aae8dafc1ec27dee605"
+        },
+        "targetSaga": "p3",
+        "targetStatus": "COMPLETED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+        "terminal": "SUCCESS"
+      },
+      "late": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "e1",
+          "e2"
+        ],
+        "caseId": "tournament-late",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "COMPLETED",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Aggregate 12 breaks invariants",
+        "executionAttemptId": "f3b6473d-872d-442a-9632-2e6c9d87c5ac",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.UpdateStudentNameEventHandler",
+        "impactV1": 1,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": true,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": "setup-action-14",
+        "repetition": 1,
+        "reportHashes": {
+          "execution.impact-v2.json": "fa3b0573dcf8f9de8a8054bd97faa944e21133eb497c5f48c5a387d57687c53d",
+          "execution.json": "a8513348886eac38ec6d7245e2f68a12bb373993101ef659409a4fa8f1109b95",
+          "impact-v1.json": "1a6f11df7991e9bd002b4b4909177d882f9f1002d300e99ffe5797c87e09c76a"
+        },
+        "targetSaga": "p3",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "pair": "tournament",
+      "rejectedOrder": "late",
+      "repetition": 1,
+      "verdict": "ORDER_DEPENDENT_REJECTION"
+    },
+    {
+      "early": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "e1",
+          "s4",
+          "e2"
+        ],
+        "caseId": "tournament-early",
+        "comparable": true,
+        "conformance": "EXACT",
+        "eventStatus": "COMPLETED",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent",
+        "exceptionClass": null,
+        "exceptionMessage": null,
+        "executionAttemptId": "d6baeaa3-7859-46a9-927a-916b992e2d60",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.UpdateStudentNameEventHandler",
+        "impactV1": 0,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": false,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": "setup-action-14",
+        "repetition": 2,
+        "reportHashes": {
+          "execution.impact-v2.json": "d8be4fb05b29840e1a28edfd8c6fbd53721e86e8a374101a3b14f6c82f4b1f99",
+          "execution.json": "700d36dbc4a724976e458207e5f77d50648d357a6db2020fec3330499587fd05",
+          "impact-v1.json": "ac166270cabfa3dca9b92afb160ff20cca67b01c916491f15976ea8ee6c26af4"
+        },
+        "targetSaga": "p3",
+        "targetStatus": "COMPLETED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+        "terminal": "SUCCESS"
+      },
+      "late": {
+        "actualOrder": [
+          "s1",
+          "s2",
+          "s3",
+          "s4",
+          "e1",
+          "e2"
+        ],
+        "caseId": "tournament-late",
+        "comparable": true,
+        "conformance": "DEVIATED",
+        "eventStatus": "COMPLETED",
+        "eventType": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent",
+        "exceptionClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.QuizzesException",
+        "exceptionMessage": "Aggregate 12 breaks invariants",
+        "executionAttemptId": "6074e6df-8813-4e87-b17e-b987099c79f7",
+        "handler": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.UpdateStudentNameEventHandler",
+        "impactV1": 1,
+        "impactV2": 0,
+        "invariantRejectionOnReceiver": true,
+        "processStatus": "COMPLETE",
+        "publisherRole": "setup-action-1",
+        "receiverRole": "setup-action-14",
+        "repetition": 2,
+        "reportHashes": {
+          "execution.impact-v2.json": "9bd7c030afc569c886430904ccab814e9a0f30d3859dc28a80755277429c3ab2",
+          "execution.json": "5752b1ca33d0a7d5da3af0616518dd88937894b457d283a7694f7a7c657363a7",
+          "impact-v1.json": "b735a486301bfd4ffd6a0e859eaeeacf13e889f6c01fdd5fc513323388bc48ee"
+        },
+        "targetSaga": "p3",
+        "targetStatus": "FAILED",
+        "targetStep": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas::addParticipantStep#0",
+        "terminal": "PARTIAL_COMPENSATED"
+      },
+      "pair": "tournament",
+      "rejectedOrder": "late",
+      "repetition": 2,
+      "verdict": "ORDER_DEPENDENT_REJECTION"
+    }
+  ],
+  "repeatAgreement": {
+    "removed-student": true,
+    "tournament": true
+  },
+  "schema": "event-order-rejection-comparison.v1",
+  "scope": "Matched no-fault source-setup pairs; not a universal legality, business-harm, final-state or concurrency-anomaly oracle."
+}

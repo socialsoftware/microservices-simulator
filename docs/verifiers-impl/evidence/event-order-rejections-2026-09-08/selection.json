@@ -1,0 +1,306 @@
+{
+  "build": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/empty-event-delivery/run-01/prepared-build",
+  "concurrency": 1,
+  "design": "Two matched pairs, no assigned faults; only e1 crosses target step; repeat in reverse launch order; retained source-derived setup with relative date recipes.",
+  "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+  "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/space-map/prepared/package/scenario-catalog-manifest.json",
+  "packageHashes": {
+    "accounting": "2cc582cd7031080e61d3c07e469cbe962fa69afd4ef12db3ae97ef044403cc64",
+    "faultScenarios": "f925b90781536b76de196d5ef2fb3eed0a09890f299a775ea1ce775272600a2e",
+    "inputs": "fe46e4fcf11b2d454d4db9d6cd4c1bc4afec4381b694d7c0d2a10b075303471c",
+    "interactions": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "manifest": "8b055070f81ff1cf504244ab59e64ffa20e4f129e565b3377cbd7e1eec02e873",
+    "requests": "dc4b76cc0da32e15eefd1771a8e2ffd2801ddd5cfed6b5abd3dd254f0daa415d",
+    "sagas": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "setups": "85361a1da44d9d0f323e8f9a2e2af95a7a444e67f7c3995e2d212b9e2c405dbd",
+    "workloads": "0bd0813cfe29819980af203febccf45da1ddc9a41fec692eb4424c5246593c80"
+  },
+  "repetitions": 2,
+  "revision": "819ac91ccc4c3b1dd32aba2374f18b15529a3eb0",
+  "rows": [
+    {
+      "caseId": "tournament-late",
+      "faultScenarioId": "0692147ce4109eddf74649b29ad05111ce964a28caffe7d07e1b0e95e4ddb32b",
+      "faultVector": "0000",
+      "order": "late",
+      "pair": "tournament",
+      "targetStep": "s4",
+      "workload": {
+        "id": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305",
+        "interactions": [
+          "4ba88a8e68a8d5f4c66eee35003aa64874a26785a2e4f84b9ce27a771dd9a417",
+          "9b14490f19fad8bfb7a694ade366e9c33b633d8eb45712dc335b80e41112cd75"
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "input": "2113453558f5ab7d764eaa783ce46291ae1996374e4a1a54dc1b6d070a572c82",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas"
+          },
+          {
+            "id": "p2",
+            "input": "33aa7a218f45e1f6800808f9642e29f07109bbf33ebdf2b89a4fdd1d90c76511",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas"
+          },
+          {
+            "id": "p3",
+            "input": "3449fad76f028934383b088b7e689f58ab1095523bed37469c088e19d52c8ccc",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas"
+          }
+        ],
+        "schedule": [
+          {
+            "faultSlot": 0,
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getCourseExecutionStep#0"
+          },
+          {
+            "faultSlot": 1,
+            "id": "s2",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "updateStudentNameStep#0"
+          },
+          {
+            "faultSlot": 2,
+            "id": "s3",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "getUserStep#0"
+          },
+          {
+            "faultSlot": 3,
+            "id": "s4",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "addParticipantStep#0"
+          },
+          {
+            "id": "e1",
+            "kind": "event",
+            "route": "updateStudentNameStep#0/event#0-route#1",
+            "triggeringStep": "s2"
+          },
+          {
+            "id": "e2",
+            "kind": "event",
+            "route": "updateStudentNameStep#0/event#0",
+            "triggeringStep": "s2"
+          }
+        ],
+        "setup": "setup-4e9d27194fb0259d09ee8d2d"
+      },
+      "workloadId": "a5788c8dd3d1d6ec91ba2bb80c5fed412326312b7c31c675199b4af94efca305"
+    },
+    {
+      "caseId": "tournament-early",
+      "faultScenarioId": "6a4778013266ee410d2bc775d6c2214bca36339b52a791854fb00d802217f0e8",
+      "faultVector": "0000",
+      "order": "early",
+      "pair": "tournament",
+      "targetStep": "s4",
+      "workload": {
+        "id": "f90dc4859b834458e4675cce23d11a3048085b1e700edbe6e769bdd4efacec27",
+        "interactions": [
+          "4ba88a8e68a8d5f4c66eee35003aa64874a26785a2e4f84b9ce27a771dd9a417",
+          "9b14490f19fad8bfb7a694ade366e9c33b633d8eb45712dc335b80e41112cd75"
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "input": "2113453558f5ab7d764eaa783ce46291ae1996374e4a1a54dc1b6d070a572c82",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas"
+          },
+          {
+            "id": "p2",
+            "input": "33aa7a218f45e1f6800808f9642e29f07109bbf33ebdf2b89a4fdd1d90c76511",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas"
+          },
+          {
+            "id": "p3",
+            "input": "3449fad76f028934383b088b7e689f58ab1095523bed37469c088e19d52c8ccc",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas"
+          }
+        ],
+        "schedule": [
+          {
+            "faultSlot": 0,
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getCourseExecutionStep#0"
+          },
+          {
+            "faultSlot": 1,
+            "id": "s2",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "updateStudentNameStep#0"
+          },
+          {
+            "faultSlot": 2,
+            "id": "s3",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "getUserStep#0"
+          },
+          {
+            "id": "e1",
+            "kind": "event",
+            "route": "updateStudentNameStep#0/event#0-route#1",
+            "triggeringStep": "s2"
+          },
+          {
+            "faultSlot": 3,
+            "id": "s4",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "addParticipantStep#0"
+          },
+          {
+            "id": "e2",
+            "kind": "event",
+            "route": "updateStudentNameStep#0/event#0",
+            "triggeringStep": "s2"
+          }
+        ],
+        "setup": "setup-4e9d27194fb0259d09ee8d2d"
+      },
+      "workloadId": "f90dc4859b834458e4675cce23d11a3048085b1e700edbe6e769bdd4efacec27"
+    },
+    {
+      "caseId": "removed-student-late",
+      "faultScenarioId": "618fd8fa5671dcf774449e3d48613b05834ceb20d0ae21cc803fd0184be2f753",
+      "faultVector": "000",
+      "order": "late",
+      "pair": "removed-student",
+      "targetStep": "s3",
+      "workload": {
+        "id": "0ec796ae9073794895f337d9982816ca2907eb16b2dedb9207694fabf1ca9341",
+        "interactions": [
+          "2e3878262b79c58412643d7292a81e8c3d6f7a72d081d5e9d1d7dbe381446aeb"
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "input": "2d4d3ce0ed1358ff9834e64b25456d270f7f760ebc611dea0ace53074198ad22",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas"
+          },
+          {
+            "id": "p2",
+            "input": "2fb7ea7b2acb46894c5953d8b6ef989fe94b6c8e34809d411527416850e7ed58",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas"
+          }
+        ],
+        "schedule": [
+          {
+            "faultSlot": 0,
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getOldCourseExecutionStep#0"
+          },
+          {
+            "faultSlot": 1,
+            "id": "s2",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "removeStudentStep#0"
+          },
+          {
+            "faultSlot": 2,
+            "id": "s3",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "updateStudentNameStep#0"
+          },
+          {
+            "id": "e1",
+            "kind": "event",
+            "route": "removeStudentStep#0/event#0-route#1",
+            "triggeringStep": "s2"
+          },
+          {
+            "id": "e2",
+            "kind": "event",
+            "route": "removeStudentStep#0/event#0",
+            "triggeringStep": "s2"
+          }
+        ],
+        "setup": "setup-c5c1f10fa44875c6769a997d"
+      },
+      "workloadId": "0ec796ae9073794895f337d9982816ca2907eb16b2dedb9207694fabf1ca9341"
+    },
+    {
+      "caseId": "removed-student-early",
+      "faultScenarioId": "35ed5effc731d3dc247744a28df97b60498883fd3d6f76761790e5d5e7d13fd2",
+      "faultVector": "000",
+      "order": "early",
+      "pair": "removed-student",
+      "targetStep": "s3",
+      "workload": {
+        "id": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605",
+        "interactions": [
+          "2e3878262b79c58412643d7292a81e8c3d6f7a72d081d5e9d1d7dbe381446aeb"
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "input": "2d4d3ce0ed1358ff9834e64b25456d270f7f760ebc611dea0ace53074198ad22",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas"
+          },
+          {
+            "id": "p2",
+            "input": "2fb7ea7b2acb46894c5953d8b6ef989fe94b6c8e34809d411527416850e7ed58",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas"
+          }
+        ],
+        "schedule": [
+          {
+            "faultSlot": 0,
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getOldCourseExecutionStep#0"
+          },
+          {
+            "faultSlot": 1,
+            "id": "s2",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "removeStudentStep#0"
+          },
+          {
+            "id": "e1",
+            "kind": "event",
+            "route": "removeStudentStep#0/event#0-route#1",
+            "triggeringStep": "s2"
+          },
+          {
+            "faultSlot": 2,
+            "id": "s3",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "updateStudentNameStep#0"
+          },
+          {
+            "id": "e2",
+            "kind": "event",
+            "route": "removeStudentStep#0/event#0",
+            "triggeringStep": "s2"
+          }
+        ],
+        "setup": "setup-c5c1f10fa44875c6769a997d"
+      },
+      "workloadId": "ed088c072d615ee4948058b4513c4a8855bec831ab9955671dc096473e069605"
+    }
+  ],
+  "timeoutSeconds": 180,
+  "toolHashes": {
+    "verifiers/experiments/batch-execution/run.py": "725daf5462d2478e24d55204f09e6fb520bb8cf16dab8143f78d9667fd7e4bb1",
+    "verifiers/experiments/event-order-rejections/run.py": "4165b21b7b4bd603438c414f01075a3409603eb657cd836bb5b67acf5986c744",
+    "verifiers/experiments/impact-v2-broader/run-prepared.sh": "72bd9b72e0962c1bc8607827aed6e7cd0c2af1dbd1bd2fe392c55ca1f1522b17"
+  }
+}
