@@ -39,10 +39,13 @@ execution with exact persisted identities. This does not qualify all 665 at runt
 ImpactV2 is integrated into ordinary Saga/local execution. It counts distinct objects
 with deleted dependencies, residual effects of failed operations, or an unresolved
 selected event delivery, with explicit completeness and invalid-attempt reporting.
-The latest selected qualification has **29 COMPLETE benchmark assessments** (14 score 0,
+The retained qualification before the recovered-creation policy change has **29 COMPLETE benchmark assessments** (14 score 0,
 15 score 2) and **30 broader control/fault pairs** (60 COMPLETE: 52 score 0, seven score 1,
 one score 2). All 30 controls succeed with exact conformance; one has a positive score.
 These are potential-effect observations, not severity or universal domain-harm judgments.
+Since the 7 September [recovered-creation refinement](#recovered-creation-remnants),
+a new aggregate logically deleted during recovery no longer adds a residual point by
+itself. Earlier campaign counts remain historical unless explicitly reassessed.
 
 Start with the [Portuguese advisor note](reunioes/2026-09-08.md) for the domain and a
 step-by-step example. [ImpactV2](#impactv2-assessment) owns the checking contract and
@@ -684,12 +687,14 @@ All 42 equivalent-ID comparisons matched. The experiment reports both denominato
 it does not change package IDs or the production identity contract. Eight generated
 recovery sequences and 48 unrequested vectors remain outside execution coverage.
 
-The clearest additional calibration workload is AddParticipant/SolveQuizAsync: all
-24 canonical vectors were covered, three positive and 21 zero, with a SUCCESS/EXACT
-no-fault control. Its positive is FAILED_OPERATION_RESIDUAL for a SagaQuizAnswer absent
-at baseline and persisted as DELETED after compensation. This is the current metric's
-persistent-difference signal, not proof of a functional defect or Saga interaction
-synergy. The eleven-step triple also has sampled positives, but its no-fault control
+Under the policy measured by that campaign, all 24 canonical vectors of
+AddParticipant/SolveQuizAsync were covered, three positive and 21 zero, with a SUCCESS/EXACT
+no-fault control. Its positive was FAILED_OPERATION_RESIDUAL for a SagaQuizAnswer absent
+at baseline and persisted as DELETED after compensation. The later
+[recovered-creation refinement](#recovered-creation-remnants) removes these residual
+points on reassessment. It is no longer a positive calibration space under the current
+policy. These storage remnants did not prove a functional defect or Saga interaction
+synergy. The eleven-step triple also had sampled positives, but its no-fault control
 already encounters an unassigned duplicate-enrolment failure. Neither these small
 spaces nor the experiment establishes GA benefit. Detailed caps, lifecycle evidence,
 costs and findings are linked from the dated results.
@@ -837,7 +842,8 @@ and three deterministic category results:
 - `DELETED_DEPENDENCY`: an ACTIVE final source retains a subscription-declared dependency
   on a target observed becoming DELETED during the attempt and remaining DELETED;
 - `FAILED_OPERATION_RESIDUAL`: a failed Saga with completed recovery is the sole observed
-  writer of an aggregate whose application data or lifecycle differs at the horizon;
+  writer of an aggregate whose application data or lifecycle differs at the horizon,
+  excluding a measured new creation logically deleted during that recovery;
 - `UNRESOLVED_DELIVERED_EVENT`: the exact scheduled event delivery succeeded, the same
   typed receiver's persistent state did not change across delivery, and the surviving
   receiver remains polymorphically eligible for that event at the horizon.
@@ -856,6 +862,42 @@ bound but serialize `completeScore` as null. Invalid executions and unavailable 
 serialize both counts as null. Assessment failure is contained, retains raw evidence and
 adds `ASSESSMENT_FAILED`; it does not replace the application outcome. ImpactV1 semantics
 and the v5 execution report are unchanged.
+
+### Recovered-creation remnants
+
+The user-approved 7 September policy excludes a new object's logically deleted storage
+remnant from `FAILED_OPERATION_RESIDUAL`. After the existing recovery, attribution,
+coverage and final-write checks pass, the object must be absent at baseline, its first
+observed write must be ACTIVE in FORWARD, its first observed DELETED write must be in
+RECOVERY, and its final tracked write must remain DELETED in RECOVERY. This is a bounded
+lifecycle equivalence for the residual check, not a claim that compensation had no
+other observable effects. Missing final state, incomplete recovery and competing writers
+retain their existing unknown handling. No physical deletion is inferred.
+
+The raw candidate, baseline/final snapshots and writes stay in the report. A newly created
+object that remains ACTIVE/INACTIVE, or a preexisting object left altered/deleted, is
+still eligible for a residual finding. `DELETED_DEPENDENCY` independently counts an ACTIVE
+source that retains a declared dependency on the compensated creation. The separate
+Saga-read exposure diagnostic also remains unchanged: an earlier exposure can be recorded
+when the final residual score is zero.
+
+[Offline reassessment](evidence/recovered-creation-remnants-2026-09-07/comparison.json)
+used the actual updated Java assessor on 188 retained report pairs: all 175 space-map
+attempts, two Course counter controls and eleven original three-check qualification
+runs. Ten scores changed from 1 to 0: eight discovery attempts and two repetitions in
+space-map w07/w08. The three canonical w07 positives therefore become zero; the same
+applies to the three positive w08 sequences. Across the space-map evidence, all 129
+COMPLETE assessments now score zero and 46 INVALID assessments remain invalid/null.
+Counter, preexisting deleted-target and event controls retain their values. Coverage,
+candidates, unknown reasons and the other two category results are unchanged.
+
+This adds **zero application executions**. Original reports and dated experiment results
+retain their original scores; derived results are explicitly labelled with the new
+policy and input/output hashes. The report JSON shape/schema is unchanged; interpret
+historical metrics with their evaluator source revision/policy, not schema alone.
+[Decision](decisions/2026-09-07-recovered-creation-remnants.md) and
+[259-test proof](evidence/recovered-creation-remnants-2026-09-07/proof.json). Reproduction
+is documented in `verifiers/experiments/recovered-creation-remnants/README.md`.
 
 ### Persisted qualification of the three checks
 

@@ -63,6 +63,117 @@ class ImpactV2AssessorSpec extends Specification {
         category(report, 'DELETED_DEPENDENCY').coverageStatus() == 'COMPLETE'
     }
 
+    def 'a creation removed during recovery retains its evidence but adds no residual point'() {
+        given:
+        def order = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def created = snapshot(order, 1, 'ACTIVE', [status: 'open'])
+        def removed = snapshot(order, 2, 'DELETED', [status: 'open'])
+        def writes = [write(1, created, sagaWriter('p1', 'create', 'FORWARD')),
+                      write(2, removed, sagaWriter('p1', 'recover', 'RECOVERY'))]
+        def execution = execution('COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [], [removed], writes)
+
+        then:
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == 0
+        category(report, 'FAILED_OPERATION_RESIDUAL').candidateCount() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        report.finalState() == [removed]
+        report.committedWrites() == writes
+
+        when: 'another active object still depends on the compensated creation'
+        def item = id('com.example.dummyapp.item.aggregate.Item', 3)
+        def dependency = new ImpactEvidence.Dependency(item, order, 2, 1L, 'OrderChanged', 'OrderSubscription')
+        def dependant = snapshot(item, 1, 'ACTIVE', [name: 'item'], [dependency])
+        def referenced = assess(execution, [], [removed, dependant], writes)
+
+        then:
+        referenced.assessmentStatus() == 'COMPLETE'
+        referenced.completeScore() == 1
+        category(referenced, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        category(referenced, 'DELETED_DEPENDENCY').findings()*.affectedObject() == [item]
+    }
+
+    def 'the creation-remnant exclusion preserves other residual effects'() {
+        given:
+        def order = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def before = snapshot(order, 1, 'ACTIVE', [count: 1])
+        def after = snapshot(order, 2, finalLifecycle, [count: 0])
+        def execution = execution('COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, preexisting ? [before] : [], [after], [
+                write(1, before, sagaWriter('p1', 'create-or-update', 'FORWARD')),
+                write(2, after, sagaWriter('p1', 'last-write', lastPhase))])
+
+        then:
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedObject() == [order]
+
+        where:
+        preexisting | finalLifecycle | lastPhase
+        false       | 'ACTIVE'       | 'FORWARD'
+        false       | 'INACTIVE'     | 'RECOVERY'
+        false       | 'DELETED'      | 'FORWARD'
+        true        | 'ACTIVE'       | 'RECOVERY'
+        true        | 'DELETED'      | 'RECOVERY'
+    }
+
+    def 'a forward deletion is not reclassified as a compensated creation by a later recovery write'() {
+        given:
+        def order = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def created = snapshot(order, 1, 'ACTIVE', [status: 'open'])
+        def removed = snapshot(order, 2, 'DELETED', [status: 'open'])
+        def recovered = snapshot(order, 3, 'DELETED', [status: 'open'])
+        def execution = execution('COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [], [recovered], [
+                write(1, created, sagaWriter('p1', 'create', 'FORWARD')),
+                write(2, removed, sagaWriter('p1', 'remove', 'FORWARD')),
+                write(3, recovered, sagaWriter('p1', 'recover', 'RECOVERY'))])
+
+        then:
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == 1
+    }
+
+    def 'a deleted creation does not turn incomplete or ambiguous recovery into a complete zero'() {
+        given:
+        def order = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def created = snapshot(order, 1, 'ACTIVE', [status: 'open'])
+        def removed = snapshot(order, 2, 'DELETED', [status: 'open'])
+        def execution = execution('COMPENSATED', 'EXACT', [failedAction('p1')],
+                recovered ? [compensatedParticipant('p1')] : [],
+                recovered ? [compensatedLifecycle('p1')] : [])
+        def gap = new ImpactEvidence.CoverageGap('SNAPSHOT', 'baseline',
+                'PERSISTENT_ATTRIBUTE_UNSUPPORTED', 'baseline not fully observed')
+
+        when:
+        def report = assess(execution, [], [removed], [
+                write(1, created, sagaWriter('p1', 'create', 'FORWARD')),
+                write(2, removed, competing ? eventWriter(9) : sagaWriter('p1', 'recover', 'RECOVERY'))
+        ], [], missingBaseline ? [gap] : [])
+
+        then:
+        report.assessmentStatus() == 'PARTIAL'
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        !category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons().empty
+
+        where:
+        recovered | competing | missingBaseline
+        false     | false     | false
+        true      | true      | false
+        true      | false     | true
+    }
+
     def 'preexisting deletion restored residual and converged delivery produce an explicit complete zero'() {
         given:
         def item = id('com.example.dummyapp.item.aggregate.Item', 1)

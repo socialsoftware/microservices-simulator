@@ -188,6 +188,17 @@ class ImpactV2Assessor {
                 continue;
             }
             ImpactEvidence.AggregateSnapshot initialSnapshot = evidence.baselineById().get(identity);
+            // A new object logically removed during recovery is a storage remnant, not
+            // a residual by itself. Active dependants are assessed independently above.
+            if (initialSnapshot == null && "DELETED".equals(finalSnapshot.lifecycleState())
+                    && "FORWARD".equals(objectWrites.get(0).writer().phase())
+                    && "ACTIVE".equals(objectWrites.get(0).aggregate().lifecycleState())
+                    && "RECOVERY".equals(latestWrite.writer().phase())
+                    && objectWrites.stream()
+                    .filter(write -> "DELETED".equals(write.aggregate().lifecycleState()))
+                    .findFirst().map(write -> "RECOVERY".equals(write.writer().phase())).orElse(false)) {
+                continue;
+            }
             if (!samePersistentState(initialSnapshot, finalSnapshot)) {
                 findings.add(new ImpactV2EvidenceReport.Finding(FAILED_OPERATION_RESIDUAL,
                         "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY", identity, null, null,

@@ -70,7 +70,13 @@ Production application bug fixes and broad scenario-generation repairs are separ
   objects and the other checks remain evaluable. A semantic-lock change or rejected
   write alone is not a data residual. Restoration observed before a later independent
   write remains useful evidence but cannot justify blaming the final difference on the
-  failed Saga. Missing recovery/writer evidence is UNKNOWN, not positive impact.
+  failed Saga. Missing recovery/writer evidence is UNKNOWN, not positive impact. The
+  user-approved 7 September amendment excludes a baseline-absent object whose first
+  observed write creates it ACTIVE in FORWARD and whose first DELETED and final writes
+  are in RECOVERY, after the existing evidence/sole-writer/recovery checks pass. Keep its
+  raw evidence and independently assess surviving active dependencies. See the
+  [policy decision](../../docs/verifiers-impl/decisions/2026-09-07-recovered-creation-remnants.md).
+
 - **FR-7 — Unresolved delivered event:** Count a surviving receiver when a scheduled
   delivery of the exact event succeeded, left its normalized receiver application data
   unchanged across that delivery, and that same event remains eligible for that receiver

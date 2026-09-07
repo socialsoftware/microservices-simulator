@@ -59,7 +59,8 @@ The breadth and representativeness of that selected set bound the thesis claim.
 Start with the [Portuguese meeting note](reunioes/2026-09-08.md) for the domain and a
 fully explained control/fault pair. The [latest qualification](current-state.md#owned-cycle-coverage-and-control-requalification)
 owns the current results. The earlier four-run investigation remains useful methodological
-evidence, but is not the latest campaign. Scoring-policy changes are held for discussion.
+evidence, but is not the latest campaign. Scoring-policy changes remain subject to discussion; the recovered-creation remnant
+exclusion was approved and implemented on 7 September.
 
 | Track | Priority and concrete work | Deliverable and dependency | Suggested ownership |
 | --- | --- | --- | --- |
@@ -521,13 +522,13 @@ and its 60 broader attempts remain historical observations, not current recovery
 
 **Next priorities, with scoring policy held for discussion:**
 
-- Discuss concrete domain cases before deciding whether newly created objects that compensation
-  leaves only as deleted storage records should count. The current residual rule counts these, as it
-  counts application-owned mutation timestamps. Keep the raw evidence; do not silently
-  change the comparison or treat the count as severity. The examples in
-  `issues/2026-09-06-impact-coverage-controls/DOMAIN-CASES.md` also distinguish a positive
-  successful control from a fault-specific finding and show why equal counts can have
-  different causes. No scoring-policy change is authorized by this qualification.
+- **Decided and implemented, 7 September:** a measured creation logically deleted by
+  recovery no longer contributes a residual point by itself. Active dependencies remain
+  independently scored. [Reassessment and contract](current-state.md#recovered-creation-remnants)
+  remove the w07/w08 storage-remnant positives without rerunning or rewriting historical
+  experiments. Recompute reference expectations when adopting this policy for new search
+  runs; those spaces are now flat under this metric. Application-owned timestamp policy
+  remains open and unchanged.
 - Address the separately observed Quizzes defects in bounded application changes with
   their own tests. Newly exposed: `TournamentTopic.buildDto()` drops the course ID used
   to restore embedded topics during compensation. The current event consumer's missing
@@ -593,9 +594,10 @@ See the dated results for actual validity, discovery, coverage and repeatability
 
 **Additional space qualification:** the [eight-workload structural map](../../verifiers/experiments/space-map/RESULTS.md)
 adds source-derived pairs/triples, including a fully covered 24-vector
-AddParticipant/SolveQuizAsync calibration space with three current-metric positives.
-The signal is a persisted DELETED residual after compensation; its research meaning
-remains explicit. Event receiver gaps, no-fault domain failures and equal action
+AddParticipant/SolveQuizAsync space with three positives under the then-current policy.
+The [recovered-creation refinement](current-state.md#recovered-creation-remnants) removes
+those points on reassessment; it remains a repeatable zero-score control space.
+The original signal was a persisted DELETED residual after compensation. Event receiver gaps, no-fault domain failures and equal action
 sequences under different eager/request IDs remain qualification findings. The fixed
 sample and sixteen stable repeats support this map, not an adaptive-search claim.
 

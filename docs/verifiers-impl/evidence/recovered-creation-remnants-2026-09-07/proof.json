@@ -1,0 +1,42 @@
+{
+  "suites": [
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec",
+      "tests": 195,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/recovered-creation-remnants/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec.xml",
+      "sha256": "6d26bf70e33c27313fe7bff194bbbc0bb5c52ec3a525189f5bf4cc92580fbf23"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ImpactV2AssessorSpec",
+      "tests": 22,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/recovered-creation-remnants/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ImpactV2AssessorSpec.xml",
+      "sha256": "0b90df731bce10e2110d2237c7873dcbd7d14efdee123249b5d2552ca90641a5"
+    },
+    {
+      "suite": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec",
+      "tests": 42,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/recovered-creation-remnants/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec.xml",
+      "sha256": "21a0bbd0d9655c7979da4ae624f62a5e2ecfa664193fa0702f74afe0fcad79f0"
+    }
+  ],
+  "totalTests": 259,
+  "sourceFiles": {
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ImpactV2Assessor.java": "5d85e4f045f54fac31d2460aafc845425a8a164b109225120dd789057df961ef",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ImpactV2AssessorSpec.groovy": "081d7b5f5e33b5c82b91ebe67dc6c8661830219f2cfce0745fda7155cb21368d",
+    "verifiers/experiments/recovered-creation-remnants/Reassess.java": "53e8b5e1400548d529d4053b0639294da1a64598ce8492255cf30817eceb36b7"
+  },
+  "isolatedValidationRoot": "/var/folders/x0/mt9pz7hs4v1f1_cttvlpz50h0000gn/T/residual-remnant-nnv1sp7p",
+  "archive": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/recovered-creation-remnants",
+  "sourceManifestSha256": "02e6ebe15972f5b72a8719069addd83770fb7a30bad7340c0a445e41b7994e70",
+  "baselineRevision": "2732f3523",
+  "scope": "Pure assessor change; no new application executions."
+}

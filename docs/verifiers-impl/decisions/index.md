@@ -20,6 +20,7 @@ Superseded designs, implementation chronology, and evidence baselines belong in 
 | [`Compensation-aware fault-scenario contract`](2026-07-19-compensation-aware-fault-scenario-contract.md) | Defines the retained two-level workload/FaultScenario compensation and executor failure boundary |
 | [`Event-consequence ownership and replay contract`](2026-07-30-deterministic-event-consequence-replay.md) | Defines event-action ownership, exact local replay isolation, causal masking, prerequisites, and the fresh-process reset boundary |
 | [`Source-derived ordered setup and shared attempt-local results`](2026-08-28-source-derived-ordered-setup.md) | Defines setup occurrence identity, closed dispatch, shared result reuse, validation ownership, and fresh-process setup isolation |
+| [`Recovered-creation remnants`](2026-09-07-recovered-creation-remnants.md) | Excludes compensated creation storage alone from residual scoring while preserving independent active dependencies and historical evidence |
 
 ## Maintenance rule
 
