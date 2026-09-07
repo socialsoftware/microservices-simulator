@@ -1,133 +1,138 @@
-# Plano proposto — observação de criação lida e compensada
+# Plan — observation of a read of a compensated creation
 
-**Pendente de decisão sobre o SPEC e aprovação explícita de implementação.**
+**Implementation approved on 2026-09-07.** The user accepted the SPEC and assembled plan,
+including controlled positive proof and separate ordinary-executor integration proof,
+and requested this faithful English translation. No routine approval pause after
+translation or between milestones; only a material scope expansion requires a decision.
 
-## 1. Ambiente e modo de execução
+## 1. Environment and execution mode
 
-Rota documental, execução revista por marcos. Esta investigação alterou apenas os três
-documentos da issue; permite commit local no branch `fault-analysis/scenarios`. Preservar
-`note-04-09-2026.md` e trabalho concorrente. Sem push, merge, PR ou worktree nesta tarefa.
-Para execução futura, usar o checkout autorizado e builds de validação em snapshot
-isolado; reavaliar a coexistência com a campanha antes de qualquer alteração. Não usar
-targets/cache partilhados, nem `mvn clean` no verifiers principal. JDK21 e Maven por módulo.
+Documented route, milestone-reviewed execution. The initial investigation changed only
+this issue's three documents. Linear local commits on `fault-analysis/scenarios` are
+authorized. Preserve `note-04-09-2026.md` and concurrent work. No push, merge, PR, or
+worktree. Implement in the authorized checkout and validate in an isolated snapshot;
+coordinate with the campaign before source changes and heavy Docker work. Do not use
+shared build targets/cache or run `mvn clean` in the main verifiers checkout. JDK21;
+run Maven per module.
 
-Não há pausa de protótipo visual. O gate é aceitar o âmbito e este plano; mudanças para
-updates, política de score ou geração do par com binding runtime voltam ao utilizador.
+No visual-prototype verdict pause. Updates, score policy, or generation of the pair
+using runtime result binding remain decisions for the user.
 
-## 2. Estratégia de implementação
+## 2. Implementation strategy
 
-1. Acrescentar um contrato de adaptador tipado para resposta singular exterior e um hook
-   de entrega no retorno de `LocalCommandGateway.send`. Desembrulhar apenas `SagaCommand`
-   conhecido para escolher o contrato do payload; usar o resultado realmente retornado
-   em ambos os modos de serialização. Não usar o ID pedido como substituto do devolvido.
-2. Reutilizar o escopo de autoria do executor, as escritas `afterCommit` e os snapshots
-   existentes. Capturar uma ordem de observação comum ou posições de ações/ocorrências
-   que provem a ordem causal; não comparar contadores de coletores independentes.
-3. Acumular factos de leitura num diagnóstico separado e juntar criação/entrega/tombstone
-   ao checkpoint exato. Compor a coleta no único escopo de observador já existente,
-   sem instalar um segundo holder concorrente nem duplicar consultas de escrita.
-   Preservar a separação entre lacunas de leituras e as usadas pelo ImpactV2.
+1. Add a typed adapter contract for a singular outer response and a delivery hook at
+   `LocalCommandGateway.send` return. Unwrap only the known `SagaCommand` to select its
+   payload contract; use the result actually returned in both serialization modes.
+   Do not substitute the requested ID for the returned ID.
+2. Reuse executor attribution scope, `afterCommit` writes, and existing snapshots.
+   Capture a common observation order or action/occurrence positions proving causal
+   order; do not compare independent collector counters.
+3. Accumulate read facts in a separate diagnostic and join creation/delivery/tombstone
+   to the exact checkpoint. Compose collection within the existing single observer
+   scope, without a competing holder or duplicate write queries. Keep read gaps
+   separate from those consumed by ImpactV2.
 
-Os adaptadores iniciais de Quizzes declaram `GetQuizByIdCommand → QuizDto` e
-`GetTournamentByIdCommand → TournamentDto`, apenas a revisão exterior. A identidade
-persistente vem de mapeamento tipado explícito consistente com `PersistentStateObserver`;
-colisões não se resolvem retirando o prefixo “Saga” nem adivinhando pelo nome do DTO.
-Uma revisão retornada sem proveniência auditável fica desconhecida. Não corrigir serviços,
-DTOs aninhados ou semantic locks para conseguir o resultado desejado.
+Initial Quizzes adapters declare `GetQuizByIdCommand → QuizDto` and
+`GetTournamentByIdCommand → TournamentDto`, outer revision only. Persistent identity
+comes from explicit typed mapping consistent with `PersistentStateObserver`; do not
+resolve collisions by stripping “Saga” or guessing from DTO names. A returned revision
+without auditable provenance remains unknown. Do not repair services, nested DTOs,
+or semantic locks to obtain the desired result.
 
-## 3. Marcos
+## 3. Milestones
 
-### M0 — Provar a entrega exata antes de construir a regra
+### M0 — Prove exact delivery before building the rule
 
-**Resultado:** FR-1, FR-2, FR-6 e FR-7. Um retorno medido tem identidade e revisão do
-objeto entregue; uma leitura interna diferente não o substitui.
+**Outcome:** FR-1, FR-2, FR-6, FR-7. A measured return identifies the delivered object's
+identity/revision; a different internal read cannot replace it.
 
-**Fronteiras/âncoras:** integração de observação em
-`simulator/src/main/java/…/ms/messaging/local/LocalCommandGateway.java`, contrato de
-adaptador/escopo, testes de gateway e fixtures dummyapp. Os DTOs atuais de dummyapp não
-têm revisão: acrescentar fixture própria positiva e preservar um DTO sem revisão como
-negativo; dummyapp continua source-only, não passa a ser uma aplicação runtime.
+**Boundary/anchors:** observation integration in
+`simulator/src/main/java/…/ms/messaging/local/LocalCommandGateway.java`, adapter/scope
+contract, gateway tests, and dummyapp fixtures. Current dummyapp DTOs lack revisions:
+add a dedicated positive fixture and retain a revisionless DTO as a negative. Dummyapp
+remains source-only rather than becoming a runtime application.
 
-**Prova antes de continuar:** retorno direto e JSON; wrapper Saga; fonte interna v2 mas
-DTO retornado v1 (registar v1); ID/revisão ausentes; tipo ambíguo; serviço ou semantic-lock
-handler falha após construir DTO (nenhuma entrega); tentativa/retry com erro seguida
-de sucesso (apenas entregas reais); observador/setup sem autoria de aplicação; callback
-falha sem mudar o resultado. Um teste tem nomes/campos sem convenção para excluir heurísticas.
+**Proof before continuing:** direct and JSON returns; Saga wrapper; internal source v2
+but returned DTO v1 (record v1); missing ID/revision; ambiguous type; service or semantic
+lock handler failure after DTO construction (no delivery); failed attempt/retry followed
+by success (only actual deliveries); observer/setup without application attribution;
+callback failure preserving the outcome. Include unconventional names/fields to reject
+heuristics.
 
-### M1 — Diagnóstico auditável e sidecar no executor
+### M1 — Auditable diagnostic and executor sidecar
 
-**Resultado:** FR-3 a FR-8. O sidecar separa positivos, negativos e lacunas e não altera
-nenhum score. Ativação é opt-in; leitura sem coleta de escrita produz indisponibilidade.
+**Outcome:** FR-3–FR-8. The sidecar separates positives, negatives, and gaps and changes
+no score. Activation is opt-in; reads without write collection produce unavailability.
 
-**Fronteiras/âncoras:** `ImpactEvidence`, `ImpactWriterContext`,
+**Boundary/anchors:** `ImpactEvidence`, `ImpactWriterContext`,
 `SagaUnitOfWorkService.registerCommittedWriteObservation`, `ImpactV2EvidenceCollector`,
-`ScenarioExecutor`, `ScenarioExecutionReport.ActionOutcome` e um assessor diagnóstico
-separado. Não mudar a definição/catálogos de FaultScenario ou o assessor ImpactV2.
+`ScenarioExecutor`, `ScenarioExecutionReport.ActionOutcome`, and a separate diagnostic
+assessor. Do not change FaultScenario definition/catalogs or the ImpactV2 assessor.
 
-**Preflight:** verificar contra o checkout atual a junção entre ação de compensação e
-ocorrência produtora, incluindo fallback runtime; referências ambíguas permanecem gaps.
-Confirmar que nenhum erro específico do diagnóstico entra na lista de gaps ImpactV2.
+**Preflight:** verify compensation-action to producing-occurrence joins against the
+current checkout, including runtime fallback; ambiguous references remain gaps. Confirm
+that diagnostic-only failures cannot enter ImpactV2's gap list.
 
-**Prova antes de continuar:** Spock em `verifiers/src/test/groovy`, dummyapp-first, para
-toda a matriz SPEC, baseline sem cobertura, rollback local, reload falhado, tombstone
-com predecessor errado, escritor concorrente, checkpoint errado, atualização reposta,
-read posterior à eliminação, leitor sem escrita e leitor que posteriormente compensa.
-Verificar deduplicação, dois leitores, ordenação estável, restart da tentativa, prefixo
-interrompido e sidecar sem substituir ficheiros de pacote/execução. Comparar ImpactV1,
-ImpactV2, conformance e resultados da aplicação com o diagnóstico ligado/desligado.
+**Proof before continuing:** Spock in `verifiers/src/test/groovy`, dummyapp first, covering
+the SPEC matrix, uncovered baseline, local rollback, failed reload, wrong-predecessor
+tombstone, competing writer, wrong checkpoint, restored update, read after deletion,
+reader without writes, and reader subsequently compensating. Verify deduplication, two
+readers, stable ordering, attempt restart, interrupted prefix, and sidecar non-aliasing
+with package/execution files. Compare ImpactV1, ImpactV2, conformance, and application
+outcomes with the diagnostic enabled/disabled.
 
-### M2 — Qualificar Quizzes e documentar o limite real
+### M2 — Qualify Quizzes and document the actual boundary
 
-**Resultado:** FR-9 e documentação de cobertura. O mesmo assessor suporta dummyapp e
-Quizzes através de adaptadores, sem branches de domínio na regra.
+**Outcome:** FR-9 and coverage documentation. The same assessor supports dummyapp and
+Quizzes through adapters without domain-specific branches in the rule.
 
-**Fronteiras/âncoras:** integração diagnóstica/testes Quizzes, o harness existente
-`verifiers/experiments/impact-three-cases/ImpactExperiment.java`, teste
-`CreateTournamentStartQuizRecoveryWindowExploratoryTest`, e documentação canónica
-`docs/verifiers-impl/current-state.md`/`roadmap.md`. Adicionar o termo ao glossário e
-retirar `(future)` apenas quando implementado. Não editar a nota pessoal/reunião.
+**Boundary/anchors:** Quizzes diagnostic integration/tests; existing
+`verifiers/experiments/impact-three-cases/ImpactExperiment.java` harness;
+`CreateTournamentStartQuizRecoveryWindowExploratoryTest`; canonical
+`docs/verifiers-impl/current-state.md` and `roadmap.md`. Add the glossary term and remove
+`(future)` only once implemented. Do not edit the personal/advisor meeting note.
 
-**Prova antes de concluir:** em JVM/Spring/H2 novos via Docker/snapshot, repetir positivo,
-compensação antes da leitura e sucesso de A. Acrescentar A cria → B `FindQuiz` recebe e
-termina sem escrever → A compensa. Este último é caminho executável sustentado pelo
-código, **ainda não reproduzido nesta investigação**. Observar o DTO no retorno genérico,
-conferindo-o com o DTO retido no workflow e as revisões persistidas. Validar o lookup
-exterior de Tournament e a referência Quiz aninhada sem revisão como caso não coberto.
+**Proof before completion:** fresh JVM/Spring/H2 runs through Docker/snapshot repeating
+the positive, compensation-before-read control, and successful-A control. Add A creates
+→ B `FindQuiz` receives and finishes without writing → A compensates. This last path is
+source-supported but was not reproduced during the initial investigation. Observe the
+DTO at the generic return boundary and compare with the workflow-retained DTO and
+persisted revisions. Validate outer Tournament lookup and the unversioned nested Quiz
+reference as an uncovered case.
 
-Demonstrar escrita do sidecar pelo executor normal com um workload já executável
-(`FindQuiz` sobre resultado de setup serve de controlo, não positivo de A). A prova
-positiva usa o harness para fornecer a B o ID realmente produzido; não alegar que é um
-FaultScenario normalmente gerado. Publicar hashes, fontes/versões, logs e checks num
-HANDOFF. Não é condição desta fatia reparar o binding runtime do catálogo.
+Demonstrate sidecar persistence through the ordinary executor using an already executable
+workload (`FindQuiz` on a setup result is a control, not an A-positive). Positive proof
+uses the harness to supply B with the actually produced ID; do not claim it is a normally
+generated FaultScenario. Publish hashes, source/build versions, logs, and checks in a
+HANDOFF. Repairing catalog runtime binding is not required by this slice.
 
-## 4. Validação e custo
+## 4. Validation strategy and cost
 
-Usar primeiro os testes de gateway/observador do módulo simulator e os novos Spock
-focados em verifiers; depois a composição Quizzes. Reutilizar o procedimento Docker
-da investigação existente num snapshot coordenado, sem competir com a campanha.
-Só correr regressão mais ampla perante alterações que a justifiquem.
+Run focused simulator gateway/observer tests and new verifier Spock tests first, then
+Quizzes composition. Reuse the existing investigation's Docker procedure in a coordinated
+snapshot without competing with the campaign. Broaden regression only when changes
+justify it.
 
-Medir a diferença ligado/desligado em execuções equivalentes, com warmup declarado e
-repetições fixadas antes de olhar os tempos. Reportar duração, número de respostas,
-escritas, bytes do sidecar e memória retida. Expectativa a validar: trabalho linear no
-número de factos, índices por identidade/revisão, sem consulta extra por leitura; a
-coleta de escritas existente continua a dominar o custo de persistência. Não há ainda
-medição deste mecanismo nem orçamento numérico aprovado. Um limite de retenção deve
-produzir `PARTIAL/TRUNCATED`, nunca descartar factos silenciosamente.
+Measure enabled/disabled differences in equivalent runs, declaring warmup and fixing
+repetitions before examining durations. Report duration, response/write counts, sidecar
+bytes, and retained memory. Hypothesis to validate: linear work in fact count, indexed
+identity/revision joins, no extra read query; existing write collection continues to
+dominate persistence cost. No mechanism cost measurement or numeric budget was approved.
+Any retention limit must produce `PARTIAL/TRUNCATED`, never silently drop facts.
 
-## 5. Riscos e alternativas
+## 5. Risks and fallbacks
 
-- **DTO com revisão enganadora ou incompleta:** adaptador é contrato de integração,
-  não prova automática de linhagem de campos. Testes confrontam fonte, DTO e resposta
-  desserializada; sem contrato fiável não há finding. Evitar expansão reflexiva do grafo.
-- **Sem um hook universal:** os bypasses declarados impedem uma conclusão global.
-  É aceitável `COMPLETE_WITHIN_SCOPE` com âmbito explícito, nunca “todas as leituras”.
-- **Compensação parcial/escritas intermédias:** exigir tombstone e predecessor direto
-  ligados ao checkpoint produtor; conservar unknown. Não adicionar heurísticas de igualdade.
-- **Interferência no observador atual:** opt-in, composição de callback e equivalência
-  dos resultados/ImpactV2 são critérios de aceitação; recuar a integração se falharem.
-- **Catálogo não liga o ID produzido a B:** conservar prova controlada e controlo de
-  integração separado. Implementar um novo mecanismo de inputs requer outro plano.
+- **Misleading/incomplete DTO revision:** adapters are integration contracts, not automatic
+  field-lineage proof. Compare source, DTO, and deserialized response in tests; no reliable
+  contract means no finding. Avoid reflective graph expansion.
+- **No universal hook:** declared bypasses preclude global conclusions.
+  `COMPLETE_WITHIN_SCOPE` requires an explicit scope, never “all reads”.
+- **Partial compensation/intermediate writes:** require a tombstone and direct predecessor
+  linked to the producing checkpoint; retain unknowns. Add no equality heuristics.
+- **Interference with existing observation:** opt-in, callback composition, and equivalent
+  application/ImpactV2 results are acceptance criteria; revise integration if they fail.
+- **Catalog cannot bind the produced ID to B:** retain controlled proof and separate
+  integration control. A new input mechanism requires another plan.
 
-Checkpoint: aprovar apenas o diagnóstico de criação eliminada com adaptadores tipados,
-o hook no resultado final e esta prova em três marcos. A implementação continua pendente.
+Approved execution boundary: the creation-deletion diagnostic with typed adapters, final
+return hook, and this three-milestone proof. Further routine approvals are not required.

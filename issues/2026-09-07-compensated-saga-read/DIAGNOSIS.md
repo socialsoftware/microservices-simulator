@@ -1,8 +1,8 @@
 # Leitura de uma criação de Saga depois compensada
 
 Investigação documental de 2026-09-07, com código inspecionado em
-`ebea5526d419141e0511757d9e7e5e2f7ad0d1f5`. **Proposta; implementação não aprovada.**
-O [SPEC](SPEC.md) e o [PLAN](PLAN.md) delimitam a primeira fatia recomendada.
+`ebea5526d419141e0511757d9e7e5e2f7ad0d1f5`. **Investigação histórica; implementação posteriormente aprovada em 2026-09-07.**
+O [SPEC](SPEC.md) e o [PLAN](PLAN.md), traduzidos para inglês a pedido do utilizador, delimitam a primeira fatia aprovada. As observações abaixo conservam a evidência e as limitações da investigação inicial.
 
 ## Conclusão
 

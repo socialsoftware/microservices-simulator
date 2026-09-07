@@ -1,141 +1,145 @@
-# Observação de leitura de criação posteriormente compensada
+# Observation of a read of a subsequently compensated creation
 
-Estado: **proposta para discussão; execução não aprovada**. Fundamentação:
-[DIAGNOSIS.md](DIAGNOSIS.md). Esta fatia limita o padrão geral de leitura de efeito
-posteriormente compensado à criação seguida de eliminação lógica.
+Status: **implementation approved on 2026-09-07**. Rationale:
+[DIAGNOSIS.md](DIAGNOSIS.md). This first slice restricts the general pattern of reading
+a subsequently compensated effect to creation followed by logical deletion.
 
-## 1. O que é
+Approval record: the user accepted this SPEC/PLAN, explicit Quiz/Tournament adapters,
+a separate diagnostic sidecar, and controlled-harness positive proof with ordinary
+executor integration/control proof. Restored updates and runtime result binding between
+participants remain excluded. The user requested English SPEC/PLAN; this translation
+preserves the approved requirements. No further routine milestone approval is required.
 
-Diagnóstico complementar do Saga/local ScenarioExecutor que identifica quando uma
-resposta entrega a uma Saga B a revisão criada por outra Saga A e a compensação dessa
-criação persiste depois a sua eliminação. Relata exposição, sem exigir dano ou escrita
-posterior de B. Não é uma leitura de transação local ainda não confirmada.
+## 1. What it is
 
-Termo proposto para o glossário durante a implementação: **exposição a criação
-posteriormente compensada (future)** — entrega comprovada de uma revisão criada por
-outra Saga, anterior à eliminação confirmada pela compensação do passo criador.
+A complementary diagnostic for the Saga/local ScenarioExecutor that identifies when a
+response delivers to Saga B the revision created by another Saga A, and compensation
+of that creation subsequently persists its deletion. It reports exposure without
+requiring harm or a later write by B. It is not a read of an uncommitted local transaction.
 
-## 2. Objetivos
+Proposed glossary term for implementation: **exposure to a subsequently compensated
+creation (future)** — proven delivery of a revision created by another Saga, preceding
+confirmed deletion by compensation of the creating step.
 
-1. Produzir um finding auditável por evidência exata de criação → entrega → compensação.
-2. Distinguir um negativo avaliado de cobertura ausente, ambígua ou não suportada.
-3. Preservar comportamento da aplicação e métricas ImpactV1/ImpactV2.
+## 2. Goals
 
-## 3. Não objetivos
+1. Produce an auditable finding from exact creation → delivery → compensation evidence.
+2. Distinguish an evaluated negative from missing, ambiguous, or unsupported coverage.
+3. Preserve application behavior and ImpactV1/ImpactV2 metrics.
 
-Updates repostos, dano final, dependências de campos, dirty reads clássicos, lost updates,
-write skew, serializabilidade, propagação de eventos, novos inputs/schedules, binding de
-resultados entre participantes durante medição, gRPC/stream/TCC e mudanças em GA/score.
-Não reconstruir um grafo arbitrário de DTOs ou instalar um novo framework de traces.
+## 3. Non-goals
 
-## 4. Requisitos funcionais
+Restored updates, final harm, field dependencies, classic dirty reads, lost updates,
+write skew, serializability, event propagation, new inputs/schedules, result binding
+between participants during measurement, gRPC/stream/TCC, and GA/score changes.
+Do not reconstruct an arbitrary DTO graph or introduce a new tracing framework.
 
-- **FR-1 — Entrega real.** Registar apenas respostas efetivamente devolvidas por uma
-  chamada local bem-sucedida, após desserialização quando ativa. Cada adaptador declara
-  classes exatas do comando e resultado, tipo persistente e extração tipada da identidade
-  e revisão do agregado exterior. É um contrato de proveniência auditado/testado; não
-  uma inferência por nomes `get*`, campos `id/version`, IDs coincidentes ou versão da UoW.
-  Não atribuir ao agregado exterior as versões de referências aninhadas.
-- **FR-2 — Identidade e autoria.** Conservar tentativa, workload/scenario, participante,
-  ação/ocorrência, fase, comando, contrato/versão do adaptador, identidade lógica tipada,
-  runtime type e revisão retornada. Exigir junção única com a escrita confirmada de A.
-  Colisões de tipo, mesma revisão ambígua e autoria desconhecida são lacunas.
-- **FR-3 — Predicado positivo.** Exigir: (a) ausência anterior coberta e escrita FORWARD
-  de A que cria X/v sem predecessor, com lifecycle ACTIVE; (b) entrega de X/v a B≠A no
-  FORWARD, antes de A concluir com sucesso; (c) posteriormente, escrita RECOVERY de A
-  que persiste X/c DELETED, predecessor exato X/v; (d) essa ação pertence à compensação
-  explícita do mesmo passo/ocorrência produtor, comprovada pelos registos de execução.
-  A sequência deve ser criação confirmada < entrega < eliminação confirmada. Uma mera
-  falha de A, execução de checkpoint ou libertação de lock é insuficiente.
-- **FR-4 — Sem requisito de dano.** B pode não escrever, terminar antes da compensação
-  ou mais tarde falhar/compensar. Não apagar uma exposição já provada por causa do seu
-  resultado final, de uma recriação posterior ou de um uso histórico legítimo. A
-  observação descreve um acontecimento, não um estado proibido no horizonte final.
-- **FR-5 — Negativos e lacunas.** Aplicar a matriz abaixo. Preservar factos e motivo de
-  cada desconhecido. Não inferir eliminação física de uma linha ausente nem a relação
-  de compensação apenas pela mesma Saga. Cadeias com revisão intermédia ficam fora da
-  primeira prova; não escolher arbitrariamente um escritor.
-- **FR-6 — Cobertura.** Declarar contratos cobertos, chamadas observadas, falhas sem
-  entrega, comandos sem adaptador e percursos excluídos. A primeira cobertura inclui
-  lookup exterior singular de Quiz e Tournament e fixtures dummyapp. Leituras internas,
-  listas, predicados, referências aninhadas, reuso em memória sem chamada e consumidores
-  de eventos não têm cobertura global. Ausência de eventos não significa ausência de leituras.
-- **FR-7 — Isolamento.** Excluir setup, observadores e probes. Autoria ausente/mismatched
-  não pode virar B. Conter falhas de coleta e não alterar resultado, retries, locks,
-  transações ou DTOs da aplicação. Lacunas exclusivas deste diagnóstico não degradam
-  a cobertura nem os scores dos três checks ImpactV2.
-- **FR-8 — Persistência e repetibilidade.** Guardar sidecar separado, com evidência e
-  junções auditáveis, ordenação estável e IDs derivados da tentativa/ocorrências.
-  Exposições repetidas do mesmo par A/B e revisão compensada formam um finding com
-  referências a todas as entregas; leitores diferentes permanecem distinguíveis.
-- **FR-9 — Prova.** Qualificar o predicado e os negativos em Spock com dummyapp primeiro;
-  demonstrar entrega direta/serializada no framework e a cadeia Quizzes num harness
-  controlado, incluindo um leitor que não persiste efeitos. Demonstrar separadamente
-  persistência pelo executor normal, equivalência observador ligado/desligado e custo.
+## 4. Functional requirements
 
-| Situação | Veredicto |
+- **FR-1 — Actual delivery.** Record only responses actually returned by a successful
+  local call, after deserialization when enabled. Each adapter declares exact command
+  and result classes, persistent type, and typed extraction of the outer aggregate's
+  identity and revision. This is an audited/tested provenance contract, not inference
+  from `get*` names, `id/version` fields, matching IDs, or the UoW version. Do not assign
+  nested-reference versions to the outer aggregate.
+- **FR-2 — Identity and attribution.** Preserve attempt, workload/scenario, participant,
+  action/occurrence, phase, command, adapter contract/version, typed logical identity,
+  runtime type, and returned revision. Require a unique join with A's confirmed write.
+  Type collisions, ambiguous revisions, and unknown attribution are coverage gaps.
+- **FR-3 — Positive predicate.** Require: (a) covered prior absence and A's FORWARD write
+  creating X/v with no predecessor and ACTIVE lifecycle; (b) FORWARD delivery of X/v to
+  B≠A before A successfully completes; (c) a later RECOVERY write by A persisting X/c as
+  DELETED, with exact predecessor X/v; (d) execution records proving that this action
+  belongs to explicit compensation of the same producing step/occurrence. The order is
+  confirmed creation < delivery < confirmed deletion. A's failure, checkpoint execution,
+  or lock release alone is insufficient.
+- **FR-4 — No harm prerequisite.** B may make no writes, finish before compensation, or
+  subsequently fail/compensate. Do not erase an already proven exposure because of B's
+  final outcome, later recreation, or legitimate historical use. The observation
+  describes an occurrence, not a forbidden state at the final horizon.
+- **FR-5 — Negatives and gaps.** Apply the matrix below. Preserve facts and a reason for
+  each unknown. Do not infer physical deletion from a missing row or a compensation
+  relationship merely from the same Saga. Chains containing an intermediate revision
+  are outside this first proof; never select an arbitrary writer.
+- **FR-6 — Coverage.** Declare covered contracts, observed calls, failures without
+  delivery, commands without adapters, and excluded paths. Initial coverage includes
+  singular outer Quiz/Tournament lookups and dummyapp fixtures. Internal reads, lists,
+  predicates, nested references, in-memory reuse without a call, and event consumers
+  have no global coverage. No events does not imply no reads.
+- **FR-7 — Isolation.** Exclude setup, observers, and probes. Missing/mismatched attribution
+  cannot become B. Contain collection failures without changing application outcomes,
+  retries, locks, transactions, or DTOs. Gaps specific to this diagnostic must not degrade
+  the coverage or scores of the three ImpactV2 checks.
+- **FR-8 — Persistence and reproducibility.** Persist a separate sidecar with auditable
+  evidence/joins, stable ordering, and IDs derived from attempt/occurrences. Repeated
+  exposures of the same A/B pair and compensated revision produce one finding referring
+  to every delivery; different readers remain distinguishable.
+- **FR-9 — Proof.** Qualify the predicate and negatives in Spock, dummyapp first; prove
+  direct/serialized delivery in the framework and the Quizzes chain in a controlled
+  harness, including a reader that persists no effects. Separately demonstrate ordinary
+  executor persistence, observer on/off equivalence, and cost.
+
+| Situation | Verdict |
 | --- | --- |
-| Criação X/v de A → B recebe X/v → compensação do passo criador elimina X/v | `OBSERVED` |
-| Mesma sequência; B só lê e termina sem escrever | `OBSERVED` |
-| A termina bem; X muda normalmente depois | `NOT_OBSERVED`, com evidência suficiente |
-| B recebe outra revisão, comprovadamente não produzida por A | Sem finding atribuído a A |
-| Eliminação antes da chamada; B recebe erro | Sem entrega, sem finding |
-| A falha; compensação só liberta lock ou elimina outro objeto | `NOT_OBSERVED`, se a evidência confirma isso |
-| Só se sabe que A falhou/compensou; faltam escritas/revisões | `UNKNOWN` |
-| Update reposto, revisão intermédia, provenance ausente/ambígua | `UNKNOWN` / razão de cobertura, nunca zero global |
-| Consulta do observador ou setup | Excluída da população de leitores |
+| A creates X/v → B receives X/v → compensation of the creating step deletes X/v | `OBSERVED` |
+| Same sequence; B only reads and finishes without writing | `OBSERVED` |
+| A finishes successfully; X changes normally afterward | `NOT_OBSERVED`, with sufficient evidence |
+| B receives another revision, demonstrably not produced by A | No finding attributed to A |
+| Deletion precedes the call; B receives an error | No delivery, no finding |
+| A fails; compensation only releases a lock or deletes another object | `NOT_OBSERVED`, if evidence establishes this |
+| Only A's failure/compensation is known; writes/revisions are missing | `UNKNOWN` |
+| Restored update, intermediate revision, missing/ambiguous provenance | `UNKNOWN` / coverage reason, never a global zero |
+| Observer or setup query | Excluded from the reader population |
 
-## 5. Arquitetura
+## 5. Architecture
 
-Framework recolhe entregas tipadas e reutiliza a evidência de escritas confirmadas;
-verifier faz a junção determinística com ações/recuperação e escreve o diagnóstico.
-Adaptadores residem na integração diagnóstica da aplicação, com o mesmo contrato genérico.
-Não introduzir classes Quizzes no verificador nem alterar os DTOs públicos para telemetria.
-Manter as fronteiras visitor → analysis state → adapter → scenario → dynamic.
-**(assumption)** A prova cobre o runtime local síncrono e revisões de dados que respeitam
-o versionamento do framework; escritas diretas fora dessas fronteiras não ganham cobertura
-por se ter instalado o hook de retorno.
+The framework collects typed deliveries and reuses confirmed-write evidence; the
+verifier deterministically joins actions/recovery and writes the diagnostic. Adapters
+belong to application diagnostic integration and use the same generic contract. Do not
+introduce Quizzes classes into the verifier or public DTO telemetry fields. Preserve
+visitor → analysis state → adapter → scenario → dynamic boundaries.
+**(assumption)** Proof covers the synchronous local runtime and data revisions respecting
+framework versioning; direct writes outside those boundaries do not become covered merely
+because a return hook is installed.
 
-## 6. Modelo de dados
+## 6. Data model
 
-Sidecar proposto: `<execution>.saga-read-exposure.json`, schema
-`microservices-simulator.saga-read-exposure.v1`. Guarda referência/hash do manifesto e
-do relatório de execução, attempt/workload/scenario IDs, âmbito/contratos, entregas,
-escritas necessárias e fontes de baseline/checkpoint, findings e lacunas. O tipo runtime
-desambigua a identidade persistente atual; row IDs e timestamps não são chaves causais.
+Sidecar: `<execution>.saga-read-exposure.json`, schema
+`microservices-simulator.saga-read-exposure.v1`. Preserve manifest and execution-report
+references/hashes, attempt/workload/scenario IDs, scope/contracts, deliveries, necessary
+writes and baseline/checkpoint sources, findings, and gaps. Runtime type disambiguates
+the current persistent identity; row IDs and timestamps are not causal keys.
 
-Separar validade da execução, cobertura da coleta (`COMPLETE_WITHIN_SCOPE`, `PARTIAL`,
-`UNAVAILABLE`) e veredictos individuais. Prefixos interrompidos podem conservar um
-`OBSERVED` já provado, mas não sustentar ausência completa. `observedExposureCount` é
-contagem diagnóstica de findings, um limite inferior quando parcial; é null quando não
-houve medição utilizável. Nunca guardar `impactScore` nem somar ao ImpactV2. Cada sidecar
-é autocontido para as suas provas e explicita dependências de evidência indisponíveis.
+Separate execution validity, collection coverage (`COMPLETE_WITHIN_SCOPE`, `PARTIAL`,
+`UNAVAILABLE`), and individual verdicts. Interrupted prefixes may retain an already
+proven `OBSERVED` but cannot support complete absence. `observedExposureCount` counts
+diagnostic findings, a lower bound when partial; it is null when no usable measurement
+exists. Never serialize `impactScore` or add to ImpactV2. Each sidecar is self-contained
+for its proofs and explicitly reports unavailable evidence dependencies.
 
-## 7. Modelo de segurança
+## 7. Security model
 
-Código de aplicação e adaptadores tipados são a fronteira de confiança da proveniência.
-Não avaliar texto, chamar mutações ou varrer getters arbitrários como oráculo. Guardar
-só identidade/revisão e factos necessários; não duplicar payloads pessoais dos DTOs.
+Application code and typed adapters are the provenance trust boundary. Do not evaluate
+text, invoke mutations, or scan arbitrary getters as an oracle. Store only identity,
+revision, and necessary facts; do not duplicate personal data from DTO payloads.
 
-## 8. Operação
+## 8. Operating
 
-Opt-in proposto `microservices.simulator.saga-read-exposure.enabled=true`, desligado
-por omissão, sem novo sidecar quando desligado. Quando ativo, reutiliza a coleta de
-escritas existente; se esta estiver indisponível/desligada,
-o diagnóstico diz `UNAVAILABLE`, sem a ativar implicitamente. Desligar reverte ao custo
-atual; não há migração de dados. Setup/preflight não fabricam leituras medidas.
+Opt-in: `microservices.simulator.saga-read-exposure.enabled=true`, disabled by default,
+with no new sidecar when disabled. When enabled, reuse existing write collection; if
+that collection is unavailable/disabled, report `UNAVAILABLE` without implicitly
+activating it. Disabling restores current cost; no data migration. Setup/preflight
+must not fabricate measured reads.
 
-## 9. Evolução futura
+## 9. Future roadmap
 
-Uma extensão a updates exigirá contrato sobre a projeção/efeito reposto e a sua relação
-com o retorno, mais controles de escrita concorrente e compensação parcial. A geração
-normal do par que consome um ID produzido durante medição é trabalho separado.
+An update extension needs a contract for the restored projection/effect and its
+relationship to the returned result, plus concurrent-write and partial-compensation
+controls. Normal generation of the pair consuming an ID produced during measurement
+is separate work.
 
-## 10. Decisões abertas
+## 10. Open decisions
 
-| # | Decisão | Recomendação | Alternativa | Impacto |
-| --- | --- | --- | --- | --- |
-| 1 | Âmbito a aprovar | Primeira fatia criação eliminada e adaptadores explícitos | Incluir updates/proveniência geral já | Reabre contrato de efeito e instrumentação; ver os dois exemplos no DIAGNOSIS |
-
-Os documentos definem a proposta concreta, não uma aprovação presumida. O checkpoint
-de implementação é o [PLAN](PLAN.md).
+None blocking the approved slice. The user selected creation followed by deletion with
+explicit adapters; including updates/general provenance would reopen the effect and
+instrumentation contract. See the two examples in DIAGNOSIS and the approved [PLAN](PLAN.md).
