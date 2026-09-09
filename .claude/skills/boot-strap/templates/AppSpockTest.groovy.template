@@ -8,6 +8,10 @@ import pt.ulisboa.tecnico.socialsoftware.ms.impairment.ImpairmentService
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
+
+import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
@@ -48,6 +52,14 @@ class {{APP_CLASS}}SpockTest extends SpockTest {
     protected void flushAndClear() {
         entityManager.flush()
         entityManager.clear()
+    }
+
+    // LocalDateTime carries nanoseconds; every SQL timestamp column Hibernate emits for one is
+    // timestamp(6), and H2 rounds half-up on write. A fixture constant drawn from a nanosecond-
+    // resolution clock therefore fails read-back equality on Linux and passes on a host whose clock
+    // ticks at 1us. Truncating at the source makes the comparison platform-independent.
+    static LocalDateTime testNow() {
+        DateHandler.now().truncatedTo(ChronoUnit.MICROS)
     }
 
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.

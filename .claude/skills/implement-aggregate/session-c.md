@@ -366,8 +366,10 @@ invariant's constant. The direct-on-aggregate body could not surface this: it pa
 field in as a constant too, so the two were consistent by construction.
 
 Repair it by re-pinning the offending `{AppClass}SpockTest.groovy` constants **relative to the same
-clock the create path reads** - `DateHandler.now().plusDays(n)`, keeping the ordering the invariant
-requires - not by changing the helper's signature and not by weakening the invariant. Session `b`
+clock the create path reads** - `testNow().plusDays(n)`, the base class's truncating helper, keeping
+the ordering the invariant requires - not by changing the helper's signature and not by weakening the
+invariant. The truncation is not optional: such a constant crosses a service boundary and is read
+back, so `docs/concepts/testing.md` § "Persisted temporal fixtures" governs it. Session `b`
 had no way to choose better: it wrote its fixture before the create functionality existed, so the
 value repair belongs to this session. Keep the constant names: T1 already asserts against them, and
 renaming rewrites that file for nothing.

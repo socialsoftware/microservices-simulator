@@ -107,7 +107,9 @@ security. This checklist is the authoritative smell list, consumed by
 **Temporal mechanics:** the smallest `LocalDateTime` tick is `.minusNanos(1)` / `.plusNanos(1)`;
 pin **both** instants explicitly so the on-point is exactly equal. All temporal P1 boundary cases
 are T1 direct-aggregate tests — the saga path stamps `lastModifiedTime = now()` and cannot pin the
-on-point.
+on-point. The tick is a T1 construct and stays exactly as written: a fixture that instead crosses a
+service boundary and is compared after a read-back is governed by § "Persisted temporal fixtures"
+below, and the two rules pull in opposite directions.
 
 When a test instead manufactures a past/future timestamp to trigger a **service-level** date guard
 (a T2 concern, not a P1 boundary), pin it against the same clock the guard under test actually
@@ -148,6 +150,41 @@ Two shortcuts are **forbidden**:
 
 If the margin is chosen too small and a stall beats it, creation throws the ordering constant loudly.
 That is the intended failure mode: the test cannot pass for the wrong reason.
+
+## Persisted temporal fixtures
+
+A temporal constant that **crosses a service boundary and is later asserted with `==` after a
+read-back** must be drawn from the base class's `testNow()` helper, never from `DateHandler.now()`
+directly:
+
+```groovy
+public static final LocalDateTime {AGGREGATE}_{START_FIELD} = testNow().plusDays(10)
+```
+
+`LocalDateTime` carries nanoseconds. Every SQL timestamp column Hibernate emits for one is
+`timestamp(6)`, so a write truncates or rounds the sub-microsecond digits away and the value that
+comes back after `flushAndClear()` is not the value that went in. Whether it differs at all depends
+on the **host clock's resolution**, which the JDK takes from the OS: a host whose clock ticks at 1us
+never produces a sub-microsecond draw, so the suite passes; a host with nanosecond resolution turns
+every such assertion into a coin flip. The defect is invisible on the machine that writes the test.
+`testNow()` truncates at the source, so the comparison holds on both.
+
+**This is not the T1 tick rule, and applying either one in the other's place breaks the suite.**
+The `.minusNanos(1)` / `.plusNanos(1)` boundary fixtures of § Choosing Input Values — EP & BVA are
+`{Aggregate}IntraInvariantTest` values, built on a transient aggregate and never persisted, so
+nanosecond resolution costs them nothing. **Never truncate a tick.** Truncating the *result* of
+`.plusNanos(1)` collapses the on-point back onto the off-point, and the on-point test that must not
+throw starts throwing. Truncate the **base** instead - the boundary pair survives, because
+`X.truncatedTo(MICROS).plusNanos(1)` is still strictly after `X.truncatedTo(MICROS)`.
+
+Two neighbouring shapes are governed elsewhere and need no truncation:
+
+- A field the **create path stamps from the clock** (`creationDate`, `lastModifiedTime`) is never
+  asserted `==` against a fixture constant at all - only `!= null` or by ordering. See
+  `.claude/skills/implement-aggregate/session-c.md` § "Update `{AppClass}SpockTest.groovy`", which
+  owns that rule and the re-pinning that makes such a constant clock-relative in the first place.
+- A window computed to **reach a time-gated state** (§ "Reaching a time-gated state") is compared
+  with `isBefore` / `isAfter`, never `==`, so its resolution is irrelevant.
 
 ## Spec-First Ordering
 
