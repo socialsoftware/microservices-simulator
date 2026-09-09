@@ -43,6 +43,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordin
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.service.UserService
 
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 class QuizzesFull2SpockTest extends SpockTest {
 
@@ -84,10 +85,10 @@ class QuizzesFull2SpockTest extends SpockTest {
     // CreateQuiz stamps creationDate from DateHandler.now() and QUIZ_DATE_ORDERING requires it to
     // precede availableDate, so the three caller-supplied dates are pinned relative to that same
     // clock. A fixed absolute instant would put every fixture quiz in the past and fail the invariant.
-    public static final LocalDateTime QUIZ_CREATION_DATE = DateHandler.now().plusDays(1)
-    public static final LocalDateTime QUIZ_AVAILABLE_DATE = DateHandler.now().plusDays(10)
-    public static final LocalDateTime QUIZ_CONCLUSION_DATE = DateHandler.now().plusDays(10).plusHours(2)
-    public static final LocalDateTime QUIZ_RESULTS_DATE = DateHandler.now().plusDays(11)
+    public static final LocalDateTime QUIZ_CREATION_DATE = testNow().plusDays(1)
+    public static final LocalDateTime QUIZ_AVAILABLE_DATE = testNow().plusDays(10)
+    public static final LocalDateTime QUIZ_CONCLUSION_DATE = testNow().plusDays(10).plusHours(2)
+    public static final LocalDateTime QUIZ_RESULTS_DATE = testNow().plusDays(11)
     public static final Long QUIZ_EXECUTION_VERSION = 1L
 
     public static final Integer QUIZ_QUESTION_AGGREGATE_ID = 40
@@ -115,8 +116,8 @@ class QuizzesFull2SpockTest extends SpockTest {
     // CreateTournament stamps lastModifiedTime from DateHandler.now() and TOURNAMENT_FINAL_AFTER_START
     // compares that stamp against startTime, so the tournament instants are pinned relative to the same
     // clock. A fixed absolute instant would put every fixture tournament in the past.
-    public static final LocalDateTime TOURNAMENT_START_TIME = DateHandler.now().plusDays(10)
-    public static final LocalDateTime TOURNAMENT_END_TIME = DateHandler.now().plusDays(10).plusHours(2)
+    public static final LocalDateTime TOURNAMENT_START_TIME = testNow().plusDays(10)
+    public static final LocalDateTime TOURNAMENT_END_TIME = testNow().plusDays(10).plusHours(2)
     public static final Integer TOURNAMENT_NUMBER_OF_QUESTIONS = 5
     public static final Long TOURNAMENT_EXECUTION_VERSION = 1L
     public static final Long TOURNAMENT_QUIZ_VERSION = 1L
@@ -131,7 +132,7 @@ class QuizzesFull2SpockTest extends SpockTest {
     public static final String TOURNAMENT_PARTICIPANT_NAME = "Dave Black"
     public static final String TOURNAMENT_PARTICIPANT_USERNAME = "dave"
     public static final Long TOURNAMENT_PARTICIPANT_VERSION = 1L
-    public static final LocalDateTime TOURNAMENT_ENROLL_TIME = DateHandler.now().plusDays(1)
+    public static final LocalDateTime TOURNAMENT_ENROLL_TIME = testNow().plusDays(1)
 
     public static final Integer TOURNAMENT_TOPIC_AGGREGATE_ID = 70
     public static final Integer TOURNAMENT_TOPIC_AGGREGATE_ID_2 = 71
@@ -212,6 +213,14 @@ class QuizzesFull2SpockTest extends SpockTest {
     protected void flushAndClear() {
         entityManager.flush()
         entityManager.clear()
+    }
+
+    // LocalDateTime carries nanoseconds; every SQL timestamp column Hibernate emits for one is
+    // timestamp(6), and H2 rounds half-up on write. A fixture constant drawn from a nanosecond-
+    // resolution clock therefore fails read-back equality on Linux and passes on a host whose clock
+    // ticks at 1us. Truncating at the source makes the comparison platform-independent.
+    static LocalDateTime testNow() {
+        DateHandler.now().truncatedTo(ChronoUnit.MICROS)
     }
 
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.

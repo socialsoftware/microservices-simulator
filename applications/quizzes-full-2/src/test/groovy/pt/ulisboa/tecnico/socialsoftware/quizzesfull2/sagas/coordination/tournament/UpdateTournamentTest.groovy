@@ -7,7 +7,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGateway
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.QuizzesFull2SpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.aggregate.sagas.states.TournamentSagaState
@@ -20,8 +19,8 @@ import java.time.LocalDateTime
 @Import(UpdateTournamentTest.LocalBeanConfiguration)
 class UpdateTournamentTest extends QuizzesFull2SpockTest {
 
-    public static final LocalDateTime UPDATED_START_TIME = DateHandler.now().plusDays(20)
-    public static final LocalDateTime UPDATED_END_TIME = DateHandler.now().plusDays(20).plusHours(3)
+    public static final LocalDateTime UPDATED_START_TIME = testNow().plusDays(20)
+    public static final LocalDateTime UPDATED_END_TIME = testNow().plusDays(20).plusHours(3)
 
     @Autowired
     LocalCommandGateway commandGateway
