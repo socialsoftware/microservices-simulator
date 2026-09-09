@@ -18,6 +18,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.a
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.aggregate.UserDto
 
 import java.time.LocalDateTime
+import java.time.temporal.ChronoUnit
 
 @DataJpaTest
 @Transactional
@@ -28,8 +29,8 @@ class TournamentServiceTest extends QuizzesFull2SpockTest {
     public static final String SECOND_EXECUTION_ACRONYM = "SE-02"
     public static final Integer SECOND_NUMBER_OF_QUESTIONS = 8
     public static final String SEEDED_QUESTION_TITLE = "Seeded question"
-    public static final LocalDateTime UPDATED_START_TIME = DateHandler.now().plusDays(20)
-    public static final LocalDateTime UPDATED_END_TIME = DateHandler.now().plusDays(20).plusHours(3)
+    public static final LocalDateTime UPDATED_START_TIME = DateHandler.now().truncatedTo(ChronoUnit.MICROS).plusDays(20)
+    public static final LocalDateTime UPDATED_END_TIME = DateHandler.now().truncatedTo(ChronoUnit.MICROS).plusDays(20).plusHours(3)
 
     @Autowired
     EventService eventService
