@@ -135,10 +135,6 @@ public class QuizzesFullFunctionalityCatalogsProvider implements FunctionalityCa
                 unitOfWorkService, h.idOf("spareCourse"), uow("deleteCourse"), commandGateway));
         add(factories, "getCourseById", h -> new GetCourseByIdFunctionalitySagas(
                 unitOfWorkService, h.idOf("spareCourse"), uow("getCourseById"), commandGateway));
-        add(factories, "updateCourse", h -> new UpdateCourseFunctionalitySagas(
-                unitOfWorkService, h.idOf("spareCourse"), "New name", "EXTERNAL",
-                uow("updateCourse"), commandGateway));
-
         add(factories, "anonymizeStudent", h -> new AnonymizeStudentFunctionalitySagas(
                 unitOfWorkService, h.idOf("execution"), h.idOf("participant"),
                 uow("anonymizeStudent"), commandGateway));

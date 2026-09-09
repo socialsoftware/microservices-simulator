@@ -74,11 +74,13 @@ functionalities:
     exclusion_reason: null
   - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.course.coordination.sagas.UpdateCourseFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [ordinary-shared-state]
-    functionality_ids: [updateCourse]
-    evidence: [applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java]
-    exclusion_reason: null
+    included: false
+    catalogs: []
+    functionality_ids: []
+    evidence:
+      - applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/coordination/functionalities/CourseFunctionalities.java
+      - applications/quizzes-full/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzesfull/microservices/course/service/CourseService.java
+    exclusion_reason: "Course name and type are immutable; updateCourse is unconditionally rejected (throwing an exception) and has no successful traversal."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas
     kind: write
     included: true
