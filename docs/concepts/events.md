@@ -83,7 +83,7 @@ Matching is performed by the infrastructure: `EventService.getSubscribedEvents` 
 Since `EventRepository.findUnprocessedEvents` keeps events with `publisherAggregateVersion > subscribedVersion`, a consumer seeded from a DTO stays eligible for every event the publisher emitted up to and including the commit that produced that DTO. **This backlog is expected behaviour, not a defect to work around.** Consequences to design for:
 
 - **The consumer's first poll drains the backlog**, not just the event under consideration. Handlers must therefore be idempotent under re-application of a payload already folded in.
-- **A stale payload can overwrite a fresher cached value** if the backlog is drained after the consumer cached a newer one. Advancing the cached publisher version on every ByEvent mutation (below) is what bounds this.
+- **A stale payload can overwrite a fresher cached value, inside a single poll.** `EventRepository.findUnprocessedEvents` orders the batch `timestamp DESC` and `EventApplicationService` hands the whole batch to the handler in that order, so the newest event is applied first and an older one reaches the consumer immediately afterwards. Advancing the cached publisher version (below) does not prevent this on its own — the ByEvent mutation must also **reject** an event that does not advance that version (§ "Reject an event that does not advance the cached version").
 - **T3 subscription tests must drain the backlog in `given:`**, before capturing the `versionBefore` the "reflects event" assertion compares against. Call the polling method once at the end of setup — where a fixture helper creates the publisher in several commits, give that drain its own named private helper so the reason survives. Without the drain, the fixture's own event moves the cached version before the test fires anything, and the assertion cannot tell the two apart.
 
 ## EventHandler
@@ -127,7 +127,7 @@ Each event type gets one `@Scheduled` method. All methods pass the **same** `{Co
 
 ```java
 @Component
-public class ShipmentEventHandling {
+public class ShipmentEventHandling implements EventHandling {
 
     @Autowired
     private EventApplicationService eventApplicationService;
@@ -146,6 +146,8 @@ public class ShipmentEventHandling {
     }
 }
 ```
+
+**`implements EventHandling` is mandatory**, from `ms.notification.EventHandling` — a marker interface with no methods. `EnableDisableEventsController` autowires `List<EventHandling>` and runs every element through `ScheduledAnnotationBeanPostProcessor` to start and stop the scheduled polling. A polling bean that omits it compiles, runs and passes every test, and is simply invisible to `/scheduler/start` and `/scheduler/stop`: its `@Scheduled` loop cannot be paused.
 
 The `@Scheduled` annotation does **not** run in `@DataJpaTest` — call the method manually in tests.
 
@@ -324,7 +326,45 @@ against cannot occur where there is no longer a subscription to redeliver agains
 Apply this test rather than the shape of the event name: **does a cached row survive this mutation?**
 If yes, the version parameter is mandatory; if no, it must be absent.
 
-**When to skip the guard.** Apply the test: **skip the guard only when the cached field the event
+**Reject an event that does not advance the cached version.** Stamping the version is only half the
+rule. Before applying any payload field, compare the incoming version against the one already cached
+on the row and return **without** `registerChanged` when it does not advance:
+
+```java
+{CachedEntity} cached = find{CachedEntity}(new{Consumer}, {publisher}AggregateId);
+if (cached == null) {
+    return;
+}
+if (cached.get{Publisher}Version() != null && cached.get{Publisher}Version() >= {publisher}Version) {
+    return;   // stale or replayed event
+}
+cached.set{Field}({field});
+cached.set{Publisher}Version({publisher}Version);
+
+unitOfWorkService.registerChanged(new{Consumer}, unitOfWork);
+```
+
+Without it a consumer that drains a two-event backlog ends the poll holding the *older* payload, per
+§ "A snapshot-seeded version does not exclude the events already published" above, and the newer
+event becomes eligible again on the next poll — so the projection oscillates and gains a version each
+time round instead of quieting down.
+
+**The guard lives in the service method, not beside the `sagaState` guard.** Put it after the
+copy-on-write load and after the check that the cached row exists. The two guards look alike and sit
+in different layers for opposite reasons: the `sagaState` guard must stay out of the service because
+saga steps call the same service method and the guard would silently skip them, whereas the version
+guard needs the cached row the service has already located, and a service method that takes a
+publisher version is reached from the event path only.
+
+**`>=`, not `>`.** An event carrying the version already cached has been folded in; re-applying it
+writes a new aggregate version for no change, which is the redelivery loop this rule exists to close.
+
+**Returning without `registerChanged` is the point** — a rejected event must leave no new aggregate
+version behind. Where one event writes several cached rows for the same publisher, guard each row on
+its own version and skip `registerChanged` only when the event advanced none of them.
+
+**When to skip the `sagaState` guard.** The version guard above is never skipped; this paragraph is
+about the saga-state one only. Apply the test: **skip it only when the cached field the event
 writes is one that no saga step of this aggregate ever writes.** The guard exists to stop an event
 from overwriting a value an in-flight saga is mid-way through setting; where no saga touches that
 field, there is nothing to conflict with and the event must apply. Where any saga step does write it,

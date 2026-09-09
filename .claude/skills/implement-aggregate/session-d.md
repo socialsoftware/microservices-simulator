@@ -88,6 +88,9 @@ Do **not** attempt to move this check into a `subscribesEvent()` override — se
 Path: `{src}microservices/{aggregate}/notification/handling/{Aggregate}EventHandling.java`
 
 - Spring `@Component`
+- **Implements `EventHandling`** (`pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling`) —
+  mandatory. `docs/concepts/events.md` § Polling owns the rule and says what a bean that omits it
+  loses; nothing fails to build, so this is not caught by the test suite.
 - One `@Scheduled(fixedDelay = 1000)` method per subscribed event type
 - Each method body is a single call:
   `eventApplicationService.handleSubscribedEvent({Event}.class, {aggregate}EventHandler)` — every
@@ -159,6 +162,12 @@ For every event that mirrors an operation also exposed as a saga `Functionalitie
 
 The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (copy-on-write mutation plus `registerChanged`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
 
+A second guard, on the cached publisher **version**, goes the other way — into the service method,
+after the copy-on-write load — and rejects an event that does not advance it. `events.md`
+§ "Reject an event that does not advance the cached version" owns both the shape and why the two
+guards sit in different layers. Follow that section; stamping the version without it leaves the
+consumer able to end a poll holding an older payload than the one it started with.
+
 #### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
 
 When the inbound event signals that a publisher aggregate has been deleted, choose between two actions based on whether the consumer remains valid without that entity:
@@ -186,17 +195,24 @@ public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer war
     {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
             .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
     {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
-    new{Aggregate}.get{SubEntities}().stream()
+    {SubEntity} cached = new{Aggregate}.get{SubEntities}().stream()
         .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
         .findFirst()
-        .ifPresent(e -> e.setWarehouseVersion(publisherVersion));
+        .orElse(null);
+    if (cached == null) {
+        return;
+    }
+    if (cached.getWarehouseVersion() != null && cached.getWarehouseVersion() >= publisherVersion) {
+        return;   // stale or replayed event
+    }
+    cached.setWarehouseVersion(publisherVersion);
     unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
 
 The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Every cached publisher version is a `Long`", which owns the rule.
 
-This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Advance the cached publisher version", and the redelivery backlog it bounds.
+This section covers the case where the version is the *only* thing cached. Neither half of the rule is confined to it: every ByEvent mutation that leaves a cached row both **rejects** an event that does not advance the cached publisher version and **stamps** the new one, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Advance the cached publisher version" and "Reject an event that does not advance the cached version".
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
@@ -227,6 +243,10 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
   consumer at all.
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message and that the event is not marked as processed (event-processing outcome). This is an event-processing assertion — not a re-test of the P1 predicate itself (the predicate's violation cases belong in `{Aggregate}IntraInvariantTest.groovy`, T1 Aggregate tier).
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
+- **Plus one stale-event ordering test for the aggregate as a whole** — not per event type. Publish
+  two updates from one publisher before polling once, and assert the newer payload survives.
+  `docs/concepts/testing.md` § "Ordering: the stale-event test" owns the rule, which event to pick
+  and why a poll-twice test does not substitute for it.
 
 > **Version numbers:** Aggregate versions start much higher than `1L` because the multi-step test setup issues several commits. Always capture `versionBefore` *after* the setup call completes, then assert `versionAfter > versionBefore` (reflects) or `versionAfter == versionBefore` (ignores). Never hardcode `== 1L` or any specific version number.
 

@@ -393,6 +393,21 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
     // capture originalValue in given: BEFORE firing (capturing after is Fake — x == x),
     // trigger the op on publisher2, poll, assert consumer.<cachedField> == originalValue.
 
+    // Mandatory once per subscribing aggregate — see § "Ordering: the stale-event test" below.
+    def "<consumer> keeps the newest <field> when a stale <Xxx>Event trails it"() {
+        given:
+        def publisher = create<Publisher>(/* args */)
+        def consumer  = create<Consumer>(/* args linked to publisher */)
+        when: 'the publisher is updated twice before the consumer polls'
+        <publisher>Functionalities.<triggeringOp>(publisher.aggregateId, <staleValue>)
+        <publisher>Functionalities.<triggeringOp>(publisher.aggregateId, <newValue>)
+        and: 'the consumer drains both pending events in one poll'
+        <consumer>EventHandling.handle<Xxx>Events()
+        then: 'the newer payload survives the older event that trails it'
+        <consumer>Service.get<Consumer>ById(consumer.aggregateId,
+                unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
+    }
+
     def "<consumer> is deleted when <Publisher> deletion event is processed"() {
         given:
         def publisher = create<Publisher>(/* args */)
@@ -409,6 +424,24 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
     }
 }
 ```
+
+### Ordering: the stale-event test
+
+**One per subscribing aggregate, mandatory.** Pick any one field-update event the consumer subscribes
+to and prove that a stale event cannot undo a fresher one. The event pipeline makes this reachable
+rather than theoretical: `findUnprocessedEvents` returns the batch `timestamp DESC` and the whole
+batch is handled in that order, so two updates published before a single poll arrive newest-first and
+the older payload lands last. `events.md` § "Reject an event that does not advance the cached
+version" owns the guard this test exercises.
+
+The test is per *aggregate*, not per event type, because the guard is the same code at every cached
+row of one consumer — one event type discharges it. Choose an event whose payload has two
+distinguishable values; a re-affirming payload (§ T3 above) cannot show the difference.
+
+Do **not** substitute a "poll twice and nothing changes" test for it. That one is worth having — it
+is what proves the version is stamped at all — but it passes whether or not the guard exists, because
+a stamped version already takes the event out of the eligible set before the second poll. Only two
+events pending at once reaches the guard.
 
 ## T4 — Functionality Test
 
