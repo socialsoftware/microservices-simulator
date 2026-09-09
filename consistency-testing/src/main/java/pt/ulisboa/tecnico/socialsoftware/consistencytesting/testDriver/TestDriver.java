@@ -234,8 +234,9 @@ public final class TestDriver {
     /**
      * Picks a random, jointly-satisfiable set of {@code 0..cap} inter-dependencies
      * to inject next. Candidates are every ordered cross-functionality pair of
-     * observed steps, shuffled; each is admitted only if it keeps the
-     * happens-before graph acyclic and is not already implied (redundant).
+     * observed steps whose concrete identity remains meaningful after the database
+     * is recreated, shuffled; each is admitted only if it keeps the happens-before
+     * graph acyclic and is not already implied (redundant).
      */
     private Set<InterDependency> chooseInterDependencies(
             Set<StepId> observedSteps,
@@ -281,12 +282,18 @@ public final class TestDriver {
     }
 
     /**
-     * Every ordered pair of observed steps belonging to different functionalities.
+     * Every ordered pair of observed steps belonging to different functionalities,
+     * excluding steps whose identity does not remain stable after the database is
+     * recreated.
      */
-    private static List<InterDependency> crossFunctionalityPairs(Set<StepId> observedSteps) {
+    static List<InterDependency> crossFunctionalityPairs(Set<StepId> observedSteps) {
+        List<StepId> crossRunIdentityStableSteps = observedSteps.stream()
+                .filter(StepId::isIdentityStableAcrossRuns)
+                .toList();
+
         List<InterDependency> pairs = new ArrayList<>();
-        for (StepId dependent : observedSteps) {
-            for (StepId dependsOn : observedSteps) {
+        for (StepId dependent : crossRunIdentityStableSteps) {
+            for (StepId dependsOn : crossRunIdentityStableSteps) {
                 if (dependent.equals(dependsOn)
                         || dependent.getFunctionalityId().equals(dependsOn.getFunctionalityId())) {
                     continue; // self / same-functionality pairs are intra-dependencies, never inter

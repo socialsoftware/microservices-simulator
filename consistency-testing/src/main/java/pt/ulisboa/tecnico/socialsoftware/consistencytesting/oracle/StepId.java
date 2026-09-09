@@ -15,10 +15,16 @@ public final class StepId {
 
     private final FunctionalityId functionalityId;
     private final String id;
+    private final boolean crossRunStableIdentity;
 
-    private StepId(FunctionalityId functionalityId, String id) {
+    private StepId(FunctionalityId functionalityId, String id, boolean crossRunStableIdentity) {
         this.functionalityId = functionalityId;
         this.id = functionalityId.toString() + ID_SEPARATOR + id;
+        this.crossRunStableIdentity = crossRunStableIdentity;
+    }
+
+    private StepId(FunctionalityId functionalityId, String id) {
+        this(functionalityId, id, true);
     }
 
     public static StepId forFunctionalityStep(FunctionalityId functionalityId, String stepName) {
@@ -50,8 +56,12 @@ public final class StepId {
         return new StepId(functionalityId, stepName + ID_CONNECTOR + "abort");
     }
 
+    /**
+     * Returns a StepId for an event handler step.
+     * The identity of this step will not be considered stable across runs.
+     */
     public static StepId forEventHandlerStep(FunctionalityId eventHandlerFunctionalityId) {
-        return new StepId(eventHandlerFunctionalityId, "handlerStep");
+        return new StepId(eventHandlerFunctionalityId, "handlerStep", false);
     }
 
     /** The synthetic step that represents the entire initial state setup. */
@@ -61,6 +71,18 @@ public final class StepId {
 
     public FunctionalityId getFunctionalityId() {
         return functionalityId;
+    }
+
+    /**
+     * Whether this ID is expected to identify the same logical step after the
+     * database is recreated for another run.
+     * <p>
+     * This says nothing about whether the step will materialize or execute in that
+     * run. It only describes identity stability when the same logical step does
+     * materialize.
+     */
+    public boolean isIdentityStableAcrossRuns() {
+        return crossRunStableIdentity;
     }
 
     @Override
