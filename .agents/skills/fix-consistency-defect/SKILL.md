@@ -9,7 +9,9 @@ Turn one reviewed, actionable consistency finding, or a confirmed set of such fi
 
 ## 1. Establish evidence and scope
 
-Require an explicit target application and decisive report path(s) or review finding(s). Read governing `AGENTS.md` files, the report(s), the coverage manifest/provider, relevant production code, and existing tests.
+Require an explicit target application and decisive review report path(s). For each finding, require its report trace ID when the report assigns one; otherwise assign a stable local identifier in the issue ledger. Read governing `AGENTS.md` files, the named report record and decisive run report(s), the coverage manifest/provider, relevant production code, and existing tests.
+
+Before editing, recheck only issue-specific evidence: report conclusions can be stale, inferred causes can be wrong, and application code may have changed since review. This is not a second full campaign review.
 
 For multiple findings, create an issue ledger before editing. Record each finding's identifier, classification, confidence, decisive evidence, harmful postcondition, reproduction test, affected production regions, proposed repair group, and status. Show the user the ledger and proposed repair groups before editing, then ask whether the plan is acceptable. Keep the ledger current as each finding moves through reproduction, repair, verification, or blockage; continue through the full confirmed set rather than losing context after one issue.
 
