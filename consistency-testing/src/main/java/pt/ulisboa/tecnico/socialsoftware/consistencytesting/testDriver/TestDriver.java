@@ -403,8 +403,8 @@ public final class TestDriver {
 
         if (!profilingFailures.isEmpty()) {
             throw new IllegalStateException(
-                    "Catalog '%s' has %d invalid solo profiling run(s). " +
-                            "Every catalog factory and initial state must produce a successful invocation:%n - %s"
+                    ("Catalog '%s' has %d invalid solo profiling run(s). " +
+                            "Every catalog factory and initial state must produce a successful invocation:%n - %s")
                                     .formatted(catalog.name(), profilingFailures.size(),
                                             String.join(System.lineSeparator() + " - ", profilingFailures)));
         }
