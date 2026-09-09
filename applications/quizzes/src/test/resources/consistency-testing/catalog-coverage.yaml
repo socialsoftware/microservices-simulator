@@ -729,118 +729,35 @@ functionalities:
       - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/coordination/functionalities/UserFunctionalities.java
     exclusion_reason: null
 candidate_inter_invariants: []
-confirmed_inter_invariants: []
-unimplemented_explicit_inter_invariants:
-  - description: "NO_DUPLICATE_COURSE_EXECUTION"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "INACTIVE_USER"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "STUDENT_ALREADY_ENROLLED"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "USER_EXISTS (Execution)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "TOPIC_BELONGS_TO_QUESTION_COURSE"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "TOPICS_EXIST (Question)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUESTION_EXISTS (Quiz)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "COURSE_EXECUTION_EXISTS (Quiz)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "UNIQUE_QUIZ_ANSWER_PER_STUDENT"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUESTION_ALREADY_ANSWERED"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "USER_EXISTS (QuizAnswer)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUIZ_EXISTS (QuizAnswer)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "COURSE_EXECUTION_EXISTS (QuizAnswer)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "ANSWER_BEFORE_START (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "CREATOR_IS_NOT_ANONYMOUS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "CREATOR_COURSE_EXECUTION (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "PARTICIPANT_COURSE_EXECUTION (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "TOPIC_COURSE_EXECUTION (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "CREATOR_EXISTS / PARTICIPANT_EXISTS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "TOPIC_EXISTS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUIZ_EXISTS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "COURSE_EXECUTION_EXISTS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
-  - description: "QUIZ_ANSWER_EXISTS (Tournament)"
-    evidence:
-      - applications/quizzes/quizzes-domain-model.md
-    reason: "Current repositories retain every aggregate version, while service reads require a SagaUnitOfWork. No non-invasive projection identifies the committed visible version during an interleaved saga without adding traced reads or risking transient-state false positives."
+confirmed_inter_invariants:
+  - { name: REMOVE_NO_STUDENTS, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: removeNoStudents }
+  - { name: NO_DUPLICATE_COURSE_EXECUTION, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: noDuplicateCourseExecution }
+  - { name: INACTIVE_USER, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: enrolledUsersAreActive }
+  - { name: STUDENT_ALREADY_ENROLLED, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: studentsAreUnique }
+  - { name: USER_EXISTS_EXECUTION, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: executionUsersExist }
+  - { name: CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: courseContentHasAnExecution }
+  - { name: TOPIC_BELONGS_TO_QUESTION_COURSE, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: questionTopicsBelongToCourse }
+  - { name: TOPICS_EXIST_QUESTION, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: questionTopicsExist }
+  - { name: QUESTION_EXISTS_QUIZ, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizQuestionsExist }
+  - { name: COURSE_EXECUTION_EXISTS_QUIZ, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizExecutionsExist }
+  - { name: UNIQUE_QUIZ_ANSWER_PER_STUDENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizAnswersAreUnique }
+  - { name: QUESTION_ALREADY_ANSWERED, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: answeredQuestionsAreUnique }
+  - { name: COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizAnswerExecutionMatchesQuiz }
+  - { name: USER_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizAnswerUsersExistAndRemainEnrolled }
+  - { name: QUIZ_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizAnswerQuizzesExist }
+  - { name: COURSE_EXECUTION_EXISTS_QUIZ_ANSWER, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: quizAnswerExecutionsExist }
+  - { name: ANSWER_BEFORE_START_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentAnswersRespectStartTime }
+  - { name: CREATOR_IS_NOT_ANONYMOUS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentCreatorsAreNotAnonymous }
+  - { name: CREATOR_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentCreatorsAreEnrolled }
+  - { name: PARTICIPANT_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentParticipantsAreEnrolled }
+  - { name: TOPIC_COURSE_EXECUTION_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentTopicsBelongToExecutionCourse }
+  - { name: QUIZ_COURSE_EXECUTION_CONSISTENCY_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentQuizMatchesExecution }
+  - { name: TOURNAMENT_QUIZ_TIME_CONSISTENCY, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentTimesMatchQuiz }
+  - { name: NUMBER_OF_QUESTIONS_QUIZ_TOPICS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentQuestionSelectionIsConsistent }
+  - { name: CREATOR_PARTICIPANT_EXISTS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentUsersExist }
+  - { name: TOPIC_EXISTS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentTopicsExist }
+  - { name: QUIZ_EXISTS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentQuizzesExist }
+  - { name: COURSE_EXECUTION_EXISTS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentExecutionsExist }
+  - { name: QUIZ_ANSWER_EXISTS_TOURNAMENT, evidence: [applications/quizzes/quizzes-domain-model.md], provider_method: tournamentQuizAnswerStatisticsMatch }
+unimplemented_explicit_inter_invariants: []
 cross_catalog_gaps: []
