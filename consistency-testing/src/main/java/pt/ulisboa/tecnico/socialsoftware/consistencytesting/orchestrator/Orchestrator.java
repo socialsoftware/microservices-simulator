@@ -2,10 +2,14 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,6 +17,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityCatalog;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityFootprint;
@@ -20,6 +25,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.Functiona
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityGroupPlanner;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestDriver;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 /**
  * Runs a whole consistency-testing campaign over an application, end to end:
@@ -59,6 +65,7 @@ public final class Orchestrator {
     private static final int DEFAULT_ITERATIONS_PER_GROUP = 20;
     private static final long DEFAULT_MASTER_SEED = 42L;
     private static final Path DEFAULT_REPORTS_DIRECTORY = Path.of("target", "consistency-reports");
+    private static final String IGNORED_SEMANTIC_LOCKS_PROPERTY = "consistency.ignoredSemanticLocks";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -78,13 +85,20 @@ public final class Orchestrator {
     private int iterationsPerGroup = DEFAULT_ITERATIONS_PER_GROUP;
     private long masterSeed = DEFAULT_MASTER_SEED;
     private Path reportsDirectory = DEFAULT_REPORTS_DIRECTORY;
+    private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
 
     private Orchestrator(Class<?> springAppClass) {
         this.springAppClass = springAppClass;
     }
 
     public static Orchestrator of(Class<?> springAppClass) {
-        return new Orchestrator(springAppClass);
+        Orchestrator orchestrator = new Orchestrator(springAppClass);
+        String configuredIgnoredLocks = System.getProperty(IGNORED_SEMANTIC_LOCKS_PROPERTY);
+        if (configuredIgnoredLocks != null && !configuredIgnoredLocks.isBlank()) {
+            orchestrator.withIgnoredSemanticLockSelectors(
+                    Arrays.stream(configuredIgnoredLocks.split(",", -1)).map(String::trim).toList());
+        }
+        return orchestrator;
     }
 
     /**
@@ -119,6 +133,31 @@ public final class Orchestrator {
         return this;
     }
 
+    /**
+     * Configures test-only fault injection for a sweep. For each selector, the
+     * text before {@code #} is the fully qualified name of a saga-state enum and
+     * the text after it is the state's {@link SagaState#getStateName() state name}.
+     * A matching acquisition is skipped, modeling code that forgot to acquire
+     * that semantic lock. Every selector is validated before the application
+     * starts, so a typo cannot silently run a no-fault sweep.
+     *
+     * @throws IllegalArgumentException if any selector is malformed, its class
+     *                                  cannot be loaded, does not implement
+     *                                  {@link SagaState}, is not an
+     *                                  enum, or does not contain the requested
+     *                                  state name
+     */
+    public Orchestrator withIgnoredSemanticLockSelectors(Collection<String> selectors) {
+        Set<SemanticLockId> parsedSelectors = new HashSet<>();
+        for (String selector : selectors) {
+            SemanticLockId semanticLock = SemanticLockId.parse(selector.trim());
+            semanticLock.validateAgainst(springAppClass.getClassLoader());
+            parsedSelectors.add(semanticLock);
+        }
+        this.ignoredSemanticLocks = Set.copyOf(parsedSelectors);
+        return this;
+    }
+
     /*
      * TODO budget strategy: every planned group currently gets exactly
      * `iterationsPerGroup` runs, so a large catalog's campaign grows without bound
@@ -142,7 +181,8 @@ public final class Orchestrator {
 
         TestDriver driver = new TestDriver(springAppClass, effectiveSpringAppArgs, reportsDirectory)
                 .setIterations(iterationsPerGroup)
-                .setMasterSeed(masterSeed);
+                .setMasterSeed(masterSeed)
+                .setIgnoredSemanticLocks(ignoredSemanticLocks);
 
         CampaignProgress progress = new CampaignProgress(
                 springAppClass.getName(), masterSeed, effectiveSpringAppArgs, iterationsPerGroup,

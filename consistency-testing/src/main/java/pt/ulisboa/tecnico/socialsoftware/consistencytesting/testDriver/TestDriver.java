@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencyGraph;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
@@ -114,6 +115,12 @@ public final class TestDriver {
      */
     public TestDriver setMasterSeed(long masterSeed) {
         this.masterSeed = masterSeed;
+        return this;
+    }
+
+    /** Test-only fault configuration. Must be called before {@link #init()}. */
+    public TestDriver setIgnoredSemanticLocks(Set<SemanticLockId> ignoredSemanticLocks) {
+        oracle.setIgnoredSemanticLocks(ignoredSemanticLocks);
         return this;
     }
 
