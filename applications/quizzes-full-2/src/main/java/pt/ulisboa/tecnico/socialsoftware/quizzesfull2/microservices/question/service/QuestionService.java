@@ -106,6 +106,9 @@ public class QuestionService {
         if (topic == null) {
             return;
         }
+        if (topic.getTopicVersion() != null && topic.getTopicVersion() >= topicVersion) {
+            return;   // stale or replayed event
+        }
         topic.setTopicName(topicName);
         topic.setTopicVersion(topicVersion);
 

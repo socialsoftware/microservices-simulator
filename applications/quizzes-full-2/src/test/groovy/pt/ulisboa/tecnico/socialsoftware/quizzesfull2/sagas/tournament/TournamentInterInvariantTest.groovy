@@ -28,6 +28,9 @@ class TournamentInterInvariantTest extends QuizzesFull2SpockTest {
     public static final String UPDATED_USER_NAME = "Dave A. Black"
     public static final String OTHER_TOPIC_NAME = "Data Structures"
     public static final String UPDATED_TOPIC_NAME = "Advanced Algorithms"
+    public static final String STALE_TOPIC_NAME = "Algorithms (draft)"
+    public static final String UPDATED_CREATOR_NAME = "Carol M. White"
+    public static final String STALE_CREATOR_NAME = "Carol Whyte"
     public static final String OTHER_EXECUTION_ACRONYM = "SE-02"
     public static final Integer SINGLE_QUESTION = 1
 
@@ -434,6 +437,74 @@ class TournamentInterInvariantTest extends QuizzesFull2SpockTest {
     // works around, except the participant must also be added while the tournament is still upcoming.
     // The quiz is generated from a topicless question carrying a correct option key, which the topicked
     // question the base fixture stocked does not have.
+    def "tournament ignores a replayed UpdateTopicEvent"() {
+        // Spec: events.md § "Advance the cached publisher version" — a poll that re-delivers an event
+        // already folded in must write nothing, or the projection gains a version on every poll and
+        // the backlog never converges.
+        given:
+        topicFunctionalities.updateTopic(topicAggregateId, UPDATED_TOPIC_NAME)
+        tournamentEventHandling.handleUpdateTopicEvents()
+        def versionAfterFirstPoll = tournamentOf(tournamentAggregateId).version
+
+        when: 'the tournament polls a second time'
+        tournamentEventHandling.handleUpdateTopicEvents()
+
+        then: 'the second poll writes nothing and the cached topic still carries the payload'
+        tournamentOf(tournamentAggregateId).version == versionAfterFirstPoll
+        topicOf(tournamentAggregateId, topicAggregateId).topicName == UPDATED_TOPIC_NAME
+    }
+
+    def "tournament keeps the newest topic name when a stale UpdateTopicEvent trails it"() {
+        // Spec: events.md § "Advance the cached publisher version" — findUnprocessedEvents orders by
+        // timestamp DESC, so one poll applies the newer rename first and then reaches the older one.
+        when: 'the topic is renamed twice before the tournament polls'
+        topicFunctionalities.updateTopic(topicAggregateId, STALE_TOPIC_NAME)
+        topicFunctionalities.updateTopic(topicAggregateId, UPDATED_TOPIC_NAME)
+
+        and: 'the tournament drains both pending events in one poll'
+        tournamentEventHandling.handleUpdateTopicEvents()
+
+        then: 'the newest rename survives the older event that trails it'
+        topicOf(tournamentAggregateId, topicAggregateId).topicName == UPDATED_TOPIC_NAME
+    }
+
+    def "tournament ignores a replayed UpdateStudentNameEvent that fans out to creator and participant"() {
+        // Spec: events.md § "Advance the cached publisher version" — one rename reaches both the
+        // creator snapshot and the creator-shaped participant entry, each carrying its own cached
+        // version, so the guard has to hold for every entry the event writes.
+        given:
+        tournamentFunctionalities.addParticipant(tournamentAggregateId, creatorAggregateId)
+        userFunctionalities.updateUserName(creatorAggregateId, UPDATED_CREATOR_NAME)
+        tournamentEventHandling.handleUpdateStudentNameEvents()
+        def versionAfterFirstPoll = tournamentOf(tournamentAggregateId).version
+
+        when: 'the tournament polls a second time'
+        tournamentEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the second poll writes nothing and both cached entries still carry the payload'
+        tournamentOf(tournamentAggregateId).version == versionAfterFirstPoll
+        tournamentOf(tournamentAggregateId).creatorName == UPDATED_CREATOR_NAME
+        participantOf(tournamentAggregateId, creatorAggregateId).userName == UPDATED_CREATOR_NAME
+    }
+
+    def "tournament keeps the newest creator name on both entries when a stale rename trails it"() {
+        // Spec: events.md § "Advance the cached publisher version" — TOURNAMENT_CREATOR_PARTICIPANT_
+        // CONSISTENCY requires the two entries to agree, so a stale event must be rejected at both.
+        given:
+        tournamentFunctionalities.addParticipant(tournamentAggregateId, creatorAggregateId)
+
+        when: 'the creator is renamed twice before the tournament polls'
+        userFunctionalities.updateUserName(creatorAggregateId, STALE_CREATOR_NAME)
+        userFunctionalities.updateUserName(creatorAggregateId, UPDATED_CREATOR_NAME)
+
+        and: 'the tournament drains both pending events in one poll'
+        tournamentEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the newest rename survives on both cached entries'
+        tournamentOf(tournamentAggregateId).creatorName == UPDATED_CREATOR_NAME
+        participantOf(tournamentAggregateId, creatorAggregateId).userName == UPDATED_CREATOR_NAME
+    }
+
     private Map startedTournamentWithAnswerableQuiz() {
         def questionAggregateId = createQuestionWithOptions(courseAggregateId)
         def startTime = DateHandler.now().plusSeconds(5)

@@ -163,6 +163,52 @@ class QuizInterInvariantTest extends QuizzesFull2SpockTest {
         quiz.executionVersion == versionBefore
     }
 
+    def "quiz ignores a replayed UpdateQuestionEvent"() {
+        // Spec: events.md § "Advance the cached publisher version" — a poll that re-delivers an event
+        // already folded in must write nothing, or the projection gains a version on every poll and
+        // the backlog never converges.
+        given:
+        def courseAggregateId = createCourse()
+        def executionAggregateId = createExecution(courseAggregateId)
+        def questionAggregateId = createQuestion(courseAggregateId)
+        def quizAggregateId = createQuizWithQuestions(executionAggregateId, [questionAggregateId])
+        questionFunctionalities.updateQuestion(questionAggregateId, UPDATED_QUESTION_TITLE,
+                UPDATED_QUESTION_CONTENT, [])
+        quizEventHandling.handleUpdateQuestionEvents()
+        def versionAfterFirstPoll = quizOf(quizAggregateId).version
+
+        when: 'the quiz polls a second time'
+        quizEventHandling.handleUpdateQuestionEvents()
+
+        then: 'the second poll writes nothing and the cached question still carries the payload'
+        quizOf(quizAggregateId).version == versionAfterFirstPoll
+        questionOf(quizAggregateId, questionAggregateId).title == UPDATED_QUESTION_TITLE
+    }
+
+    def "quiz keeps the newest question snapshot when a stale UpdateQuestionEvent trails it"() {
+        // Spec: events.md § "Advance the cached publisher version" — findUnprocessedEvents orders by
+        // timestamp DESC, so one poll applies the newer update first and then reaches the older one.
+        given:
+        def courseAggregateId = createCourse()
+        def executionAggregateId = createExecution(courseAggregateId)
+        def questionAggregateId = createQuestion(courseAggregateId)
+        def quizAggregateId = createQuizWithQuestions(executionAggregateId, [questionAggregateId])
+
+        when: 'the question is updated twice before the quiz polls'
+        questionFunctionalities.updateQuestion(questionAggregateId, OTHER_QUESTION_TITLE,
+                OTHER_QUESTION_CONTENT, [])
+        questionFunctionalities.updateQuestion(questionAggregateId, UPDATED_QUESTION_TITLE,
+                UPDATED_QUESTION_CONTENT, [])
+
+        and: 'the quiz drains both pending events in one poll'
+        quizEventHandling.handleUpdateQuestionEvents()
+
+        then: 'the newest update survives the older event that trails it'
+        def question = questionOf(quizAggregateId, questionAggregateId)
+        question.title == UPDATED_QUESTION_TITLE
+        question.content == UPDATED_QUESTION_CONTENT
+    }
+
     private Integer createQuizWithQuestions(Integer executionAggregateId, List<Integer> questionAggregateIds) {
         return createQuiz(executionAggregateId, QUIZ_TITLE, QUIZ_AVAILABLE_DATE, QUIZ_CONCLUSION_DATE,
                 QUIZ_RESULTS_DATE, QUIZ_TYPE, questionAggregateIds)

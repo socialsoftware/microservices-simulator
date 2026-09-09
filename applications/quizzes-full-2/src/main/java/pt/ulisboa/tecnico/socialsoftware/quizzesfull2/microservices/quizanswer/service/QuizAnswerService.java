@@ -135,6 +135,9 @@ public class QuizAnswerService {
         if (!userAggregateId.equals(student.getUserAggregateId())) {
             return;
         }
+        if (student.getUserVersion() != null && student.getUserVersion() >= userVersion) {
+            return;   // stale or replayed event
+        }
         student.setUserName(userName);
         student.setUserVersion(userVersion);
 
@@ -151,6 +154,10 @@ public class QuizAnswerService {
         QuestionAnswer questionAnswer = findQuestionAnswer(newQuizAnswer, questionAggregateId);
         if (questionAnswer == null) {
             return;
+        }
+        if (questionAnswer.getQuestionVersion() != null
+                && questionAnswer.getQuestionVersion() >= questionVersion) {
+            return;   // stale or replayed event
         }
         questionAnswer.setQuestionVersion(questionVersion);
 
