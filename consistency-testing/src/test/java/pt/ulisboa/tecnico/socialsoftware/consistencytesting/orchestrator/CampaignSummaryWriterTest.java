@@ -37,7 +37,8 @@ class CampaignSummaryWriterTest {
             OrchestrationReport.CampaignStatus status, Long finishedAtEpochMillis, long durationMillis) {
 
         return new OrchestrationReport(
-                "example.Application", 42L, List.of("--example=true"), 20, "target/reports", status,
+                "example.Application", 42L, List.of("--example=true"), 20, "target/reports",
+                1, List.of(), "abc123", status,
                 100L, finishedAtEpochMillis, null, null, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(
                         0, 0, 0, 0, null, 0, 0, null, List.of(), 0, 0, java.util.Map.of()),

@@ -1,6 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,6 +71,7 @@ public final class Orchestrator {
     private static final long DEFAULT_MASTER_SEED = 42L;
     private static final Path DEFAULT_REPORTS_DIRECTORY = Path.of("target", "consistency-reports");
     private static final String IGNORED_SEMANTIC_LOCKS_PROPERTY = "consistency.ignoredSemanticLocks";
+    private static final String REPORTS_DIRECTORY_PROPERTY = "consistency.reportsDirectory";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -127,7 +133,10 @@ public final class Orchestrator {
         return this;
     }
 
-    /** Where per-run reports and the campaign summary are written. */
+    /**
+     * Where per-run reports and the campaign summary are written. The
+     * {@value #REPORTS_DIRECTORY_PROPERTY} system property overrides this value.
+     */
     public Orchestrator withReportsDirectory(Path reportsDirectory) {
         this.reportsDirectory = reportsDirectory;
         return this;
@@ -177,18 +186,18 @@ public final class Orchestrator {
      */
     public OrchestrationReport run() {
         long startedAt = System.currentTimeMillis();
+        Path effectiveReportsDirectory = effectiveReportsDirectory(startedAt);
         List<String> effectiveSpringAppArgs = defaultedSpringAppArgs(springAppArgs);
 
-        TestDriver driver = new TestDriver(springAppClass, effectiveSpringAppArgs, reportsDirectory)
+        TestDriver driver = new TestDriver(springAppClass, effectiveSpringAppArgs, effectiveReportsDirectory)
                 .setIterations(iterationsPerGroup)
-                .setMasterSeed(masterSeed)
-                .setIgnoredSemanticLocks(ignoredSemanticLocks);
+                .setMasterSeed(masterSeed);
 
         CampaignProgress progress = new CampaignProgress(
                 springAppClass.getName(), masterSeed, effectiveSpringAppArgs, iterationsPerGroup,
-                StringUtils.toPortableString(reportsDirectory), startedAt);
+                StringUtils.toPortableString(effectiveReportsDirectory), ignoredSemanticLockSelectors(), startedAt);
 
-        CampaignSummaryWriter summaryWriter = new CampaignSummaryWriter(reportsDirectory);
+        CampaignSummaryWriter summaryWriter = new CampaignSummaryWriter(effectiveReportsDirectory);
 
         CampaignCheckpoint checkpoint = new CampaignCheckpoint(progress, summaryWriter);
         Thread shutdownCheckpoint = new Thread(checkpoint::cancel, "consistency-sweep-summary-checkpoint");
@@ -202,8 +211,17 @@ public final class Orchestrator {
             log.info("Campaign over {}: {} catalog(s), {} iteration(s) per group, master seed {}",
                     springAppClass.getSimpleName(), catalogs.size(), iterationsPerGroup, masterSeed);
 
-            for (FunctionalityCatalog catalog : catalogs) {
-                exploreCatalog(driver, catalog, progress, checkpoint);
+            List<PlannedCatalog> plans = catalogs.stream().map(catalog -> planCatalog(driver, catalog)).toList();
+            progress.setPlanHash(planHashOf(plans));
+            checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
+
+            // Fault injection starts only after every catalog has been profiled and
+            // planned. A fault-injected campaign therefore explores the same plan a normal
+            // campaign would produce for this catalog/configuration/seed as intended.
+            driver.setIgnoredSemanticLocks(ignoredSemanticLocks);
+
+            for (PlannedCatalog plan : plans) {
+                exploreCatalog(driver, plan, progress, checkpoint);
             }
 
             OrchestrationReport report = checkpoint.write(
@@ -224,14 +242,9 @@ public final class Orchestrator {
     }
 
     /**
-     * Profiles, plans and explores one catalog, checkpointing it after each
-     * completed group.
+     * Profiles and plans one catalog.
      */
-    private void exploreCatalog(
-            TestDriver driver,
-            FunctionalityCatalog catalog,
-            CampaignProgress progress,
-            CampaignCheckpoint checkpoint) {
+    private PlannedCatalog planCatalog(TestDriver driver, FunctionalityCatalog catalog) {
 
         /*
          * Profiling is deliberately fail-fast: a functionality whose SOLO run
@@ -255,7 +268,17 @@ public final class Orchestrator {
         log.info("Catalog '{}': profiled {} functionalities, planned {} of {} possible pairs",
                 catalog.name(), footprints.size(), groups.size(), possiblePairs);
 
-        progress.registerCatalog(catalog.name(), footprints.size(), possiblePairs, groups.size());
+        return new PlannedCatalog(catalog, footprints.size(), possiblePairs, groups);
+    }
+
+    /** Explores a planned catalog, checkpointing it after each completed group. */
+    private void exploreCatalog(
+            TestDriver driver, PlannedCatalog plan, CampaignProgress progress, CampaignCheckpoint checkpoint) {
+
+        FunctionalityCatalog catalog = plan.catalog();
+        List<FunctionalityGroup> groups = plan.groups();
+
+        progress.registerCatalog(catalog.name(), plan.functionalitiesProfiled(), plan.possiblePairs(), groups.size());
         OrchestrationReport catalogCheckpoint = checkpoint.write(
                 OrchestrationReport.CampaignStatus.RUNNING, null);
         log.info("{}", CampaignProgressDisplay.format(catalogCheckpoint));
@@ -309,6 +332,57 @@ public final class Orchestrator {
     private static Path resolveRunReportPath(FunctionalityCatalog catalog, FunctionalityGroup group, int runIndex) {
         return TestDriver.reportsSubdirectoryOf(catalog, group)
                 .resolve(RUN_REPORT_FILE_NAME.formatted(runIndex + 1));
+    }
+
+    private Path effectiveReportsDirectory(long startedAtEpochMillis) {
+        return resolveReportsDirectory(
+                reportsDirectory,
+                ignoredSemanticLocks,
+                System.getProperty(REPORTS_DIRECTORY_PROPERTY),
+                Instant.ofEpochMilli(startedAtEpochMillis),
+                UUID.randomUUID());
+    }
+
+    /**
+     * Chooses where to write reports. An explicit system property always wins.
+     * Otherwise, normal-runs and caller-supplied directories keep the requested
+     * path; experiment-runs using the normal-runs default path get a unique
+     * experiment directory instead.
+     */
+    static Path resolveReportsDirectory(
+            Path requestedDirectory,
+            Set<SemanticLockId> ignoredLocks,
+            String reportsDirectoryProperty,
+            Instant startedAt,
+            UUID runId) {
+
+        if (reportsDirectoryProperty != null && !reportsDirectoryProperty.isBlank()) {
+            return Path.of(reportsDirectoryProperty);
+        }
+        if (!isExperiment(ignoredLocks) || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
+            return requestedDirectory;
+        }
+        return ExperimentReportsDirectory.pathForExperiment(startedAt, runId);
+    }
+
+    private static boolean isExperiment(Set<SemanticLockId> ignoredLocks) {
+        return !ignoredLocks.isEmpty();
+    }
+
+    private List<String> ignoredSemanticLockSelectors() {
+        return ignoredSemanticLocks.stream().map(SemanticLockId::toSelector).sorted().toList();
+    }
+
+    private static String planHashOf(List<PlannedCatalog> plans) {
+        String canonicalPlan = plans.stream()
+                .map(PlannedCatalog::canonicalForm)
+                .collect(java.util.stream.Collectors.joining("\n"));
+        try {
+            return java.util.HexFormat.of().formatHex(
+                    MessageDigest.getInstance("SHA-256").digest(canonicalPlan.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is required to fingerprint a consistency campaign plan", e);
+        }
     }
 
     /**
@@ -379,6 +453,49 @@ public final class Orchestrator {
                     "Catalog names must be unique (they name the reports directories), got: " + names);
         }
         return catalogs;
+    }
+
+    private record PlannedCatalog(
+            FunctionalityCatalog catalog,
+            int functionalitiesProfiled,
+            int possiblePairs,
+            List<FunctionalityGroup> groups) {
+
+        private PlannedCatalog {
+            groups = List.copyOf(groups);
+        }
+
+        private String canonicalForm() {
+            return "%s|%d|%d\n%s".formatted(
+                    catalog.name(),
+                    functionalitiesProfiled,
+                    possiblePairs,
+                    groups.stream()
+                            .map(PlannedCatalog::canonicalGroupOf)
+                            .collect(java.util.stream.Collectors.joining("\n")));
+        }
+
+        private static String canonicalGroupOf(FunctionalityGroup group) {
+            return "%s|%s|%s|%s".formatted(
+                    group.label(),
+                    group.first(),
+                    group.second(),
+                    group.conflicts().stream()
+                            .sorted(Comparator.comparing(FunctionalityGroup.Conflict::identity))
+                            .map(PlannedCatalog::canonicalConflictOf)
+                            .collect(java.util.stream.Collectors.joining(",")));
+        }
+
+        private static String canonicalConflictOf(FunctionalityGroup.Conflict conflict) {
+            return "%s:%s:%s".formatted(
+                    conflict.identity(),
+                    sortedEnumNames(conflict.firstMemberKinds()),
+                    sortedEnumNames(conflict.secondMemberKinds()));
+        }
+
+        private static List<String> sortedEnumNames(Set<? extends Enum<?>> values) {
+            return values.stream().map(Enum::name).sorted().toList();
+        }
     }
 
 }

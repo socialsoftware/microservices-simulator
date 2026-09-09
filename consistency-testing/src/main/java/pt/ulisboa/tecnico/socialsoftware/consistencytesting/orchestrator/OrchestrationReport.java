@@ -14,28 +14,37 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 /**
  * What a campaign found, and enough about how it ran to reproduce it.
  *
- * @param application               the Spring application class explored
- * @param masterSeed                the seed the whole campaign derived from;
- *                                  replaying
- *                                  it reproduces every schedule
- * @param springAppArgs             application arguments used for this campaign
- * @param iterationsPerGroup        oracle runs performed per planned group
- * @param reportsDirectory          where the per-run reports were written
- * @param status                    whether the campaign is still running, ended
- *                                  normally, was interrupted, or failed
- * @param startedAtEpochMillis      campaign start timestamp
- * @param finishedAtEpochMillis     campaign end timestamp, absent while running
- * @param lastCompletedGroupCatalog catalog containing the latest durable group
- *                                  checkpoint
- * @param lastCompletedGroup        latest group checkpoint, absent before group
- *                                  exploration
- * @param durationMillis            wall-clock duration of the campaign
- * @param outcomeMetrics            counts and timings for signals observed in
- *                                  completed oracle runs
- * @param catalogs                  per-catalog totals, in the order they were
- *                                  explored
- * @param findings                  every run worth attention, in the order
- *                                  found
+ * @param application                  the Spring application class explored
+ * @param masterSeed                   the seed the whole campaign derived from;
+ *                                     replaying it reproduces every schedule
+ * @param springAppArgs                application arguments used for this
+ *                                     campaign
+ * @param iterationsPerGroup           oracle runs performed per planned group
+ * @param reportsDirectory             where the per-run reports were written
+ * @param reportSchemaVersion          version of the campaign/report metadata
+ *                                     schema
+ * @param ignoredSemanticLockSelectors semantic-lock selectors omitted during
+ *                                     exploration; empty for a normal campaign
+ * @param planHash                     SHA-256 fingerprint of the plan explored;
+ *                                     {@code null} until planning completes
+ * @param status                       whether the campaign is still running,
+ *                                     ended normally, was interrupted, or
+ *                                     failed
+ * @param startedAtEpochMillis         campaign start timestamp
+ * @param finishedAtEpochMillis        campaign end timestamp, {@code null}
+ *                                     while running
+ * @param lastCompletedGroupCatalog    catalog containing the latest durable
+ *                                     group checkpoint, or {@code null} before
+ *                                     any group completes
+ * @param lastCompletedGroup           latest group checkpoint, or {@code null}
+ *                                     before exploration
+ * @param durationMillis               wall-clock duration of the campaign
+ * @param outcomeMetrics               counts and timings for signals observed
+ *                                     in completed oracle runs
+ * @param catalogs                     per-catalog totals, in the order they
+ *                                     were explored
+ * @param findings                     every run worth attention, in the order
+ *                                     found
  */
 public record OrchestrationReport(
         String application,
@@ -43,15 +52,23 @@ public record OrchestrationReport(
         List<String> springAppArgs,
         int iterationsPerGroup,
         String reportsDirectory,
+        int reportSchemaVersion,
+        List<String> ignoredSemanticLockSelectors,
+        @Nullable String planHash,
         CampaignStatus status,
         long startedAtEpochMillis,
-        Long finishedAtEpochMillis,
-        String lastCompletedGroupCatalog,
-        String lastCompletedGroup,
+        @Nullable Long finishedAtEpochMillis,
+        @Nullable String lastCompletedGroupCatalog,
+        @Nullable String lastCompletedGroup,
         long durationMillis,
         OutcomeMetrics outcomeMetrics,
         List<CatalogSummary> catalogs,
         List<Finding> findings) {
+
+    public OrchestrationReport {
+        springAppArgs = List.copyOf(springAppArgs);
+        ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
+    }
 
     public enum CampaignStatus {
         RUNNING,

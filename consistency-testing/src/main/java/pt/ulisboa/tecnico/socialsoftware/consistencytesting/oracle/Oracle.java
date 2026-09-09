@@ -316,15 +316,17 @@ public final class Oracle {
 
     /**
      * Configures semantic-lock acquisitions that the oracle must skip.
-     * Can only be called before {@link #init()}.
-     * 
-     * @throws IllegalStateException if the oracle has already been initialized
+     * May be changed between schedules; changing it while a schedule runs is
+     * unsupported and not guarded here (in-flight schedule could observe either the
+     * old or new configuration).
      */
     public Oracle setIgnoredSemanticLocks(Set<SemanticLockId> ignoredSemanticLocks) {
-        if (springContext != null && springContext.isActive()) {
-            throw new IllegalStateException("Ignored semantic locks must be configured before oracle startup.");
-        }
         this.ignoredSemanticLocks = Set.copyOf(ignoredSemanticLocks);
+
+        ConfigurableApplicationContext context = springContext;
+        if (context != null && context.isActive()) {
+            getBean(TracingSagaUnitOfWorkService.class).configureIgnoredSemanticLocks(this.ignoredSemanticLocks);
+        }
         return this;
     }
 

@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.jspecify.annotations.Nullable;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 
 /**
@@ -10,17 +12,31 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
  */
 final class CampaignProgress {
 
+    /**
+     * Version of the campaign metadata schema written to report JSON.
+     * Increment it when a report reader can no longer safely interpret an older
+     * report, for example after removing, renaming, changing the type of, or
+     * changing the meaning of a field. Adding optional informational fields
+     * does not require a version change.
+     */
+    static final int REPORT_SCHEMA_VERSION = 1;
+
+    // TODO Record the source revision and whether the worktree was dirty, so a
+    // report can be safely reused only with the code that produced it.
+
     private final String application;
     private final long masterSeed;
     private final List<String> springAppArgs;
     private final int iterationsPerGroup;
     private final String reportsDirectory;
+    private final List<String> ignoredSemanticLockSelectors;
     private final long startedAtEpochMillis;
     private final List<CatalogProgress> catalogs = new ArrayList<>();
     private final List<OrchestrationReport.Finding> findings = new ArrayList<>();
     private final CampaignMetrics outcomeMetrics;
-    private String lastCompletedGroupCatalog;
-    private String lastCompletedGroup;
+    private @Nullable String lastCompletedGroupCatalog;
+    private @Nullable String lastCompletedGroup;
+    private @Nullable String planHash;
 
     CampaignProgress(
             String application,
@@ -28,6 +44,7 @@ final class CampaignProgress {
             List<String> springAppArgs,
             int iterationsPerGroup,
             String reportsDirectory,
+            List<String> ignoredSemanticLockSelectors,
             long startedAtEpochMillis) {
 
         this.application = application;
@@ -35,8 +52,16 @@ final class CampaignProgress {
         this.springAppArgs = List.copyOf(springAppArgs);
         this.iterationsPerGroup = iterationsPerGroup;
         this.reportsDirectory = reportsDirectory;
+        this.ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
         this.startedAtEpochMillis = startedAtEpochMillis;
         this.outcomeMetrics = new CampaignMetrics(startedAtEpochMillis);
+    }
+
+    void setPlanHash(String planHash) {
+        if (planHash == null || planHash.isBlank()) {
+            throw new IllegalArgumentException("planHash cannot be blank");
+        }
+        this.planHash = planHash;
     }
 
     void registerCatalog(String name, int functionalitiesProfiled, int possiblePairs, int groupsPlanned) {
@@ -85,6 +110,9 @@ final class CampaignProgress {
                 springAppArgs,
                 iterationsPerGroup,
                 reportsDirectory,
+                REPORT_SCHEMA_VERSION,
+                ignoredSemanticLockSelectors,
+                planHash,
                 status,
                 startedAtEpochMillis,
                 finishedAtEpochMillis,

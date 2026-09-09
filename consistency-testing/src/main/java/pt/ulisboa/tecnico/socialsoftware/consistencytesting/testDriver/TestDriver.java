@@ -118,7 +118,11 @@ public final class TestDriver {
         return this;
     }
 
-    /** Test-only fault configuration. Must be called before {@link #init()}. */
+    /**
+     * Test-only fault configuration. May be changed between oracle schedules;
+     * changing it while a schedule runs is unsupported and not guarded here
+     * (in-flight schedule could observe either the old or new configuration).
+     */
     public TestDriver setIgnoredSemanticLocks(Set<SemanticLockId> ignoredSemanticLocks) {
         oracle.setIgnoredSemanticLocks(ignoredSemanticLocks);
         return this;
@@ -420,8 +424,9 @@ public final class TestDriver {
     }
 
     /**
-     * Sets up a catalog run and consumes setup-time event deliveries before any tested
-     * functionality is constructed or traced, so they don't interfere with its results.
+     * Sets up a catalog run and consumes setup-time event deliveries before any
+     * tested functionality is constructed or traced, so they don't interfere with
+     * its results.
      */
     private AggregateHandlesRegistry setupQuiescentCatalogState(FunctionalityCatalog catalog) {
         AggregateHandlesRegistry registry = catalog.initialStateSetup().get();

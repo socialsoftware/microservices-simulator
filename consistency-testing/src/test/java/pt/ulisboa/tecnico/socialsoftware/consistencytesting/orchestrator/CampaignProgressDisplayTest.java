@@ -38,6 +38,7 @@ class CampaignProgressDisplayTest {
 
         return new OrchestrationReport(
                 "example.Application", 42L, List.of(), 20, "target/reports",
+                1, List.of(), "abc123",
                 OrchestrationReport.CampaignStatus.RUNNING,
                 1_000L, null, lastCompletedGroupCatalog, lastCompletedGroup, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(
