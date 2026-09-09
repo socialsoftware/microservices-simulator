@@ -382,7 +382,7 @@ public final class TestDriver {
             AtomicReference<AggregateHandlesRegistry> registryRef = new AtomicReference<>();
 
             TestResult result = oracle.runTest(() -> {
-                AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
+                AggregateHandlesRegistry registry = setupQuiescentCatalogState(catalog);
                 registryRef.set(registry);
                 return new TestCase.Builder()
                         .addFunctionality(functionalityId, factory.apply(registry))
@@ -420,6 +420,16 @@ public final class TestDriver {
     }
 
     /**
+     * Sets up a catalog run and consumes setup-time event deliveries before any tested
+     * functionality is constructed or traced, so they don't interfere with its results.
+     */
+    private AggregateHandlesRegistry setupQuiescentCatalogState(FunctionalityCatalog catalog) {
+        AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
+        oracle.establishQuiescentState();
+        return registry;
+    }
+
+    /**
      * Utility method, same as {@link #exploreGroup(FunctionalityCatalog,
      * FunctionalityGroup, Consumer)}, but does not invoke any
      * {@code beforeCleanupHook} with the run's result and data still in the
@@ -453,7 +463,7 @@ public final class TestDriver {
         }
 
         Supplier<TestCase.Builder> initialStateSetup = () -> {
-            AggregateHandlesRegistry registry = catalog.initialStateSetup().get();
+            AggregateHandlesRegistry registry = setupQuiescentCatalogState(catalog);
 
             TestCase.Builder builder = new TestCase.Builder();
             Map<FunctionalityId, Integer> occurrences = new HashMap<>();

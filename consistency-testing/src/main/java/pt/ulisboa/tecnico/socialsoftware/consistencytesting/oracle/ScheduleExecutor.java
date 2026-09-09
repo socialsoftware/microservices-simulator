@@ -31,7 +31,7 @@ final class ScheduleExecutor {
     // * Should the verification be robust to steps/intra-deps that spawn at
     // * runtime, or just the ones known at initialization time?
 
-    private static final int STEP_EXECUTION_LIMIT = 100;
+    static final int STEP_EXECUTION_LIMIT = 100;
 
     private static final Set<TestStatus> INTER_INVARIANT_CHECK_BLOCKING_STATUSES = Set.of(
             TestStatus.INTERNAL_SYSTEM_EXCEPTION,

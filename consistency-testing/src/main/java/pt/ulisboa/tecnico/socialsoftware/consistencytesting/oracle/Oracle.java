@@ -306,6 +306,15 @@ public final class Oracle {
     }
 
     /**
+     * Drains all scheduled event deliveries until no registered handler can observe
+     * more work.
+     */
+    public void establishQuiescentState() {
+        getRequiredBeans(); // Re-resolve and validate required beans before draining setup effects.
+        BaselineEventDrainer.drainToQuiescence(eventHandlings, defEventAppService);
+    }
+
+    /**
      * Configures semantic-lock acquisitions that the oracle must skip.
      * Can only be called before {@link #init()}.
      * 
