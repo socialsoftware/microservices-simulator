@@ -127,6 +127,7 @@ final class ScheduleExecutor {
                 detectedStatuses,
                 effectSequence,
                 ReadsFromRelation.deriveAll(effectSequence),
+                traceSession.getSemanticLockTrace(),
                 anomalies,
                 interInvariantViolations);
     }
@@ -242,7 +243,9 @@ final class ScheduleExecutor {
 
             schedule.add(stepId);
             try {
-                step.execute();
+                try (TracingSagaUnitOfWorkService.TraceSession.StepScope stepScope = traceSession.beginStep(stepId)) {
+                    step.execute();
+                }
                 successfulSteps.add(stepId);
             } catch (Exception e) {
                 boolean isCriticalFailure = handleStepFailure(step, e);

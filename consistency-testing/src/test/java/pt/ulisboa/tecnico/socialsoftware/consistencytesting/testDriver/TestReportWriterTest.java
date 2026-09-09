@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestRepor
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.EffectView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.InterInvariantViolationView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.ReadsFromView;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.SemanticLockActivityView;
 
 class TestReportWriterTest {
 
@@ -36,6 +37,8 @@ class TestReportWriterTest {
                         0, "update-1::getTopicsStep", "FUNCTIONALITY", "READ", "Topic", 7)),
                 List.of(new ReadsFromView(
                         "update-1::getTopicsStep", "initialStateSetup::step", "Topic")),
+                List.of(new SemanticLockActivityView(
+                        "update-1::getTopicsStep", "example.LockState#UPDATE", 7, "ACQUIRED")),
                 Map.of("update-1::getOriginalTournamentStep", "SimulatorException: boom!"),
                 1);
 

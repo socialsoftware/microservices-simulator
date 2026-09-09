@@ -55,7 +55,7 @@ class CampaignMetricsTest {
     private static TestResult cleanResult() {
         return new TestResult(
                 new StepDependencies(), new StepDependencies(), Map.of(), List.of(), Map.of(), Set.of(),
-                List.of(), Set.of(), List.of(), Map.of());
+                List.of(), Set.of(), List.of(), List.of(), Map.of());
     }
 
     private static TestResult resultWithAllOutcomeSignals() {
@@ -68,7 +68,7 @@ class CampaignMetricsTest {
                 new StepDependencies(), new StepDependencies(), Map.of(), List.of(),
                 Map.of(step, new IllegalStateException("failed step")),
                 Set.of(TestStatus.CRITICAL_STEP_FAILURE, TestStatus.ISOLATION_ANOMALY),
-                List.of(), Set.of(), List.of(anomaly),
+                List.of(), Set.of(), List.of(), List.of(anomaly),
                 Map.of(
                         "quizHasQuestions", Set.of(new InterInvariantViolation("quiz has no questions")),
                         "courseHasQuestions", Set.of(

@@ -27,21 +27,26 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 class TracingSagaUnitOfWorkServiceTest {
 
     @Test
-    void ignoresConfiguredLockAndRecordsItsAcquisition() {
+    void recordsSkippedLockAgainstTheExecutingOracleStep() {
         TracingSagaUnitOfWorkService service = new TracingSagaUnitOfWorkService();
         SemanticLockId ignoredLock = SemanticLockId.from(TestSagaState.IGNORED);
         service.configureIgnoredSemanticLocks(Set.of(ignoredLock));
 
         SagaUnitOfWork unitOfWork = new SagaUnitOfWork(1L, "testFunctionality");
-        unitOfWork.setCurrentExecutingStep("testStep");
+        StepId stepId = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("testFunctionality"), "testStep");
 
-        service.registerSagaState(17, TestSagaState.IGNORED, unitOfWork);
+        try (TracingSagaUnitOfWorkService.TraceSession traceSession = service.beginTrace();
+                TracingSagaUnitOfWorkService.TraceSession.StepScope stepScope = traceSession.beginStep(stepId)) {
+            service.registerSagaState(17, TestSagaState.IGNORED, unitOfWork);
 
-        assertTrue(unitOfWork.getPreviousStates().isEmpty());
-        assertTrue(unitOfWork.getAggregatesInSaga().isEmpty());
-        assertEquals(
-                List.of(new IgnoredSemanticLockAcquisition(ignoredLock, 17, "testFunctionality", "testStep")),
-                service.getIgnoredAcquisitions());
+            assertTrue(unitOfWork.getPreviousStates().isEmpty());
+            assertTrue(unitOfWork.getAggregatesInSaga().isEmpty());
+            assertEquals(
+                    List.of(new SemanticLockActivity(
+                            stepId, ignoredLock, 17, SemanticLockActivity.Outcome.SKIPPED)),
+                    traceSession.getSemanticLockTrace());
+        }
     }
 
     @Test
@@ -60,13 +65,22 @@ class TracingSagaUnitOfWorkServiceTest {
         setField(service, SagaUnitOfWorkService.class, "entityManager", entityManager);
 
         SagaUnitOfWork unitOfWork = new SagaUnitOfWork(1L, "testFunctionality");
-        service.registerSagaState(17, TestSagaState.NOT_IGNORED, unitOfWork);
+        StepId stepId = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("testFunctionality"), "testStep");
+        try (TracingSagaUnitOfWorkService.TraceSession traceSession = service.beginTrace();
+                TracingSagaUnitOfWorkService.TraceSession.StepScope stepScope = traceSession.beginStep(stepId)) {
+            service.registerSagaState(17, TestSagaState.NOT_IGNORED, unitOfWork);
+
+            assertEquals(
+                    List.of(new SemanticLockActivity(stepId, SemanticLockId.from(TestSagaState.NOT_IGNORED),
+                            17, SemanticLockActivity.Outcome.ACQUIRED)),
+                    traceSession.getSemanticLockTrace());
+        }
 
         verify(sagaAggregate).setSagaState(TestSagaState.NOT_IGNORED);
         verify(entityManager).merge(aggregate);
         assertTrue(unitOfWork.getAggregatesInSaga().containsKey(17));
         assertEquals(GenericSagaState.NOT_IN_SAGA, unitOfWork.getPreviousStates().get(null).getFirst().state());
-        assertTrue(service.getIgnoredAcquisitions().isEmpty());
     }
 
     @Test

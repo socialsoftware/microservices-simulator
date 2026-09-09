@@ -56,6 +56,11 @@ public record SemanticLockId(String sagaStateClassName, String stateName) {
         return new SemanticLockId(selector.substring(0, separator), selector.substring(separator + 1));
     }
 
+    /** Returns this identifier in the configuration selector form. */
+    public String toSelector() {
+        return sagaStateClassName + "#" + stateName;
+    }
+
     /**
      * Validates this identifier before the oracle starts an application.
      * <p>

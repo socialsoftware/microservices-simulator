@@ -9,6 +9,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 
@@ -20,6 +21,7 @@ public record TestReport(
         Map<String, List<InterInvariantViolationView>> interInvariantViolations,
         List<EffectView> effectSequence,
         List<ReadsFromView> readsFromRelations,
+        List<SemanticLockActivityView> semanticLockTrace,
         Map<String, String> stepExceptions,
         int functionalityCount) {
 
@@ -39,6 +41,9 @@ public record TestReport(
 
     public record EffectView(
             int seq, String step, String stepKind, String effectKind, String aggregateType, Integer aggregateId) {
+    }
+
+    public record SemanticLockActivityView(String step, String lock, Integer aggregateId, String outcome) {
     }
 
     public static TestReport from(TestResult result) {
@@ -79,11 +84,15 @@ public record TestReport(
                 .map(TestReport::toView)
                 .toList();
 
+        List<SemanticLockActivityView> semanticLockTrace = result.semanticLockTrace().stream()
+                .map(TestReport::toView)
+                .toList();
+
         int functionalityCount = result.functionalities().size();
 
         return new TestReport(
                 schedule, statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
-                stepExceptions, functionalityCount);
+                semanticLockTrace, stepExceptions, functionalityCount);
     }
 
     private static AnomalyView toView(Anomaly anomaly) {
@@ -98,6 +107,14 @@ public record TestReport(
                 stepEffect.effectKind().name(),
                 stepEffect.aggregateType(),
                 stepEffect.aggregateId());
+    }
+
+    private static SemanticLockActivityView toView(SemanticLockActivity activity) {
+        return new SemanticLockActivityView(
+                activity.stepId().toString(),
+                activity.semanticLock().toSelector(),
+                activity.aggregateId(),
+                activity.outcome().name());
     }
 
     private static ReadsFromView toView(ReadsFromRelation relation) {

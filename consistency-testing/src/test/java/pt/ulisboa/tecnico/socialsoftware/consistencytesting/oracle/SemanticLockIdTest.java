@@ -17,6 +17,7 @@ class SemanticLockIdTest {
         SemanticLockId semanticLock = SemanticLockId.parse(selector);
 
         assertEquals(new SemanticLockId(TestSagaState.class.getName(), "LOCKED"), semanticLock);
+        assertEquals(selector, semanticLock.toSelector());
         assertDoesNotThrow(() -> semanticLock.validateAgainst(getClass().getClassLoader()));
     }
 

@@ -24,6 +24,7 @@ public record TestResult(
         // Derived from effectSequence.
         Set<ReadsFromRelation> readsFromRelations,
 
+        List<SemanticLockActivity> semanticLockTrace,
         List<Anomaly> anomalies,
 
         // inter-invariant name -> the violations detected for it
@@ -38,6 +39,7 @@ public record TestResult(
         statuses = Objects.requireNonNull(Set.copyOf(statuses));
         effectSequence = Objects.requireNonNull(List.copyOf(effectSequence));
         readsFromRelations = Objects.requireNonNull(Set.copyOf(readsFromRelations));
+        semanticLockTrace = Objects.requireNonNull(List.copyOf(semanticLockTrace));
         anomalies = Objects.requireNonNull(List.copyOf(anomalies));
         interInvariantViolations = Objects.requireNonNull(Map.copyOf(interInvariantViolations));
     }
