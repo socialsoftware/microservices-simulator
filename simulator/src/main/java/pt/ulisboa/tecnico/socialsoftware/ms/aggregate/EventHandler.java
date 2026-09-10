@@ -26,8 +26,8 @@ public abstract class EventHandler {
    public Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId, Class<? extends Event> eventClass) {
       return aggregateRepository.findAll().stream()
               .filter(aggregate -> Objects.equals(aggregate.getAggregateId(), subscriberAggregateId))
-              .filter(aggregate -> aggregate.getState() == Aggregate.AggregateState.ACTIVE)
               .max(Comparator.comparing(Aggregate::getVersion, Comparator.nullsLast(Long::compareTo)))
+              .filter(aggregate -> aggregate.getState() == Aggregate.AggregateState.ACTIVE)
               .map(aggregate -> aggregate.getEventSubscriptionsByEventType(eventClass.getSimpleName()))
               .orElse(Collections.emptySet());
    }
