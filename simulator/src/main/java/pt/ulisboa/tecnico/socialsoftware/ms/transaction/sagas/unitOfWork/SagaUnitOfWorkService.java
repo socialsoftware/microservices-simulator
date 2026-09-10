@@ -87,7 +87,12 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
                 .orElseThrow(() -> new SimulatorException(AGGREGATE_NOT_FOUND, aggregateId));
 
         SagaAggregate sagaAggregate = (SagaAggregate) aggregate;
-        unitOfWork.savePreviousState(aggregateId, sagaAggregate.getSagaState());
+        SagaState currentState = sagaAggregate.getSagaState();
+        if (currentState != GenericSagaState.NOT_IN_SAGA) {
+            throw new SimulatorException(AGGREGATE_BEING_USED_IN_OTHER_SAGA, currentState.getStateName());
+        }
+
+        unitOfWork.savePreviousState(aggregateId, currentState);
 
         sagaAggregate.setSagaState(state);
         entityManager.merge(aggregate);
