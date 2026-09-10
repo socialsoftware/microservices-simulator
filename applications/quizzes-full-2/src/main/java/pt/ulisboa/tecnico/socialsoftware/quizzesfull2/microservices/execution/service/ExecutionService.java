@@ -140,6 +140,9 @@ public class ExecutionService {
         if (student == null) {
             return;
         }
+        if (student.getUserVersion() != null && student.getUserVersion() >= userVersion) {
+            return;   // stale or replayed event
+        }
         student.setActive(active);
         student.setUserVersion(userVersion);
 
@@ -157,6 +160,9 @@ public class ExecutionService {
         if (student == null) {
             return;
         }
+        if (student.getUserVersion() != null && student.getUserVersion() >= userVersion) {
+            return;   // stale or replayed event
+        }
         student.setUserName(userName);
         student.setUserVersion(userVersion);
 
@@ -173,6 +179,9 @@ public class ExecutionService {
         ExecutionStudent student = findStudent(newExecution, userAggregateId);
         if (student == null) {
             return;
+        }
+        if (student.getUserVersion() != null && student.getUserVersion() >= userVersion) {
+            return;   // stale or replayed event
         }
         student.setUserName(userName);
         student.setUserUsername(userUsername);

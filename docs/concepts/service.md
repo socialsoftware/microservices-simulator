@@ -43,7 +43,7 @@ public class WarehouseService {
 > The list above is closed: own repository, own custom repository, own factory, `UnitOfWorkService`,
 > `AggregateIdGeneratorService`. Omit any the service genuinely does not use; add nothing else.
 
-Never inject a foreign service class or a foreign repository — see [R2 in architecture.md](../architecture.md).
+Never inject a foreign service class or a foreign repository — see [R1, R2 in architecture.md](../architecture.md).
 
 `aggregateLoadAndRegisterRead` is called only with ids of this service's own aggregate type (R1). A
 foreign aggregate's state never arrives by loading it here; it arrives as a DTO parameter, assembled
@@ -73,6 +73,12 @@ Never hold a reference to another aggregate's **concrete class** either (R3). A 
 ## Method Patterns
 
 Every service method is annotated `@Transactional(isolation = Isolation.SERIALIZABLE)`. This makes P3 guards race-free.
+
+> **Never call `verifyInvariants()` from a service method.** `registerChanged` invokes it on the
+> aggregate it is given (`SagaUnitOfWorkService.registerChanged`), so an explicit call is at best a
+> duplicate and at worst fires against a half-applied mutation. This holds for every mutation path
+> without exception - saga steps and event-driven (`ByEvent`) updates alike. This section is the single
+> owner of the rule; other docs point here rather than restating it.
 
 ### Read method
 
@@ -271,6 +277,17 @@ List<Shipment> findAllLatestActive();
 **When to add this:** Whenever a custom repository method performs a bulk read (returns multiple aggregate instances) — e.g., `findAll`, `findAllByWarehouseId`, `findAllOpen`. Scoped reads via `aggregateLoadAndRegisterRead` are unaffected (they already load the latest version).
 
 Add the JPQL method to `{Aggregate}Repository.java` (JPA repo interface) and call it from `{Aggregate}CustomRepositorySagas` — never call `jpaRepo.findAll()` directly in bulk-read implementations.
+
+**Declare it on the abstract `{Aggregate}CustomRepository` too.** The service injects the interface,
+never the concrete `Sagas` class (§ Injected Dependencies, and `AGENTS.md` § Architecture principle),
+so a method that exists only on `{Aggregate}CustomRepositorySagas` is unreachable from the service and
+the call does not compile. All three files carry it:
+
+| File | Role |
+|------|------|
+| `{Aggregate}Repository.java` | the `@Query` JPQL itself |
+| `{Aggregate}CustomRepository.java` | the abstract declaration the service calls through |
+| `{Aggregate}CustomRepositorySagas.java` | `@Override`, delegating to the JPA repo |
 
 ---
 

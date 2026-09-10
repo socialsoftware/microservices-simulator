@@ -22,6 +22,7 @@ class QuizAnswerInterInvariantTest extends QuizzesFull2SpockTest {
     public static final String OTHER_USER_NAME = "Carol White"
     public static final String OTHER_USER_USERNAME = "carol"
     public static final String UPDATED_USER_NAME = "Alice A. Smith"
+    public static final String STALE_USER_NAME = "Alice Smyth"
     public static final String OTHER_QUESTION_TITLE = "Graph traversal"
     public static final String OTHER_QUESTION_CONTENT = "What is the complexity of BFS?"
     public static final String UPDATED_QUESTION_TITLE = "Merge sort revisited"
@@ -304,6 +305,37 @@ class QuizAnswerInterInvariantTest extends QuizzesFull2SpockTest {
         def quizAnswer = quizAnswerOf(quizAnswerAggregateId)
         quizAnswer.quizAggregateId == quizAggregateId
         quizAnswer.quizVersion == versionBefore
+    }
+
+    def "quiz answer ignores a replayed UpdateStudentNameEvent"() {
+        // Spec: events.md § "Advance the cached publisher version" — a poll that re-delivers an event
+        // already folded in must write nothing, or the projection gains a version on every poll and
+        // the backlog never converges.
+        given:
+        userFunctionalities.updateUserName(userAggregateId, UPDATED_USER_NAME)
+        quizAnswerEventHandling.handleUpdateStudentNameEvents()
+        def versionAfterFirstPoll = quizAnswerOf(quizAnswerAggregateId).version
+
+        when: 'the quiz answer polls a second time'
+        quizAnswerEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the second poll writes nothing and the cached student still carries the payload'
+        quizAnswerOf(quizAnswerAggregateId).version == versionAfterFirstPoll
+        quizAnswerOf(quizAnswerAggregateId).userName == UPDATED_USER_NAME
+    }
+
+    def "quiz answer keeps the newest student name when a stale UpdateStudentNameEvent trails it"() {
+        // Spec: events.md § "Advance the cached publisher version" — findUnprocessedEvents orders by
+        // timestamp DESC, so one poll applies the newer rename first and then reaches the older one.
+        when: 'the student is renamed twice before the quiz answer polls'
+        userFunctionalities.updateUserName(userAggregateId, STALE_USER_NAME)
+        userFunctionalities.updateUserName(userAggregateId, UPDATED_USER_NAME)
+
+        and: 'the quiz answer drains both pending events in one poll'
+        quizAnswerEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the newest rename survives the older event that trails it'
+        quizAnswerOf(quizAnswerAggregateId).userName == UPDATED_USER_NAME
     }
 
     private QuestionAnswerDto questionAnswerOf(Integer quizAnswerAggregateId, Integer questionAggregateId) {

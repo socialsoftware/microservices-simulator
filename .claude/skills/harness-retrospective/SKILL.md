@@ -1,6 +1,6 @@
 ---
 name: harness-retrospective
-description: End-of-run empirical evaluation of the self-healing harness. Reads a completed run's harness-log.md and all retros, measures whether harness edits converged, re-judges every Type 1 edit the agent made without asking, and produces a prioritised gap list. Runs once, after a run is finished. No arguments. Writes docs/reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
+description: End-of-run empirical evaluation of the harness. Reads a completed run's harness-log.md and all retros and produces a prioritised gap list; under self-healing ON it also measures whether harness edits converged and re-judges every Type 1 edit the agent made without asking. Obligatory under ON, recommended under OFF. Runs once, after a run is finished. No arguments. Writes reviews/harness-retro-{app-name}-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
@@ -10,8 +10,15 @@ End-of-run evaluation of the harness against the evidence a completed generation
 `applications/{app-name}/harness-log.md`, every file under `retros/`, and the run's own `harness:`
 commits.
 
-The harness is self-healing (`AGENTS.md` § "Harness evolution"), so this skill answers three
-questions rather than one:
+**What this skill produces depends on the run's self-healing mode** (`AGENTS.md`
+§ "Harness evolution"), read in Step 1 from the `harness-log.md` header:
+
+| Mode | Status | Produces |
+|------|--------|----------|
+| **ON** | Obligatory. A self-healing run is not finished until it has been evaluated. | Everything below: convergence, post-hoc justification of the Type 1 edits, and the gap list. |
+| **OFF** | Recommended, not obligatory. | The prioritised gap list only. Steps 6 and 7 are skipped - see § "Under self-healing OFF". |
+
+Under ON the harness repaired itself mid-run, so this skill answers three questions rather than one:
 
 1. **Did the edits converge?** Harness repairs concentrated in the early aggregates mean the harness
    absorbed what it was missing. Repairs at a flat rate to the last aggregate mean a structural gap
@@ -27,6 +34,26 @@ questions rather than one:
 It writes a prioritised gap list with a proposed fix per gap. It does not apply any fix.
 
 One invocation per completed run. No arguments.
+
+### Under self-healing OFF
+
+A run under OFF made no unilateral harness edit and produced no `harness:` commit, so questions 1 and
+2 have no evidence to answer them and are not asked: there is nothing to converge and nothing to
+re-judge. Question 3 is the whole skill. Concretely:
+
+- **State the mode in the first line of the report**, before anything else. A reader who mistakes an
+  OFF report for an ON one reads "no harness edits" as convergence when it means the mechanism was
+  switched off.
+- **Skip Step 6 (Convergence)** and **Step 7 (Post-Hoc Justification of the Type 1 Edits)**, and drop
+  their report sections along with the `Verdict:` line, whose three values all describe convergence.
+- **Step 8 (Neutral-Domain Compliance)** has no added harness lines to scan. Report that it scanned
+  zero lines **because the mode withheld the edits**, not "clean" - a clean verdict over nothing
+  scanned is the failure mode `.claude/skills/_shared/conventions.md` § "Commands whose output feeds
+  a verdict" warns about.
+- Everything else runs unchanged: the evidence read, the per-artifact grouping, the row cross-check,
+  the Type 2 halts, and the prioritised gap list. Type 1 rows are `deferred` under OFF, so they enter
+  the gap list as open gaps rather than as edits to audit - which is the point: OFF turns every Type 1
+  into a finding for a human instead of a fix by an agent.
 
 **What it is not:** it does not check the harness for internal consistency (dangling paths,
 P1-P4 drift, R1-R8 coverage). That is `/review-artifacts`, a static pre-flight check whose ground
@@ -52,10 +79,29 @@ Additionally derive:
 
 ```
 {retro-date}   = today in YYYY-MM-DD
-{report-file}  = docs/reviews/harness-retro-{app-name}-{retro-date}.md
+{report-file}  = reviews/harness-retro-{app-name}-{retro-date}.md
 ```
 
 If a report with that name already exists, append `-2`, `-3`, etc. rather than overwriting.
+
+**Read the run's self-healing mode**, which is the mode the run *executed* under, not merely the one
+its header declares. Start from the `**Self-healing:**` line in the header of
+`applications/{app-name}/harness-log.md`: `on` or `off`, with a missing, unreadable or unrecognised
+value meaning `off` (`.claude/skills/_shared/conventions.md` § "Harness log"). Then read the
+`## Harness Changes` mode line of every retro in `applications/{app-name}/retros/`
+(`.claude/skills/_shared/session-completion.md` § "Harness Changes"), which records the mode in force
+for that session and its source. A session driven by `/implement-aggregate` or
+`/implement-aggregate-full` may have overridden the header with `--self-healing` /
+`--no-self-healing` for that invocation only, so its retro, not the header, is the authority for it.
+A retro whose mode line is missing or unrecognised falls back to the header's value, which itself
+falls back to `off`.
+
+The **effective mode** is what governs from here: it decides which steps run - see § "Under
+self-healing OFF" above - and it is the first line of the report. When the header and one or more
+retros disagree, the report's first line states the header's declared mode, names the sessions that
+ran under an override, and treats each session under the mode that session actually ran under. There
+is no invocation flag on *this* skill: it evaluates a finished run, and the mode that run executed
+under is a fact about it, not a choice available now.
 
 ## Step 2: Precondition — the run must be complete
 
@@ -109,9 +155,9 @@ Check the log's own integrity while reading and record any of these as a finding
 summary: gaps or duplicates in the `#` sequence; rows with a `Type` outside `1` / `2` / `2-fw`; rows
 with an `Outcome` outside `fixed` / `declined` / `deferred`; `fixed` rows with an empty or
 unresolvable `Ref`; any row whose `Type` is `1` but whose `Artifact` is under `simulator/`, which
-the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/skills/`,
-`.claude/agents/`, `simulator/`, or `AGENTS.md` itself (implementation defects misfiled as
-friction — dismiss them in Step 9, do not count them as harness gaps).
+the gates forbid; and rows whose `Artifact` is not a path under `docs/`, `.claude/`,
+`simulator/`, or one of the root files `AGENTS.md`, `CLAUDE.md` and `HARNESS.md` (implementation
+defects misfiled as friction — dismiss them in Step 9, do not count them as harness gaps).
 
 **Compound `Type` values.** `.claude/skills/_shared/conventions.md` § "Harness log" admits `1`, `2`
 and `2-fw` only, so a row logging a bundle of findings under a compound value (`1+2`) is an integrity
@@ -134,8 +180,8 @@ cd "$(git rev-parse --show-toplevel)"
 python3 - <<'EOF'
 import subprocess
 
-TREES = ["docs", ".claude/skills", ".claude/agents", "AGENTS.md"]
-PATHSPEC = TREES + [":(exclude)docs/reviews"]
+TREES = ["docs", ".claude", "AGENTS.md", "CLAUDE.md", "HARNESS.md"]
+PATHSPEC = TREES + [":(exclude)reviews"]
 
 def git(*args):
     return subprocess.run(["git", *args], capture_output=True, text=True, check=True).stdout
@@ -181,7 +227,7 @@ Report the stale-sha count in the run summary. It measures how faithfully the lo
 survived the run, which is a property of the harness, not of the application.
 
 The second listing is a **different** finding class and must not be reported as unrecorded edits.
-`docs/reviews` is excluded by the pathspec, so what remains is a commit that changed a harness file
+`reviews` is excluded by the pathspec, so what remains is a commit that changed a harness file
 without the `harness:` prefix `AGENTS.md` § "Harness evolution" requires - a commit-convention
 deviation. Report each one with its sha and subject, and say whether the edit it carries is recorded
 by a log row.
@@ -478,9 +524,11 @@ aggregate's worth, so the diff covers every harness commit of the run.
 | File | Added line | Noun | harness-log row (if any) |
 |------|-----------|------|--------------------------|
 
-Report the count of violations and, separately, how many of them the aggregate-boundary
-`/review-artifacts` runs had already flagged. A violation that a boundary check caught and nobody
-acted on is a process finding, not a rule finding — say which kind each one is.
+Report the count of violations and, separately, how many of them a `/review-artifacts` run during
+this run had already flagged. A violation that such a review caught and nobody acted on is a process
+finding, not a rule finding — say which kind each one is. `/review-artifacts` is recommended, not
+mandatory, so a run may have no reviews at all: when `reviews/` holds none dated within the run, say
+so and report every violation as a rule finding rather than inferring a process failure.
 
 ---
 
@@ -506,14 +554,18 @@ by a later session.
 
 ## Step 10: Write the Report
 
-Run `mkdir -p docs/reviews` (no-op if it exists). Write `{report-file}` using the template below.
-Never omit a section — write "nothing to report" where a section produced no findings.
+Run `mkdir -p reviews` (no-op if it exists). Write `{report-file}` using the template below.
+Never omit a section — write "nothing to report" where a section produced no findings. Under
+self-healing OFF, the § Convergence and § Post-Hoc Justification sections and the `Verdict:` line are
+**removed** rather than filled with "nothing to report": they ask questions the run cannot answer, and
+an empty answer to them reads as a negative result.
 
 ```markdown
 # Harness Retrospective — {app-name}
 
 **App:** {app-name}
 **Date:** {retro-date}
+**Self-healing:** on | off (off: convergence and Type 1 re-judgement are not evaluated)
 **Harness-log rows:** {count} (Type 1 {n} / Type 2 {n} / 2-fw {n})
 **Sessions with friction:** {distinct Session values in the log} of {distinct session ids in plan.md}
 **Harness commits:** {count}
@@ -607,9 +659,9 @@ soften a **Ratified a guess** verdict.)
 | File | Added line | Noun | harness-log row (if any) |
 |------|-----------|------|--------------------------|
 
-**Violations:** {count}, of which {n} were already flagged by an aggregate-boundary
-`/review-artifacts` run and not acted on (process finding) and {n} were not caught at all (rule
-finding).
+**Violations:** {count}, of which {n} were already flagged by a `/review-artifacts` run during this
+run and not acted on (process finding) and {n} were not caught at all (rule finding). {Or: no
+`/review-artifacts` run covers this run, so all {count} are rule findings.}
 
 ---
 
@@ -668,7 +720,7 @@ Output to the conversation (not to the report file):
 ## Hard Rules
 
 1. **Read-only except for the report.** This skill writes exactly one file in the repository:
-   `docs/reviews/harness-retro-{app-name}-{retro-date}.md`. It never edits a doc, a skill, the
+   `reviews/harness-retro-{app-name}-{retro-date}.md`. It never edits a doc, a skill, the
    harness log, a retro, a review, or any source file — including the gaps it identifies. This is
    the one skill with no Type 1 fast path of its own: it is judging the fixes, so it may not also be
    making them. Fixes are applied between runs by a later session. Batch returns may be checkpointed

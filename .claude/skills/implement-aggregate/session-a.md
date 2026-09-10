@@ -20,6 +20,8 @@ Load these files before writing any code:
      rather than an extension of `SagaAggregateRepository`
    - § getEventSubscriptions() Implementation — relevant only if this aggregate has subscribed events (otherwise skip)
    - References to `prev` (used for temporal invariants) appear under § Key Fields / § Base Class
+   - **R6** - `verifyInvariants()` must not perform DB reads. This session writes it; the restriction is
+     owned by `docs/architecture.md` § R6 and `docs/concepts/aggregate.md`.
 
 2. **`docs/concepts/testing.md`** — § T1 — Aggregate Test. Note:
    - What the full T1 matrix covers: creation happy-path, one violation per non-`final` P1 rule, BVA straddles for ordered predicates
@@ -144,11 +146,19 @@ confuse it with § `{Aggregate}Dto.java` below, which is this aggregate's own DT
 Every aggregate field typed as a domain enum gets its own enum file, listed in the plan.md `2.{N}.a`
 row by `/classify-and-plan`:
 
-Path: `{src}microservices/{aggregate}/aggregate/{DomainEnum}.java`
+Path: `{src}microservices/{aggregate}/aggregate/{DomainEnum}.java`, unless the plan.md row marks the
+enum `(shared)`, in which case the row gives `{src}enums/{DomainEnum}.java` instead - the app-root
+package for an enum type that more than one aggregate's §1 attributes name. Follow the path in the
+row; do not re-derive it.
 
 - Plain Java `enum` - no JPA annotations
 - Values matching the domain model
 - Name taken verbatim from the domain-model attribute's type
+
+A `(shared)` enum is written once, by the earliest session whose row lists it, and imported unchanged
+by every later one: check whether the file already exists before writing it, and if it does, leave it
+alone. Never copy it into your aggregate's own package - the copies become distinct Java types and a
+value can no longer cross an aggregate boundary without conversion.
 
 An aggregate with no enum-typed field has no such row and produces none.
 
@@ -156,6 +166,11 @@ An aggregate with no enum-typed field has no such row and produces none.
 
 Path: `{src}microservices/{aggregate}/aggregate/sagas/Saga{Aggregate}.java`
 
+- Annotated `@Entity`. This is the **concrete** class of the aggregate hierarchy, and the abstract
+  `{Aggregate}` above it holds the `@Table`, so under `TABLE_PER_CLASS` this is the only class
+  Hibernate can map a row to. Omit it and every intra-invariant test still passes - they never
+  persist - while the first write in session `b`/`c` fails with
+  *"Unable to locate persister: ...Saga{Aggregate}"*
 - Extends `{Aggregate}`, implements `SagaAggregate`
 - Adds a `sagaState` field of type `SagaAggregate.SagaState` (the interface), annotated
   `@Convert(converter = SagaStateConverter.class)`. The converter
@@ -202,6 +217,7 @@ Path: `{src}microservices/{aggregate}/aggregate/sagas/states/{Aggregate}SagaStat
   as a missing or unreferenced constant only in a much later session's `c`.
 - **Do not** include `NOT_IN_SAGA` — the initial state is set to `GenericSagaState.NOT_IN_SAGA` (from the framework) in the `Saga{Aggregate}` constructor. This enum only holds operation-specific locked states, and plan.md never lists it.
 - **Do not** add a state for create sagas — `Create{Aggregate}` creates a new aggregate instance; there is no existing instance to lock. plan.md already applies this exclusion, so a create operation never appears in the transcribed list.
+- **Do not** add a read state. A cross-aggregate step that only fetches this aggregate's DTO acquires no lock - `docs/concepts/sagas.md` § R4 Decision Table gives it `setForbiddenStates` - so no documented step shape ever assigns such a constant, and a `forbiddenStates` list naming it would be a permanent no-op.
 
 ### `{Aggregate}Factory.java` (interface)
 
@@ -389,5 +405,5 @@ Add the corresponding `import` statements for both classes. Place new bean metho
 The session checkbox for this session is `- [ ] 2.{N}.a — Domain layer`. Read
 `_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
 you have. It owns the whole rule, including how to anchor on the session line rather than doing a
-bare string replace, and what manager mode and single-agent mode each do about the slice
+bare string replace, and what the manager and single-agent topologies each do about the slice
 sub-checkboxes underneath it.

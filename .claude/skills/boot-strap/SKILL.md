@@ -1,7 +1,7 @@
 ---
 name: boot-strap
 description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap my-app).
-argument-hint: "<App Name>"
+argument-hint: "<App Name> [--self-healing]"
 ---
 
 # Boot-Strap Phase 0 Application
@@ -14,13 +14,18 @@ Every file is produced from a checked-in template under `.claude/skills/boot-str
 
 ## Input
 
-The skill is invoked as: `/boot-strap <App Name>`
+The skill is invoked as: `/boot-strap <App Name> [--self-healing]`
 
 Examples:
 - `/boot-strap my-app`
-- `/boot-strap train-ticket`
+- `/boot-strap train-ticket --self-healing`
 
 > **If no argument is provided**, ask the user: "What should the new application be named? (kebab-case, e.g. `my-app`)"
+
+`--self-healing` turns the run's self-healing mode ON. Absent, the mode is **off** - see
+`AGENTS.md` § "Harness evolution". This skill is the **sole declarer** of the mode for the whole run:
+it writes the mode into the `harness-log.md` header in Step 4b and nothing later rewrites that
+header. Do not infer the mode from anything else the invocation says; only the flag turns it on.
 
 ## Process
 
@@ -104,6 +109,36 @@ Phase 2` marker comments (Phase 2 relies on them as insertion points).
 Note that `SpockTest.groovy` lands in the **parent** package folder (`.../socialsoftware/`), not
 under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware`.
 
+### Step 4b: Create the Harness Log
+
+Create `applications/{app-name}/harness-log.md` with exactly this content - header only, no rows.
+Substitute `{app-name}`, and `on` or `off` for `{mode}` per the `--self-healing` flag from Step 1:
+
+```markdown
+# Harness Log - {app-name}
+
+**Self-healing:** {mode}
+
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
+
+| # | Session | Type | Artifact | Problem | Outcome | Ref |
+|---|---------|------|----------|---------|---------|-----|
+```
+
+If the file already exists, leave it **untouched** - it is append-only and may already carry rows and
+a declared mode from a partial run. Report that it was found rather than created, and report the mode
+its header declares, which is the mode in force from here on. **The existing header always wins over
+a `--self-healing` / `--no-self-healing` flag on this invocation**: rewriting the header would make
+the rows already under it unreadable, since nobody could tell which mode each was logged under. When
+the flag disagrees with the header, say so in the Step 6 confirmation and state that the flag was
+ignored.
+
+Report the mode in the Step 6 confirmation either way. It changes what every later session may do,
+and a run whose mode nobody stated is a run whose record cannot be interpreted.
+
+Any friction this session encounters with the harness is appended here as a row with `Session` = `0`,
+under the gates in `AGENTS.md` § "Harness evolution", which apply from this session onward.
+
 ### Step 5: Give the New App the Machine-Local Maven Settings
 
 Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.config` pointing at the
@@ -111,7 +146,9 @@ developer's settings file. Without it the very first `mvn` run fails resolving p
 mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
 machine config, so it is copied from elsewhere in the repo rather than templated: from a sibling app
 if one exists, otherwise from `simulator/.mvn/maven.config`, which is what makes this step work for
-the **first** application in a repo, when the sibling glob matches nothing.
+the **first** application in a repo, when the sibling glob matches nothing. Because the file is
+untracked, a **linked git worktree starts without it** even when the developer has one; the search
+therefore continues into the main worktree before giving up.
 
 > **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
 > machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
@@ -120,27 +157,37 @@ the **first** application in a repo, when the sibling glob matches nothing.
 > never read the sibling's `pom.xml`, source, or tests while doing it.
 
 ```bash
-src=$(ls -d applications/*/.mvn 2>/dev/null | grep -v "applications/{app-name}/" | head -1)
-[ -n "$src" ] || src=simulator/.mvn
-[ -f "$src/maven.config" ] || { echo "no maven.config to inherit from $src"; exit 1; }
-mkdir -p applications/{app-name}/.mvn
-cp "$src/maven.config" applications/{app-name}/.mvn/
-echo "/applications/{app-name}/.mvn/maven.config" >> .git/info/exclude
+root=$(git rev-parse --show-toplevel)
+common=$(cd "$(git rev-parse --git-common-dir)" && pwd)
+main=$(dirname "$common")
+
+src=$(find "$root/applications" "$main/applications" -maxdepth 3 -path '*/.mvn/maven.config' 2>/dev/null \
+        | grep -v "/applications/{app-name}/.mvn/" | head -1)
+[ -n "$src" ] || src=$(find "$root/simulator/.mvn/maven.config" "$main/simulator/.mvn/maven.config" \
+        -maxdepth 0 2>/dev/null | head -1)
+[ -n "$src" ] || { echo "no maven.config to inherit"; exit 1; }
+
+mkdir -p "$root/applications/{app-name}/.mvn"
+cp "$src" "$root/applications/{app-name}/.mvn/"
+echo "/applications/{app-name}/.mvn/maven.config" >> "$common/info/exclude"
 ```
 
-`.git/info/exclude` lists these paths one app at a time, so the new app's entry must be appended —
-otherwise the file shows up as untracked and can be committed by accident.
+The exclude file lists these paths one app at a time, so the new app's entry must be appended —
+otherwise the file shows up as untracked and can be committed by accident. It is addressed through
+`git rev-parse --git-common-dir` rather than as `.git/info/exclude`, because in a linked worktree
+`.git` is a **file** and the literal path is not a directory; the common dir also happens to be the
+one exclude file all worktrees share.
 
 `simulator/.mvn/maven.config` is itself untracked machine config, for the same reason the copy is -
 it is git-excluded, not committed. It is nonetheless the right fallback: `simulator/` is where the
-core library is built, so any checkout that has ever run `mvn install` has one, which covers the
-first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
+core library is built, so any checkout that has ever run `mvn install` there has one, which covers
+the first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
 resolve" - it typically does not, and the failure surfaces much later as an unreachable-mirror build
 error that reads like a scaffold bug.
 
-If `simulator/.mvn/maven.config` is absent too, the developer has no mirror configuration to inherit:
-halt and say so, rather than scaffolding an application whose build will fail for a reason unrelated
-to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
+Only when no candidate is found in **either** worktree does the developer have no mirror
+configuration to inherit: halt and say so, rather than scaffolding an application whose build will
+fail for a reason unrelated to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
 
 ### Step 6: Verify and Confirm
 
@@ -192,8 +239,10 @@ to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
    from the `simulator` library: fix the **template**, then regenerate. Do not patch the generated
    app.
 
-3. Report that bootstrap completed successfully and list the full paths of all 9 created files.
-4. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
+3. Report that bootstrap completed successfully and list the full paths of all 9 created files, plus
+   `harness-log.md` from Step 4b and whether it was created or already present.
+4. State the run's self-healing mode, as declared in the `harness-log.md` header.
+5. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
 
 ### Step 7: Commit the Scaffold
 
@@ -201,8 +250,8 @@ Phase 0 output must be committed before Phase 1 starts. Left uncommitted, the fi
 commits of the run are not buildable from a clean checkout, and the run's history no longer shows
 where the application began.
 
-Stage the 9 generated files with explicit paths - never `git add -A` or `git add .`, which would
-sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
+Stage the 9 generated files and `applications/{app-name}/harness-log.md` with explicit paths - never
+`git add -A` or `git add .`, which would sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
 config and is **not** staged; Step 5 already excluded it.
 
 ```
@@ -217,6 +266,9 @@ apart from `.mvn/`, and report the commit sha.
 ## Notes
 
 - The skill does not create a `plan.md` — that is Phase 1's responsibility.
+- The skill **is** the sole creator of `harness-log.md` and the sole declarer of the self-healing
+  mode. `/classify-and-plan` halts if the file is absent rather than creating it, so a run that
+  skipped Phase 0 cannot acquire a mode by accident.
 - `{AppClass}Simulator.java` is **required**, not optional, even though nothing in Phase 0 runs it. Phase 2 test classes are annotated `@DataJpaTest`, which locates its context by searching for a `@SpringBootConfiguration` in the test's package and then upwards; `{AppClass}Simulator` in `pt.ulisboa.tecnico.socialsoftware.{pkg}` is the only class that search can find. It also supplies the `@EnableJpaRepositories` / `@EntityScan` over both `...{pkg}` and `...ms` that the simulator's entities and repositories need. Omit it and the first Phase 2 test fails with `Unable to find a @SpringBootConfiguration by searching packages upwards from the test`. The per-aggregate `{Aggregate}ServiceApplication` created in session 2.N.a does not substitute for it: it sits under `...{pkg}.microservices.{aggregate}`, which is not an ancestor of any test package, and is `@Profile`-gated.
 - All 9 files are ready for Phase 1 planning immediately after bootstrap completes.
 - `@PropertySource("classpath:application-test.properties")` in `BeanConfigurationSagas` resolves against `simulator/src/main/resources/application-test.properties` in the library jar, not against the new app. Leave it unchanged.

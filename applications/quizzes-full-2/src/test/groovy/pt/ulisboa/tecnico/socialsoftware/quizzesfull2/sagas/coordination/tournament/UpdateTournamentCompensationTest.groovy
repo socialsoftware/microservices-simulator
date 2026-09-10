@@ -6,7 +6,6 @@ import org.springframework.context.annotation.Import
 import org.springframework.transaction.annotation.Transactional
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState
-import pt.ulisboa.tecnico.socialsoftware.ms.utils.DateHandler
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.QuizzesFull2SpockTest
 
@@ -17,8 +16,8 @@ import java.time.LocalDateTime
 @Import(UpdateTournamentCompensationTest.LocalBeanConfiguration)
 class UpdateTournamentCompensationTest extends QuizzesFull2SpockTest {
 
-    public static final LocalDateTime UPDATED_START_TIME = DateHandler.now().plusDays(20)
-    public static final LocalDateTime UPDATED_END_TIME = DateHandler.now().plusDays(20).plusHours(3)
+    public static final LocalDateTime UPDATED_START_TIME = testNow().plusDays(20)
+    public static final LocalDateTime UPDATED_END_TIME = testNow().plusDays(20).plusHours(3)
 
     Integer tournamentAggregateId
 

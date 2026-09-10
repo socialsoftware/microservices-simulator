@@ -21,6 +21,7 @@ class ExecutionInterInvariantTest extends QuizzesFull2SpockTest {
     public static final String STUDENT_B_NAME = "Carol White"
     public static final String STUDENT_B_USERNAME = "carol"
     public static final String UPDATED_STUDENT_NAME = "Bob J. Jones"
+    public static final String STALE_STUDENT_NAME = "Bob Jonas"
 
     @Autowired
     ExecutionEventHandling executionEventHandling
@@ -194,6 +195,50 @@ class ExecutionInterInvariantTest extends QuizzesFull2SpockTest {
 
         and: 'only the deleted student left the roster'
         studentOf(executionAggregateId, otherStudentAggregateId) == null
+    }
+
+    def "execution ignores a replayed UpdateStudentNameEvent"() {
+        // Spec: events.md § "Advance the cached publisher version" — a poll that re-delivers an event
+        // already folded in must write nothing, or the projection gains a version on every poll and
+        // the backlog never converges.
+        given:
+        def executionAggregateId = createExecution(createCourse())
+        def studentAggregateId = createActiveUser(STUDENT_A_NAME, STUDENT_A_USERNAME)
+        enrollStudentInExecution(executionAggregateId, studentAggregateId)
+        userFunctionalities.updateUserName(studentAggregateId, UPDATED_STUDENT_NAME)
+        executionEventHandling.handleUpdateStudentNameEvents()
+        def versionAfterFirstPoll = executionOf(executionAggregateId).version
+
+        when: 'the execution polls a second time'
+        executionEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the second poll writes nothing and the cached student still carries the payload'
+        executionOf(executionAggregateId).version == versionAfterFirstPoll
+        studentOf(executionAggregateId, studentAggregateId).userName == UPDATED_STUDENT_NAME
+    }
+
+    def "execution keeps the newest student name when a stale UpdateStudentNameEvent trails it"() {
+        // Spec: events.md § "Advance the cached publisher version" — findUnprocessedEvents orders by
+        // timestamp DESC, so one poll applies the newer rename first and then reaches the older one.
+        given:
+        def executionAggregateId = createExecution(createCourse())
+        def studentAggregateId = createActiveUser(STUDENT_A_NAME, STUDENT_A_USERNAME)
+        enrollStudentInExecution(executionAggregateId, studentAggregateId)
+
+        when: 'the student is renamed twice before the execution polls'
+        userFunctionalities.updateUserName(studentAggregateId, STALE_STUDENT_NAME)
+        userFunctionalities.updateUserName(studentAggregateId, UPDATED_STUDENT_NAME)
+
+        and: 'the execution drains both pending events in one poll'
+        executionEventHandling.handleUpdateStudentNameEvents()
+
+        then: 'the newest rename survives the older event that trails it'
+        studentOf(executionAggregateId, studentAggregateId).userName == UPDATED_STUDENT_NAME
+    }
+
+    private executionOf(Integer executionAggregateId) {
+        return executionService.getExecutionById(executionAggregateId,
+                unitOfWorkService.createUnitOfWork("check"))
     }
 
     // A student fixture is a created user plus an activation, and that activation's event outranks the

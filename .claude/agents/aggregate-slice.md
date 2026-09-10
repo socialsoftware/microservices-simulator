@@ -60,7 +60,13 @@ Everything in that list belongs to the manager. Report what you would have done 
 ## Friction
 
 Read `AGENTS.md` § "Harness evolution" in full for the Type 1 / Type 2 / `2-fw` definitions. Your
-handling of them differs from a normal session's, because you are not the gate:
+handling of them differs from a normal session's, because you are not the gate.
+
+**The run's self-healing mode is not yours to read or act on.** It selects what the manager does with
+what you report, and your contract is identical either way: classify, report, and never repair. Do
+not look the mode up, and do not assume a report will come back as a fix - a re-spawn may hand you
+`HARNESS FIXED:` or `HARNESS DEFERRED:`, and the second means the file you objected to is unchanged
+and the brief names the reading to follow.
 
 - **Type 1** (you can demonstrate the harness wrong mechanically): **do not fix it yourself.** Emit a
   `FRICTION` block with `TYPE: 1`. Then, if you can still implement your slice correctly without the
@@ -124,7 +130,7 @@ RETRO FRAGMENT:
   Documentation gaps:    | doc | missing | impact | suggested fix |
   Patterns to capture:
   Semantic-Lock Audit:   (session c only)
-                         | saga | step | foreign aggregate locked | test | present |
+                         | saga | step | aggregate locked (primary) | test | present |
 ```
 
 The `RETRO FRAGMENT` is a synthesis from your own conversation context - what you actually read and
@@ -136,5 +142,6 @@ For a `HALTED` return, still emit `FILES CREATED` / `FILES APPENDED TO` (possibl
 `FRICTION` block that caused the halt, and whatever retro fragment you can honestly write.
 
 `Semantic-Lock Audit` rows are one per `setSemanticLock` call site **in your slice's sagas**, with
-the name of the test covering its lock-acquisition case, and `present` = yes/no. An unresolved `no`
+the name of the test covering its lock-acquisition case, and `present` = yes/no. The locked aggregate
+is always the saga's primary one - a `setForbiddenStates` step locks nothing and is not a row. An unresolved `no`
 row blocks the manager's commit for the whole session, so resolve it inside your slice.

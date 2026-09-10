@@ -107,7 +107,9 @@ security. This checklist is the authoritative smell list, consumed by
 **Temporal mechanics:** the smallest `LocalDateTime` tick is `.minusNanos(1)` / `.plusNanos(1)`;
 pin **both** instants explicitly so the on-point is exactly equal. All temporal P1 boundary cases
 are T1 direct-aggregate tests — the saga path stamps `lastModifiedTime = now()` and cannot pin the
-on-point.
+on-point. The tick is a T1 construct and stays exactly as written: a fixture that instead crosses a
+service boundary and is compared after a read-back is governed by § "Persisted temporal fixtures"
+below, and the two rules pull in opposite directions.
 
 When a test instead manufactures a past/future timestamp to trigger a **service-level** date guard
 (a T2 concern, not a P1 boundary), pin it against the same clock the guard under test actually
@@ -149,6 +151,41 @@ Two shortcuts are **forbidden**:
 If the margin is chosen too small and a stall beats it, creation throws the ordering constant loudly.
 That is the intended failure mode: the test cannot pass for the wrong reason.
 
+## Persisted temporal fixtures
+
+A temporal constant that **crosses a service boundary and is later asserted with `==` after a
+read-back** must be drawn from the base class's `testNow()` helper, never from `DateHandler.now()`
+directly:
+
+```groovy
+public static final LocalDateTime {AGGREGATE}_{START_FIELD} = testNow().plusDays(10)
+```
+
+`LocalDateTime` carries nanoseconds. Every SQL timestamp column Hibernate emits for one is
+`timestamp(6)`, so a write truncates or rounds the sub-microsecond digits away and the value that
+comes back after `flushAndClear()` is not the value that went in. Whether it differs at all depends
+on the **host clock's resolution**, which the JDK takes from the OS: a host whose clock ticks at 1us
+never produces a sub-microsecond draw, so the suite passes; a host with nanosecond resolution turns
+every such assertion into a coin flip. The defect is invisible on the machine that writes the test.
+`testNow()` truncates at the source, so the comparison holds on both.
+
+**This is not the T1 tick rule, and applying either one in the other's place breaks the suite.**
+The `.minusNanos(1)` / `.plusNanos(1)` boundary fixtures of § Choosing Input Values — EP & BVA are
+`{Aggregate}IntraInvariantTest` values, built on a transient aggregate and never persisted, so
+nanosecond resolution costs them nothing. **Never truncate a tick.** Truncating the *result* of
+`.plusNanos(1)` collapses the on-point back onto the off-point, and the on-point test that must not
+throw starts throwing. Truncate the **base** instead - the boundary pair survives, because
+`X.truncatedTo(MICROS).plusNanos(1)` is still strictly after `X.truncatedTo(MICROS)`.
+
+Two neighbouring shapes are governed elsewhere and need no truncation:
+
+- A field the **create path stamps from the clock** (`creationDate`, `lastModifiedTime`) is never
+  asserted `==` against a fixture constant at all - only `!= null` or by ordering. See
+  `.claude/skills/implement-aggregate/session-c.md` § "Update `{AppClass}SpockTest.groovy`", which
+  owns that rule and the re-pinning that makes such a constant clock-relative in the first place.
+- A window computed to **reach a time-gated state** (§ "Reaching a time-gated state") is compared
+  with `isBefore` / `isAfter`, never `==`, so its resolution is irrelevant.
+
 ## Spec-First Ordering
 
 Before writing any test, locate the **`plan.md` aggregate section** for the target aggregate. Its
@@ -156,7 +193,9 @@ happy-path postconditions, events-published list, subscribed-events table, and P
 *are* the spec — assertions must trace to them, never to the implementation just written (not the
 service body, not the `EventProcessing` class). Write a 1-line `// Spec:` comment at the top of
 each test naming the plan.md section and rule, e.g.
-`// Spec: plan.md §3.5 Shipment — UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+`// Spec: plan.md § 5. Shipment - UpdateShipmentNotes; rule SHIPMENT_NOTES_REQUIRED`.
+The section reference is the `### {N}. {Aggregate}` heading `classify-and-plan` § Step 8 emits - plan.md
+has no `§n.n` numbering, so a `§3.5`-style citation points at nothing.
 If the implementation disagrees (e.g. throws a different message constant than plan.md names), the
 **implementation** is the bug: flag the mismatch, do not adjust the test.
 When plan.md is instead *silent* - it specifies no behaviour for the input under test, such as a
@@ -251,7 +290,7 @@ aggregate changes.
 class <Aggregate>ServiceTest extends <AppName>SpockTest {
 
     def "create<Aggregate>: persisted and readable through a fresh UnitOfWork"() {
-        // Spec: plan.md §<n> <Aggregate> — Create<Aggregate> postconditions
+        // Spec: plan.md § <n>. <Aggregate> - Create<Aggregate> postconditions
         when:
         def dto = <aggregate>Service.create<Aggregate>(/* args */,
                 unitOfWorkService.createUnitOfWork("create<Aggregate>"))
@@ -263,7 +302,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     }
 
     def "<serviceMethod>: <RULE_NAME> violation"() {
-        // Spec: plan.md §<n> <Aggregate> — rule <RULE_NAME> (P3 guard / uniqueness)
+        // Spec: plan.md § <n>. <Aggregate> - rule <RULE_NAME> (P3 guard / uniqueness)
         given:
         def existing = create<Aggregate>(/* fixture via base-class helper */)
         when:
@@ -298,7 +337,7 @@ class <Aggregate>ServiceTest extends <AppName>SpockTest {
     EventService eventService
 
     def "<serviceOp> publishes <Xxx>Event with correct payload"() {
-        // Spec: plan.md §<n> <Aggregate> — events published by <ServiceOp>
+        // Spec: plan.md § <n>. <Aggregate> - events published by <ServiceOp>
         given:
         def publisher = create<Aggregate>(/* fixture via base-class helper */)
         when:
@@ -391,6 +430,21 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
     // capture originalValue in given: BEFORE firing (capturing after is Fake — x == x),
     // trigger the op on publisher2, poll, assert consumer.<cachedField> == originalValue.
 
+    // Mandatory once per subscribing aggregate — see § "Ordering: the stale-event test" below.
+    def "<consumer> keeps the newest <field> when a stale <Xxx>Event trails it"() {
+        given:
+        def publisher = create<Publisher>(/* args */)
+        def consumer  = create<Consumer>(/* args linked to publisher */)
+        when: 'the publisher is updated twice before the consumer polls'
+        <publisher>Functionalities.<triggeringOp>(publisher.aggregateId, <staleValue>)
+        <publisher>Functionalities.<triggeringOp>(publisher.aggregateId, <newValue>)
+        and: 'the consumer drains both pending events in one poll'
+        <consumer>EventHandling.handle<Xxx>Events()
+        then: 'the newer payload survives the older event that trails it'
+        <consumer>Service.get<Consumer>ById(consumer.aggregateId,
+                unitOfWorkService.createUnitOfWork("check")).<cachedField> == <newValue>
+    }
+
     def "<consumer> is deleted when <Publisher> deletion event is processed"() {
         given:
         def publisher = create<Publisher>(/* args */)
@@ -407,6 +461,24 @@ class <Consumer>InterInvariantTest extends <AppName>SpockTest {
     }
 }
 ```
+
+### Ordering: the stale-event test
+
+**One per subscribing aggregate, mandatory.** Pick any one field-update event the consumer subscribes
+to and prove that a stale event cannot undo a fresher one. The event pipeline makes this reachable
+rather than theoretical: `findUnprocessedEvents` returns the batch `timestamp DESC` and the whole
+batch is handled in that order, so two updates published before a single poll arrive newest-first and
+the older payload lands last. `events.md` § "Reject an event that does not advance the cached
+version" owns the guard this test exercises.
+
+The test is per *aggregate*, not per event type, because the guard is the same code at every cached
+row of one consumer — one event type discharges it. Choose an event whose payload has two
+distinguishable values; a re-affirming payload (§ T3 above) cannot show the difference.
+
+Do **not** substitute a "poll twice and nothing changes" test for it. That one is worth having — it
+is what proves the version is stamped at all — but it passes whether or not the guard exists, because
+a stamped version already takes the event out of the eligible set before the second poll. Only two
+events pending at once reaches the guard.
 
 ## T4 — Functionality Test
 
@@ -576,7 +648,10 @@ serve a test.
   dependency chain. Always
   sanity-check a new compensation test by temporarily flipping its fault flag to `0` and re-running
   the *full* suite with logging, not just the exception assertion — confirm the lock-acquiring
-  step's `START EXECUTION STEP` log line actually appears before the fault fires.
+  step's `START EXECUTION STEP` log line actually appears before the fault fires. Capturing that
+  log line needs maven's real stdout, which a shell redirect does not reliably give you — use the
+  capture recipe in `.claude/skills/_shared/conventions.md` § "Run the test suite"
+  (§ "Inspecting maven output").
 
 ### CRITICAL gotcha — one saga class, one compensation test file
 

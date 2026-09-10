@@ -205,6 +205,38 @@ saga.executeWorkflow(unitOfWork);
 return saga.get{Aggregates}();
 ```
 
+#### Unfiltered variant — no filter parameter at all
+
+A read that returns *every* instance of its type has no filter to resolve and no root aggregate to
+name. Drop the `{field}Id` parameter from the command, the constructor and `buildWorkflow`, and name
+both `Get{Aggregates}Command` / `Get{Aggregates}FunctionalitySagas`. The command passes `null` as its
+`rootAggregateId` — see [`commands.md`](commands.md) § What a Command Is for why that is safe for a
+step declaring no semantic lock and no forbidden states.
+
+```java
+public Get{Aggregates}FunctionalitySagas(SagaUnitOfWorkService unitOfWorkService,
+        SagaUnitOfWork unitOfWork, CommandGateway commandGateway) {
+    this.unitOfWorkService = unitOfWorkService;
+    this.commandGateway = commandGateway;
+    buildWorkflow(unitOfWork);
+}
+
+public void buildWorkflow(SagaUnitOfWork unitOfWork) {
+    this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork);
+
+    SagaStep get{Aggregates}Step = new SagaStep("get{Aggregates}Step", () -> {
+        Get{Aggregates}Command cmd = new Get{Aggregates}Command(
+                unitOfWork, ServiceMapping.{AGGREGATE}.getServiceName());
+        this.{aggregates} = (List<{Aggregate}Dto>) commandGateway.send(cmd);
+    });
+
+    this.workflow.addStep(get{Aggregates}Step);
+}
+```
+
+Everything else — the result field, the cast, the getter, the coordinator method — is unchanged from
+the filtered variant above.
+
 ### Two-step read saga variant
 
 When a read functionality's filter parameter is a foreign aggregate's ID (e.g., `shipmentId`) that must be resolved to the primary aggregate's actual filter field (e.g., `warehouseAggregateId`), use a two-step saga:

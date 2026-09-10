@@ -3,6 +3,7 @@
 ## Table of Contents
 
 - [Overview](#overview)
+    - [Generating an application with the agent harness](#generating-an-application-with-the-agent-harness)
 - [Architecture](#architecture)
 - [Code Structure](#code-structure)
     - [Simulator](#simulator)
@@ -46,6 +47,14 @@ deployment profiles.
 
 This tool acts as a deterministic sandbox for the shift-left validation and optimization of microservice architectures,
 minimizing developer effort while enabling robust architectural validation.
+
+### Generating an application with the agent harness
+
+Alongside the framework, this repository carries an **AI agent harness**: a documented workflow that
+drives a coding agent to generate a complete simulator application from a written domain-model and
+aggregate-grouping specification, aggregate by aggregate, with a review checkpoint at every aggregate
+boundary. It is optional and entirely separate from using the simulator by hand. See
+[`HARNESS.md`](HARNESS.md).
 
 ## Architecture
 

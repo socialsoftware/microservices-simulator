@@ -20,6 +20,10 @@ Load these files before writing any code:
    - § Canonical Wiring Snippet (and all subsections) — the per-file structure for this session
    - § Canonical Wiring Snippet → EventProcessing class, § ByEvent sagaState guard — the contract: the saga-state skip, and the service-method signature the ByEvent method delegates to
    - § Cascade Invalidation Pattern — only if a deletion event causes `copy.remove()` on this aggregate
+   - **R5** - `getEventSubscriptions()` lives in the downstream (consumer) aggregate only; a publisher
+     never subscribes to its own events and never names a downstream aggregate type
+     (`docs/architecture.md` § R5, restated in `events.md` § EventSubscription). Subscribing in the wrong
+     direction creates a cycle in the event pipeline.
 
 2. **`docs/concepts/testing.md`** — § T3 — Subscription (Inter-Invariant) Test, including the deletion-event `and:`-block pattern, plus § Assertion Ownership. Note:
    - What a T3 subscription test asserts (event received → cached field updated → invariant re-evaluated)
@@ -32,7 +36,7 @@ Load these files before writing any code:
    - `Saga{Aggregate}.java`: the full class (needed by EventProcessing to load and mutate the aggregate)
 
 4. **For each event in the "Events subscribed" list**: read the source files of the aggregate that publishes it. Specifically:
-   - The event class itself (`{src}events/{Event}.java`) — to know the payload fields
+   - The event class itself (`{src}events/{Event}Event.java`) — to know the payload fields
    - The publishing aggregate's domain class — to understand what the payload fields represent and how they map to the cached snapshot fields in *this* aggregate
 
 ---
@@ -61,6 +65,7 @@ In these cases the discriminating check (e.g., `shipmentId`) must happen inside 
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void removeIfShipmentMatches(Integer aggregateId, Integer shipmentId, UnitOfWork unitOfWork) {
     {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
             .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
@@ -83,6 +88,9 @@ Do **not** attempt to move this check into a `subscribesEvent()` override — se
 Path: `{src}microservices/{aggregate}/notification/handling/{Aggregate}EventHandling.java`
 
 - Spring `@Component`
+- **Implements `EventHandling`** (`pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling`) —
+  mandatory. `docs/concepts/events.md` § Polling owns the rule and says what a bean that omits it
+  loses; nothing fails to build, so this is not caught by the test suite.
 - One `@Scheduled(fixedDelay = 1000)` method per subscribed event type
 - Each method body is a single call:
   `eventApplicationService.handleSubscribedEvent({Event}.class, {aggregate}EventHandler)` — every
@@ -152,7 +160,13 @@ public class {Aggregate}EventProcessing {
 
 For every event that mirrors an operation also exposed as a saga `Functionalities` method (e.g., `updateWarehouseName`, `archiveWarehouse`, `removeShipmentFromWarehouse`), add a separate `{operation}ByEvent` method to `{Aggregate}Functionalities`. The full pattern — method body, `sagaState != NOT_IN_SAGA` guard, where the guard goes (after load, not in the shared service method), and when it may be skipped — is documented in `docs/concepts/events.md` § ByEvent sagaState guard. Follow that section.
 
-The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (pure mutation, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
+The `{operation}ByEvent` **Functionalities** method is always new — one per event, per `events.md` § ByEvent sagaState guard. The **service** method it delegates to is shared with the saga path: reuse the existing `{Aggregate}Service` mutate method whenever one already performs exactly this mutation. Write a new service helper (copy-on-write mutation plus `registerChanged`, no saga) only when no existing service method does — typically when the event updates a cached field that no saga operation touches. Never move the `sagaState` guard into the shared service method; it belongs in the ByEvent method after the load, or saga steps calling the same service method are silently skipped.
+
+A second guard, on the cached publisher **version**, goes the other way — into the service method,
+after the copy-on-write load — and rejects an event that does not advance it. `events.md`
+§ "Reject an event that does not advance the cached version" owns both the shape and why the two
+guards sit in different layers. Follow that section; stamping the version without it leaves the
+consumer able to end a poll holding an older payload than the one it started with.
 
 #### Deletion events: `remove()` on the whole consumer vs. remove a sub-entity
 
@@ -175,22 +189,30 @@ If the consumer aggregate caches no publisher payload (no name, no description �
 
 ```java
 // In {Aggregate}Service:
+@Transactional(isolation = Isolation.SERIALIZABLE)
 public void updateWarehouseVersionIn{SubEntity}(Integer aggregateId, Integer warehouseAggregateId,
                                                 Long publisherVersion, UnitOfWork unitOfWork) {
     {Aggregate} old{Aggregate} = ({Aggregate}) unitOfWorkService
             .aggregateLoadAndRegisterRead(aggregateId, unitOfWork);
     {Aggregate} new{Aggregate} = {aggregate}Factory.create{Aggregate}Copy(old{Aggregate});
-    new{Aggregate}.get{SubEntities}().stream()
+    {SubEntity} cached = new{Aggregate}.get{SubEntities}().stream()
         .filter(e -> e.getWarehouseAggregateId().equals(warehouseAggregateId))
         .findFirst()
-        .ifPresent(e -> e.setWarehouseVersion(publisherVersion));
+        .orElse(null);
+    if (cached == null) {
+        return;
+    }
+    if (cached.getWarehouseVersion() != null && cached.getWarehouseVersion() >= publisherVersion) {
+        return;   // stale or replayed event
+    }
+    cached.setWarehouseVersion(publisherVersion);
     unitOfWorkService.registerChanged(new{Aggregate}, unitOfWork);
 }
 ```
 
-The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Always advance the cached publisher version", which owns the rule.
+The `publisherVersion` to use is `event.getPublisherAggregateVersion()` (the version of the publisher aggregate at the time the event was emitted). It is a `Long`, as is the cached `warehouseVersion` field it is assigned to - see `docs/concepts/events.md` § "Every cached publisher version is a `Long`", which owns the rule.
 
-This section covers the case where the version is the *only* thing cached. Stamping that version is **not** confined to it: every ByEvent mutation advances the cached publisher version, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Always advance the cached publisher version", and the redelivery backlog it bounds.
+This section covers the case where the version is the *only* thing cached. Neither half of the rule is confined to it: every ByEvent mutation that leaves a cached row both **rejects** an event that does not advance the cached publisher version and **stamps** the new one, whatever payload fields it also applies — see `docs/concepts/events.md` § ByEvent sagaState guard, "Advance the cached publisher version" and "Reject an event that does not advance the cached version".
 
 ### `{Aggregate}InterInvariantTest.groovy` (T3 subscription)
 
@@ -221,6 +243,10 @@ Path: `{test}sagas/{aggregate}/{Aggregate}InterInvariantTest.groovy`
   consumer at all.
 - **Invariant-violation tests**: if processing the event causes `verifyInvariants()` to throw, assert the exception is raised with the correct error message and that the event is not marked as processed (event-processing outcome). This is an event-processing assertion — not a re-test of the P1 predicate itself (the predicate's violation cases belong in `{Aggregate}IntraInvariantTest.groovy`, T1 Aggregate tier).
 - Both the "reflects" and "ignores unrelated" tests are required for every subscribed event type
+- **Plus one stale-event ordering test for the aggregate as a whole** — not per event type. Publish
+  two updates from one publisher before polling once, and assert the newer payload survives.
+  `docs/concepts/testing.md` § "Ordering: the stale-event test" owns the rule, which event to pick
+  and why a poll-twice test does not substitute for it.
 
 > **Version numbers:** Aggregate versions start much higher than `1L` because the multi-step test setup issues several commits. Always capture `versionBefore` *after* the setup call completes, then assert `versionAfter > versionBefore` (reflects) or `versionAfter == versionBefore` (ignores). Never hardcode `== 1L` or any specific version number.
 
@@ -294,5 +320,5 @@ Add the corresponding `import` statements. Place new beans after the write/read 
 The session checkbox for this session is `- [ ] 2.{N}.d — Event wiring`. Read
 `_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
 you have. It owns the whole rule, including how to anchor on the session line rather than doing a
-bare string replace, and what manager mode and single-agent mode each do about the slice
+bare string replace, and what the manager and single-agent topologies each do about the slice
 sub-checkboxes underneath it.

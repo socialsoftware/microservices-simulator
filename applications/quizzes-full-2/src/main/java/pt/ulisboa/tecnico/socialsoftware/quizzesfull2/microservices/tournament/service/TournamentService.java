@@ -155,17 +155,25 @@ public class TournamentService {
                             Long userVersion, UnitOfWork unitOfWork) {
         Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
 
+        boolean applied = false;
         TournamentCreator creator = newTournament.getCreator();
-        if (Objects.equals(userAggregateId, creator.getUserAggregateId())) {
+        if (Objects.equals(userAggregateId, creator.getUserAggregateId())
+                && advancesCachedVersion(creator.getUserVersion(), userVersion)) {
             creator.setUserName(userName);
             creator.setUserVersion(userVersion);
+            applied = true;
         }
-        newTournament.getParticipants().stream()
-                .filter(participant -> Objects.equals(userAggregateId, participant.getUserAggregateId()))
-                .forEach(participant -> {
-                    participant.setUserName(userName);
-                    participant.setUserVersion(userVersion);
-                });
+        for (TournamentParticipant participant : newTournament.getParticipants()) {
+            if (Objects.equals(userAggregateId, participant.getUserAggregateId())
+                    && advancesCachedVersion(participant.getUserVersion(), userVersion)) {
+                participant.setUserName(userName);
+                participant.setUserVersion(userVersion);
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
@@ -175,19 +183,27 @@ public class TournamentService {
                               String userUsername, Long userVersion, UnitOfWork unitOfWork) {
         Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
 
+        boolean applied = false;
         TournamentCreator creator = newTournament.getCreator();
-        if (Objects.equals(userAggregateId, creator.getUserAggregateId())) {
+        if (Objects.equals(userAggregateId, creator.getUserAggregateId())
+                && advancesCachedVersion(creator.getUserVersion(), userVersion)) {
             creator.setUserName(userName);
             creator.setUserUsername(userUsername);
             creator.setUserVersion(userVersion);
+            applied = true;
         }
-        newTournament.getParticipants().stream()
-                .filter(participant -> Objects.equals(userAggregateId, participant.getUserAggregateId()))
-                .forEach(participant -> {
-                    participant.setUserName(userName);
-                    participant.setUserUsername(userUsername);
-                    participant.setUserVersion(userVersion);
-                });
+        for (TournamentParticipant participant : newTournament.getParticipants()) {
+            if (Objects.equals(userAggregateId, participant.getUserAggregateId())
+                    && advancesCachedVersion(participant.getUserVersion(), userVersion)) {
+                participant.setUserName(userName);
+                participant.setUserUsername(userUsername);
+                participant.setUserVersion(userVersion);
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
@@ -214,12 +230,18 @@ public class TournamentService {
                              Long topicVersion, UnitOfWork unitOfWork) {
         Tournament newTournament = loadCopy(tournamentAggregateId, unitOfWork);
 
-        newTournament.getTopics().stream()
-                .filter(topic -> Objects.equals(topicAggregateId, topic.getTopicAggregateId()))
-                .forEach(topic -> {
-                    topic.setTopicName(topicName);
-                    topic.setTopicVersion(topicVersion);
-                });
+        boolean applied = false;
+        for (TournamentTopic topic : newTournament.getTopics()) {
+            if (Objects.equals(topicAggregateId, topic.getTopicAggregateId())
+                    && advancesCachedVersion(topic.getTopicVersion(), topicVersion)) {
+                topic.setTopicName(topicName);
+                topic.setTopicVersion(topicVersion);
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
     }
@@ -302,8 +324,7 @@ public class TournamentService {
             return;
         }
         TournamentParticipantQuizAnswer quizAnswer = participant.getQuizAnswer();
-        if (quizAnswer.getQuizAnswerVersion() != null
-                && quizAnswer.getQuizAnswerVersion() >= quizAnswerVersion) {
+        if (!advancesCachedVersion(quizAnswer.getQuizAnswerVersion(), quizAnswerVersion)) {
             return;
         }
 
@@ -320,6 +341,12 @@ public class TournamentService {
         quizAnswer.setQuizAnswerVersion(quizAnswerVersion);
 
         unitOfWorkService.registerChanged(newTournament, unitOfWork);
+    }
+
+    // Every cached entry this event fans out to is guarded separately, so an event that advances none
+    // of them writes nothing at all.
+    private static boolean advancesCachedVersion(Long cachedVersion, Long publisherVersion) {
+        return cachedVersion == null || cachedVersion < publisherVersion;
     }
 
     private Tournament loadCopy(Integer tournamentAggregateId, UnitOfWork unitOfWork) {

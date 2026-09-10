@@ -104,6 +104,9 @@ public class QuizService {
         if (question == null) {
             return;
         }
+        if (question.getQuestionVersion() != null && question.getQuestionVersion() >= questionVersion) {
+            return;   // stale or replayed event
+        }
         question.setTitle(title);
         question.setContent(content);
         question.setQuestionVersion(questionVersion);
