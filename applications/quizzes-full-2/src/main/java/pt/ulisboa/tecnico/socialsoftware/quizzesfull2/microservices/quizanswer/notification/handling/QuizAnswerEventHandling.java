@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.EventApplicationService;
-import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.AnonymizeStudentEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DeleteCourseExecutionEvent;
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.DeleteUserEvent;
@@ -15,7 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.events.UpdateStudentNameEv
 import pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quizanswer.notification.handling.handlers.QuizAnswerEventHandler;
 
 @Component
-public class QuizAnswerEventHandling implements EventHandling {
+public class QuizAnswerEventHandling {
 
     @Autowired
     private EventApplicationService eventApplicationService;
