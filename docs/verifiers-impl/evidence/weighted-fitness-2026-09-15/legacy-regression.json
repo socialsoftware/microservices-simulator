@@ -1,0 +1,15 @@
+{
+  "historicalSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/source/search.py",
+  "mode": "Recorded-feedback replay; no new application executions",
+  "policies": [
+    "ga",
+    "random"
+  ],
+  "seeds": [
+    11,
+    29,
+    47
+  ],
+  "sha256": "c1a3714d98f675feaf7c86dee61027b167419956711376bf539ce090b289d2b3",
+  "status": "PASS"
+}

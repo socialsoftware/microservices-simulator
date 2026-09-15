@@ -16,6 +16,7 @@ Java application code + Groovy/Spock tests
   -> setup preflight or one-scenario execution
   -> optional invariant-impact result
   -> automatic potential-impact evidence sidecar
+  -> fixed-workload GA or random search under an execution budget
 ```
 
 The verifier does **not** prove that an application is correct. It currently answers narrower questions:
@@ -26,6 +27,8 @@ The verifier does **not** prove that an application is correct. It currently ans
 4. What happened when one persisted FaultScenario was replayed?
 5. Did that attempt trigger an observed aggregate-invariant rejection?
 6. Which of the three implemented potential-impact conditions hold, for which aggregate identities, and with what observation coverage?
+7. Which fault/recovery alternatives does a fixed-workload GA or random policy find under the same execution budget?
+8. Did a Saga read a subsequently compensated version, or use an earlier copied value to overwrite an intervening foreign change?
 
 The earlier explicit Quizzes broken-reference benchmark rule is retained as separate
 application-specific evidence; it is not the generic ImpactV2 definition.
@@ -162,6 +165,20 @@ writers, and unresolved event progress.
 It is an extent measure, not a business-harm or severity oracle. Coverage gaps and invalid
 attempts remain distinct from an evaluated zero. Partial reports retain an observed
 affected-object lower bound while their complete score remains null.
+
+### Search fitness
+
+**Search fitness** is the configured preference used to rank evaluated fault scenarios.
+The historical policy uses complete ImpactV2 distinct-object count I. The optional
+`weighted-criteria-v1` policy sums four explicitly weighted counts: distinct affected
+objects within each of the three ImpactV2 categories, and compensated-read exposures.
+`weighted-criteria-v2` adds the separately weighted `LOST_COPIED_UPDATE` count. Legacy
+and four-weight configurations keep their original meanings.
+The same object can contribute to several category terms; the separately reported I
+remains their distinct-object union. Weights are nonnegative, fixed per run, and at least
+one is positive. Only enabled criteria require complete evidence; invalid attempts never
+receive a weighted score. This is a prioritization value, not an additional detector or
+a count of independent harms.
 
 ### Lost copied update
 
@@ -764,6 +781,110 @@ stable COMPLETE zero results each. The historical 14-zero/15-two landscape is a 
 post-run reference check, not a newly executed complete 29-row landscape. These results
 qualify the bounded evaluation path and expose flat additional spaces, not GA benefit.
 
+### Fixed-workload genetic search
+
+The [search command](../../verifiers/experiments/fixed-workload-ga/README.md) accepts one
+current package, exact WorkloadPlan, frozen compatible runtime, recovery cap, strategy,
+seed and application-execution budget. Preparation exposes participants, input/setup IDs,
+normal order, selected events and inherited catalogue limits. A separate no-fault control
+must qualify before search; its cost stays outside the search budget.
+
+The default policy preserves the first GA's available COMPLETE ImpactV2 count **I**.
+The optional `weighted-criteria-v1` policy uses four explicit weights for
+`DELETED_DEPENDENCY`, `FAILED_OPERATION_RESIDUAL`, `UNRESOLVED_DELIVERED_EVENT` and
+`COMPENSATED_READ_EXPOSURE`. It sums per-category distinct-object counts and the existing
+creation/update exposure count; overlap across categories is intentional, while I and A
+remain independently visible. `weighted-criteria-v2` adds `LOST_COPIED_UPDATE`, counted per
+overwriting aggregate version. It requires all five weights explicitly; zero disables a
+criterion. Existing four-weight files remain valid as v1. Old reports without copied-update
+evidence cannot support a positive weight for that criterion. Unit weights are an example, not a chosen severity scale.
+
+Each enabled category must have complete coverage and no unknown reasons; enabled reads
+require COMPLETE validity, COMPLETE_WITHIN_SCOPE coverage and no gaps. An incomplete or unavailable disabled
+criterion does not block the score. Invalid execution/report outcomes remain unavailable.
+The report records the policy, weights, complete and observed component counts, coverage,
+score and explicit unavailability reasons. `run.py rescore` verifies retained evidence and
+revalues an existing search without application executions or rewriting its measurements.
+
+Parents compete using the configured score; offspring combine per-Saga fault choices and
+conditionally valid recovery choices. Default population is 8 and mutation probability
+0.3. Null fitness cannot become a parent. Each real attempt has a fresh container/JVM/H2.
+Weights change selection and score summaries, not generation, observation or random
+sampling. No cross-workload normalization or RL reward has been implemented.
+
+One gene selects no fault or one faultable step per Saga. Valid recovery actions come
+from the existing on-demand generator. Every comparison arm owns its package copy and
+records request counts, truncation, package revisions and immutable runtime provenance.
+Random and GA initialization/exploration use the same per-Saga fault-coordinate sampler,
+then uniformly select a returned recovery ordering; this is not uniform sampling over
+all FaultScenarios. Existing finite-catalogue baseline behavior is unchanged.
+
+The cache groups exact `(workload, canonical vector, ordered actions)` content, including
+historical ID aliases. Duplicate proposals cost no application execution; actual invalid
+attempts consume budget with null fitness. The command stops at budget, proven exhaustion
+of the cap-limited domain, or explicit proposal stall. It retains exact package snapshots,
+reports and replay commands, parent lineage, best-so-far configured score, best I, first
+positive score and A coverage.
+Generation cost is reported separately. Earlier Saga/input/schedule limits still bound
+which workloads can be selected.
+
+The [first qualification](../../verifiers/experiments/fixed-workload-ga/RESULTS.md) compares
+GA/random on the preselected RemoveTournament/AddParticipant workload, with two seeds and
+12 executions per arm, plus no-fault controls and three update/read witnesses. All 53
+assessments and read-coverage reports are complete within scope. GA/random found 4/4
+positive scenarios for seed 11 and 6/2 for seed 29; the latter difference came from
+initialization/random fallback, with no new crossover child executed in that arm. Seed 11
+executed three new crossover children. The three update/read witnesses preserve I=1
+with A=1/0/0. These results qualify the mechanism and expose the limits of this small
+budget; they do not establish an evolutionary advantage.
+
+The [complete current reference map](evidence/ga-discovery-2026-09-10/README.md) now covers
+all 29 scenarios in this fixed workload: 21 candidate keys already measured in the first
+qualification, plus eight newly executed keys. There are 15 I=2 cases and 14 I=0 cases;
+all reference measurements are COMPLETE with read coverage complete within scope. The
+three positive vectors fail Tournament removal after Quiz deletion; their six/six/three
+recovery variants expose the same two affected objects. This reference is an evaluation
+artifact, not feedback supplied to the search algorithm.
+
+The completed [discovery-speed comparison](../../verifiers/experiments/fixed-workload-ga/DISCOVERY-RESULTS.md)
+uses the same I and operators, seeds 11/29/47 and budget 29 per arm. Eight reference
+completions plus 174 independently measured search attempts give 182 new COMPLETE I
+assessments with complete read coverage within scope. GA/random reach eight positives
+at executions 20/18, 15/20 and 20/22; twelve at 26/25, 24/25 and 26/26. Every arm finds
+all fifteen at execution 29. The outcome is mixed across seeds. Only 14 of 63 later GA
+evaluations are new crossover children (ten positive); 49 use random exploration after
+duplicate proposals. The [curves and evidence](evidence/ga-discovery-2026-09-10/README.md)
+keep initialization, actual execution counts and the complete-map denominator explicit.
+
+The [weighted-fitness qualification](evidence/weighted-fitness-2026-09-15/README.md)
+revalues 43 retained cases and adds 28 COMPLETE/EXACT fresh executions with complete read
+coverage within scope. Unit persistent/read weights distinguish the update/read witnesses
+as scores 2/1/1 while all retain I=1. The two eight-execution GA arms choose the same
+sequence: the read-positive result arrives at their final execution. The checks establish
+configuration and reporting, not improved discovery. Six recorded-feedback comparisons
+preserve historical default selection against the frozen original implementation; targeted
+tests verify that weighted preferences can change GA selection and leave random selection
+unchanged. Broader preference evaluation remains pending.
+
+### Larger-horizon workload exploration (2026-09-15)
+
+The [eight-candidate exploration](evidence/workload-cohort-exploration-2026-09-15/README.md)
+adds 84 random search executions and three control attempts. No new GA arm ran. Exact
+completed fixed-workload counts range from 35 to 156. The 72-candidate executable triple
+produces 40 complete zeros in a sampled four-criterion run. An UpdateTopic/UpdateTournament
+workload has 44 candidates: all were executed under five unit weights, yielding 17 positive
+scores, 22 zeros and five unavailable scores. All scored positives are failed-operation
+residuals; this is not a new lost-copy-positive cohort. The five unknowns prevent a complete
+binary reference map. The 156-candidate triple fails materialization of CreateTournament
+argument 4 after successful source setup. Two bounded source-generation probes did not
+supply a larger ready workload. These findings bound this shortlist, not the global catalog.
+
+A larger per-run horizon remains conditional on qualifying a suitable domain; adding seeds
+cannot extend a small domain. The [evaluation design](research/search-evaluation-design.md)
+separates selection, forward-order compression, fixed-workload search and criterion weights.
+This motivated the integral-input follow-up below. The main comparison cohort and
+budget remain pending.
+
 ### Integral participant input binding follow-up
 
 The [integral-input fix](evidence/integral-input-materialization-2026-09-15/README.md)
@@ -782,6 +903,35 @@ A seed-15156 sample of 12 unique variants has complete four-criterion fitness ze
 this does not classify the other 144 candidates. The previous lost-copy positive still
 reports count 1 with complete coverage. No business code, scoring policy or GA operator changed. Wider constructor overload resolution remains outside this DTO fix.
 
+### Four-operation workload qualification
+
+The [further exploration](evidence/more-workloads-2026-09-15/README.md) obtains a larger
+domain from a new ordinary Quizzes test: AddParticipant, UpdateTournament,
+LeaveTournament and RemoveTournament share the same source-created Tournament.
+The retained generated forward order completes each operation before starting the next;
+fault scenarios can defer recovery and interleave it with later operations. Its 216
+canonical fault vectors yield exactly 5,184 distinct fault/action sequences, without
+recovery truncation. Alternative forward histories were capped during generation, so
+this does not enumerate the whole four-Saga forward space.
+
+The no-fault control is SUCCESS/EXACT with complete zero counts across all five enabled
+criteria. Twelve fresh random attempts (seed 15110, five unit weights) produce three
+positive scores (2, 2, 1), four complete zeros and five unavailable scores. Four of the
+unavailable attempts leave runtime recovery pending after LeaveTournament rejects a
+student whose enrollment failed; the other has a compensation failure after removal
+deleted the Tournament. These are retained execution outcomes, not five zero-impact
+scenarios or evidence of five infrastructure failures. The scored signal comes from
+persistent-state findings; no read-exposure or lost-copied-update positive was observed.
+
+This exploration made 22 fresh application attempts across two controls, eight targeted
+variants and the twelve-case random pilot. The added test's class passes all four Spock
+tests. No GA arm ran in that initial exploration. The domain is now large enough for a longer comparison, but
+the unavailable-outcome rate and its recovery causes remain an evaluation limitation.
+The [recovery diagnosis](evidence/more-workloads-2026-09-15/RECOVERY-DIAGNOSIS.md)
+isolates the pending-checkpoint mechanism: an explicit semantic-state compensation records
+new undo history under the last failed forward step. The successful read recovery therefore
+creates a new apparent leave-step rollback.
+
 The [implemented recovery-history correction](evidence/recovery-history-2026-09-15/README.md)
 now excludes compensation-issued semantic-state changes from forward undo history in the
 shared SagaUnitOfWork compensation path, including ordinary abort and executor recovery.
@@ -789,7 +939,17 @@ Original records and actual writes remain; the scope crosses serialized command 
 and is restored on failure. Sixteen simulator tests and 49 experiment tests pass.
 Replaying exactly the same twelve random candidates preserves all seven previously
 complete results and makes all four pending-recovery cases complete (scores 2, 2, 0, 2).
-The remaining compensation failure still has unavailable fitness.
+The remaining compensation failure still has unavailable fitness. The corrected pilot thus
+has six positive scores, five zeros and one unavailable result. A separate twelve-attempt
+GA throughput pilot has three positives and four unavailable compensation failures; these
+pilots are qualification, not evidence of GA superiority.
+
+The approved larger comparison has started: 500 attempts per method, matched seeds
+11/29/47, five unit weights, population 8, mutation probability 0.3 and two isolated workers.
+Its frozen protocol and live status are under `verifiers/target/ga-500x3-2026-09-15/`.
+The paired pilot took 416.4 seconds for 24 attempts, projecting 14.5 hours for 3,000;
+15–18 hours is a planning range, not a completion guarantee. No campaign effectiveness
+conclusion is available yet. Unavailable executions consume budget and retain null fitness.
 
 ### Bounded structural space map (2026-09-07)
 
@@ -1984,7 +2144,7 @@ evidence and are not added to either unit/regression-suite total.
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 - A universal domain-correctness oracle, generic serial-comparison oracle, or automatic continuation-probe impact model. ImpactV2 already assesses its three bounded final-effect conditions.
-- Generic batch execution qualification, generic reset orchestration beyond fresh process workers, GA/local fault search, or scenario prioritization. The current benchmark command remains application-specific.
+- Generic reset orchestration beyond fresh process workers or cross-workload prioritization. Configurable per-criterion weighted fitness is supported within a fixed workload. The separate fixed-workload search command provides GA and random policies; this benchmark command remains application-specific.
 
 ## Safe thesis framing
 

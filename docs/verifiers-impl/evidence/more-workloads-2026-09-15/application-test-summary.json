@@ -1,0 +1,13 @@
+{
+  "tests": 4,
+  "errors": 0,
+  "failures": 0,
+  "testCases": [
+    "add participant find the tournament in update and aborts",
+    "add participant then update tournament",
+    "update tournament then add participant",
+    "add participant, update tournament, leave, and remove tournament"
+  ],
+  "sourceReport": "applications/quizzes/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest.xml",
+  "sourceReportSha256": "e3ca9180320d51684e1b1a8e75655cb36ad3f8dfc09355ac0f2ef3858e9e0448"
+}

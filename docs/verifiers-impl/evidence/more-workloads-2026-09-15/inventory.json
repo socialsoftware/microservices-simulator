@@ -1,0 +1,102 @@
+{
+  "schemaVersion": "microservices-simulator.more-workloads-evidence.v1",
+  "date": "2026-09-15",
+  "selected": {
+    "workloadId": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+    "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+    "sourceMethod": "add participant, update tournament, leave, and remove tournament",
+    "sourceStatus": "NEW_NORMAL_APPLICATION_TEST",
+    "participants": [
+      "AddParticipantFunctionalitySagas",
+      "UpdateTournamentFunctionalitySagas",
+      "LeaveTournamentFunctionalitySagas",
+      "RemoveTournamentFunctionalitySagas"
+    ],
+    "inputIds": [
+      "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6",
+      "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9",
+      "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828",
+      "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+    ],
+    "forwardStepCount": 12,
+    "vectorDomainSize": 216,
+    "exactUniqueCandidateCount": 5184,
+    "recoveryCap": 500,
+    "countComplete": true,
+    "anyTruncated": false,
+    "copyContractCount": 9,
+    "typeOnlyFallback": false,
+    "generationCaps": {
+      "maxSchedulesPerInputTuple": 30000,
+      "maxCatalogScenarios": 30000,
+      "schedulesCapped": true,
+      "workloadsCapped": true,
+      "retainedWorkloads": 1
+    },
+    "completeBefore": [
+      "AddParticipantFunctionalitySagas<UpdateTournamentFunctionalitySagas",
+      "UpdateTournamentFunctionalitySagas<LeaveTournamentFunctionalitySagas",
+      "LeaveTournamentFunctionalitySagas<RemoveTournamentFunctionalitySagas"
+    ],
+    "control": {
+      "status": "COMPLETE",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "I": 0,
+      "A": 0,
+      "lostCopiedUpdateCount": 0
+    },
+    "targeted": [
+      {"vector": "000010000000", "generatedCandidates": 6, "selectedRecoveryIndex": -1, "status": "PROCESS_FAILURE", "I": null, "A": null, "lostCopiedUpdateCount": null},
+      {"vector": "010000000000", "generatedCandidates": 1, "selectedRecoveryIndex": -1, "status": "PROCESS_FAILURE", "I": null, "A": null, "lostCopiedUpdateCount": null},
+      {"vector": "000000001001", "generatedCandidates": 6, "selectedRecoveryIndex": -1, "status": "PARTIAL", "I": null, "A": 0, "lostCopiedUpdateCount": 0, "deletedDependency": 1, "failedOperationResidualCoverage": "PARTIAL"},
+      {"vector": "010010001001", "generatedCandidates": 54, "selectedRecoveryIndex": -1, "status": "COMPLETE", "I": 2, "A": 0, "lostCopiedUpdateCount": 0, "deletedDependency": 1, "failedOperationResidual": 1}
+    ],
+    "randomCalibration": {
+      "strategy": "random",
+      "seed": 15110,
+      "budget": 12,
+      "uniqueAttempts": 12,
+      "duplicateProposals": 0,
+      "complete": 7,
+      "processFailure": 5,
+      "positiveComplete": 3,
+      "zeroComplete": 4,
+      "nullFitness": 5,
+      "bestScore": 2.0,
+      "positiveIScores": [2, 2, 1],
+      "completeAValues": [0, 0, 0, 0, 0, 0, 0],
+      "completeLostCopiedUpdateCounts": [0, 0, 0, 0, 0, 0, 0]
+    }
+  },
+  "diagnosticFourSaga": {
+    "workloadId": "006abb88f1dce4a84f3cbd07a42752849d0bfc5a773611577d814d4eb7bcaac5",
+    "vectorDomainSize": 216,
+    "exactUniqueCandidateCount": 3984,
+    "countComplete": true,
+    "anyTruncated": false,
+    "control": {"status": "COMPLETE", "terminalStatus": "PARTIAL_COMPENSATED", "scheduleConformance": "DEVIATED", "I": 0, "A": 0, "lostCopiedUpdateCount": 0},
+    "disposition": "REJECT_PRIMARY_EARLY_REMOVE_READ_CONFLICTS_WITH_UPDATE_LOCK"
+  },
+  "existingSourceCalibrations": [
+    {"shape": "AddParticipant+UpdateTournament", "workloadIdPrefix": "0763", "exactUniqueCandidateCount": 36, "vectorDomainSize": 18},
+    {"shape": "AddParticipant+UpdateTournament", "workloadIdPrefix": "1694", "exactUniqueCandidateCount": 23, "vectorDomainSize": 18},
+    {"shape": "AddParticipant+UpdateTournament+FindTournament", "workloadIdPrefix": "090c", "exactUniqueCandidateCount": 52, "vectorDomainSize": 36}
+  ],
+  "rejectedStructuralProbe": {
+    "shape": "AnonymizeStudent+UpdateTournament(+explicit event)",
+    "workloads": 0,
+    "materializationFailure": false,
+    "reason": "DIRECT_FOOTPRINTS_DISCONNECTED_BEFORE_EVENT_CONSEQUENCE_PLACEMENT"
+  },
+  "runtimeConfig": "verifiers/target/integral-input-materialization-01/config.json",
+  "rawRoot": "verifiers/target/more-workloads-2026-09-15",
+  "validation": {
+    "applicationCommand": "mvn -Ptest-sagas test -Dtest=AddParticipantAndUpdateTournamentTest",
+    "applicationTests": 4,
+    "applicationFailures": 0,
+    "applicationErrors": 0,
+    "helperJavaCompiledInRuntime": true,
+    "pythonHelpersCompiled": true
+  }
+}

@@ -1,0 +1,90 @@
+{
+  "applicationExecutions": 28,
+  "arms": [
+    {
+      "arm": "ga-persistent",
+      "attempts": 8,
+      "bestI": 1,
+      "bestScore": 1.0,
+      "crossoverExecutions": 2,
+      "duplicates": 2,
+      "fitness": {
+        "policy": "weighted-criteria-v1",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 0,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "positiveIScenarios": 2,
+      "positiveScoreScenarios": 2,
+      "readExposures": 1,
+      "sourceSha256": "3c69aeda2be4c84d3711420f226efc513c141ee3f7986c9d82d75bf5f29dc026"
+    },
+    {
+      "arm": "ga-combined",
+      "attempts": 8,
+      "bestI": 1,
+      "bestScore": 2.0,
+      "crossoverExecutions": 2,
+      "duplicates": 2,
+      "fitness": {
+        "policy": "weighted-criteria-v1",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "positiveIScenarios": 2,
+      "positiveScoreScenarios": 2,
+      "readExposures": 1,
+      "sourceSha256": "18ff4f44a3b96bb088e79a484e93bd19990a23eb46367504087abfddb264dbb5"
+    },
+    {
+      "arm": "random-combined",
+      "attempts": 8,
+      "bestI": 1,
+      "bestScore": 1.0,
+      "crossoverExecutions": 0,
+      "duplicates": 0,
+      "fitness": {
+        "policy": "weighted-criteria-v1",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "positiveIScenarios": 1,
+      "positiveScoreScenarios": 1,
+      "readExposures": 0,
+      "sourceSha256": "6f62738093dd17d665b3bd2918edccd67e35a132483d6771580501012643729d"
+    }
+  ],
+  "controls": 1,
+  "finalSourceHashes": {
+    "discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+    "discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+    "fitness.py": "104774b988e7e880c434dbf613f6a4baf220210d40c50d443b12b6a47664ec18",
+    "qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+    "qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+    "run.py": "c09c8d902826584ac40ccb3cb101324b54dea95ac907191e9f4c1937e803e1a0",
+    "runtime.py": "32bc964ac7c9edbefbbb119581205548a8964db97d519298173a8026873cee96",
+    "search.py": "bd62792b9809312bdddb3a1b036a59b1879f8ee6580c1d8ccd6530f236ffbed5",
+    "summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+    "test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+    "test_fitness.py": "4d034238f70971725c9e4b18d3eb768935f2406d3fb3ab6094392bd7b0af6b8e",
+    "test_runtime.py": "ceeb42062e64e71a657868e37db4fbe1d2110c88e25ec3ae56d533e60ab63d57",
+    "test_search.py": "2ac500ceb02a28218d274412ac603a86b42c22e37ae27853bc403b5eeb5e679d"
+  },
+  "fixedWitnesses": 3,
+  "postCampaignReview": "Disabled UNAVAILABLE state criteria can no longer block complete read-only fitness; offline revaluation ignores read sidecars added after measurement. Targeted tests cover both changes. All measured search scores and parent scores revalidated unchanged with final source; no extra application executions.",
+  "retainedRevaluedCases": 43,
+  "searchExecutions": 24,
+  "status": "PASS",
+  "testsPassed": 35
+}

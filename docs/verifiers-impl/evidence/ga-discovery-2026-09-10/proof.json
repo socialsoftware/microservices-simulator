@@ -1,0 +1,28 @@
+{
+  "audit": "PASS",
+  "newApplicationExecutions": 182,
+  "searchExecutions": 174,
+  "mapCompletionExecutions": 8,
+  "searchLayerTests": {
+    "passed": 22,
+    "log": "verifiers/target/fixed-workload-ga/discovery-01/tests.log",
+    "sha256": "7a74377cd1d73e24f136a13312382f76776763e1d07843a2c5b500820190cf95"
+  },
+  "documentationBuild": "PASS (existing warnings for repository-external MkDocs links)",
+  "gitDiffCheck": "PASS",
+  "figureVisualInspection": "PASS",
+  "measuredSearchAndRuntimeCodeChanged": false,
+  "artifactHashes": {
+    "summary.json": "643518cdee08fa920044184e0dd3eda2ba4f3190cbd4fdc04d2d290362a746a0",
+    "reference.json": "6b11ce414099cd20faafe08b4a633a8c87a978f96a88e5327cbfdae0e65976a3",
+    "README.md": "7c0856ab306bd02a2fa1ccc6e0b13f8adf7dd4c17fb87ebbd758c98367bd2578",
+    "discovery-curves.svg": "6475cef341bfeb966d1fb6873cf7fb1c6b0db679e027bc4806178022982f4c11",
+    "discovery-curves.png": "5077382419687155beb66d4cd8e5673a8f1ca08286cae03b680e1ebad2822c9a",
+    "discovery-curves.pdf": "106caf318a8d94fbd34551143226a509d5d7790a74ff36f8667b236af8fe53cd"
+  },
+  "followUpSourceHashes": {
+    "discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+    "discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+    "test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da"
+  }
+}

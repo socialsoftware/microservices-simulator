@@ -1,0 +1,365 @@
+{
+  "candidates": [
+    {
+      "anyTruncated": false,
+      "candidate": 1,
+      "decision": "exclude-too-small",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-1/domain-count.json",
+      "eventDeliveries": 0,
+      "exactUniqueCandidates": 35,
+      "generatorWallSeconds": 36.35531112796161,
+      "inputs": [
+        "5bb770d3ffa7abc2ef4d111642c36563dc5cac288d10df418b846690c9a621ed",
+        "b96542902f8de2bf8216ff57c0fcf3465bcfcef12d36f702e5d7ade9ffb2851d"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "story": "Update Topic + Update Tournament; no delivered event",
+      "vectorDomainSize": 18,
+      "workloadId": "4d36f10b68efc977d9495444fdf2f181b1df64b788d474c897b0e98f33ab2f7e"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 2,
+      "decision": "exclude-too-small-and-known-positive-biased",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-2/domain-count.json",
+      "eventDeliveries": 1,
+      "exactUniqueCandidates": 36,
+      "generatorWallSeconds": 36.347783667151816,
+      "inputs": [
+        "5bb770d3ffa7abc2ef4d111642c36563dc5cac288d10df418b846690c9a621ed",
+        "b96542902f8de2bf8216ff57c0fcf3465bcfcef12d36f702e5d7ade9ffb2851d"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "story": "Update Topic + Update Tournament; route 1",
+      "vectorDomainSize": 18,
+      "workloadId": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 3,
+      "decision": "exclude-too-small",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-3/domain-count.json",
+      "eventDeliveries": 1,
+      "exactUniqueCandidates": 36,
+      "generatorWallSeconds": 27.049982252763584,
+      "inputs": [
+        "5bb770d3ffa7abc2ef4d111642c36563dc5cac288d10df418b846690c9a621ed",
+        "b96542902f8de2bf8216ff57c0fcf3465bcfcef12d36f702e5d7ade9ffb2851d"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "story": "Update Topic + Update Tournament; route 0",
+      "vectorDomainSize": 18,
+      "workloadId": "0142e06d2afd9bbbf6ebe68e06a9ceb9b8cb27f66bf0d68b5105f68c2c46b4bf"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 4,
+      "decision": "exclude-too-small-and-incomplete-evidence",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-4/domain-count.json",
+      "eventDeliveries": 1,
+      "exactUniqueCandidates": 62,
+      "generatorWallSeconds": 50.143891793093644,
+      "inputs": [
+        "5bb770d3ffa7abc2ef4d111642c36563dc5cac288d10df418b846690c9a621ed",
+        "b96542902f8de2bf8216ff57c0fcf3465bcfcef12d36f702e5d7ade9ffb2851d"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "story": "Update Topic + Update Tournament; late route 1",
+      "vectorDomainSize": 18,
+      "workloadId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 5,
+      "control": {
+        "A": 0,
+        "ACoverage": "COMPLETE_WITHIN_SCOPE",
+        "I": 0,
+        "evidence": "verifiers/target/workload-cohort-exploration-01/candidate-5-control/control.json",
+        "lostCopiedUpdateCount": 0,
+        "lostCopiedUpdateCoverage": "UNAVAILABLE",
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "wallSeconds": 16.643641499918886
+      },
+      "decision": "exclude-flat-sample-and-below-horizon",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-5/domain-count.json",
+      "eventDeliveries": 0,
+      "exactUniqueCandidates": 72,
+      "generatorWallSeconds": 596.3021415004041,
+      "inputs": [
+        "0fe4cf5be00237bf75f4071b4b48a1bcc0171247ea930796c342a2ef201b5255",
+        "516f30f00796efa97335d71f6df3624226e983c55af6c4b37826b32f89c7de90",
+        "5f51039398deeb3677d5ce3d4c69eaf110ea0de53d6f56f789642381b78b4000"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas"
+      ],
+      "story": "Add Student + Add Participant + Solve Quiz Async",
+      "vectorDomainSize": 72,
+      "workloadId": "73f6802f8ddfc7511dcbf3c3503efed120ebf3736ed5bfe8bc1f3cafe1ce37db"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 6,
+      "control": {
+        "A": null,
+        "ACoverage": "UNAVAILABLE",
+        "I": null,
+        "evidence": "verifiers/target/workload-cohort-exploration-01/candidate-6-control/control.json",
+        "lostCopiedUpdateCount": null,
+        "lostCopiedUpdateCoverage": "UNAVAILABLE",
+        "status": "PROCESS_FAILURE",
+        "terminalStatus": null,
+        "wallSeconds": 33.89855954202358
+      },
+      "decision": "exclude-runtime-materialization-failed",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-6/domain-count.json",
+      "eventDeliveries": 0,
+      "exactUniqueCandidates": 156,
+      "generatorWallSeconds": 575.5395633812295,
+      "inputs": [
+        "1b3b0e78ff4778477348f0ce801be3f9a65ab7036244428959c0d395090ae5ed",
+        "2b7161b0ba2270fe9142179cf06137e3e8737ff745711d0fa61080d20e0f8111",
+        "272e0c37582200cf0f82a9b4c33a61329b9ba232db5fa78827748a97766a2ffd"
+      ],
+      "recoveryCap": 500,
+      "runtimeBlocker": {
+        "argumentIndex": 4,
+        "message": "argument type mismatch",
+        "participant": "p3",
+        "reason": "MATERIALIZATION_EXCEPTION",
+        "saga": "CreateTournamentFunctionalitySagas",
+        "sourceSetup": "SUCCEEDED"
+      },
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas"
+      ],
+      "story": "Anonymize Student + Get Course Execution + Create Tournament",
+      "vectorDomainSize": 48,
+      "workloadId": "20e635be2247e4ec7a9649152eacda2b488a5426140908151547092e813015fc"
+    },
+    {
+      "candidate": 7,
+      "decision": "exclude-generator-rejected",
+      "domainClaim": null,
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-7/requests.json",
+      "generationRequests": 18,
+      "generationStatuses": {
+        "REJECTED": 18
+      },
+      "generatorBlockers": [
+        "p1 UNRESOLVED_ARGUMENT",
+        "p2 UNRESOLVED_ARGUMENT",
+        "p3 propertyReceiverNotReady",
+        "p3 UNRESOLVED_ARGUMENT"
+      ],
+      "plannedVectorDomainSize": 48,
+      "story": "Find Tournament + Remove Tournament + Update Tournament",
+      "workloadId": "06e3d9a8f0e781ae69f323e65c18466e85c30bce843cdcc16ca34b8575ac9469"
+    },
+    {
+      "anyTruncated": false,
+      "candidate": 8,
+      "control": {
+        "A": 0,
+        "ACoverage": "PARTIAL",
+        "I": 0,
+        "evidence": "verifiers/target/workload-cohort-exploration-01/candidate-8-control/control.json",
+        "lostCopiedUpdateCount": 0,
+        "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+        "status": "COMPLETE",
+        "terminalStatus": "SUCCESS",
+        "wallSeconds": 30.201739082927816
+      },
+      "decision": "small-calibration-only",
+      "domainEvidence": "verifiers/target/workload-cohort-exploration-01/domain-counts/candidate-8/domain-count.json",
+      "eventDeliveries": 1,
+      "exactUniqueCandidates": 44,
+      "generatorWallSeconds": 51.933051290456206,
+      "inputs": [
+        "5bb770d3ffa7abc2ef4d111642c36563dc5cac288d10df418b846690c9a621ed",
+        "b96542902f8de2bf8216ff57c0fcf3465bcfcef12d36f702e5d7ade9ffb2851d"
+      ],
+      "recoveryCap": 500,
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "story": "Update Topic + Update Tournament; early route 1",
+      "vectorDomainSize": 18,
+      "workloadId": "09012cdb7635d5e9fa5f0c805077456689fb1174382f68f45041eb91171a8bf7"
+    }
+  ],
+  "date": "2026-09-15",
+  "domainCounting": {
+    "completedCountsExactBecauseCountCompleteAndAnyTruncatedFalse": true,
+    "fixedDimensions": [
+      "participants",
+      "inputs",
+      "forward-order",
+      "event-delivery-placement"
+    ],
+    "recoveryCap": 500,
+    "searchedDimensions": [
+      "one-canonical-fault-coordinate-per-Saga",
+      "generated-recovery-schedule"
+    ]
+  },
+  "generationProbes": [
+    {
+      "evidence": "verifiers/target/workload-cohort-exploration-01/generated-update-remove/outcome.json",
+      "name": "update-remove-exact-inputs",
+      "result": "no exact selected-input workload with source setup"
+    },
+    {
+      "acceptedWorkloads": 0,
+      "evidence": "verifiers/target/workload-cohort-exploration-01/generated-four-saga/outcome.json",
+      "name": "four-saga-exact-inputs",
+      "preFilterWorkloads": 390,
+      "result": "no exact selected-input workload with source setup and static materializability",
+      "selectedSagaCount": 4
+    }
+  ],
+  "recommendation": {
+    "calibrationCandidate": 8,
+    "comparisonIfQualified": {
+      "matchedScopeRuntimeWeightsCaps": true,
+      "seedCount": 5,
+      "sensitivityBudget": 150,
+      "uniqueExecutionBudget": 100
+    },
+    "conditionalTargetCandidate": 6,
+    "qualificationBeforeComparison": [
+      "fresh valid and scorable no-fault control; zero not required",
+      "156-unique map",
+      "zero and positive scorable variation",
+      "acceptable scorable fraction"
+    ]
+  },
+  "result": "no-eligible-100-plus-fixed-workload",
+  "runs": [
+    {
+      "budget": 40,
+      "componentPositiveExecutionCounts": {
+        "COMPENSATED_READ_EXPOSURE": 0,
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "duplicates": 18,
+      "evidence": "verifiers/target/workload-cohort-exploration-01/candidate-5-random-sample-1105/results.json",
+      "fitness": {
+        "policy": "weighted-criteria-v1",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "fitnessCounts": {
+        "0.0": 40
+      },
+      "generationRequests": 40,
+      "generationSeconds": 258.8919298314722,
+      "integrity": "PASS",
+      "name": "candidate-5-random-sample-1105",
+      "nullFitnessAttempts": 0,
+      "positiveIScenarios": 0,
+      "positiveScenarios": 0,
+      "proposalCount": 58,
+      "samplingPolicy": "uniform-per-saga-fault-then-uniform-returned-recovery",
+      "seed": 1105,
+      "statusCounts": {
+        "COMPLETE": 40
+      },
+      "stopReason": "BUDGET",
+      "strategy": "random",
+      "uniqueExecutions": 40,
+      "wallSeconds": 1297.1507513748948
+    },
+    {
+      "budget": 44,
+      "componentPositiveExecutionCounts": {
+        "COMPENSATED_READ_EXPOSURE": 0,
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 17,
+        "LOST_COPIED_UPDATE": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      },
+      "duplicates": 255,
+      "evidence": "verifiers/target/workload-cohort-exploration-01/candidate-8-random-1108/results.json",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "fitnessCounts": {
+        "0.0": 22,
+        "1.0": 17,
+        "unavailable": 5
+      },
+      "generationRequests": 18,
+      "generationSeconds": 47.13565100089181,
+      "integrity": "PASS",
+      "name": "candidate-8-random-1108",
+      "nullFitnessAttempts": 5,
+      "positiveIScenarios": 17,
+      "positiveScenarios": 17,
+      "proposalCount": 299,
+      "samplingPolicy": "uniform-per-saga-fault-then-uniform-returned-recovery",
+      "scorableFraction": "39/44",
+      "seed": 1108,
+      "statusCounts": {
+        "COMPLETE": 42,
+        "PARTIAL": 2
+      },
+      "stopReason": "BUDGET",
+      "strategy": "random",
+      "uniqueExecutions": 44,
+      "wallSeconds": 1060.0061387090245
+    }
+  ],
+  "runtime": {
+    "descriptor": "verifiers/target/lost-copied-update/integration-03/runtime.json",
+    "dockerImage": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+    "freshProcessAndDatabasePerAttempt": true,
+    "lostCopiedUpdateAgentSha256": "b3e8340380fee3976a650f7b55251fc1981403cb1153eedead0bff4dc9d9fdf7"
+  },
+  "schemaVersion": "microservices-simulator.workload-cohort-exploration.v1",
+  "resultScope": "Eight-candidate exploratory shortlist and two bounded generation probes; not an exhaustive catalog claim.",
+  "review": {
+    "retainedSearchExecutionsVerified": 84,
+    "controlAttempts": 3,
+    "newGaArms": 0,
+    "validation": "Retained report hashes, joins, criterion scores and within-run unique keys independently checked.",
+    "calibrationCaveat": "All 44 candidates executed; five scores unavailable, so not a complete positive/negative map."
+  }
+}

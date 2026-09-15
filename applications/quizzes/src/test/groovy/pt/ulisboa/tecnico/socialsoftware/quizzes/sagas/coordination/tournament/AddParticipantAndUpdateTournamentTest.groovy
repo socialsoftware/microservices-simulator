@@ -152,6 +152,34 @@ class AddParticipantAndUpdateTournamentTest extends QuizzesSpockTest {
         quizDto.questionDtos.size() == 3
     }
 
+    def "add participant, update tournament, leave, and remove tournament"() {
+        given: 'topics to update the tournament'
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when: 'a participant is added to the tournament'
+        tournamentFunctionalities.addParticipant(tournamentDto.getAggregateId(), courseExecutionDto.getAggregateId(), userDto.getAggregateId())
+
+        and: 'the same tournament is updated'
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+
+        and: 'the participant leaves the same tournament'
+        tournamentFunctionalities.leaveTournament(tournamentDto.getAggregateId(), userDto.getAggregateId())
+
+        and: 'the same tournament is removed'
+        tournamentFunctionalities.removeTournament(tournamentDto.getAggregateId())
+
+        then: 'all four operations complete'
+        noExceptionThrown()
+
+        when: 'the removed tournament is queried'
+        tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+
+        then: 'the tournament no longer exists'
+        def error = thrown(SimulatorException)
+        error.errorMessage == SimulatorErrorMessage.AGGREGATE_NOT_FOUND
+    }
+
 
     @TestConfiguration
     static class LocalBeanConfiguration extends BeanConfigurationSagas {}

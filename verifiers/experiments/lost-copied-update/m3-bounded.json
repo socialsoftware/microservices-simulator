@@ -1,0 +1,30 @@
+{
+  "runtime": "verifiers/target/lost-copied-update/integration-03/runtime.json",
+  "package": "verifiers/target/lost-copied-update/generated-positive-qualification-01/package",
+  "cases": [
+    {
+      "label": "forward-stale",
+      "candidate": {
+        "id": "bcf5758ce8d4d9f6479967c553af3c780d03f1e35fd38703daf24c7324ab753c",
+        "workload": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4",
+        "faultVector": "0000000"
+      }
+    },
+    {
+      "label": "forward-fresh-control",
+      "candidate": {
+        "id": "ec628a3dee2caf2afcab7337eb108a241c38b1e68dfb0bf1599632679d98ca3b",
+        "workload": "09012cdb7635d5e9fa5f0c805077456689fb1174382f68f45041eb91171a8bf7",
+        "faultVector": "0000000"
+      }
+    },
+    {
+      "label": "recovery-stale",
+      "candidate": {
+        "id": "0890a9eaad73b2047b7f38798388237e2c763202edcc2177fc16a4f2523c5f3b",
+        "workload": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+        "faultVector": "0000010"
+      }
+    }
+  ]
+}

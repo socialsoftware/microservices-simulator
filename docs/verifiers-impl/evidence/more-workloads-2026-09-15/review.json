@@ -1,0 +1,42 @@
+{
+  "status": "PASS",
+  "freshAttemptsVerified": 22,
+  "uniqueAttemptIds": 22,
+  "reportHashesVerified": 132,
+  "randomFitnessRecomputed": 12,
+  "randomDuplicateKeys": 0,
+  "randomScoreDistribution": {
+    "2.0": 2,
+    "0.0": 4,
+    "None": 5,
+    "1.0": 1
+  },
+  "exactDomainsVerified": [
+    {
+      "workload": "1694f798cb8b3e41f04c2b2e9794ddb96441e873b1f88ecd7d38ff3d75454791",
+      "distinctCandidates": 23,
+      "canonicalVectors": 18
+    },
+    {
+      "workload": "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311",
+      "distinctCandidates": 36,
+      "canonicalVectors": 18
+    },
+    {
+      "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+      "distinctCandidates": 5184,
+      "canonicalVectors": 216
+    },
+    {
+      "workload": "090c5ee7a2cd61085a06b962331cf0c74f4126119335218c31c754313ef2e3b9",
+      "distinctCandidates": 52,
+      "canonicalVectors": 36
+    },
+    {
+      "workload": "006abb88f1dce4a84f3cbd07a42752849d0bfc5a773611577d814d4eb7bcaac5",
+      "distinctCandidates": 3984,
+      "canonicalVectors": 216
+    }
+  ],
+  "applicationTestSummary": "application-test-summary.json"
+}

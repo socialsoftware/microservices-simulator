@@ -1,0 +1,4968 @@
+{
+  "kind": "OFFLINE_RESCORE",
+  "newApplicationExecutions": 0,
+  "policies": {
+    "combined": {
+      "policy": "weighted-criteria-v1",
+      "weights": {
+        "COMPENSATED_READ_EXPOSURE": 1,
+        "DELETED_DEPENDENCY": 1,
+        "FAILED_OPERATION_RESIDUAL": 1,
+        "UNRESOLVED_DELIVERED_EVENT": 1
+      }
+    },
+    "legacy": {
+      "policy": "complete-impact-v2-object-count"
+    },
+    "persistent": {
+      "policy": "weighted-criteria-v1",
+      "weights": {
+        "COMPENSATED_READ_EXPOSURE": 0,
+        "DELETED_DEPENDENCY": 1,
+        "FAILED_OPERATION_RESIDUAL": 1,
+        "UNRESOLVED_DELIVERED_EVENT": 1
+      }
+    },
+    "read-only": {
+      "policy": "weighted-criteria-v1",
+      "weights": {
+        "COMPENSATED_READ_EXPOSURE": 1,
+        "DELETED_DEPENDENCY": 0,
+        "FAILED_OPERATION_RESIDUAL": 0,
+        "UNRESOLVED_DELIVERED_EVENT": 0
+      }
+    }
+  },
+  "referenceSha256": "04fa54a351504170ba1c717561e6c603131b1b08c8b5ffe72cdb4d1516dfa039",
+  "rows": [
+    {
+      "A": 0,
+      "I": 2,
+      "key": "098c3687b26f97f7231c66779c55b58516c18c8ba5916e4a5ffa876d0ec6aff7",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "cd9b828d67d1be6a36442ef42b51cc1fc06e9daacc55c0838f4a3db609765bd1",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-005/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "1049dc8f94dac0e8e39388fbe00befff0af28263513c7508de01df2cac7a1c16",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "4840cef7eba66575d842dc2eb72dc34a5de0adfe292f371fe069c8a923277550",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-001/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "10fb5221df649b8498222670e2fc39dd04e704cbd6b07ec90d19a0c0fbb78a2c",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "19ea1ed87b314d39bda517108b73c35028db043b6194d79493debb2767794339",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-012/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "125b9b890265ae2b35e5eea909c37ccddf76d7288cf8e091281e8a765ab23f43",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "206a8207c053be767ce9b55be0a791d997aaa00fa16e6ba968e619eb0a2c207c",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-004/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "1bcddbe55cb3597d40cb08b255660ae9c9b3e61fa37e6a7f2d98c200059a9cfc",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "42afee5b8cf177b5a833e94f6c44a5a5dd8389015332719f397c8f2101e707aa",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-011/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "2ddf14c40349c3d0c1ebb249300d7ad8c3ee428c080dbe4dd70b0ac8042bd360",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "332467c2a8579d145b5737845b1a6406ed0d2bc54d591478b7fc9463b24a15ae",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-011/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "383db5b05a8fc93fde4a5d7912e087d2921d1aa6db0361f6e6d873b7de7dcd04",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "e43c8c65357f0192defa82bfca7ed5062f5f4aa41b61ad8967845e45cfcea0fe",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-11/attempt-012/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "40899ee3677e22bc6ece862259e9a9023ea3a2a51404c6e6414fb9d16044f340",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "635321e988e87a99916af59ab8a8acd122011e66a903587a0520c5167fee0340",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-010/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "50fdd207c40f8d2fe1560f2c1cd17440fdada7f11c36b35316df8f35d372d657",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "203c3c0fd03024edd398c139a334cc7438ae0d7c92f10f521d2347085a442048",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-002/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "655f2ef09aa26ba384e149f34a33bcc3b370796e22bba5bf32f5104b16c4991d",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "9de14e0f4c25911dcb3e1ba43feeb24baadc8173b453d86fba025eb2bc378fee",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-008/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "6dcff68ef48da5ccb38632bad025f81a278072141b4113322431d628a532a7e9",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "8be235cd9b429cba78aba87dcdda3dd4c0a0a015c9baa50660a3508682a91d74",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-005/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "7ddcbfc53961d458f06eca396f659d0bde06a5991fa84be008e5888f8d3f9dcf",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "fa96f5b181f6c234630b32a1b2482b8bf6115b7c21b5c753cb80bd3a5512eac8",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-003/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "7f3fd8569b1c42101b5457d4018d67080fb96e139f6c9a85dc134f6f059a40a5",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "060c8f57baa0c24d2797d6e35014260f1c030419a183429830369fd91426e33b",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-012/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "8a2e86bcc58c91a47f68afab03059f813fb8ba4bffce8439686556f3f73421a4",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "25452c7bbbfc6a2afbbaaca26ec44a52664721fe5d5fce56a84cd7f3ef92208f",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-002/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "8d925d4054a52e98e31f69381a8fee54b2660c6025a5cda6918d89b489ef30f4",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "748cf55c5c8f7513d5186a24a168f0de7ab2b283200e947f3f4acf98cbdd3885",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-009/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "8ed29534107bb5b89e0b408f4d1d5315c1d61804541dc23f968507db41363f4d",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "84f584f2b89937e63280bcbfa12eb641935463c79151f768dbe9e0ac23d5585e",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-001/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "9fa38c0813642f5ea2bb4315efaa15e05733364716a0ef94501dd9a28a930eb2",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "5ae1646c0419475f76fe9814b60bbd605aec415dba8bdd8ac9504c9a8b890a83",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-009/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "a030f2a34266a15a1f0235790cda4dbc5b6f25f2549f39c3f8b056cfdfeb50f9",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "9c0bed38cf35cc4ead3e1c4778c1926e6655adaeee642bda3eccf2b31bcca042",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-11/attempt-001/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "a4e5ac985a363b3ba6d79752102084d32818a787ae1d0004c5d947b3e71ddaa8",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "76bc84eb423ec3f7a99ae88b66796e89c27f31b077bf0d37ec000587c870bf98",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-004/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "a5003b0d6ecc1e78583ede6f85c4b1a0c588ec45658b02400a0e24a8f8eaf7dc",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "37335f1a741fb1f29162abde9c36048a09e390aac3c1069978c2d0554c62794d",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-003/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "b500a42ba7121bfccbc88eee60291bb0d82b9b8e95ef818ce6c1c9f59e7247d4",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "e48e6af5db802dcdaefb0ad678793fa516e6370f21a0b53ee17ea2c010d64e4a",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-005/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "b6031d29f2062382179b076a58d649e38b60193a44b73c36c1ac8c0772ec315e",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "7056b38de4a085c3ff0d6c3a18952ca07eb51d82f73190f2bedaa71c9a1d3498",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-008/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "bd913199f08e0b0a81402a58380858cdf9c28eb255334a82f60d4ac35db7f89f",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "6430b15ab5c7aad2f9f32e2e520c893c6e5677186442a95134523adfb2224035",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-007/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "c00cf348adbca7858e37b7ef42e4d105aef6c53d1d9e9d7e3e739b367b1cbee9",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "491c1eb2489a54f700077fa135815be513dd153bfa706a4fdc2bd61ae0a3a3e4",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-006/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "c2db7563622ff63d71b4b2c5afa16747eba7765a0404d43c642655553a1b7f8f",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "88a8bad8a797063b8b228709f1db14765df35b554555ae5c451aeeb8d9034d35",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-007/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "d999324acd8a59517d9636511cafd0a27250f9180cf221f765dc026305ffffe8",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "d61f4062b6a27db6d909a709bd9d8f850d4e42be1917853b8249f0c43f85c692",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-003/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "dfc871401062fc13a81bf55e2754f2628077fd63e8b8687f6ea9779cca48124d",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "b9da8f387754bd915446bec70d888b5ccf3a8a169966741e3d60589909115574",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/random-29/attempt-006/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "key": "ef332ecbf1811ebce6112fa8a88833e0351b3c18354dad887d34e97095fd118b",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "61a11ad1de1829f0247d9d0b5f6c4ff9ba71202d76a63fbefd003c1f21c6f446",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/qualification-01/ga-29/attempt-010/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 2,
+      "key": "f27e2f382dfa841505189b73eb7d06b8f6535f2dae2764de4744633519648643",
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "sha256": "c16f1ae82bdce82b1d5f734740553058584fde3e8a05bdeb194e4471cc73f45b",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/fixed-workload-ga/discovery-01/map-completion/attempt-008/attempt.json"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "00-control-position-0",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "ce5bd0321a090b8959b71bc0006c7b2b1b3c16caf5735d20df182c899bf4ceb1",
+        "execution-report.impact.json": "53cecff8280772ba0a04bc761b997a47569b2d06d632c39df7a4e8a48d462088",
+        "execution-report.json": "51c5a1cf17b279728d06c806b042b5ccb3ffea2a37e3f73f7326671bdee898ea",
+        "execution-report.saga-read-exposure.json": "b44f9755f5c49fcc53dc07dd745a72911784a49a4cd9dcaab6aff9e296c57499"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/00-control-position-0"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "01-control-position-1",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "ba65fa31288d0a1897869b74cf09fb3b390abf8b95d56606ae1230dd824d9904",
+        "execution-report.impact.json": "a312f02461f456d26b84dc48045eb0bdaa30e15b9c90bfcb0976531198e8ec4b",
+        "execution-report.json": "9539945acaeedacafdf8bb380f60f3db2346a7ba2fd16c0fc00c55b12a1d4187",
+        "execution-report.saga-read-exposure.json": "7eed9a8180f14a862ede2b058afe46ef63927a79d2d632f4635581d46cbd817a"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/01-control-position-1"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "02-control-position-2",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "7536acfd45eee79fb223fa7262a9bdb9bef3b9604269b511283f7b3befc83e8e",
+        "execution-report.impact.json": "79f82ba7c40541ef28d41d175bdc1f0cc7e9a9c727cc749cb186d2919d0e9176",
+        "execution-report.json": "00002f5fefcbab7fbb4b6afcd20c2ab4927ddce907f0a8d96ec24eecb63ff2ae",
+        "execution-report.saga-read-exposure.json": "3f0ad8f3985b9bfc5890485d2a464f2deb0a9dce722452aabedb305ed509852c"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/02-control-position-2"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "03-control-position-3",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "46999f2768835b10430ddd74e67f95601bac37a15639f48d61f6948578a90f67",
+        "execution-report.impact.json": "9f360fcdf9822741b6d5aa10fbda01b4cbb0f39c72572af8dca77410ddd9924b",
+        "execution-report.json": "4d1fde9757606326c14692ac4f93b4aedae50040dd6f5b692bddb826707ad0ed",
+        "execution-report.saga-read-exposure.json": "c6143588b3199a0cd32529dbed98a57a11e66b275fd105e0dd22cc6ab3791be4"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/03-control-position-3"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "04-control-position-4",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "683368904aec9be7d1335d2febdca69aaf743723ae115936224481a883bac6e4",
+        "execution-report.impact.json": "fdb8208b78f59194d6f166b1a0e6ecbdd29a9142b6cb69a2a64ac57c2ad4d04c",
+        "execution-report.json": "0f8f46edced969e9ef7e4b0a97b8ff55a893b18fcf665c13a695c56eaa381c90",
+        "execution-report.saga-read-exposure.json": "1f05b64fbaeb5e6045cdf42dd4f7326ea88b844868348b7df51a80adf86cd193"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/04-control-position-4"
+    },
+    {
+      "A": 0,
+      "I": 0,
+      "label": "05-control-position-5",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "6409a55eecb63b782053debf5c1074d2ce521d86d993bf6234ebc3cdb7434eb5",
+        "execution-report.impact.json": "86cb93c946177425febbd27e72e6f0cfeb5cd754a662f2874ceee9f90de99e45",
+        "execution-report.json": "694f4fda3c254010a1c7527d901f5016ab36d0cda2733141f19c652159954fd9",
+        "execution-report.saga-read-exposure.json": "ca282dfd96034b22cb470de547064cdb540d51eb78d1c06700edd9c3b882515e"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/05-control-position-5"
+    },
+    {
+      "A": 0,
+      "I": 1,
+      "label": "06-fault-position-0",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "e6d1e5a30a3500970b0055220f1d9b9a5b49d3f4edb839f25be28804d3f68c8e",
+        "execution-report.impact.json": "9d93690f23d7c4fbbe4c07b3b46dabe45a96aa9689a73d992019fc53f2d5d61c",
+        "execution-report.json": "a9dc80cad6757715c1cf34cef70fc40350885c46da6501b35ff748d10ed257d2",
+        "execution-report.saga-read-exposure.json": "5496eab3a6b9dea34bee7c7d9036e58d01d2850b1705bdf3309d9b5ad08bbda7"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/06-fault-position-0"
+    },
+    {
+      "A": 0,
+      "I": 1,
+      "label": "07-fault-position-1",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "c5e415b40a463f94477bb64aa18129523421b71e4309202e8fbfb2f79bde05c4",
+        "execution-report.impact.json": "a0a268bc087272fe8d836bbb7ca5771dbda2127a6ef440c3b53fe85dd31b7483",
+        "execution-report.json": "21bbf12c0c5a4c12db03010cd617ed775219eff4716dbd2099704cc681f22e7b",
+        "execution-report.saga-read-exposure.json": "00d0a02d4cf238cfeed1f64f9fb8e3d883a968b2fcc5bde28ad8eef0bb4eb36f"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/07-fault-position-1"
+    },
+    {
+      "A": 0,
+      "I": 1,
+      "label": "08-fault-position-2",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "017764f0bf9f52fff06c246da8017fd596fc382dcb80bf8aeef010164cd22705",
+        "execution-report.impact.json": "ec91c708adefd2951e0e122ae951c3e4d0468b989237969574c096ed1966237f",
+        "execution-report.json": "ccc490445d71e37474d6486534330331d1170587d35490cff758a1639bd0a337",
+        "execution-report.saga-read-exposure.json": "121621241132278f5921f98c55e107d76aa9f277c5cd6be8de767882c8215450"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/08-fault-position-2"
+    },
+    {
+      "A": 1,
+      "I": 1,
+      "label": "09-fault-position-3",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "32d4b2a26779b411ad6bbbf3c888ce496bb253b9476b9ea92950c595b7b37be7",
+        "execution-report.impact.json": "670ffc33b42b8de88e939ca987875a96a78e90f4edb47d3e7305e5cc949f0d1f",
+        "execution-report.json": "afadff124a8416dcf1703d719afee23b729c27160f8a8bf16037057c42769ec2",
+        "execution-report.saga-read-exposure.json": "d5cb130f25a7ef77d0f8db30f28750fff26db045dae38aa7c1a1e23b06e44b2d"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/09-fault-position-3"
+    },
+    {
+      "A": 1,
+      "I": 1,
+      "label": "10-fault-position-4",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "4a3b541e7f954aa66dd88c38001c1d86ba05ff0a2412c281e8bb55a5b8eb8176",
+        "execution-report.impact.json": "43dfa65e8985bd03207f040648d2453d0e5ab042e36ae195bdca63d2a75721c5",
+        "execution-report.json": "eb31ce899e37dfa2cb4c386d0561e03723b82abd257e2090c134de8144f25ba6",
+        "execution-report.saga-read-exposure.json": "31edf961e4c0b773d143dda8f21697e8e3e46d804d66732b6495252551df9aa3"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/10-fault-position-4"
+    },
+    {
+      "A": 1,
+      "I": 1,
+      "label": "11-fault-position-5",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "11a90b74cff96bf1db3208ec91ec1c8b4dfe310ef2a0136f0764fad479dab35e",
+        "execution-report.impact.json": "40e94b93bc26da9c17e17c3eaff0860d89a55d4a4a5ced768260e795c1ea6fd2",
+        "execution-report.json": "9c9a46f227ce492af9b754b839130496221a47f7d4723e952959b79c54097ff6",
+        "execution-report.saga-read-exposure.json": "66a4482c717448e6e3e1e8f5fd40ccc62e98695e275c42bfb642265e718a0051"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 2.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 1
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/11-fault-position-5"
+    },
+    {
+      "A": 0,
+      "I": 1,
+      "label": "12-fault-position-5",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "aca03c5969d87102ea75be616b95af3d2c076cc8a8b12bec7d54e780e850586f",
+        "execution-report.impact.json": "a79cd8d2625ce86ad390719e4a9133f566e106d9deed8e4b01cda784691272a1",
+        "execution-report.json": "825acd3220379e6adec9e87736d798a74fdad6054e021a380517167b7fb8521b",
+        "execution-report.saga-read-exposure.json": "8b9e5d9838482a7cae297146398f494ee03ebcf8e048071f77e1de10b2a52433"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/12-fault-position-5"
+    },
+    {
+      "A": 0,
+      "I": 1,
+      "label": "13-fault-position-5",
+      "reportHashes": {
+        "execution-report.impact-v2.json": "50717e9f8248b9bf8796b009a7c712c20fefd09fdf062ad19cc11dfaad426793",
+        "execution-report.impact.json": "8fb636858a8407f71601a11e0ed4af63bc300d7f2ca675d0f9f6d7a3eac9fa84",
+        "execution-report.json": "ecba7ab850b328fec4c9903e4440e6c6c53778314dcce6304ab8aa79ac964d9d",
+        "execution-report.saga-read-exposure.json": "d607872a1426f3ab1743914d5c99d80356a96ae75e5abffb0f5d32d5b430318a"
+      },
+      "scores": {
+        "combined": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "legacy": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1,
+          "fitnessUnavailableReasons": []
+        },
+        "persistent": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 1.0,
+          "fitnessUnavailableReasons": []
+        },
+        "read-only": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 1,
+              "coverage": "COMPLETE",
+              "observedCount": 1
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        }
+      },
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01/13-fault-position-5"
+    }
+  ]
+}
