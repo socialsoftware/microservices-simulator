@@ -1,0 +1,52 @@
+{
+  "productionChange": {
+    "path": "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseObservation.java",
+    "sha256": "4dc3497e7bb1def903abc0497d6f8e88f9b6721d0e055fb18dd26463fa2a1a49"
+  },
+  "testsSource": {
+    "path": "simulator/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/messaging/local/LocalCommandGatewayReadResponseTest.java",
+    "sha256": "6086709e8588c9e2f9861fc4e59894f8a8d4871d303521644bf32609c155cbf9"
+  },
+  "comparisonSource": {
+    "path": "verifiers/experiments/saga-update-read/source-inputs/compare-read-scope.py",
+    "sha256": "5578000e68228790757cda71632dcf61f6defa74baac4c63ff05252d2645f25e"
+  },
+  "rawArtifactManifest": {
+    "path": "verifiers/target/saga-update-read/read-scope-01/artifact-hashes.json",
+    "sha256": "bbdc7e07f845c510c3b1eb5f1419aea24ace917601f04c436be4af248b66c9ad"
+  },
+  "newMatrix": {
+    "path": "docs/verifiers-impl/evidence/impact-anomaly-matrix-2026-09-10/matrix.json",
+    "sha256": "6cba82555c6c530999b7116097428a127ce12a3c27e0cc10d905bbd476936dcb"
+  },
+  "retainedArtifacts": [
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/comparison.json",
+      "sha256": "91b5484b637c36fc92455cddcf2ca7d5a91f1a68cfa8506ac939a48bfe20d285"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/execution-exit.json",
+      "sha256": "3e49b803137e9451f1a6fc0f0c246d9e61036fcbf91873fa17a843b5ef81c9fe"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/generation-exit.json",
+      "sha256": "9efe4f3c19e46c15f67520d551f5299b707d23b0ef7b1b03d0205ca71a580258"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/overlay.json",
+      "sha256": "f9a5b99a570f1072e432df84bf47824c035109ed3c3fcd3f407ff8ab28bf0ab4"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/provenance.json",
+      "sha256": "db2304b5e7678867a9e2f47907dc3bc179e65db9b904b03449ddd275ee202ae5"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/tests.json",
+      "sha256": "c9c8a1978cae777bbf76a670f53cd07744c410e194fd948530ad560c7f5f9c7f"
+    },
+    {
+      "path": "docs/verifiers-impl/evidence/read-scope-2026-09-10/validation.json",
+      "sha256": "d9d9ab8c4590f23185153845ae42b4c102b580bb4374008f737f28dc475a55de"
+    }
+  ]
+}

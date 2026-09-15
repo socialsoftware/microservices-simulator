@@ -1,0 +1,393 @@
+{
+  "before": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/source-input-02",
+  "after": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-update-read/read-scope-01",
+  "rows": [
+    {
+      "label": "00-control-position-0",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:11",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "8e7f2071f9bdc8448b1e9fc44ab4fd0842132361f576a4a7dbdcc1072c5f1a99",
+          "after": "51c5a1cf17b279728d06c806b042b5ccb3ffea2a37e3f73f7326671bdee898ea"
+        },
+        "execution-report.impact.json": {
+          "before": "ae837df85cf690dec0e0d0b28c14fee4f4efa5bd85ddf19ee72715da3d3bb090",
+          "after": "53cecff8280772ba0a04bc761b997a47569b2d06d632c39df7a4e8a48d462088"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "18ba5c30d6c1b64964f992efa56b20663b7e20a3f9a3c052b58677216fedc3ee",
+          "after": "ce5bd0321a090b8959b71bc0006c7b2b1b3c16caf5735d20df182c899bf4ceb1"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "867b24bde637ab47e7b8442157acfce790a0c44e0dc9f76b84cd6a8df1f167f7",
+          "after": "b44f9755f5c49fcc53dc07dd745a72911784a49a4cd9dcaab6aff9e296c57499"
+        }
+      }
+    },
+    {
+      "label": "01-control-position-1",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:11",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "ad406a610cf020502a08c47e9b1816223e24f335b26102785f3c51a6db91c861",
+          "after": "9539945acaeedacafdf8bb380f60f3db2346a7ba2fd16c0fc00c55b12a1d4187"
+        },
+        "execution-report.impact.json": {
+          "before": "67458fe8d0e0af54fd3dc515fc085f339c1c3a9d2f038ded8f1cd7bcbab5baac",
+          "after": "a312f02461f456d26b84dc48045eb0bdaa30e15b9c90bfcb0976531198e8ec4b"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "988a7e4bb4edf21770016883d11fc34f5ae8bcbf7044ed5a22e3565c6560968d",
+          "after": "ba65fa31288d0a1897869b74cf09fb3b390abf8b95d56606ae1230dd824d9904"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "373f63a57165e32b6f37358846a998689a4a3e2f45a7edf934e03e3a470f2100",
+          "after": "7eed9a8180f14a862ede2b058afe46ef63927a79d2d632f4635581d46cbd817a"
+        }
+      }
+    },
+    {
+      "label": "02-control-position-2",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:11",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "a7b444182f1d06275fdfee5169c29a074df0e26a449024ae9b6b2282e06c1687",
+          "after": "00002f5fefcbab7fbb4b6afcd20c2ab4927ddce907f0a8d96ec24eecb63ff2ae"
+        },
+        "execution-report.impact.json": {
+          "before": "4204a57dc7d59a9b319c354e9f3998b88455ae0c239e9307f569d40f5dddad15",
+          "after": "79f82ba7c40541ef28d41d175bdc1f0cc7e9a9c727cc749cb186d2919d0e9176"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "f1fe5f99f3043ccc2720b1fa737c9cdb40be139a0fa2ae59f5b07b50cc8e9bb6",
+          "after": "7536acfd45eee79fb223fa7262a9bdb9bef3b9604269b511283f7b3befc83e8e"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "53eeda1415935347706b857de1743354b3362cdeac99e7c9d6a77ff115d619ed",
+          "after": "3f0ad8f3985b9bfc5890485d2a464f2deb0a9dce722452aabedb305ed509852c"
+        }
+      }
+    },
+    {
+      "label": "03-control-position-3",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:11",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "436dae40e57bacf5834e1d9f6bcba45b0c9a9f3187e51a79051bf5a808fcf99a",
+          "after": "4d1fde9757606326c14692ac4f93b4aedae50040dd6f5b692bddb826707ad0ed"
+        },
+        "execution-report.impact.json": {
+          "before": "8f42eb91d5eadb3085bf52380451b869e7f29519b8be885c4f2a6960c3de14f3",
+          "after": "9f360fcdf9822741b6d5aa10fbda01b4cbb0f39c72572af8dca77410ddd9924b"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "f99901da627beeacf5d3ccb31d2fb5524857c6d9fad392228552cd3d372c6ae5",
+          "after": "46999f2768835b10430ddd74e67f95601bac37a15639f48d61f6948578a90f67"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "27d541157be3a98497c7b331cc85c4ac6f4cc80c9ae4e80d55545d8ad29afd98",
+          "after": "c6143588b3199a0cd32529dbed98a57a11e66b275fd105e0dd22cc6ab3791be4"
+        }
+      }
+    },
+    {
+      "label": "04-control-position-4",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:11",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "ef7135ffac1b0407c5055124ee38790f0414496b3fc5077343f43fadab1a294a",
+          "after": "0f8f46edced969e9ef7e4b0a97b8ff55a893b18fcf665c13a695c56eaa381c90"
+        },
+        "execution-report.impact.json": {
+          "before": "9c7feab5b67110a4ca8b8c66631aeed83cbee3d22c39e950aa0474a248301709",
+          "after": "fdb8208b78f59194d6f166b1a0e6ecbdd29a9142b6cb69a2a64ac57c2ad4d04c"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "71387dd07d6f1d4674ac7058c217c4510def6080ccb0e4572bc50467524412f6",
+          "after": "683368904aec9be7d1335d2febdca69aaf743723ae115936224481a883bac6e4"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "4826927c32e45f3cdfe7d2bfc2515a8e53429b00a7b63df53962e979f966d4eb",
+          "after": "1f05b64fbaeb5e6045cdf42dd4f7326ea88b844868348b7df51a80adf86cd193"
+        }
+      }
+    },
+    {
+      "label": "05-control-position-5",
+      "oldCoverage": "PARTIAL",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [
+        {
+          "callId": "ATTEMPT:call:10",
+          "command": "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand"
+        }
+      ],
+      "hashes": {
+        "execution-report.json": {
+          "before": "f151a3dbe1822b4cfc2bc173a3fbd70868765612cab35b0f2ec3bc94703a8745",
+          "after": "694f4fda3c254010a1c7527d901f5016ab36d0cda2733141f19c652159954fd9"
+        },
+        "execution-report.impact.json": {
+          "before": "043c51f871d8252f57f7c899969c9ba00137b23c87ee2725abb5cc9bea258649",
+          "after": "86cb93c946177425febbd27e72e6f0cfeb5cd754a662f2874ceee9f90de99e45"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "61d2a2f6e6441d7183ccf94dc53569a89a8e8e3113ed4c807ad6d525c821b2c3",
+          "after": "6409a55eecb63b782053debf5c1074d2ce521d86d993bf6234ebc3cdb7434eb5"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "29148c3e821899d805e3ef85087aa054ed87d623b36d6596a67f20715ace0b58",
+          "after": "ca282dfd96034b22cb470de547064cdb540d51eb78d1c06700edd9c3b882515e"
+        }
+      }
+    },
+    {
+      "label": "06-fault-position-0",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "da7b1e2aa3396b41c42c498f655a39b8cebeccacfbca5e8bc725954b6639f539",
+          "after": "a9dc80cad6757715c1cf34cef70fc40350885c46da6501b35ff748d10ed257d2"
+        },
+        "execution-report.impact.json": {
+          "before": "25d900e484aa0191974dbf62235df9900ee10456e4973da8dcfd27424474e4b8",
+          "after": "9d93690f23d7c4fbbe4c07b3b46dabe45a96aa9689a73d992019fc53f2d5d61c"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "264cd9520643b8cdd9d2cee89cda2b15d3a4b6f169e34bd015eec637fdadcf42",
+          "after": "e6d1e5a30a3500970b0055220f1d9b9a5b49d3f4edb839f25be28804d3f68c8e"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "e82983cde48d0afea774df56c606739d178f8ba1d5183da33e58a4a45048e78f",
+          "after": "5496eab3a6b9dea34bee7c7d9036e58d01d2850b1705bdf3309d9b5ad08bbda7"
+        }
+      }
+    },
+    {
+      "label": "07-fault-position-1",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "053168dcd55d98a2107e71f74cdab1da8d2b23c28433d61368f669d81ccca520",
+          "after": "21bbf12c0c5a4c12db03010cd617ed775219eff4716dbd2099704cc681f22e7b"
+        },
+        "execution-report.impact.json": {
+          "before": "5c1aeafcd613d89945302f082adc90be830519f2e064c36bbbae48d9311fc50e",
+          "after": "a0a268bc087272fe8d836bbb7ca5771dbda2127a6ef440c3b53fe85dd31b7483"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "34e276ed471f0b0a0c9deeab36ca0b8c97c314a307b2c7665ef425793bbfdcaf",
+          "after": "c5e415b40a463f94477bb64aa18129523421b71e4309202e8fbfb2f79bde05c4"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "c9d8ed8c3003704c8e8c4b178eb23b78b301fac2622f743667f3d3ffab26aea3",
+          "after": "00d0a02d4cf238cfeed1f64f9fb8e3d883a968b2fcc5bde28ad8eef0bb4eb36f"
+        }
+      }
+    },
+    {
+      "label": "08-fault-position-2",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "6ade260a577941726fa6ce5ff8b98f8ba190ba3b4d34a58d0a72efa07ae0c9e9",
+          "after": "ccc490445d71e37474d6486534330331d1170587d35490cff758a1639bd0a337"
+        },
+        "execution-report.impact.json": {
+          "before": "6553081d0d4900834185890f323709c2b5380b1b8314fd061d4729e2a3e103d6",
+          "after": "ec91c708adefd2951e0e122ae951c3e4d0468b989237969574c096ed1966237f"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "0777201eb75f2ec9917d9eb60074c79bad627647057e935b56dda6304ae625a2",
+          "after": "017764f0bf9f52fff06c246da8017fd596fc382dcb80bf8aeef010164cd22705"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "086269f22d16fd37a50df628d7ad6618f427b390afd9e49ae23e9d66e107b900",
+          "after": "121621241132278f5921f98c55e107d76aa9f277c5cd6be8de767882c8215450"
+        }
+      }
+    },
+    {
+      "label": "09-fault-position-3",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 1,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "4d04654b5a6810d39412c2481994a0fcb069204d7cb21e32d33b4087353aabec",
+          "after": "afadff124a8416dcf1703d719afee23b729c27160f8a8bf16037057c42769ec2"
+        },
+        "execution-report.impact.json": {
+          "before": "fd948a1a3de2bdf0442f45ab049ed2935766cffd063e2c2219c31687e85a76fd",
+          "after": "670ffc33b42b8de88e939ca987875a96a78e90f4edb47d3e7305e5cc949f0d1f"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "5a585e1b1a543ed2085097c63d6c0a1c135ee49385dd5e47422210aec9797630",
+          "after": "32d4b2a26779b411ad6bbbf3c888ce496bb253b9476b9ea92950c595b7b37be7"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "3ca1bc37a99ada6f16efff94fcdd4052217f730beb252a5a4202cbf883d7fffa",
+          "after": "d5cb130f25a7ef77d0f8db30f28750fff26db045dae38aa7c1a1e23b06e44b2d"
+        }
+      }
+    },
+    {
+      "label": "10-fault-position-4",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 1,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "a3a88c6545f6f94c3e891d9ca1dc4edf9e33e9b27ebc5cbf4ec4b0c155566753",
+          "after": "eb31ce899e37dfa2cb4c386d0561e03723b82abd257e2090c134de8144f25ba6"
+        },
+        "execution-report.impact.json": {
+          "before": "6d655648b6a2413cc10dd5dc92fd03a993f677ba5409ec001b464e00bdcf1cd5",
+          "after": "43dfa65e8985bd03207f040648d2453d0e5ab042e36ae195bdca63d2a75721c5"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "9b58783c1a2ca79be4758a2b8c5ff54fbc2f6e795ef9c641f1fdafd75a61320d",
+          "after": "4a3b541e7f954aa66dd88c38001c1d86ba05ff0a2412c281e8bb55a5b8eb8176"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "a78b0ec3392c8fb8572df8a853e760dd6a4331919ec5d4a3ce6783459ebc621b",
+          "after": "31edf961e4c0b773d143dda8f21697e8e3e46d804d66732b6495252551df9aa3"
+        }
+      }
+    },
+    {
+      "label": "11-fault-position-5",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 1,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "871daf3366673430447a5e9c978ab32d1e656333615a3dab100a24ee1bd9b027",
+          "after": "9c9a46f227ce492af9b754b839130496221a47f7d4723e952959b79c54097ff6"
+        },
+        "execution-report.impact.json": {
+          "before": "b63175e6e7bb6aa5a5c984b05acff79631fa7bb50c63719febc988b7b275f15f",
+          "after": "40e94b93bc26da9c17e17c3eaff0860d89a55d4a4a5ced768260e795c1ea6fd2"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "259025d78b2c022c8df7391e8ebb5e13e6b628a6e3e20331eee3d55532ff15f1",
+          "after": "11a90b74cff96bf1db3208ec91ec1c8b4dfe310ef2a0136f0764fad479dab35e"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "b6db750cd3f77ff933b871cf543bb678aa8927f59cac2bfb0235a483402059ac",
+          "after": "66a4482c717448e6e3e1e8f5fd40ccc62e98695e275c42bfb642265e718a0051"
+        }
+      }
+    },
+    {
+      "label": "12-fault-position-5",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "362dc47fa3c3d142f922e8bbed708ab04701566213a181b3adc77033931babe1",
+          "after": "825acd3220379e6adec9e87736d798a74fdad6054e021a380517167b7fb8521b"
+        },
+        "execution-report.impact.json": {
+          "before": "d63f8cdf8c8ae6e6e4a969e2e2a71802b6af51eddc6076f6df48f98091abadca",
+          "after": "a79cd8d2625ce86ad390719e4a9133f566e106d9deed8e4b01cda784691272a1"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "98f365f3d8efebacd1da6887c1b68a77593cfc2ac77efeb96e5b36e758e239ba",
+          "after": "aca03c5969d87102ea75be616b95af3d2c076cc8a8b12bec7d54e780e850586f"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "937b8f9c22cd29079edfb6486170fc8b41ede9d41c66290252fcc688c387d1e9",
+          "after": "8b9e5d9838482a7cae297146398f494ee03ebcf8e048071f77e1de10b2a52433"
+        }
+      }
+    },
+    {
+      "label": "13-fault-position-5",
+      "oldCoverage": "COMPLETE_WITHIN_SCOPE",
+      "newCoverage": "COMPLETE_WITHIN_SCOPE",
+      "observedExposureCount": 0,
+      "changedCalls": [],
+      "hashes": {
+        "execution-report.json": {
+          "before": "4795e98a83493bdc7b69fec80e757da96be8c1cba5355e922539740ad8095847",
+          "after": "ecba7ab850b328fec4c9903e4440e6c6c53778314dcce6304ab8aa79ac964d9d"
+        },
+        "execution-report.impact.json": {
+          "before": "ebbd558bd9aef47b0471e3c2c8a8ace354015c216304ee1d47b0c39b92bee6f4",
+          "after": "8fb636858a8407f71601a11e0ed4af63bc300d7f2ca675d0f9f6d7a3eac9fa84"
+        },
+        "execution-report.impact-v2.json": {
+          "before": "c25aebb38298b91a6278224ddad71fbc0e1233ba8a7fd361a35c8adcfd30c6ac",
+          "after": "50717e9f8248b9bf8796b009a7c712c20fefd09fdf062ad19cc11dfaad426793"
+        },
+        "execution-report.saga-read-exposure.json": {
+          "before": "2d48c304d10eeac49e31cc34df2170761604a1842fcfa81114734d6731ad181b",
+          "after": "d607872a1426f3ab1743914d5c99d80356a96ae75e5abffb0f5d32d5b430318a"
+        }
+      }
+    }
+  ],
+  "matchedReportPairs": 42,
+  "normalization": [
+    "exact execution-attempt ID",
+    "sourceSetup.durationNanos",
+    "sourceSetup.participantBindings TournamentDto default Object.toString identity"
+  ],
+  "packageByteIdentical": true
+}

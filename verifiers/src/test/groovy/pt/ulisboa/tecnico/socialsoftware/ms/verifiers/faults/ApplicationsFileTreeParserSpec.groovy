@@ -93,6 +93,7 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.item.commandHandler.HelperMarkChangedItemCommandHandler',
             'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas',
             'com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade',
+            'com.example.dummyapp.diagnostics.ReadResponseFixture',
         ] as Set)
 
         and:
@@ -216,6 +217,7 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.item.commandHandler.HelperMarkChangedItemCommandHandler',
             'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas',
             'com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade',
+            'com.example.dummyapp.diagnostics.ReadResponseFixture',
         ] as Set)
     }
 }

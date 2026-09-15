@@ -298,7 +298,8 @@ public final class ScenarioCatalogPackageReader {
         if (value == null || value.isNull()) return null;
         if (value.isTextual()) return value.asText();
         if (value.isBoolean()) return value.asBoolean();
-        if (value.isIntegralNumber()) return value.canConvertToInt() ? value.asInt() : value.asLong();
+        // Preserve Jackson's Integer/Long/BigInteger representation without numeric promotion.
+        if (value.isIntegralNumber()) return value.numberValue();
         if (value.isFloatingPointNumber()) return value.decimalValue();
         return value;
     }
@@ -383,7 +384,8 @@ public final class ScenarioCatalogPackageReader {
                 yield new SetupValueRecipe(SetupValueKind.LITERAL, null, currentLiteralKind(value.get("value")),
                         scalar, null, List.of(), List.of(), List.of(), null, null, null, List.of());
             }
-            case "result" -> SetupValueRecipe.actionResult(value.path("action").asText(), null);
+            case "result" -> SetupValueRecipe.actionResult(value.path("action").asText(), null,
+                    currentSetupAssignments(value.path("fields")));
             case "property", "resultProperty" -> SetupValueRecipe.actionProperty(value.path("action").asText(), value.path("property").asText(), null);
             case "collection" -> {
                 List<SetupValueRecipe> elements = new ArrayList<>();
@@ -406,6 +408,17 @@ public final class ScenarioCatalogPackageReader {
                     currentSetupValue(value.path("receiver")), null, null, List.of());
             default -> new SetupValueRecipe(SetupValueKind.LITERAL, null, "blocked", null, null, List.of(), List.of(), List.of(), null, null, null, List.of(value.path("reason").asText("UNRESOLVED_SETUP_VALUE")));
         };
+    }
+
+    private List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPropertyAssignment>
+    currentSetupAssignments(JsonNode fields) {
+        List<pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPropertyAssignment> assignments = new ArrayList<>();
+        if (fields == null || fields.isMissingNode()) return List.of();
+        if (!fields.isObject()) throw new IllegalArgumentException("setup result fields must be an object");
+        fields.fields().forEachRemaining(entry -> assignments.add(
+                new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPropertyAssignment(
+                        assignments.size(), entry.getKey(), currentSetupValue(entry.getValue()), List.of())));
+        return List.copyOf(assignments);
     }
 
     private WorkloadPlan currentWorkload(JsonNode workload, Map<String, InputVariant> inputs,

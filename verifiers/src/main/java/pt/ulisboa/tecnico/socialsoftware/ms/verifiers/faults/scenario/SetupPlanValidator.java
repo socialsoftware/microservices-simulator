@@ -190,6 +190,8 @@ public final class SetupPlanValidator {
                         return;
                     }
                     actualType = "java.lang.Integer";
+                } else if (!value.assignments().isEmpty()) {
+                    validateAssignments(value, actualType, actionsById, referenceBoundary, diagnostics);
                 }
                 if (!compatible(actualType, value.declaredTypeFqn())
                         || !compatible(actualType, expectedType)) {
@@ -204,18 +206,7 @@ public final class SetupPlanValidator {
                     diagnostics.add(new Diagnostic("UNSUPPORTED_SETUP_CONSTRUCTOR", String.valueOf(value.targetTypeFqn())));
                     return;
                 }
-                Set<String> assigned = new HashSet<>();
-                for (int index = 0; index < value.assignments().size(); index++) {
-                    SetupPropertyAssignment assignment = value.assignments().get(index);
-                    String propertyType = assignment == null ? null : properties.get(assignment.propertyName());
-                    if (assignment == null || assignment.orderIndex() != index || propertyType == null
-                            || !assigned.add(assignment.propertyName())) {
-                        diagnostics.add(new Diagnostic("UNSUPPORTED_SETUP_ASSIGNMENT", String.valueOf(assignment)));
-                        continue;
-                    }
-                    assignment.blockers().forEach(blocker -> diagnostics.add(new Diagnostic("SETUP_ASSIGNMENT_BLOCKER", blocker)));
-                    validateValue(assignment.value(), propertyType, actionsById, referenceBoundary, diagnostics);
-                }
+                validateAssignments(value, value.targetTypeFqn(), actionsById, referenceBoundary, diagnostics);
             }
             case LIST, SET -> {
                 boolean list = value.kind() == SetupValueKind.LIST;
@@ -268,7 +259,7 @@ public final class SetupPlanValidator {
                     || value.receiver() == null || value.actionId() != null || value.propertyName() != null;
             case ACTION_RESULT -> value.literalKind() != null || value.literalValue() != null
                     || value.targetTypeFqn() != null || !value.constructorArguments().isEmpty()
-                    || !value.assignments().isEmpty() || !value.elements().isEmpty()
+                    || !value.elements().isEmpty()
                     || value.receiver() != null || value.actionId() == null || value.propertyName() != null;
             case ACTION_RESULT_PROPERTY -> value.literalKind() != null || value.literalValue() != null
                     || value.targetTypeFqn() != null || !value.constructorArguments().isEmpty()
@@ -277,6 +268,31 @@ public final class SetupPlanValidator {
         };
         if (invalid) {
             diagnostics.add(new Diagnostic("MALFORMED_SETUP_VALUE_SHAPE", value.kind().name()));
+        }
+    }
+
+    private void validateAssignments(SetupValueRecipe value,
+                                     String targetType,
+                                     Map<String, SetupAction> actionsById,
+                                     int referenceBoundary,
+                                     List<Diagnostic> diagnostics) {
+        Map<String, String> properties = targetType == null ? null : DTO_PROPERTIES.get(targetType);
+        if (properties == null) {
+            diagnostics.add(new Diagnostic("UNSUPPORTED_SETUP_MUTATION_TARGET", String.valueOf(targetType)));
+            return;
+        }
+        Set<String> assigned = new HashSet<>();
+        for (int index = 0; index < value.assignments().size(); index++) {
+            SetupPropertyAssignment assignment = value.assignments().get(index);
+            String propertyType = assignment == null ? null : properties.get(assignment.propertyName());
+            if (assignment == null || assignment.orderIndex() != index || propertyType == null
+                    || !assigned.add(assignment.propertyName())) {
+                diagnostics.add(new Diagnostic("UNSUPPORTED_SETUP_ASSIGNMENT", String.valueOf(assignment)));
+                continue;
+            }
+            assignment.blockers().forEach(blocker ->
+                    diagnostics.add(new Diagnostic("SETUP_ASSIGNMENT_BLOCKER", blocker)));
+            validateValue(assignment.value(), propertyType, actionsById, referenceBoundary, diagnostics);
         }
     }
 

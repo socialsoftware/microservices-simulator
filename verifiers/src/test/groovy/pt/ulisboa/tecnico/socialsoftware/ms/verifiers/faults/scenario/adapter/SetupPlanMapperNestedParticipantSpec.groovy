@@ -56,6 +56,116 @@ class SetupPlanMapperNestedParticipantSpec extends Specification {
         question.assignments()[1].value().elements()*.actionId() == ['setup-action-3']
     }
 
+    def 'returned dto mutations and nested aggregate ids retain exact producer identity'() {
+        given:
+        def returnedRecipe = new GroovyValueRecipe(GroovyValueKind.HELPER_CALL_RESULT, 'created', [],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RESOLVED, QUESTION, null, null, [
+                        assignment(0, 'title', literal("'updated title'"))
+                ]))
+        def exact = new GroovySourceValueReference('question-one', 'createQuestion', [])
+        def returnedArgument = new GroovyTraceArgument(0, 'mutated result', returnedRecipe, QUESTION, exact)
+        def idsRecipe = transform('toSet', collection('list', [
+                reference('topic-one', 'createTopic', ['aggregateId'])
+        ]))
+
+        when:
+        def plan = new SetupPlanMapper().map([
+                action('question-one', 'createQuestion', QUESTION),
+                action('topic-one', 'createTopic', TOPIC)
+        ], [
+                new SetupPlanMapper.ParticipantSource('mutated-question', [returnedArgument]),
+                participant('topic-ids', 'java.util.Set<java.lang.Integer>', idsRecipe)
+        ])
+
+        then:
+        new SetupPlanValidator().validate(plan).valid()
+        def mutated = plan.participantBindings().find { it.inputVariantId() == 'mutated-question' }.value()
+        mutated.kind() == SetupValueKind.ACTION_RESULT
+        mutated.actionId() == 'setup-action-1'
+        mutated.assignments()*.propertyName() == ['title']
+        mutated.assignments()*.value*.literalValue() == ['updated title']
+        def ids = plan.participantBindings().find { it.inputVariantId() == 'topic-ids' }.value()
+        ids.kind() == SetupValueKind.SET
+        ids.elements()*.kind() == [SetupValueKind.ACTION_RESULT_PROPERTY]
+        ids.elements()*.actionId() == ['setup-action-2']
+        ids.elements()*.propertyName() == ['aggregateId']
+    }
+
+    def 'returned dto mutation values fail closed on unavailable or mismatched producers'() {
+        given:
+        def returnedRecipe = new GroovyValueRecipe(GroovyValueKind.HELPER_CALL_RESULT, 'created', [],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RESOLVED, QUESTION, null, null, [
+                        assignment(0, 'title', reference(referencedOccurrence, referencedMethod, ['aggregateId']))
+                ]))
+        def exact = new GroovySourceValueReference('question-one', 'createQuestion', [])
+        def argument = new GroovyTraceArgument(0, 'mutated result', returnedRecipe, QUESTION, exact)
+
+        when:
+        def plan = new SetupPlanMapper().map([
+                action('question-one', 'createQuestion', QUESTION),
+                action('topic-one', 'createTopic', TOPIC)
+        ], [new SetupPlanMapper.ParticipantSource('mutated-question', [argument])])
+
+        then:
+        plan.participantBindings()[0].value().blockers() == [expectedBlocker]
+        !new SetupPlanValidator().validate(plan).valid()
+
+        where:
+        referencedOccurrence | referencedMethod  || expectedBlocker
+        'missing-topic'       | 'createTopic'     || 'UNRESOLVED_SETUP_SOURCE_REFERENCE:missing-topic'
+        'topic-one'           | 'createQuestion'  || 'MISMATCHED_SETUP_SOURCE_REFERENCE:topic-one'
+    }
+
+    def 'property projection ignores unrelated dto setters but rejects mutation of the projected property'() {
+        given:
+        def baseResult = new GroovyValueRecipe(GroovyValueKind.HELPER_CALL_RESULT, 'created', [],
+                new GroovyValueMetadata(GroovyValueResolutionCategory.RESOLVED, QUESTION, null, null, [
+                        assignment(0, mutatedProperty, literal(mutatedValue))
+                ]))
+        def propertyReference = new GroovySourceValueReference('question-one', 'createQuestion', ['aggregateId'])
+        def propertyRecipe = new GroovyValueRecipe(GroovyValueKind.PROPERTY_ACCESS, 'aggregateId', [baseResult],
+                GroovyValueMetadata.defaultMetadata(), propertyReference)
+        def argument = new GroovyTraceArgument(0, 'projected result property', propertyRecipe,
+                Integer.name, propertyReference)
+
+        when:
+        def plan = new SetupPlanMapper().map([action('question-one', 'createQuestion', QUESTION)], [
+                new SetupPlanMapper.ParticipantSource('projected-id', [argument])
+        ])
+        def value = plan.participantBindings()[0].value()
+
+        then:
+        value.kind() == expectedKind
+        value.blockers() == expectedBlockers
+
+        where:
+        mutatedProperty | mutatedValue      || expectedKind                          | expectedBlockers
+        'title'         | "'updated title'" || SetupValueKind.ACTION_RESULT_PROPERTY | []
+        'aggregateId'   | '999'             || SetupValueKind.LITERAL                | ['UNSUPPORTED_SETUP_RESULT_PROPERTY_MUTATION:[aggregateId]']
+    }
+
+    def 'property projection does not reinterpret authoritative constructor history as a returned dto mutation'() {
+        given:
+        def historical = constructor(QUESTION, [assignment(0, 'aggregateId', literal('41'))])
+        def propertyReference = new GroovySourceValueReference('question-one', 'createQuestion', ['aggregateId'])
+        def propertyRecipe = new GroovyValueRecipe(GroovyValueKind.PROPERTY_ACCESS, 'aggregateId', [historical],
+                GroovyValueMetadata.defaultMetadata(), propertyReference)
+        def argument = new GroovyTraceArgument(0, 'authoritative projected result', propertyRecipe,
+                Integer.name, propertyReference)
+
+        when:
+        def plan = new SetupPlanMapper().map([action('question-one', 'createQuestion', QUESTION)], [
+                new SetupPlanMapper.ParticipantSource('projected-id', [argument])
+        ])
+
+        then:
+        def value = plan.participantBindings()[0].value()
+        value.kind() == SetupValueKind.ACTION_RESULT_PROPERTY
+        value.actionId() == 'setup-action-1'
+        value.propertyName() == 'aggregateId'
+        value.blockers().isEmpty()
+    }
+
     def 'unresolved later and selected-target references remain blocked without value fallback'() {
         given:
         def recipe = constructor(QUIZ, [
@@ -171,10 +281,11 @@ class SetupPlanMapperNestedParticipantSpec extends Specification {
         new GroovyValueRecipe(GroovyValueKind.LOCAL_TRANSFORM, transform, [receiver])
     }
 
-    private static GroovyValueRecipe reference(String occurrence, String methodName) {
+    private static GroovyValueRecipe reference(String occurrence, String methodName,
+                                                List<String> propertyPath = []) {
         new GroovyValueRecipe(GroovyValueKind.UNRESOLVED_VARIABLE, methodName, [],
                 GroovyValueMetadata.defaultMetadata(),
-                new GroovySourceValueReference(occurrence, methodName, []))
+                new GroovySourceValueReference(occurrence, methodName, propertyPath))
     }
 
     private static GroovyValueRecipe literal(String text) {

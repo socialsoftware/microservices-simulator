@@ -57,20 +57,26 @@ final class SagaReadExposureAssessor {
             Decision decision = usable ? evaluate(call, index, validContracts, baselineCovered,
                     completeExecution, collectionGaps) : Decision.unknown(unavailable);
             String findingId = null;
-            if (decision.creation != null) {
-                Write creation = decision.creation;
-                Write deletion = decision.deletion;
+            if (decision.produced != null) {
+                Write produced = decision.produced;
+                Write recoveryWrite = decision.recovery;
                 String reader = call.observation().reader().sagaInstanceId();
-                findingId = "exposure:" + UUID.nameUUIDFromBytes((attemptId + "\n" + creation.id() + "\n"
-                        + deletion.id() + "\n" + reader).getBytes(StandardCharsets.UTF_8));
+                findingId = "exposure:" + UUID.nameUUIDFromBytes((attemptId + "\n" + decision.category + "\n"
+                        + produced.id() + "\n" + produced.revision().version() + "\n" + reader)
+                        .getBytes(StandardCharsets.UTF_8));
                 Finding previous = findings.get(findingId);
                 List<String> deliveries = new ArrayList<>(previous == null ? List.of() : previous.deliveryIds());
                 deliveries.add(call.id());
-                Action recovery = index.action(deletion.writer());
-                findings.put(findingId, new Finding(findingId, "OBSERVED", creation.revision().identity(),
-                        creation.revision().runtimeType(), creation.revision().version(), deletion.revision().version(),
-                        creation.writer().sagaInstanceId(), reader, creation.id(), deletion.id(),
-                        recovery.sourceScheduledStepId(), recovery.checkpointId(), deliveries));
+                Action recovery = index.action(recoveryWrite.writer());
+                boolean creation = "CREATION".equals(decision.category);
+                findings.put(findingId, new Finding(findingId, "OBSERVED", decision.category,
+                        produced.revision().identity(), produced.revision().runtimeType(),
+                        produced.revision().version(), recoveryWrite.revision().version(),
+                        produced.writer().sagaInstanceId(), reader, produced.id(), recoveryWrite.id(),
+                        recovery.sourceScheduledStepId(), recovery.checkpointId(), decision.restoredAttributes,
+                        decision.notRestoredAttributes, creation ? produced.revision().version() : null,
+                        creation ? recoveryWrite.revision().version() : null, creation ? produced.id() : null,
+                        creation ? recoveryWrite.id() : null, deliveries));
             }
             assessments.add(new Assessment(call.id(), decision.verdict, decision.reason, findingId));
             if ("UNKNOWN".equals(decision.verdict)) gaps.add(new Gap(call.order(), "ASSESSMENT", call.id(), decision.reason));
@@ -119,28 +125,43 @@ final class SagaReadExposureAssessor {
             return Decision.unknown("RETURNED_REVISION_UNATTRIBUTED");
         }
         if (producers.size() != 1) return Decision.unknown("AMBIGUOUS_REVISION_PRODUCER");
-        Write creation = producers.getFirst();
-        Revision revision = creation.revision();
+        Write produced = producers.getFirst();
+        Revision revision = produced.revision();
         if (!Objects.equals(revision.runtimeType(), read.contract().runtimeType()))
             return Decision.unknown("PERSISTENT_RUNTIME_TYPE_COLLISION");
-        Action producerAction = index.forwardAction(creation.writer());
-        if (producerAction == null) return Decision.unknown("PRODUCER_ACTION_UNPROVEN");
-        if (Objects.equals(creation.writer().sagaInstanceId(), read.reader().sagaInstanceId()))
+        Action producerAction = index.forwardAction(produced.writer());
+        if (producerAction == null) {
+            Action producingAction = index.action(produced.writer());
+            if (producingAction != null && "RECOVERY".equals(produced.writer().phase())
+                    && "COMPENSATION".equals(producingAction.kind()))
+                return Decision.negative("REVISION_PRODUCED_BY_RECOVERY");
+            return Decision.unknown("PRODUCER_ACTION_UNPROVEN");
+        }
+        if (Objects.equals(produced.writer().sagaInstanceId(), read.reader().sagaInstanceId()))
             return Decision.negative("SAME_SAGA_READER");
-        if (creation.order() >= call.order() || producerAction.actualPosition() >= readerAction.actualPosition())
+        if (produced.order() >= call.order() || producerAction.actualPosition() >= readerAction.actualPosition())
             return Decision.unknown("CREATION_DELIVERY_ORDER_UNPROVEN");
         if (!revision.frameworkMetadataAvailable()) return Decision.unknown("CREATION_PREDECESSOR_UNAVAILABLE");
-        if (revision.predecessorIdentity() != null || revision.predecessorVersion() != null
-                || !"ACTIVE".equals(revision.lifecycleState())) return Decision.unknown("NON_CREATION_EFFECT_OUT_OF_SCOPE");
+        if (!"ACTIVE".equals(revision.lifecycleState())) return Decision.unknown("NON_ACTIVE_FORWARD_EFFECT_OUT_OF_SCOPE");
+        if (index.committedBySaga.getOrDefault(produced.writer().sagaInstanceId(), List.of()).stream()
+                .anyMatch(action -> action.actualPosition() < readerAction.actualPosition()))
+            return Decision.negative("PRODUCER_COMPLETED_BEFORE_DELIVERY");
+        if (revision.predecessorIdentity() == null && revision.predecessorVersion() == null)
+            return evaluateCreation(call, index, baselineCovered, completeExecution, gaps, produced,
+                    revision, producerAction, readerAction);
+        if (revision.predecessorIdentity() == null || revision.predecessorVersion() == null)
+            return Decision.unknown("UPDATE_PREDECESSOR_UNAVAILABLE");
+        return evaluateUpdate(call, index, completeExecution, gaps, produced, revision, producerAction, readerAction);
+    }
+
+    private Decision evaluateCreation(Call call, Index index, boolean baselineCovered, boolean completeExecution,
+                                      List<Gap> gaps, Write creation, Revision revision,
+                                      Action producerAction, Action readerAction) {
         if (!baselineCovered) return Decision.unknown("BASELINE_ABSENCE_UNCOVERED");
         List<Write> objectWrites = index.byIdentity.getOrDefault(revision.identity(), List.of());
         if (!index.baselineByIdentity.getOrDefault(revision.identity(), List.of()).isEmpty()
                 || objectWrites.stream().anyMatch(write -> write.order() < creation.order()))
             return Decision.unknown("PRIOR_ABSENCE_NOT_ESTABLISHED");
-        if (index.committedBySaga.getOrDefault(creation.writer().sagaInstanceId(), List.of()).stream()
-                .anyMatch(action -> action.actualPosition() < readerAction.actualPosition()))
-            return Decision.negative("PRODUCER_COMPLETED_BEFORE_DELIVERY");
-
         List<Write> deleted = objectWrites.stream().filter(write -> write.revision() != null
                 && "DELETED".equals(write.revision().lifecycleState())).toList();
         if (deleted.stream().anyMatch(write -> write.order() < call.order() && directSuccessor(revision, write.revision())))
@@ -171,7 +192,83 @@ final class SagaReadExposureAssessor {
         Action recovery = index.action(deletion.writer());
         String recoveryGap = index.recoveryGap(recovery, producerAction, readerAction);
         if (recoveryGap != null) return Decision.unknown(recoveryGap);
-        return new Decision("OBSERVED", "READ_OF_CREATION_SUBSEQUENTLY_COMPENSATED", creation, deletion);
+        return Decision.observed("READ_OF_CREATION_SUBSEQUENTLY_COMPENSATED", "CREATION", creation, deletion,
+                List.of(), List.of());
+    }
+
+    private Decision evaluateUpdate(Call call, Index index, boolean completeExecution, List<Gap> gaps,
+                                    Write forward, Revision revision, Action producerAction, Action readerAction) {
+        if (!Objects.equals(revision.identity(), revision.predecessorIdentity()))
+            return Decision.unknown("UPDATE_PREDECESSOR_IDENTITY_MISMATCH");
+        List<Revision> predecessors = index.predecessors(forward);
+        if (predecessors.size() != 1) return Decision.unknown(predecessors.isEmpty()
+                ? "UPDATE_PREDECESSOR_UNAVAILABLE" : "AMBIGUOUS_UPDATE_PREDECESSOR");
+        Revision predecessor = predecessors.getFirst();
+        if (!Objects.equals(predecessor.runtimeType(), revision.runtimeType()))
+            return Decision.unknown("UPDATE_PREDECESSOR_RUNTIME_TYPE_MISMATCH");
+        if (predecessor.applicationAttributeFingerprints().isEmpty()
+                || revision.applicationAttributeFingerprints().isEmpty()
+                || !predecessor.applicationAttributeFingerprints().keySet()
+                .equals(revision.applicationAttributeFingerprints().keySet())
+                || gaps.stream().anyMatch(gap -> "BASELINE".equals(gap.stage())))
+            return Decision.unknown("APPLICATION_ATTRIBUTE_PROJECTION_INCOMPLETE");
+        List<String> changed = changedAttributes(predecessor, revision);
+        if (changed.isEmpty()) return Decision.negative("NO_APPLICATION_ATTRIBUTE_CHANGE");
+
+        List<Write> objectWrites = index.byIdentity.getOrDefault(revision.identity(), List.of());
+        List<Write> writesBeforeRead = objectWrites.stream().filter(write -> write.order() > forward.order()
+                && write.order() < call.order()).toList();
+        List<Write> recoveriesBeforeRead = writesBeforeRead.stream().filter(write -> directSuccessor(revision, write.revision())
+                && "ACTIVE".equals(write.revision().lifecycleState()) && write.writer() != null
+                && "RECOVERY".equals(write.writer().phase())
+                && Objects.equals(forward.writer().sagaInstanceId(), write.writer().sagaInstanceId())).toList();
+        if (!recoveriesBeforeRead.isEmpty()) return Decision.negative("RECOVERY_PRECEDES_DELIVERY");
+        if (!writesBeforeRead.isEmpty()) return Decision.unknown("INTERVENING_WRITER");
+        List<Write> later = objectWrites.stream().filter(write -> write.order() > call.order()
+                && "ACTIVE".equals(write.revision().lifecycleState())
+                && write.writer() != null && "RECOVERY".equals(write.writer().phase())
+                && Objects.equals(forward.writer().sagaInstanceId(), write.writer().sagaInstanceId())).toList();
+        if (later.isEmpty()) {
+            if (lostWrites(gaps, Long.MAX_VALUE)) return Decision.unknown("WRITE_COVERAGE_INCOMPLETE");
+            if (objectWrites.stream().anyMatch(write -> write.order() > call.order()))
+                return Decision.unknown("INTERVENING_WRITER");
+            return completeExecution ? Decision.negative("NO_SUBSEQUENT_COMPENSATING_UPDATE")
+                    : Decision.unknown("COMPENSATION_HORIZON_INCOMPLETE");
+        }
+        if (later.size() != 1) return Decision.unknown("AMBIGUOUS_COMPENSATING_UPDATE");
+        Write recovery = later.getFirst();
+        if (lostWrites(gaps, recovery.order())) return Decision.unknown("WRITE_COVERAGE_INCOMPLETE");
+        if (objectWrites.stream().anyMatch(write -> write.order() > forward.order() && write.order() < recovery.order()))
+            return Decision.unknown("INTERVENING_WRITER");
+        if (!directSuccessor(revision, recovery.revision()))
+            return Decision.unknown("DIRECT_UPDATE_RECOVERY_PREDECESSOR_UNPROVEN");
+        if (recovery.revision().applicationAttributeFingerprints().isEmpty()
+                || !predecessor.applicationAttributeFingerprints().keySet()
+                .equals(recovery.revision().applicationAttributeFingerprints().keySet()))
+            return Decision.unknown("APPLICATION_ATTRIBUTE_PROJECTION_INCOMPLETE");
+        if (!index.owned(recovery.writer())
+                || !Objects.equals(forward.writer().sagaInstanceId(), recovery.writer().sagaInstanceId())
+                || !"RECOVERY".equals(recovery.writer().phase()))
+            return Decision.unknown("UPDATE_COMPENSATION_AUTHOR_UNPROVEN");
+        Action recoveryAction = index.action(recovery.writer());
+        String recoveryGap = index.recoveryGap(recoveryAction, producerAction, readerAction);
+        if (recoveryGap != null) return Decision.unknown(recoveryGap);
+
+        List<String> restored = changed.stream().filter(attribute -> Objects.equals(
+                predecessor.applicationAttributeFingerprints().get(attribute),
+                recovery.revision().applicationAttributeFingerprints().get(attribute))).toList();
+        List<String> notRestored = changed.stream().filter(attribute -> !restored.contains(attribute)).toList();
+        if (restored.isEmpty()) return Decision.negative("NO_CHANGED_ATTRIBUTE_RESTORED");
+        return Decision.observed(notRestored.isEmpty() ? "READ_OF_UPDATE_SUBSEQUENTLY_COMPENSATED"
+                : "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED", "UPDATE", forward, recovery,
+                restored, notRestored);
+    }
+
+    private List<String> changedAttributes(Revision predecessor, Revision forward) {
+        Set<String> names = new java.util.TreeSet<>(predecessor.applicationAttributeFingerprints().keySet());
+        names.addAll(forward.applicationAttributeFingerprints().keySet());
+        return names.stream().filter(name -> !Objects.equals(predecessor.applicationAttributeFingerprints().get(name),
+                forward.applicationAttributeFingerprints().get(name))).toList();
     }
 
     private boolean directSuccessor(Revision creation, Revision deleted) {
@@ -194,10 +291,15 @@ final class SagaReadExposureAssessor {
     private static boolean blank(String value) { return value == null || value.isBlank(); }
 
     private record RevisionKey(ImpactEvidence.AggregateIdentity identity, Long version) { }
-    private record Decision(String verdict, String reason, Write creation, Write deletion) {
-        static Decision unknown(String reason) { return new Decision("UNKNOWN", reason, null, null); }
-        static Decision negative(String reason) { return new Decision("NOT_OBSERVED", reason, null, null); }
-        static Decision excluded(String reason) { return new Decision("EXCLUDED", reason, null, null); }
+    private record Decision(String verdict, String reason, String category, Write produced, Write recovery,
+                            List<String> restoredAttributes, List<String> notRestoredAttributes) {
+        static Decision observed(String reason, String category, Write produced, Write recovery,
+                                 List<String> restored, List<String> notRestored) {
+            return new Decision("OBSERVED", reason, category, produced, recovery, restored, notRestored);
+        }
+        static Decision unknown(String reason) { return new Decision("UNKNOWN", reason, null, null, null, List.of(), List.of()); }
+        static Decision negative(String reason) { return new Decision("NOT_OBSERVED", reason, null, null, null, List.of(), List.of()); }
+        static Decision excluded(String reason) { return new Decision("EXCLUDED", reason, null, null, null, List.of(), List.of()); }
     }
 
     private static final class Index {
@@ -255,6 +357,18 @@ final class SagaReadExposureAssessor {
             if (matches.size() != 1 || !sameSource(action, matches.getFirst())
                     || !Objects.equals(action.runtimeOccurrenceId(), matches.getFirst().id())) return null;
             return action;
+        }
+
+        List<Revision> predecessors(Write forward) {
+            Revision revision = forward.revision();
+            RevisionKey key = new RevisionKey(revision.predecessorIdentity(), revision.predecessorVersion());
+            List<Revision> result = new ArrayList<>();
+            baselineByIdentity.getOrDefault(revision.predecessorIdentity(), List.of()).stream()
+                    .filter(value -> Objects.equals(value.version(), revision.predecessorVersion()))
+                    .forEach(result::add);
+            byRevision.getOrDefault(key, List.of()).stream().filter(write -> write.order() < forward.order())
+                    .map(Write::revision).forEach(result::add);
+            return result;
         }
 
         String recoveryGap(Action recovery, Action producer, Action reader) {

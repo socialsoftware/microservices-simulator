@@ -83,7 +83,7 @@ class SagaReadExposureSpec extends Specification {
         'competing writer'       | 'UNKNOWN'      | 'INTERMEDIATE_REVISION_OUT_OF_SCOPE'
         'wrong checkpoint'       | 'UNKNOWN'      | 'RECOVERY_CHECKPOINT_UNPROVEN'
         'wrong occurrence'       | 'UNKNOWN'      | 'COMPENSATION_PRODUCING_OCCURRENCE_MISMATCH'
-        'restored update'        | 'UNKNOWN'      | 'NON_CREATION_EFFECT_OUT_OF_SCOPE'
+        'restored update'        | 'NOT_OBSERVED' | 'NO_APPLICATION_ATTRIBUTE_CHANGE'
         'type collision'         | 'UNKNOWN'      | 'PERSISTENT_RUNTIME_TYPE_COLLISION'
         'unknown author'         | 'UNKNOWN'      | 'PRODUCER_ACTION_UNPROVEN'
         'old attempt reader'     | 'UNKNOWN'      | 'READER_ACTION_UNPROVEN'
@@ -113,6 +113,95 @@ class SagaReadExposureSpec extends Specification {
         result.executionValidity() == 'INCOMPLETE'
         result.collectionCoverage() == 'PARTIAL'
         result.gaps()*.reason().contains('INCOMPLETE_EXECUTION_PREFIX')
+    }
+
+    @Unroll
+    def 'dummyapp compensated update reports #reason with deterministic restored attribute sets'() {
+        given:
+        def data = updateFixture(recoveryData)
+
+        when:
+        def result = assess(data)
+        def json = JSON.writeValueAsString(result)
+
+        then:
+        result.observedExposureCount() == 1
+        result.assessments()[0].reason() == reason
+        result.findings()[0].category() == 'UPDATE'
+        result.findings()[0].producedVersion() == 10L
+        result.findings()[0].recoveryVersion() == 11L
+        result.findings()[0].restoredAttributes() == restored
+        result.findings()[0].notRestoredAttributes() == notRestored
+        result.findings()[0].createdVersion() == null
+        result.findings()[0].deletedVersion() == null
+        result.findings()[0].creationWriteId() == null
+        result.findings()[0].deletionWriteId() == null
+        !json.contains('before-secret')
+        !json.contains('forward-secret')
+
+        where:
+        recoveryData                                                     | reason                                                   | restored          | notRestored
+        [value: 'before-secret', label: 'before', details: [x: 1, y: 2]] | 'READ_OF_UPDATE_SUBSEQUENTLY_COMPENSATED'                 | ['details', 'label', 'value'] | []
+        [value: 'before-secret', label: 'forward', details: [x: 1, y: 2]]| 'READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED'       | ['details', 'value'] | ['label']
+    }
+
+    @Unroll
+    def 'dummyapp update proof rejects #caseName as #verdict because #reason'() {
+        given:
+        def data = updateFixture([value: 'still-forward', label: 'forward', details: [x: 2, y: 2]])
+        mutation(data)
+
+        expect:
+        assess(data).assessments()[0].verdict() == verdict
+        assess(data).assessments()[0].reason() == reason
+        assess(data).observedExposureCount() == 0
+
+        where:
+        caseName                  | mutation                                                                                                             | verdict        | reason
+        'no restored attribute'   | { it }                                                                                                                | 'NOT_OBSERVED' | 'NO_CHANGED_ATTRIBUTE_RESTORED'
+        'metadata only'           | { it.events[0].write = updateSnapshot(10L, 9L, [value: 'before-secret', label: 'before', details: [x: 1, y: 2]]) } | 'NOT_OBSERVED' | 'NO_APPLICATION_ATTRIBUTE_CHANGE'
+        'missing predecessor'     | { it.baseline = [] }                                                                                                  | 'UNKNOWN'      | 'UPDATE_PREDECESSOR_UNAVAILABLE'
+        'empty projection'        | { it.baseline = [updateSnapshot(9L, null, [:])] }                                                                     | 'UNKNOWN'      | 'APPLICATION_ATTRIBUTE_PROJECTION_INCOMPLETE'
+        'changed projection keys' | { it.events[0].write = updateSnapshot(10L, 9L, [value: 'forward-secret']) }                                              | 'UNKNOWN'      | 'APPLICATION_ATTRIBUTE_PROJECTION_INCOMPLETE'
+        'missing checkpoint'      | { it.execution = changeRecovery(it.execution, [sourceCompensationCheckpointId: 'missing']) }                            | 'UNKNOWN'      | 'RECOVERY_CHECKPOINT_UNPROVEN'
+        'unattributed later write'| { it.events[-1].writer = null }                                                                                       | 'UNKNOWN'      | 'INTERVENING_WRITER'
+        'exact predecessor read'  | { it.events[1].read = updateObservation(9L) }                                                                          | 'NOT_OBSERVED' | 'REVISION_PREEXISTS_MEASUREMENT'
+    }
+
+    def 'an intervening dummyapp writer makes compensated update evidence unknown'() {
+        given:
+        def data = updateFixture([value: 'before-secret', label: 'before', details: [x: 1, y: 2]])
+        data.events.add(2, [write: updateSnapshot(12L, 10L, [value: 'other', label: 'forward', details: [x: 2, y: 2]]),
+                            writer: writer('C', 'action-other', 'FORWARD', 'other')])
+        data.events[-1].write = updateSnapshot(13L, 12L, [value: 'before-secret', label: 'before', details: [x: 1, y: 2]])
+
+        expect:
+        assess(data).assessments()[0].verdict() == 'UNKNOWN'
+        assess(data).assessments()[0].reason() == 'INTERVENING_WRITER'
+    }
+
+    def 'repeated reads of the same update revision deduplicate by producer reader and produced revision'() {
+        given:
+        def data = updateFixture([value: 'before-secret', label: 'before', details: [x: 1, y: 2]])
+        data.events.add(2, [read: updateObservation(10L)])
+
+        when:
+        def result = assess(data)
+
+        then:
+        result.observedExposureCount() == 1
+        result.findings()[0].deliveryIds().size() == 2
+        result.assessments()*.findingId().unique().size() == 1
+    }
+
+    def 'a read of the exact recovery-produced revision is an evaluated negative'() {
+        given:
+        def data = updateFixture([value: 'before-secret', label: 'before', details: [x: 1, y: 2]])
+        data.events = [data.events[0], data.events[2], [read: updateObservation(11L)]]
+
+        expect:
+        assess(data).assessments()[0].verdict() == 'NOT_OBSERVED'
+        assess(data).assessments()[0].reason() == 'REVISION_PRODUCED_BY_RECOVERY'
     }
 
     def 'successful creator followed by a proven ordinary deletion is an evaluated negative while unknown authors remain gaps'() {
@@ -478,10 +567,26 @@ class SagaReadExposureSpec extends Specification {
                 [read: observation()], [write: snapshot(11L, 'DELETED', 10L), writer: writer('A', 'action-recover', 'RECOVERY', 'write')]]]
     }
 
+    private static Map updateFixture(Map recoveryData) {
+        def data = fixture()
+        Map before = [value: 'before-secret', label: 'before', details: [y: 2, x: 1]]
+        Map forward = [value: 'forward-secret', label: 'forward', details: [y: 2, x: 2]]
+        data.baseline = [updateSnapshot(9L, null, before)]
+        data.events[0].write = updateSnapshot(10L, 9L, forward)
+        data.events[1].read = updateObservation(10L)
+        data.events[2].write = updateSnapshot(11L, 10L, recoveryData)
+        data
+    }
+
     private static def snapshot(Long version, String state, Long predecessor) {
         new ImpactEvidence.AggregateSnapshot(ID, version, state, TYPE,
                 new ImpactEvidence.FrameworkMetadata(null, null, predecessor == null ? null : ID, predecessor, null, null),
                 [value: 'secret payload'], [])
+    }
+    private static def updateSnapshot(Long version, Long predecessor, Map applicationData) {
+        new ImpactEvidence.AggregateSnapshot(ID, version, 'ACTIVE', TYPE,
+                new ImpactEvidence.FrameworkMetadata(null, null, predecessor == null ? null : ID, predecessor, null, null),
+                applicationData, [])
     }
     private static def writer(String saga, String action, String phase, String step) {
         new ImpactEvidence.Writer('SAGA', 'attempt', 'workload', saga, action, phase, 'com.example.dummyapp.' + saga, step, null)
@@ -490,6 +595,7 @@ class SagaReadExposureSpec extends Specification {
         new ReadResponseEvidence.Observation(writer('B', 'action-read', 'FORWARD', 'inspect'), 'SagaCommand', CONTRACT.commandType(),
                 CONTRACT.responseType(), true, ReadResponseEvidence.Outcome.DELIVERED, CONTRACT, ID, 10L, null)
     }
+    private static def updateObservation(Long version) { change(observation(), [version: version]) }
     private static def participant(String id) {
         record(ScenarioExecutionReport.Participant, [sagaInstanceId: id, sagaFqn: 'com.example.dummyapp.' + id, finalState: id == 'A' ? 'COMPENSATED' : 'COMMITTED'])
     }

@@ -1,0 +1,319 @@
+{
+  "executions": 14,
+  "controls": 6,
+  "positives": 3,
+  "results": [
+    {
+      "label": "00-control-position-0",
+      "scenario": "60c754a34cbc851c9a3c6ddb4f3c420a28ec6ff309cde1318dcefaa04b03ec91",
+      "workload": "d12114338db91ed5c4402aa349bcb82a3688998cd0b8ba44eaea3374bdf72451",
+      "terminal": "SUCCESS",
+      "readPosition": 0,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 11,
+          "stage": "ASSESSMENT",
+          "subject": "ca9a357c-ec54-4898-8291-457f1f859617:call:11",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "01-control-position-1",
+      "scenario": "d8ba28d4489c5cfa0f946d20ae2830a5df7674632099a0dfb56f4b90312bceec",
+      "workload": "41a20998fbc1cc23d01b1eaba068bf5c8dabf57f59f1b8324fc212771885bbac",
+      "terminal": "SUCCESS",
+      "readPosition": 1,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 11,
+          "stage": "ASSESSMENT",
+          "subject": "7a796cbd-a706-4260-ba2f-5a2624eb48ca:call:11",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "02-control-position-2",
+      "scenario": "52ac9527f248238b5cc5afc909cc8ff2f7ffca9051a3ef61f27f64e322159489",
+      "workload": "3e6bfc74215444aaf4e9217f951159082f22a3e01b92bb16e00054a769a51c58",
+      "terminal": "SUCCESS",
+      "readPosition": 2,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 11,
+          "stage": "ASSESSMENT",
+          "subject": "33bedeb0-1f6b-4de8-b195-425bc79f0b08:call:11",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "03-control-position-3",
+      "scenario": "4f2d0e8b6c1a4daf886c98faab8d6197ab6e683e566e9fc8241351c9c5a4b0af",
+      "workload": "4e5fd3adb1be54b532d66c3409279e5c41d13eb1fbb8795b5d99deb36e8f84a2",
+      "terminal": "SUCCESS",
+      "readPosition": 3,
+      "readVersion": 21,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 11,
+          "stage": "ASSESSMENT",
+          "subject": "7868aeca-5730-48b6-9155-5ea6a6f38caa:call:11",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "04-control-position-4",
+      "scenario": "d1a9de4cf62e906faf48e5c753483b7c0b53403f4a227c503a8d90a5e7b126aa",
+      "workload": "1ca32cdad4f64c21fc2ec3f4debdf9327812ff99e99b3d40e69537db2cfbdfd3",
+      "terminal": "SUCCESS",
+      "readPosition": 4,
+      "readVersion": 21,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 11,
+          "stage": "ASSESSMENT",
+          "subject": "24a7b553-1963-4bef-ad0a-31e6627dc245:call:11",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "05-control-position-5",
+      "scenario": "8c0ed4396c3307b9335cee72601787ea082142dae6e321951fe24573bb3f13a9",
+      "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+      "terminal": "SUCCESS",
+      "readPosition": 5,
+      "readVersion": 21,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "PRODUCER_COMPLETED_BEFORE_DELIVERY",
+      "coverage": "PARTIAL",
+      "gaps": [
+        {
+          "afterOrder": 10,
+          "stage": "ASSESSMENT",
+          "subject": "c5857171-1dcd-48af-af48-f10f6e881106:call:10",
+          "reason": "MISSING_READER_ATTRIBUTION"
+        }
+      ],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "06-fault-position-0",
+      "scenario": "c9ac2a278e978417f11b6fe05a6bfaf2178e68ff128761354c081b962e4db854",
+      "workload": "d12114338db91ed5c4402aa349bcb82a3688998cd0b8ba44eaea3374bdf72451",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 0,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "07-fault-position-1",
+      "scenario": "45036ee7e5bdcbb06e1eb06bbe456b80c74a25dedfad913b28b5c9be51ba4679",
+      "workload": "41a20998fbc1cc23d01b1eaba068bf5c8dabf57f59f1b8324fc212771885bbac",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 1,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "08-fault-position-2",
+      "scenario": "31ef35d11626e85ec0b535653d856f0de5663338a49eb00c0e71354574d021bf",
+      "workload": "3e6bfc74215444aaf4e9217f951159082f22a3e01b92bb16e00054a769a51c58",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 2,
+      "readVersion": 20,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "09-fault-position-3",
+      "scenario": "3229e2cdeb2465b7c27e3ab0a818f3b92842a955d8b319371b7f2cab45b94aaf",
+      "workload": "4e5fd3adb1be54b532d66c3409279e5c41d13eb1fbb8795b5d99deb36e8f84a2",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 3,
+      "readVersion": 21,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "10-fault-position-4",
+      "scenario": "952457621065649178676ffb28f64c22bed8bf2b9a2c3b6c5eff339370516293",
+      "workload": "1ca32cdad4f64c21fc2ec3f4debdf9327812ff99e99b3d40e69537db2cfbdfd3",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 4,
+      "readVersion": 21,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "11-fault-position-5",
+      "scenario": "27fe7e85a4c1f41e8539648107664b0a1783a491c9055e4ebd33b28c1489d321",
+      "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 21,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "12-fault-position-5",
+      "scenario": "4a88634622e239fe48059b85040cff63b774c8a822f64c1fd01732d7d1e5efc3",
+      "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 22,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    },
+    {
+      "label": "13-fault-position-5",
+      "scenario": "e0067e4ad7432d75a655a95236f34c41e48ae3345c0e6b6cac0771a274d2eaca",
+      "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 22,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ]
+    }
+  ]
+}

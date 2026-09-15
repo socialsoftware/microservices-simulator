@@ -1,0 +1,272 @@
+{
+  "status": "PASS",
+  "experimentalHistories": 4,
+  "executions": 8,
+  "rows": [
+    {
+      "caseId": "success-between",
+      "serialized": false,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 21,
+      "finalVersion": 21,
+      "returnedStart": "2030-01-01T16:00:00Z",
+      "finalStart": "2030-01-01T16:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMMITTED",
+      "restoredSelectedFields": [],
+      "remainingApplicationDifferences": [
+        "endTime",
+        "lastModifiedTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        1,
+        1,
+        1
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-between",
+      "serialized": false,
+      "experimentalWitnessCount": 1,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 21,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T16:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-before",
+      "serialized": false,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 20,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T15:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-after",
+      "serialized": false,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 22,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T15:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "success-between",
+      "serialized": true,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 21,
+      "finalVersion": 21,
+      "returnedStart": "2030-01-01T16:00:00Z",
+      "finalStart": "2030-01-01T16:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMMITTED",
+      "restoredSelectedFields": [],
+      "remainingApplicationDifferences": [
+        "endTime",
+        "lastModifiedTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        1,
+        1,
+        1
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-between",
+      "serialized": true,
+      "experimentalWitnessCount": 1,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 21,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T16:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-before",
+      "serialized": true,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 20,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T15:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    },
+    {
+      "caseId": "fault-after",
+      "serialized": true,
+      "experimentalWitnessCount": 0,
+      "aggregateId": 11,
+      "baselineVersion": 20,
+      "forwardVersion": 21,
+      "returnedVersion": 22,
+      "finalVersion": 22,
+      "returnedStart": "2030-01-01T15:00:00Z",
+      "finalStart": "2030-01-01T15:00",
+      "readerOutcome": "COMMITTED",
+      "producerOutcome": "COMPENSATED",
+      "restoredSelectedFields": [
+        "startTime",
+        "endTime",
+        "numberOfQuestions",
+        "topicIds"
+      ],
+      "remainingApplicationDifferences": [
+        "lastModifiedTime",
+        "tournamentTopics"
+      ],
+      "initialTopicCourseIds": [
+        1,
+        1
+      ],
+      "finalTopicCourseIds": [
+        null,
+        null
+      ],
+      "scoreEvaluated": false
+    }
+  ],
+  "validatorSha256": "6b958f82183e6c8ca9b7b8067512ad740877554de83b4cb411b6bb25c6dc84dd",
+  "productionScoringModified": false,
+  "interpretation": "One read of an update later selectively restored, in each transport mode; experimental witness only."
+}

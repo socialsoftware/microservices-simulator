@@ -1,0 +1,1058 @@
+[
+  {
+    "position": 0,
+    "control": true,
+    "scenario": "60c754a34cbc851c9a3c6ddb4f3c420a28ec6ff309cde1318dcefaa04b03ec91",
+    "workload": "d12114338db91ed5c4402aa349bcb82a3688998cd0b8ba44eaea3374bdf72451",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "00-control-position-0"
+  },
+  {
+    "position": 1,
+    "control": true,
+    "scenario": "d8ba28d4489c5cfa0f946d20ae2830a5df7674632099a0dfb56f4b90312bceec",
+    "workload": "41a20998fbc1cc23d01b1eaba068bf5c8dabf57f59f1b8324fc212771885bbac",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "01-control-position-1"
+  },
+  {
+    "position": 2,
+    "control": true,
+    "scenario": "52ac9527f248238b5cc5afc909cc8ff2f7ffca9051a3ef61f27f64e322159489",
+    "workload": "3e6bfc74215444aaf4e9217f951159082f22a3e01b92bb16e00054a769a51c58",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "02-control-position-2"
+  },
+  {
+    "position": 3,
+    "control": true,
+    "scenario": "4f2d0e8b6c1a4daf886c98faab8d6197ab6e683e566e9fc8241351c9c5a4b0af",
+    "workload": "4e5fd3adb1be54b532d66c3409279e5c41d13eb1fbb8795b5d99deb36e8f84a2",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "03-control-position-3"
+  },
+  {
+    "position": 4,
+    "control": true,
+    "scenario": "d1a9de4cf62e906faf48e5c753483b7c0b53403f4a227c503a8d90a5e7b126aa",
+    "workload": "1ca32cdad4f64c21fc2ec3f4debdf9327812ff99e99b3d40e69537db2cfbdfd3",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "04-control-position-4"
+  },
+  {
+    "position": 5,
+    "control": true,
+    "scenario": "8c0ed4396c3307b9335cee72601787ea082142dae6e321951fe24573bb3f13a9",
+    "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+    "vector": "000000",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "05-control-position-5"
+  },
+  {
+    "position": 0,
+    "control": false,
+    "scenario": "c9ac2a278e978417f11b6fe05a6bfaf2178e68ff128761354c081b962e4db854",
+    "workload": "d12114338db91ed5c4402aa349bcb82a3688998cd0b8ba44eaea3374bdf72451",
+    "vector": "000001",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s4"
+      },
+      {
+        "compensate": "s2"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "06-fault-position-0"
+  },
+  {
+    "position": 1,
+    "control": false,
+    "scenario": "45036ee7e5bdcbb06e1eb06bbe456b80c74a25dedfad913b28b5c9be51ba4679",
+    "workload": "41a20998fbc1cc23d01b1eaba068bf5c8dabf57f59f1b8324fc212771885bbac",
+    "vector": "000001",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s4"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "07-fault-position-1"
+  },
+  {
+    "position": 2,
+    "control": false,
+    "scenario": "31ef35d11626e85ec0b535653d856f0de5663338a49eb00c0e71354574d021bf",
+    "workload": "3e6bfc74215444aaf4e9217f951159082f22a3e01b92bb16e00054a769a51c58",
+    "vector": "000001",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s4"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "08-fault-position-2"
+  },
+  {
+    "position": 3,
+    "control": false,
+    "scenario": "3229e2cdeb2465b7c27e3ab0a818f3b92842a955d8b319371b7f2cab45b94aaf",
+    "workload": "4e5fd3adb1be54b532d66c3409279e5c41d13eb1fbb8795b5d99deb36e8f84a2",
+    "vector": "000001",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s3"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "09-fault-position-3"
+  },
+  {
+    "position": 4,
+    "control": false,
+    "scenario": "952457621065649178676ffb28f64c22bed8bf2b9a2c3b6c5eff339370516293",
+    "workload": "1ca32cdad4f64c21fc2ec3f4debdf9327812ff99e99b3d40e69537db2cfbdfd3",
+    "vector": "000001",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s3"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "10-fault-position-4"
+  },
+  {
+    "position": 5,
+    "control": false,
+    "scenario": "27fe7e85a4c1f41e8539648107664b0a1783a491c9055e4ebd33b28c1489d321",
+    "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+    "vector": "000010",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s3"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "11-fault-position-5"
+  },
+  {
+    "position": 5,
+    "control": false,
+    "scenario": "4a88634622e239fe48059b85040cff63b774c8a822f64c1fd01732d7d1e5efc3",
+    "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+    "vector": "000010",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "compensate": "s3"
+      },
+      {
+        "step": "s6"
+      },
+      {
+        "compensate": "s1"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "12-fault-position-5"
+  },
+  {
+    "position": 5,
+    "control": false,
+    "scenario": "e0067e4ad7432d75a655a95236f34c41e48ae3345c0e6b6cac0771a274d2eaca",
+    "workload": "6e79c0ddec84be03b6930d546308f2b38acfe296e0ff73bc184d985a693643a2",
+    "vector": "000010",
+    "actions": [
+      {
+        "step": "s1"
+      },
+      {
+        "step": "s2"
+      },
+      {
+        "step": "s3"
+      },
+      {
+        "step": "s4"
+      },
+      {
+        "step": "s5"
+      },
+      {
+        "compensate": "s3"
+      },
+      {
+        "compensate": "s1"
+      },
+      {
+        "step": "s6"
+      }
+    ],
+    "schedule": [
+      {
+        "id": "s1",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getOriginalTournamentStep#0",
+        "faultSlot": 0
+      },
+      {
+        "id": "s2",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "getTopicsStep#0",
+        "faultSlot": 1
+      },
+      {
+        "id": "s3",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateTournamentStep#0",
+        "faultSlot": 2
+      },
+      {
+        "id": "s4",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "findQuestionsByTopicIds#0",
+        "faultSlot": 3
+      },
+      {
+        "id": "s5",
+        "kind": "step",
+        "participant": "p2",
+        "sagaStep": "updateQuizStep#0",
+        "faultSlot": 4
+      },
+      {
+        "id": "s6",
+        "kind": "step",
+        "participant": "p1",
+        "sagaStep": "findTournamentStep#0",
+        "faultSlot": 5
+      }
+    ],
+    "label": "13-fault-position-5"
+  }
+]

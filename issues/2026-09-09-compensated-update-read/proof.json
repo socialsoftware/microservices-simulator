@@ -1,0 +1,70 @@
+{
+  "unitTests": [
+    {
+      "suite": "SagaReadExposureSpec",
+      "tests": 57,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "rawXml": "verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec.xml",
+      "sha256": "50c1af54e3bea159da9d3ee6b68583c87f3d99a8f5f9a281d77341145b7be8c4"
+    },
+    {
+      "suite": "ScenarioExecutorSpec",
+      "tests": 197,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "rawXml": "verifiers/target/surefire-reports/TEST-pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec.xml",
+      "sha256": "2e641a711017824ff8d32d41cdb7e402614fa655933c3436b3e2d9e99d4fedc4"
+    }
+  ],
+  "runtime": {
+    "returnCode": 0,
+    "wallSeconds": 156.4611367919715
+  },
+  "runtimeProvenance": {
+    "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+    "revision": "99378fe5cb3862448714b6d45bb38b9095bcdbe5",
+    "preparedBuildManifestSha256": "a6bb55c6862dd6e6d20c052dcbc8a6f11da31b1c96ea891b34072aef54ba5551",
+    "productionOverlay": {
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureCollector.java": "b70c25aa8caa7bc1135aacc96ba5678dd57eed1ad89f9f507198395533022757",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b"
+    },
+    "unchangedProductionFilesVerified": 788,
+    "preparedArtifactsVerified": 1777,
+    "runnerSha256": "51d85ad0d74c3e7e533efe31187904c707d3ea338f37f86372993b55994ab7c8",
+    "frozenSourceHashes": {
+      "source/update/SagaUpdateReadExperiment.java": "8e6c3ebc8422e7a5e2c554e1e46124887d8c2d769dcfebb19dbdc2bcdfe47c7c",
+      "source/update/integrated.sh": "8eaba9e91b569ae7a94a9a5cd6481c8f32b4692a888808ea5ab93041731305f6",
+      "source/diagnostic/SagaReadExposureCollector.java": "b70c25aa8caa7bc1135aacc96ba5678dd57eed1ad89f9f507198395533022757",
+      "source/diagnostic/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+      "source/diagnostic/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b",
+      "source/diagnostic/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+      "source/creation/OrdinaryExecutorControl.java": "0fb8083e7eac89ef0af7723b4947c98f935821348d95f13f9a0e46944c29d344",
+      "source/creation/SagaReadExposureExperiment.java": "0eda083ff8d3e9515fd7a9d95739ecc9f894bcff258fda1e9c119f4000d9daa9"
+    },
+    "baselinePackageHashes": {
+      "ordinary-control-package/fault-scenarios.jsonl": "f925b90781536b76de196d5ef2fb3eed0a09890f299a775ea1ce775272600a2e",
+      "ordinary-control-package/scenario-catalog-manifest.json": "8b055070f81ff1cf504244ab59e64ffa20e4f129e565b3377cbd7e1eec02e873",
+      "ordinary-control-package/workloads.jsonl": "0bd0813cfe29819980af203febccf45da1ddc9a41fec692eb4424c5246593c80",
+      "ordinary-control-package/requests.jsonl": "dc4b76cc0da32e15eefd1771a8e2ffd2801ddd5cfed6b5abd3dd254f0daa415d",
+      "ordinary-control-package/accounting.json": "2cc582cd7031080e61d3c07e469cbe962fa69afd4ef12db3ae97ef044403cc64",
+      "ordinary-control-package/setups.jsonl": "85361a1da44d9d0f323e8f9a2e2af95a7a444e67f7c3995e2d212b9e2c405dbd",
+      "ordinary-control-package/inputs.jsonl": "fe46e4fcf11b2d454d4db9d6cd4c1bc4afec4381b694d7c0d2a10b075303471c",
+      "ordinary-control-package/sagas.jsonl": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+      "ordinary-control-package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+    },
+    "productionScoringModified": false,
+    "transportModes": [
+      false,
+      true
+    ]
+  },
+  "rawRun": "verifiers/target/saga-update-read/integrated-01",
+  "rawArtifactManifestSha256": "cc711b8e1b9b70c585384fd5972a216232939b382b73a24fe8cb6b15752888a5",
+  "sourceState": "Current uncommitted overlay is authoritative; all other production files match the retained qualified build.",
+  "validatorSha256": "dba38c136817d428cb75ef8e80e521f9d6ab81a5ab10537531abfce1d98c7659"
+}

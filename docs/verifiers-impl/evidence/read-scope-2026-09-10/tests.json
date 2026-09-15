@@ -1,0 +1,41 @@
+{
+  "suites": [
+    {
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGatewayReadResponseTest",
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGatewayExceptionRestorationTest",
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    },
+    {
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGatewayDynamicEvidenceTest",
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0"
+    }
+  ],
+  "tests": 31,
+  "redTests": 23,
+  "redFailures": 4,
+  "command": "JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home mvn -o -Dmaven.repo.local=/tmp/saga-read-m2.zHF7pU/repository -Dtest=LocalCommandGatewayReadResponseTest,LocalCommandGatewayDynamicEvidenceTest,CommandGatewayExceptionRestorationTest test",
+  "cwd": "simulator",
+  "artifacts": {
+    "verifiers/target/read-scope-tests-2026-09-10/TEST-pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGatewayReadResponseTest.xml": "f708001692e65e8b2db20a9e8a1ff301ea07e80b9cf24072e1eca4798641caac",
+    "verifiers/target/read-scope-tests-2026-09-10/read-scope-before.log": "765908429a160312e26725eeafda8eaa5f1f23e7fdb40263fa27b75d6d8d710f",
+    "verifiers/target/read-scope-tests-2026-09-10/read-scope-red.log": "edd80c4349d936381cb034d61691a21e596297a912faf6828d031bea31aadde0",
+    "verifiers/target/read-scope-tests-2026-09-10/read-scope-green.log": "7eb3f12ac8903631a91c0fdae3f35b2190b5afbc18a939dab5be5a562d870b23",
+    "verifiers/target/read-scope-tests-2026-09-10/TEST-pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGatewayExceptionRestorationTest.xml": "4bf773b43b2fe6fde6d4e86bb81f0928ec013855cf71530d123152fdfb255715",
+    "verifiers/target/read-scope-tests-2026-09-10/read-scope-red-final.log": "48099a0ef83d0d6b16b7da6f88b8a14795cf5beb5f356b8607cfb26883885145",
+    "verifiers/target/read-scope-tests-2026-09-10/TEST-pt.ulisboa.tecnico.socialsoftware.ms.messaging.local.LocalCommandGatewayDynamicEvidenceTest.xml": "1c7a6d8705aad8bdc7e6b16d59478870ed2b26e2bc92d936b94b8e4ff2cc75aa",
+    "verifiers/target/read-scope-tests-2026-09-10/read-scope-before-online.log": "ee989d92657e075466a40d65526c34acf80b2ea71b1978ba2d76e587678265c9"
+  },
+  "initialAttempts": "Offline Maven lacked the macOS protoc artifact; online Maven resolved it. Two initial fixture errors (null SagaCommand constructor and missing no-arg JSON constructor) were corrected before the final red run."
+}

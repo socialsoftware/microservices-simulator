@@ -5,6 +5,8 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DateExpres
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.*;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.lang.reflect.*;
 import java.util.*;
 
@@ -271,9 +273,11 @@ class ScenarioMaterializer {
         return runtimeContext.bean(loadClass(type));
     }
 
-    private static Class<?> loadClass(String type) {
+    static Class<?> loadClass(String type) {
         try {
-            return Class.forName(type);
+            // Generic arguments belong to the declared recipe; Java runtime classes are erased.
+            int typeArguments = type.indexOf('<');
+            return Class.forName(typeArguments < 0 ? type : type.substring(0, typeArguments).trim());
         } catch (ClassNotFoundException e) {
             throw new IllegalStateException("Missing runtime type " + type, e);
         }
@@ -316,13 +320,27 @@ class ScenarioMaterializer {
         String setter = "set" + Character.toUpperCase(property.charAt(0)) + property.substring(1);
         for (Method method : instance.getClass().getMethods()) {
             if (method.getName().equals(setter) && method.getParameterCount() == 1) {
-                method.invoke(instance, value);
+                method.invoke(instance, assignmentValue(method.getParameterTypes()[0], value));
                 return;
             }
         }
         Field field = instance.getClass().getDeclaredField(property);
         field.setAccessible(true);
-        field.set(instance, value);
+        field.set(instance, assignmentValue(field.getType(), value));
+    }
+
+    private Object assignmentValue(Class<?> declaredType, Object value) {
+        Class<?> target = wrap(declaredType);
+        if (value == null || target.isInstance(value) || !(value instanceof Number number)) return value;
+        if (target != Byte.class && target != Short.class && target != Integer.class
+                && target != Long.class && target != BigInteger.class) return value;
+        // JSON has no Java numeric-width tag. Bind to the declared destination without truncation.
+        BigInteger integral = new BigDecimal(number.toString()).toBigIntegerExact();
+        if (target == Byte.class) return integral.byteValueExact();
+        if (target == Short.class) return integral.shortValueExact();
+        if (target == Integer.class) return integral.intValueExact();
+        if (target == Long.class) return integral.longValueExact();
+        return integral;
     }
 
     private ScenarioExecutionReport.Blocker blocker(InputVariant input, Integer argumentIndex, String reason, String message) {

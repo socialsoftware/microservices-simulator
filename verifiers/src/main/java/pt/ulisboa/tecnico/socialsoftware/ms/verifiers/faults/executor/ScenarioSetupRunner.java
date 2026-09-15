@@ -20,6 +20,9 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.beans.IntrospectionException;
+import java.beans.Introspector;
+import java.beans.PropertyDescriptor;
 import java.math.BigDecimal;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
@@ -249,8 +252,17 @@ final class ScenarioSetupRunner {
             case LITERAL -> requireDeclaredCompatibility(literalClass(recipe), expectedRaw, recipe.declaredTypeFqn());
             case ACTION_RESULT -> {
                 SetupAction source = sourceAction(recipe, actionsById);
-                requireDeclaredCompatibility(loadType(source.declaredResultTypeFqn()), expectedRaw,
+                Class<?> resultType = loadType(source.declaredResultTypeFqn());
+                requireDeclaredCompatibility(resultType, expectedRaw,
                         recipe.declaredTypeFqn());
+                if (!recipe.assignments().isEmpty()) {
+                    exactNoArgumentConstructor(resultType);
+                    validateCopyableBean(resultType);
+                    for (SetupPropertyAssignment assignment : recipe.assignments()) {
+                        Method setter = exactSetter(resultType, assignment.propertyName());
+                        validateRuntimeValue(assignment.value(), runtimeType(setter.getGenericParameterTypes()[0]), actionsById);
+                    }
+                }
             }
             case ACTION_RESULT_PROPERTY -> {
                 SetupAction source = sourceAction(recipe, actionsById);
@@ -323,7 +335,10 @@ final class ScenarioSetupRunner {
             case LITERAL -> new MaterializedValue(materializeLiteral(recipe, expectedType), null, null, null);
             case ACTION_RESULT -> {
                 RetainedResult result = retainedResult(recipe.actionId(), retained);
-                yield new MaterializedValue(result.value(), recipe.actionId(), null, result.resultId());
+                Object value = recipe.assignments().isEmpty()
+                        ? result.value()
+                        : copyAndApplyAssignments(result.value(), recipe.assignments(), retained);
+                yield new MaterializedValue(value, recipe.actionId(), null, result.resultId());
             }
             case ACTION_RESULT_PROPERTY -> {
                 RetainedResult result = retainedResult(recipe.actionId(), retained);
@@ -375,6 +390,52 @@ final class ScenarioSetupRunner {
             return exactIntegral(value, target);
         }
         return value;
+    }
+
+    private Object copyAndApplyAssignments(Object source,
+                                           List<SetupPropertyAssignment> assignments,
+                                           Map<String, RetainedResult> retained)
+            throws ReflectiveOperationException {
+        if (source == null) {
+            throw new SetupFailure("MISSING_SETUP_RESULT", "cannot mutate a null setup result");
+        }
+        Class<?> type = source.getClass();
+        Object copy = exactNoArgumentConstructor(type).newInstance();
+        try {
+            for (PropertyDescriptor property : Introspector.getBeanInfo(type, Object.class).getPropertyDescriptors()) {
+                Method getter = property.getReadMethod();
+                Method setter = property.getWriteMethod();
+                if (getter == null || setter == null) {
+                    throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_COPY",
+                            type.getName() + "." + property.getName() + " requires public getter and setter");
+                }
+                setter.invoke(copy, getter.invoke(source));
+            }
+        } catch (IntrospectionException failure) {
+            throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_COPY", type.getName());
+        }
+        for (SetupPropertyAssignment assignment : assignments.stream()
+                .sorted(Comparator.comparingInt(SetupPropertyAssignment::orderIndex)).toList()) {
+            Method setter = exactSetter(type, assignment.propertyName());
+            RuntimeType expected = runtimeType(setter.getGenericParameterTypes()[0]);
+            Object value = materialize(assignment.value(), expected, retained);
+            requireCompleteType(value, expected, type.getName() + "." + assignment.propertyName());
+            setter.invoke(copy, value);
+        }
+        return copy;
+    }
+
+    private void validateCopyableBean(Class<?> type) {
+        try {
+            for (PropertyDescriptor property : Introspector.getBeanInfo(type, Object.class).getPropertyDescriptors()) {
+                if (property.getReadMethod() == null || property.getWriteMethod() == null) {
+                    throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_COPY",
+                            type.getName() + "." + property.getName() + " requires public getter and setter");
+                }
+            }
+        } catch (IntrospectionException failure) {
+            throw new SetupFailure("UNSUPPORTED_SETUP_RESULT_COPY", type.getName());
+        }
     }
 
     private Object exactIntegral(Object value, Class<?> target) {

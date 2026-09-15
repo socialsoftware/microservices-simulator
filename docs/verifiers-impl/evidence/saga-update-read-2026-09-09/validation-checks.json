@@ -1,0 +1,28 @@
+{
+  "positiveMatrix": "8/8 PASS",
+  "validatorSha256": "6b958f82183e6c8ca9b7b8067512ad740877554de83b4cb411b6bb25c6dc84dd",
+  "tamperedEvidence": [
+    {
+      "mutation": "wrong returned version",
+      "rejected": true
+    },
+    {
+      "mutation": "wrong restored date",
+      "rejected": true
+    },
+    {
+      "mutation": "reader did not commit",
+      "rejected": true
+    },
+    {
+      "mutation": "observer evidence lost",
+      "rejected": true
+    },
+    {
+      "mutation": "wrong compensation mode",
+      "rejected": true
+    }
+  ],
+  "localLinks": "PASS",
+  "gitDiffCheck": "PASS"
+}

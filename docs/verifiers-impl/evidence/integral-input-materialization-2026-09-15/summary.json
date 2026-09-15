@@ -1,0 +1,189 @@
+{
+  "schema": "integral-input-materialization.v1",
+  "sourceFix": [
+    "ScenarioCatalogPackageReader.currentScalar",
+    "ScenarioMaterializer.assignmentValue"
+  ],
+  "regressionTests": 273,
+  "rawRoot": "verifiers/target/integral-input-materialization-01",
+  "control": {
+    "status": "COMPLETE",
+    "terminalStatus": "PARTIAL_COMPENSATED",
+    "scheduleConformance": "DEVIATED",
+    "I": 0,
+    "A": 0,
+    "ACoverage": "COMPLETE_WITHIN_SCOPE",
+    "lostCopiedUpdateValidity": "UNAVAILABLE"
+  },
+  "sample": {
+    "seed": 15156,
+    "budget": 12,
+    "uniqueExecutions": 12,
+    "positive": 0,
+    "unavailable": 0,
+    "stopReason": "BUDGET",
+    "terminalStatuses": {
+      "PARTIAL_COMPENSATED": 9,
+      "COMPENSATED": 3
+    },
+    "fitness": {
+      "policy": "weighted-criteria-v1",
+      "weights": {
+        "COMPENSATED_READ_EXPOSURE": 1,
+        "DELETED_DEPENDENCY": 1,
+        "FAILED_OPERATION_RESIDUAL": 1,
+        "UNRESOLVED_DELIVERED_EVENT": 1
+      }
+    },
+    "attempts": [
+      {
+        "scenarioId": "0bea86684d15bd464fe41a2ff9ce566b65df167071ee73f3982a4a24cca8e11a",
+        "vector": "0010001000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-001"
+      },
+      {
+        "scenarioId": "f70669716473f46bf466ab3c3060314fab8998f58324c065d9e93a665e470119",
+        "vector": "0100000100",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-002"
+      },
+      {
+        "scenarioId": "67c45131aeb84bcf258f1e4ed8d1ac0612652aeece50c545cc2211674d007d48",
+        "vector": "0000000000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "DEVIATED",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-003"
+      },
+      {
+        "scenarioId": "434fb1ca60264eefc8b7a58280eda9b9a7acfcf76dc634b8b0d69aad6d5a7f50",
+        "vector": "0100000000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-004"
+      },
+      {
+        "scenarioId": "bb2789bc9aa9d0158481a392c1c2c7e7fdf097bc378aabe05a1627f2179aeda8",
+        "vector": "1010000000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-005"
+      },
+      {
+        "scenarioId": "8996c1ff5cc495762c8992ecbcf644d39062d19d2d3473c837e6a84826cf7161",
+        "vector": "0001000000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-006"
+      },
+      {
+        "scenarioId": "b784b0daf8f4cdc1309a5ae4e3868f4b2a6cf64f2d6838ca43d160b6975f260e",
+        "vector": "1000000001",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-007"
+      },
+      {
+        "scenarioId": "2b7c99f6bdc204c0dc965790939d6a5fbd24af033111d0e98601d7cd02a2f068",
+        "vector": "1010000010",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-008"
+      },
+      {
+        "scenarioId": "f86f333b8ef0c6a65a7bf75664792375f7e76c21e7306d035296e08360a74e86",
+        "vector": "1000000100",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-009"
+      },
+      {
+        "scenarioId": "8a42fef0ef4db6b9efd18ac069ad98491fd2de1068c275aaf053fdeaf79bfe96",
+        "vector": "0110000100",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-010"
+      },
+      {
+        "scenarioId": "16f794c9f64ec3222e4145ecde6df4307ac4411d4a969a0838a83317d184e39a",
+        "vector": "0100100000",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-011"
+      },
+      {
+        "scenarioId": "12dbcf094d2acda52499c5cb346272649ce380e13babf14b4a21e419661c9fdf",
+        "vector": "0110000100",
+        "I": 0,
+        "A": 0,
+        "fitnessScore": 0.0,
+        "status": "COMPLETE",
+        "terminalStatus": "COMPENSATED",
+        "scheduleConformance": "EXACT",
+        "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/integral-input-materialization-01/sample/attempt-012"
+      }
+    ]
+  },
+  "lostCopyRegression": {
+    "status": "COMPLETE",
+    "terminalStatus": "SUCCESS",
+    "scheduleConformance": "EXACT",
+    "I": 0,
+    "A": 0,
+    "lostCopiedUpdateCount": 1,
+    "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE"
+  },
+  "rawHashes": {
+    "verifiers/target/integral-input-materialization-01/config.json": "9f6dfc8d061732b1131345ecb02381ec9494a158deed8079dab34327cb3b5aea",
+    "verifiers/target/integral-input-materialization-01/provenance.json": "ea64b0ab24b37cfa46ce5e27ae6d32e46dac9b541f4ce989056b4325a78e67cb",
+    "verifiers/target/integral-input-materialization-01/control/control.json": "07a25cbd2f31ab5586fc70c35ef17cc30825246fb898b362c3c45c735d94de32",
+    "verifiers/target/integral-input-materialization-01/sample/results.json": "ea58a98db618a213caebd39ce5f931d2a47a1a8d842fa4bff7870934d0b53fc9",
+    "verifiers/target/integral-input-materialization-01/lost-copy-regression/control.json": "0d5ed3b137a128c4c2e55d9a981ed16950442772e869aabae43a562a9111a699"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "runtime": "verifiers/target/saga-update-read/generated-06",
+  "provenance": {
+    "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+    "productionOverlay": {
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureCollector.java": "b70c25aa8caa7bc1135aacc96ba5678dd57eed1ad89f9f507198395533022757",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java": "4c0d3f51c7da92859f1dba90965a9c823e4a28bc1a8f5182f93ba26ee2f73f16",
+      "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioMaterializer.java": "5b15d1dfecb25a00f7d75766a62fd8aac6ecb31981fecbb553b0b9e4b018d075"
+    },
+    "preparedBuildHash": "a6bb55c6862dd6e6d20c052dcbc8a6f11da31b1c96ea891b34072aef54ba5551",
+    "sourceHashes": {
+      "diagnostic/ScenarioExecutor.java": "4c0d3f51c7da92859f1dba90965a9c823e4a28bc1a8f5182f93ba26ee2f73f16",
+      "diagnostic/SagaReadExposureCollector.java": "b70c25aa8caa7bc1135aacc96ba5678dd57eed1ad89f9f507198395533022757",
+      "diagnostic/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+      "diagnostic/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b",
+      "diagnostic/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+      "diagnostic/ScenarioMaterializer.java": "5b15d1dfecb25a00f7d75766a62fd8aac6ecb31981fecbb553b0b9e4b018d075",
+      "source/OrdinaryExecutorControl.java": "0fb8083e7eac89ef0af7723b4947c98f935821348d95f13f9a0e46944c29d344",
+      "source/run.py": "00799004ec9f177a94e23e81518acc5b15543e1029cd01cfe494609cf38d74da",
+      "source/select_cases.py": "4ac064200a48c96901566feca10a3fb747d879cc0c7e6a3890870046b105f729",
+      "source/generate.sh": "516fa3ab138673510cd7e16f98c8ca3e4a2a9ccdfd3ea16b5884ca74ccce5dda",
+      "source/execute.sh": "618ce92cf1b5ee51dfbb01f5589b03c2a28741e4e31ae74ac1cacf922e63b748",
+      "source/GenerateUpdateReadPackage.java": "2eefaa8ac1d87e876bd3c30f03c8cbbd26fc1dc804f5d67783e114dcafbef6de",
+      "source/descriptor/src/test/resources/verifier-prerequisite-scenarios.json": "45c8cd5b7ca6e7f43ad4cc1f742871f3dd8a192722cc610fcfbf4c0e438e99af"
+    }
+  },
+  "packageManifestSha256": "818b761b620d588bbea95930f9432e10d64a0d531559b3bebd985a8975fb5a1f",
+  "tests": {
+    "tests": "199",
+    "failures": "0",
+    "errors": "0"
+  },
+  "testXmlSha256": "de9dcbe8ee395692a7012c116eaca93da53adf66d1238081bde4cf0c5de74202",
+  "validatorSha256": "a5f37fad91f136446b3f4bb2c913d37a4f2bbac59162cc7b26af5caa2063d6e0"
+}

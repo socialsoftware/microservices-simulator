@@ -1,0 +1,43 @@
+{
+  "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+  "productionOverlay": {
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java": "4c0d3f51c7da92859f1dba90965a9c823e4a28bc1a8f5182f93ba26ee2f73f16",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioMaterializer.java": "5b15d1dfecb25a00f7d75766a62fd8aac6ecb31981fecbb553b0b9e4b018d075",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioSetupRunner.java": "4219dacccafa29ea2c72fb7b742d7589561b51067951822cb82f45d6830ca76b",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/SetupPlanValidator.java": "3f98ff4e1cdf16170acc4691ac846a41976db7799d49d46cac5fc3a2f1c2cb56",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/adapter/SetupPlanMapper.java": "e57ede74ffa384d5d1e697cf0b6dcd36669c00ee4aaab7916c95d7ddf62f4caf",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/export/ExecutableArtifactWriter.java": "d53ef53c0afe4bb199ed383233d81606768b475a9caa8626c6583be9fbb36313",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/export/ScenarioCatalogPackageReader.java": "4da9c72890b61f30ab378755e93ed1e65475dccc53608726fab479aaa81d927a",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/model/SetupValueRecipe.java": "a7e13e1df58b97e3dbe9d9a3a1e442976e9ce605b59782acb03deb5331aec9af",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/visitor/GroovyConstructorInputTraceVisitor.java": "044875c7416c5ea1e176899b9a0ac9bf0e4d286cbf42a534f0de7c5ba1e7b233",
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseObservation.java": "4dc3497e7bb1def903abc0497d6f8e88f9b6721d0e055fb18dd26463fa2a1a49"
+  },
+  "preparedBuildHash": "a6bb55c6862dd6e6d20c052dcbc8a6f11da31b1c96ea891b34072aef54ba5551",
+  "sharedRunnerHash": "51d85ad0d74c3e7e533efe31187904c707d3ea338f37f86372993b55994ab7c8",
+  "sourceHashes": {
+    "source/OrdinaryExecutorControl.java": "0fb8083e7eac89ef0af7723b4947c98f935821348d95f13f9a0e46944c29d344",
+    "source/run.py": "a120570fa76d7724a3b5adf5db2858b8bf043ccaca9952591ea040cdcb0c0dd7",
+    "source/GenerateSourceUpdateReadPackage.java": "56bae7c6bcf8b8cfe75e439126ccacf2f1302a899bc42b7b6cf143d50fd0d723",
+    "source/README.md": "eb6de708489227fd44d4d286f67fc1b6410b136ffcd144005c349c4dec1c3c1a",
+    "source/select_cases.py": "4ac064200a48c96901566feca10a3fb747d879cc0c7e6a3890870046b105f729",
+    "source/validate.py": "1db113114f767737d7e1fe81bdb33a12b5077c3a80a4479a695a5b007536238b",
+    "source/execute.sh": "b784993351c5f08ad1e8bcdbcf6621b14eff320926f582684b16ea801543c38c",
+    "source/compile-generate.sh": "b3c8b5977e928ee7844d3e39487cfd6bce465d9c5d33fcab372bf21ed2da81e9",
+    "production/simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/sagaread/ReadResponseObservation.java": "4dc3497e7bb1def903abc0497d6f8e88f9b6721d0e055fb18dd26463fa2a1a49",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/SetupPlanValidator.java": "3f98ff4e1cdf16170acc4691ac846a41976db7799d49d46cac5fc3a2f1c2cb56",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/visitor/GroovyConstructorInputTraceVisitor.java": "044875c7416c5ea1e176899b9a0ac9bf0e4d286cbf42a534f0de7c5ba1e7b233",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioExecutor.java": "4c0d3f51c7da92859f1dba90965a9c823e4a28bc1a8f5182f93ba26ee2f73f16",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureAssessor.java": "d6349e96176defbed58cf89cd263807ba8023f42061993b6dae665bc9a698535",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadExposureReport.java": "7e4996fb82d23fc18da25a8b80a98c0645bb822c22b053724355c93d47accf7b",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/SagaReadAttributeFingerprinter.java": "e208f0bd09e13202c186c454307e3e432ec40613499ceeef5407a803cf68e814",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioMaterializer.java": "5b15d1dfecb25a00f7d75766a62fd8aac6ecb31981fecbb553b0b9e4b018d075",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ScenarioSetupRunner.java": "4219dacccafa29ea2c72fb7b742d7589561b51067951822cb82f45d6830ca76b",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/adapter/SetupPlanMapper.java": "e57ede74ffa384d5d1e697cf0b6dcd36669c00ee4aaab7916c95d7ddf62f4caf",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/model/SetupValueRecipe.java": "a7e13e1df58b97e3dbe9d9a3a1e442976e9ce605b59782acb03deb5331aec9af",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/export/ScenarioCatalogPackageReader.java": "4da9c72890b61f30ab378755e93ed1e65475dccc53608726fab479aaa81d927a",
+    "production/verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/export/ExecutableArtifactWriter.java": "d53ef53c0afe4bb199ed383233d81606768b475a9caa8626c6583be9fbb36313"
+  }
+}

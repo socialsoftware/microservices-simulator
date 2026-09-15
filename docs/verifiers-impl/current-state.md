@@ -30,11 +30,18 @@ The verifier does **not** prove that an application is correct. It currently ans
 The earlier explicit Quizzes broken-reference benchmark rule is retained as separate
 application-specific evidence; it is not the generic ImpactV2 definition.
 
-The retained ordinary single-input count analysis has **665 static setup candidates out of
-796 accepted inputs**: 664 with source setup, one without setup, and 131 blocked.
-Exact earlier setup results now survive inside participant DTOs and collections.
-Four representative inputs from the latest extension completed fault-free Docker
-execution with exact persisted identities. This does not qualify all 665 at runtime.
+The [9 September static refresh](evidence/static-refresh-2026-09-09/README.md) has
+**734 static setup candidates out of 809 accepted source inputs**: 681 with source setup,
+53 materializable without it, and 75 blocked. On the same application-source snapshot
+and configuration, the retained earlier verifier has 678/809: **56 gained, zero lost**.
+The same 809 source-input IDs occur on both sides. The older 665/796 package uses a
+different test snapshot and remains historical evidence.
+
+Exact earlier setup results survive inside participant DTOs and collections, including
+supported aggregateId projections and ordered returned-DTO setters. Runtime qualification
+covers selected cases, including the source-backed Tournament update/read pair; it does
+not establish that all 734 static candidates execute successfully. Some admitted inputs
+come from application tests intentionally expecting rejection.
 
 ImpactV2 is integrated into ordinary Saga/local execution. It counts distinct objects
 with deleted dependencies, residual effects of failed operations, or an unresolved
@@ -52,8 +59,10 @@ step-by-step example. [ImpactV2](#impactv2-assessment) owns the checking contrac
 [the latest qualification](#owned-cycle-coverage-and-control-requalification) owns current
 campaign results. The [four-run investigation](#understanding-impact-through-quizzes)
 explains the earlier methodological choices; its counts are not the current benchmark.
-The 665-input count snapshot predates the final qualification fixture additions and is
-not a new full-catalogue count for this checkout.
+The static refresh compares matched verifier versions and source snapshots separately
+from runtime impact campaigns. Its broader configuration covers up to three Sagas, ten
+accepted inputs per Saga and up to three selected event consequences; these explicit
+bounds are not an exhaustive application-wide scenario claim.
 
 ## Reading order
 
@@ -160,8 +169,20 @@ affected-object lower bound while their complete score remains null.
 the exact revision created by another Saga, before confirmed logical deletion by explicit
 compensation of that creating step/occurrence. It records exposure even when the reader
 only reads, finishes successfully, or later compensates. It requires neither final harm
-nor a subsequent write by the reader. The diagnostic is separate from ImpactV1/ImpactV2;
-restored updates and arbitrary value propagation remain outside this first slice.
+nor a subsequent write by the reader. The diagnostic is separate from ImpactV1/ImpactV2. Arbitrary value propagation remains
+outside its scope; the update counterpart is defined below.
+
+### Exposure to a subsequently compensated update
+
+**Exposure to a subsequently compensated update** is proven delivery to another Saga of
+an exact forward-written revision while its producer is unfinished, followed by explicit
+compensation of the same producing step/occurrence that restores at least one changed
+persistent application attribute. The predecessor, forward and recovery revisions must be
+unambiguously joined. The diagnostic reports restored and not-restored changed attributes;
+it does not require whole-object restoration, later reader writes or demonstrated harm.
+An attribute here is one top-level key in the existing persistent application projection.
+Structured attribute values are compared atomically. Revision exposure does not prove
+that every attribute was returned in a DTO or subsequently used by the reader.
 
 ### Benchmark observation
 
@@ -262,9 +283,27 @@ enrollment effects. Calls from different features or classes are never combined 
 extension. Assertion/cleanup/where labels, control flow, direct workflow execution, and
 direct event-handler execution close further feature-prefix extraction.
 
-Direct facade arguments retain caller DTO setters and property assignments as they stood
-before the call, including self-rebinding calls. Later assignments cannot leak backward
-into the retained setup argument recipe.
+Direct facade arguments backed by fresh DTO constructors retain caller setters and
+property assignments as they stood before the call, including self-rebinding calls.
+Later assignments cannot leak backward into the retained setup argument recipe.
+Supported setters/property assignments on DTOs returned by exact earlier setup calls are
+also retained, including through helpers. Their ACTION_RESULT recipe carries ordered
+assignments, exported as optional `fields` on a setup `result`. At execution, a no-argument
+bean copy receives these setters; the retained setup result stays unchanged for other
+bindings. Copying is shallow and requires public getters/setters for every bean property.
+An aggregateId projection remains usable after unrelated DTO setters, but a prior
+assignment to the projected property itself is rejected rather than replaced with the
+original value. Present malformed result `fields` are rejected by the package reader.
+This supports the existing DTO/property allowlist, not arbitrary objects or deep alias
+replay. Repeated/unknown setters and unsupported assignment values remain blocked.
+
+Approved scalar result properties, currently `aggregateId`, can occur inside supported
+DTO/collection recipes, with exact producer occurrence and method checks. This closes the
+[input audit](../../issues/2026-09-09-generated-update-read/INPUT-INVESTIGATION.md)'s nested
+Topic-ID gap together with its lost Tournament DTO setters. Missing, ambiguous, wrong,
+selected or later producers do not receive guessed values. The separate HashSet/Set
+constructor representation from RemoveTournamentAndUpdateTournamentTest remains deferred.
+See the [source-input package](../../issues/2026-09-09-source-update-read-inputs/BRIEF.md).
 
 For a selected tuple, the candidate must end before its earliest selected target, supply
 every setup-dependent argument, and contain no selected target action. An unselected
@@ -289,6 +328,13 @@ target's prefix. Direct constructor inputs in `setup()` are not facade targets a
 eligible for ordinary complete-fixture preparation.
 
 Recipe readiness, catalog acceptance, static setup candidacy, runtime setup readiness, and successful execution are different stages. Do not collapse them into one “executable” count.
+
+Provider-bound generic types retain their declared spelling (for example,
+`java.util.Set<java.lang.Integer>`) in descriptors, recipes and reports. Runtime provider
+validation and input materialization resolve the erased Java class and check assignability:
+a Set is accepted and a List is rejected for that requirement. This does not recursively
+validate collection element types. The shared runtime lookup prevents `ClassNotFoundException`
+for a parameterized declaration; it does not relax missing-binding or wrong-container checks.
 
 ### Source-mode filtering
 
@@ -441,6 +487,26 @@ These are report/evaluation lenses for uncertainty in static aggregate binding:
 Type-level connected-set counts and connected sets with accepted positive input tuples answer different questions. A lack of contradictory input evidence is not positive evidence. The strict and broad counts do not represent runtime modes; generation configuration such as `generationStrategy` and `allowTypeOnlyFallback` selects records.
 
 They are useful only when evaluating how uncertain aggregate-key extraction affects multi-Saga pruning. For a `maxSagaSetSize=1` setup package, strict/broad pair counts do not explain the emitted single-Saga catalog and should not be treated as headline metrics.
+
+The retained September space-map campaign explicitly used `SERIAL` with one schedule
+per tuple; this is a campaign bound, not the generator's ordering capability. The
+[generated update/read qualification](../../issues/2026-09-09-generated-update-read/HANDOFF.md)
+uses existing `ORDER_PRESERVING_INTERLEAVING` and an explicit prerequisite provider:
+six read placements, six successful controls, eight final-step fault schedules and three
+proven update/read exposures through ordinary ScenarioExecutor. All eight faults score
+one persistent residual object, demonstrating that final-object and read-anomaly counts
+measure different facts. That first qualification used provider-backed preparation.
+
+The subsequent [source-input qualification](../../issues/2026-09-09-source-update-read-inputs/HANDOFF.md)
+uses the unchanged `UpdateTournamentTest#update tournament successfully` pair instead.
+Its ordinary source setup executes 14 facade calls, with no prerequisite provider, and
+binds the exact Tournament and Topic IDs returned at runtime. All six controls and eight
+selected final-step fault schedules execute with exact conformance; three faults expose
+the compensated update. The persisted forward write proves the actual test's requested
+2→3 questions and 12:05–13:05→12:25–13:25 dates at the fixed clock. All eight faults retain
+the separate topic course-ID compensation residue (ImpactV2=1); all controls score zero.
+This qualifies one exact existing input pair and its selected schedules. It does not
+recount the whole catalogue or make every retained test input executable.
 
 ### Segment-compressed scheduling
 
@@ -689,6 +755,24 @@ stable COMPLETE zero results each. The historical 14-zero/15-two landscape is a 
 post-run reference check, not a newly executed complete 29-row landscape. These results
 qualify the bounded evaluation path and expose flat additional spaces, not GA benefit.
 
+### Integral participant input binding follow-up
+
+The [integral-input fix](evidence/integral-input-materialization-2026-09-15/README.md)
+unblocks materialization of the 156-case workload above. The current JSON reader previously
+promoted even small integral values to Long through a Java numeric conditional; DTO Integer
+setters then rejected them. Integral values now retain Jackson's representation, and
+participant numeric assignments bind to the declared integral destination exactly, rejecting
+fractions and overflow. Source setup and typed Saga invocation retain their existing paths.
+
+The original package now materializes all three participants. Its no-fault run reaches the
+application and is rejected at CreateTournament's final step after anonymizing its creator:
+PARTIAL_COMPENSATED, DEVIATED, with complete zero counts in the four enabled criteria.
+This resolves the framework preparation bug; it does not make the selected forward history
+a successful user operation or establish that its fault space has informative fitness.
+A seed-15156 sample of 12 unique variants has complete four-criterion fitness zero;
+this does not classify the other 144 candidates. The previous lost-copy positive still
+reports count 1 with complete coverage. No business code, scoring policy or GA operator changed. Wider constructor overload resolution remains outside this DTO fix.
+
 ### Bounded structural space map (2026-09-07)
 
 The [space-map experiment](../../verifiers/experiments/space-map/RESULTS.md) selected
@@ -775,7 +859,7 @@ The Saga/local executor has a separate opt-in diagnostic,
 `microservices.simulator.saga-read-exposure.enabled=true`. With the flag disabled it creates
 no new read-exposure sidecar. With it enabled, `execution-report.json` additionally produces
 `execution-report.saga-read-exposure.json`, schema
-`microservices-simulator.saga-read-exposure.v1`. The gateway and executor resolve this flag
+`microservices-simulator.saga-read-exposure.v2`. The gateway and executor resolve this flag
 from the same Spring environment. Existing write collection remains a prerequisite;
 disabling it with `-Dmicroservices.simulator.impact.enabled=false` produces `UNAVAILABLE`
 read evidence without implicitly re-enabling collection.
@@ -788,28 +872,76 @@ recovery and event consumers cannot become application readers. Missing or chang
 Saga attribution is a coverage gap. Internal reads, lists/predicates, nested references and
 in-memory DTO reuse are not globally covered by this hook.
 
+`ReadResponseObservation` applies role exclusions, then checks payload and exact command
+adapter scope before requiring reader attribution. Successful unmapped calls are
+`DELIVERED_UNMAPPED/NO_READ_ADAPTER`; failed unmapped calls are excluded from this
+diagnostic with `COMMAND_OUTSIDE_DECLARED_SCOPE` while the application exception still
+propagates. Missing payload, adapter errors and missing/changed attribution on supported
+reads remain explicit gaps. Scope-inspection errors on failed calls are contained so
+they cannot replace the application exception. The [scope-order correction](evidence/read-scope-2026-09-10/README.md)
+removes false CommitSagaCommand gaps: all 14 repeated update/read histories have complete
+coverage within scope, with unchanged impact/exposure counts and application outcomes.
+
 The diagnostic composes with `ImpactV2EvidenceCollector` inside the existing observer scope.
 It copies metadata from the existing baseline and confirmed writes, adding its own common
 write/read observation order without extra persistence queries. ImpactV2's write/event
-sequence and read-independent gap list remain separate. It requires covered prior absence,
+sequence and read-independent gap list remain separate. The creation category requires covered prior absence,
 a unique forward creation with no predecessor, exact delivery to another Saga before the
 producer completes, and a later same-producer recovery tombstone whose direct predecessor
 is the delivered revision. Source occurrence/checkpoint facts and successful explicit
 compensation must prove the same creating step. Runtime fallback's name-based source choice
 is accepted only when uniquely supported; missing or ambiguous provenance is `UNKNOWN`.
 
-The sidecar retains metadata-only baseline/write/read facts, adapter/source contracts,
+Schema v2 additionally fingerprints each top-level application attribute from the existing
+baseline/write projections (canonical JSON, SHA-256; sorted map keys, ordered lists).
+No extra snapshot query or DTO reflection is introduced. An update proof joins the exact
+predecessor, delivered forward revision and direct successor written during same-occurrence
+explicit compensation. It requires at least one changed attribute to return to its prior
+fingerprint. Structured attributes are compared as a whole; matching topic membership alone
+does not establish restoration of the complete embedded topic collection.
+
+Missing/empty projections, unequal attribute key sets, baseline projection gaps, ambiguous
+source/checkpoint facts and intervening writes are unknown. No application-attribute change,
+no restored changed attribute, ordinary successful completion without recovery, and reads
+of baseline or proven recovery-produced revisions are evaluated negatives for this pattern.
+The initial update slice is deliberately conservative about multiple later same-Saga
+recovery writes: it requires a unique recovery candidate. It does not claim general
+multi-writer compensation analysis.
+
+The sidecar retains revision metadata and attribute fingerprints, adapter/source contracts,
 action/checkpoint joins, artifact hashes, per-call assessments and deduplicated findings.
-Repeated deliveries for one producer/reader/revision share a finding; different readers
-remain distinct. It contains no DTO payload, application projection or impact score.
+Findings distinguish `CREATION` and `UPDATE` and expose generic produced/recovery revision
+and write IDs. Legacy creation/deletion fields remain populated for creation findings and
+null for updates. Repeated deliveries for one producer/reader/produced revision share a
+finding; different readers remain distinct. Update findings list `restoredAttributes` and
+`notRestoredAttributes`; these concern changes made by the producer, not every difference
+introduced later by recovery. It contains no raw DTO payload, raw application projection
+or impact score. Fingerprints provide attribute equality evidence.
 Execution validity, `COMPLETE_WITHIN_SCOPE`/`PARTIAL`/`UNAVAILABLE` collection coverage and
 individual verdicts are separate. `observedExposureCount` is a lower bound when partial and
 null without usable measurement. A proven positive can survive an interrupted prefix,
 reader recovery or later recreation; an unfinished prefix cannot establish complete absence.
 
+The [offline impact/anomaly matrix](evidence/impact-anomaly-matrix-2026-09-10/README.md)
+compares these separate reports on the 14 source-derived update/read executions and
+preserves their individual coverage. Its illustrative combined values are discussion
+material, not an implemented score or a change to search fitness.
+
+A separate [9 September controlled update-read experiment](evidence/saga-update-read-2026-09-09/README.md)
+now qualifies the next extension: FindTournament successfully receives the revision of an
+unfinished UpdateTournament, which subsequently compensates selected fields. Four histories
+in both serialization modes distinguish the positive from successful-update, read-before
+and read-after controls. The original run established experiment-only evidence; the
+[implemented extension and integrated qualification](../../issues/2026-09-09-compensated-update-read/HANDOFF.md)
+now route that same history through the production diagnostic. The persistent-object
+impact score and search fitness were not changed. Full projections
+also show topic course-ID loss during recovery, so whole-object restoration must not be
+assumed from the selected fields returning to their initial values.
+
 Framework, verifier and Quizzes qualification is recorded in the
 [approved issue](../../issues/2026-09-07-compensated-saga-read/PLAN.md) and
 [runtime results](../../issues/2026-09-07-compensated-saga-read/RESULTS.md).
+Those historical v1 cost/memory measurements do not measure the new fingerprinting cost.
 Quizzes registers two adapters under `sagas & local`: `GetQuizByIdCommand → QuizDto`
 (`SagaQuiz`) and `GetTournamentByIdCommand → TournamentDto` (`SagaTournament`). Each
 preserves the exact outer persistent identity/runtime type and returned revision. The
@@ -1385,7 +1517,7 @@ not a durable publication archive; preserve selected raw evidence before cleanin
 
 | Question | Representative evidence | Interpretation |
 | --- | --- | --- |
-| How many ordinary single inputs are static candidates? | 665/796; 88 gained, zero lost | Latest nested-binding package; not 665 successful executions |
+| How many ordinary single inputs are static candidates? | 734/809; 56 gained, zero lost against the same-source earlier verifier (678/809) | September 9 static refresh; not 734 successful executions |
 | Do the new nested bindings survive real execution? | Four fault-free Docker attempts: SUCCESS / EXACT | Exact course/question/topic identities and one target creation |
 | Can an event reach its intended receiver? | Delivery, masking, and absent-receiver controls | One source-derived QuizAnswer fixture, not generic receiver synthesis |
 | Has every latest candidate been preflighted? | No; older 402-workload scan plus seven targeted repairs | Not a full rerun on the latest package |
@@ -1573,8 +1705,10 @@ unbound value. Identical traces of the same source occurrence remain deduplicate
 When the measured target itself occurs in `setup()` or a supported setup helper, its
 setup plan stops before that exact target occurrence. Missing or ambiguous target
 occurrence metadata cannot fall back to replaying the complete fixture. Existing root
-property bindings remain supported; new nested scalar property-result collections,
-including the deferred Tournament patterns, remain outside this extension.
+property bindings remained supported; nested scalar property-result collections were
+outside that September 5 extension. The September 9 source-input extension now supports
+approved nested aggregateId references together with returned-DTO setters; the counts
+below remain the retained September 5 measurement, not a new whole-catalogue recount.
 
 The ordinary package under
 `verifiers/target/astra-nested-bindings/final-generated/quizzes-20260905-125205-380/`

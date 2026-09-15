@@ -1,0 +1,533 @@
+{
+  "package": "verifiers/target/space-map/prepared/package",
+  "workloadFileSha256": "0bd0813cfe29819980af203febccf45da1ddc9a41fec692eb4424c5246593c80",
+  "inputFileSha256": "fe46e4fcf11b2d454d4db9d6cd4c1bc4afec4381b694d7c0d2a10b075303471c",
+  "workloads": [
+    {
+      "id": "0e7a61da40d68fc8e268f101bbab64ce6b6cdc1389b9b73d3d17e711a63ecf11",
+      "setup": null
+    },
+    {
+      "id": "2ef8fcec8c4300d1c512de58f2e35b74d54429d30cc15ab7ac431a2812f78340",
+      "setup": null
+    },
+    {
+      "id": "5265db550ea2a4165d018f1ba3915490918ffebba3afdcbd8fc952ff276ce7d6",
+      "setup": null
+    },
+    {
+      "id": "63389758d25bb4d92a1fa9008d001186216d1b82fdd16867472d1cc6133b0d69",
+      "setup": null
+    },
+    {
+      "id": "6ff0720d0e9e1982ae3b69a7dad13cfd8150e9e13d9dde50d48b2dbcdc4c39bf",
+      "setup": null
+    },
+    {
+      "id": "954b22bf3a77775df9772079dfcff5bcb142e0a2e51e0ad86e33d1115bb80d29",
+      "setup": null
+    },
+    {
+      "id": "98d69115cb18edaee7de7ca99b5c4549fa62cd882f0f6b57ac8d872d51ecb278",
+      "setup": null
+    },
+    {
+      "id": "9fbf479c614d829ef0fbedca4f261dfa40fa972a9bb54f98299ed39c0d9b7947",
+      "setup": null
+    },
+    {
+      "id": "ec12bf32bed2d64b634473664976cbf2dfa71c4a06c550ed73f7afbc0d9d0cc0",
+      "setup": null
+    }
+  ],
+  "inputs": [
+    {
+      "id": "055c27095c6dc94ea67b6a8a7095da0fffd91f780ed4c5bc94aa4ed7193ffb67",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "09a5a31cbbd31145929d54ee3b8cc3bda403d2bf2d4eda4b639cdb87ecabd30b",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        }
+      ]
+    },
+    {
+      "id": "0a2332d640a7b8749dca8457b6ca24ce2ac241443430c3cad06bca7e2e5b331f",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "0d52de15e169a02f51fcacf3086e73c30df5d1302f881b3ec01513a782d8af67",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "0f5261c6f83073ec82788a046025c99f32e6d7c45d3d841ae3793bbc15a789e8",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "13a2e860612a8474f3fd08c95031bb9d94d21cc469abccc468976e474f878371",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "1442ec57d898d14282521f6ee54657e69b7b4ea9289b5b062b7320bc508928bc",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "1851f27f0aac9284ee6dffc903d43fbe14fc7a6e775f996a7d63202ad9b07168",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "callReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge].aggregateId"
+        }
+      ]
+    },
+    {
+      "id": "23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        }
+      ]
+    },
+    {
+      "id": "432697057fcf42b6b4476148369aa1c0aa6a85cf8f0f540cb885a018910a6dae",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        }
+      ]
+    },
+    {
+      "id": "466adc921215e534097dd23ab3336e2a7432f6132990bca3bdf4e47ca6a849bf",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        }
+      ]
+    },
+    {
+      "id": "55d483cd7fdb053e3aabe4d4235849f78f56e3de30af9781291849553063cd17",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topics <- new HashSet(Arrays.asList(topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId))"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topics <- new HashSet(Arrays.asList(topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId))"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topics <- new HashSet(Arrays.asList(topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId))"
+        }
+      ]
+    },
+    {
+      "id": "70c335c4bc2ac6a128b958297412f41047e724f783d3829d337f48194bae91c3",
+      "materializable": false,
+      "blockers": [
+        {
+          "argument": 1,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unknownValue",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 1,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "tournamentDto <- createTournament(...) <- tournamentDto <- tournamentFunctionalities.createTournament(userCreatorId, courseExecutionId, topicIds, tournamentDto) [unresolved external/runtime edge]"
+        },
+        {
+          "argument": 2,
+          "reason": "propertyReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "transformReceiverNotReady",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unknownValue",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        },
+        {
+          "argument": 2,
+          "reason": "unresolvedVariable",
+          "sourceExpression": "topicsAggregateIds <- [topicDto1 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto2 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId, topicDto3 <- createTopic(...) <- topicDto <- topicFunctionalities.createTopic(courseExecutionDto.getCourseAggregateId(), topicDto) [unresolved external/runtime edge].aggregateId].toSet()"
+        }
+      ]
+    }
+  ]
+}

@@ -1060,6 +1060,82 @@ class ScenarioExecutorSpec extends Specification {
         FixtureWrongNestedRootDto     | 'UNSUPPORTED_SETUP_RESULT_PROPERTY'
     }
 
+    def 'mutated action result is copied before ordered setters and leaves the retained dto unchanged'() {
+        given:
+        def base = workload(['solo'], [['solo', 'first']])
+        String itemType = 'com.example.dummyapp.item.aggregate.ItemDto'
+        String create = "fixture.Closed#createItem():${itemType}".toString()
+        String consume = "fixture.Closed#consume(${itemType},${itemType}):void".toString()
+        def assignments = [
+                new SetupPropertyAssignment(0, 'name', new SetupValueRecipe(SetupValueKind.LITERAL,
+                        String.name, 'string', 'updated', null, [], [], [], null, null, null, []), []),
+                new SetupPropertyAssignment(1, 'price', setupLiteral(33), [])
+        ]
+        def mutated = SetupValueRecipe.actionResult('setup-action-1', itemType, assignments)
+        def original = SetupValueRecipe.actionResult('setup-action-1', itemType)
+        def plan = new SetupPlan(SetupPlan.SCHEMA_VERSION, [
+                setupAction(1, create, [], itemType),
+                setupAction(2, consume, [mutated, original], 'void')
+        ], [], [])
+        def candidate = reidentifyWorkload(base, base.acceptedInputs(), null, plan)
+        def packageFixture = writePackage(candidate, scenarios(candidate, '0'))
+        def roundTrip = new ScenarioCatalogPackageReader().read(packageFixture.manifest)
+                .workloadPlans().first().setupPlan().actions()[1].arguments()[0].value()
+        def received = []
+        def methods = [
+                (create): new ScenarioSetupActionDispatcher.SetupMethod(create, itemType, false,
+                        { args -> new com.example.dummyapp.item.aggregate.ItemDto(
+                                aggregateId: 7, name: 'prepared', price: 12, orderId: 21) }
+                                as ScenarioSetupActionDispatcher.Invocation),
+                (consume): new ScenarioSetupActionDispatcher.SetupMethod(consume, 'void', true,
+                        { args -> received.addAll(args); null } as ScenarioSetupActionDispatcher.Invocation)
+        ]
+        def dispatcher = { methods } as ScenarioSetupActionDispatcher
+        def runtime = new TrackingRuntimeContext(new TrackingSagaUnitOfWorkService(), [:], [], [dispatcher])
+        def gate = activateEventReplay()
+
+        when:
+        def result
+        try {
+            result = new ScenarioSetupRunner().run(candidate, null, 'mutated-result-copy', runtime)
+        } finally {
+            gate.close()
+            System.clearProperty(EventReplayCoordinator.REPLAY_MODE_PROPERTY)
+        }
+
+        then:
+        roundTrip.kind() == SetupValueKind.ACTION_RESULT
+        roundTrip.assignments()*.propertyName() == ['name', 'price']
+        roundTrip.assignments()*.value*.literalValue() == ['updated', 33]
+        result.success()
+        received.size() == 2
+        !received[0].is(received[1])
+        received[0].aggregateId == 7
+        received[0].name == 'updated'
+        received[0].price == 33
+        received[0].orderId == 21
+        received[1].aggregateId == 7
+        received[1].name == 'prepared'
+        received[1].price == 12
+        received[1].orderId == 21
+
+        when: 'a persisted result mutation has a malformed fields shape'
+        def manifestJson = MAPPER.readTree(packageFixture.manifest.toFile())
+        def setupsPath = packageFixture.manifest.parent.resolve(manifestJson.files.setups.path.asText())
+        def setupRecords = Files.readAllLines(setupsPath).collect { MAPPER.readTree(it) }
+        setupRecords.find { it.path('kind').asText() == 'sourceDerived' }
+                .path('actions')[1].path('arguments')[0].put('fields', 'invalid')
+        Files.writeString(setupsPath,
+                setupRecords.collect { MAPPER.writeValueAsString(it) }.join('\n') + '\n')
+        manifestJson.files.setups.put('sha256', sha256(setupsPath))
+        MAPPER.writeValue(packageFixture.manifest.toFile(), manifestJson)
+        new ScenarioCatalogPackageReader().read(packageFixture.manifest)
+
+        then:
+        def malformed = thrown(IllegalArgumentException)
+        malformed.message.contains('setup result fields must be an object')
+    }
+
     def 'nested result property contract rejects unapproved paths roots and final types'() {
         given:
         def base = sourceSetupWorkload()
@@ -1196,6 +1272,91 @@ class ScenarioExecutorSpec extends Specification {
         'CLEANUP'      || 'SETUP_PENDING_EVENT_BASELINE_NOT_EMPTY'
     }
 
+    def 'current package integral literals retain their exact runtime numeric representation'() {
+        given:
+        def plan = workload(['literal'], [['literal', 'first']], null, 'literal', null,
+                FixtureWorkflow.name, literalRecipe(value))
+        def fixture = writePackage(plan, scenarios(plan, '0'))
+
+        when:
+        def decoded = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+                .workloadPlans()[0].acceptedInputs()[0].inputRecipe().arguments()[0].recipe().value()
+
+        then:
+        decoded.class == expectedType
+        decoded == value
+
+        where:
+        value                         | expectedType
+        0                             | Integer
+        2                             | Integer
+        Integer.MIN_VALUE             | Integer
+        Integer.MAX_VALUE             | Integer
+        2147483648L                   | Long
+        -2147483649L                  | Long
+        Long.MIN_VALUE                | Long
+        Long.MAX_VALUE                | Long
+        new BigInteger('9223372036854775808') | BigInteger
+    }
+
+    def 'current package dummyapp DTO assignments materialize boxed and primitive integers'() {
+        given:
+        def dto = InputRecipeNode.builder('constructor').executorReady(true)
+                .targetTypeFqn('com.example.dummyapp.item.aggregate.ItemDto')
+                .assignments([
+                        new InputRecipeAssignment('setter', 'orderId', 'setOrderId', 0, '', true, [], literalRecipe(2)),
+                        new InputRecipeAssignment('setter', 'price', 'setPrice', 1, '', true, [], literalRecipe(7))
+                ]).build()
+        def plan = workload(['dto'], [['dto', 'first']], null, 'dto', null, FixtureWorkflow.name, dto)
+        def fixture = writePackage(plan, scenarios(plan, '0'))
+        def input = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+                .workloadPlans()[0].acceptedInputs()[0]
+
+        when:
+        def result = new ScenarioMaterializer().materialize(input, Mock(ScenarioRuntimeContext), 'fixture')
+
+        then:
+        result.success()
+        result.values()[0].orderId == 2
+        result.values()[0].price == 7
+    }
+
+    def 'current package integral assignments bind to the declared width without truncation'() {
+        given:
+        def dto = InputRecipeNode.builder('constructor').executorReady(true)
+                .targetTypeFqn(dtoType.name)
+                .assignments([new InputRecipeAssignment('setter', property, property, 0, '', true, [], literalRecipe(value))])
+                .build()
+        def plan = workload(['dto'], [['dto', 'first']], null, 'dto', null, FixtureWorkflow.name, dto)
+        def fixture = writePackage(plan, scenarios(plan, '0'))
+        def input = new ScenarioCatalogPackageReader().readCurrentForExecution(fixture.manifest)
+                .workloadPlans()[0].acceptedInputs()[0]
+
+        when:
+        def result = new ScenarioMaterializer().materialize(input, Mock(ScenarioRuntimeContext), 'fixture')
+
+        then:
+        result.success() == success
+        if (success) {
+            assert result.values()[0]."$property" == value
+            assert result.values()[0]."$property".class == Long
+        } else {
+            assert result.blockers()[0].reason() == 'MATERIALIZATION_EXCEPTION'
+        }
+
+        where:
+        dtoType                                        | property  | value                         | success
+        LongAssignmentDto                              | 'version' | 2                             | true
+        LongAssignmentDto                              | 'version' | Long.MAX_VALUE                | true
+        LongAssignmentDto                              | 'version' | new BigInteger('9223372036854775808') | false
+        com.example.dummyapp.item.aggregate.ItemDto     | 'orderId' | 2147483648L                   | false
+        com.example.dummyapp.item.aggregate.ItemDto     | 'orderId' | new BigDecimal('2.5')          | false
+    }
+
+    static class LongAssignmentDto {
+        Long version
+    }
+
     def 'setup preflight preserves reflection unboxing and primitive widening'() {
         given:
         WideningArgumentWorkflow.received = null
@@ -1240,7 +1401,7 @@ class ScenarioExecutorSpec extends Specification {
         given:
         OverloadSearchWorkflow.selected = null
         def workload = workload(['overload'], [['overload', 'first']], null, 'overload', null,
-                OverloadSearchWorkflow.name, literalRecipe(7))
+                OverloadSearchWorkflow.name, literalRecipe(2147483648L))
         def scenario = scenarios(workload, '0')[0]
         def packageFixture = writePackage(workload, [scenario])
 
@@ -2776,7 +2937,7 @@ class ScenarioExecutorSpec extends Specification {
 
     def 'current prerequisite provider resolves baseline binding clears pending events and fails before measurement'() {
         given:
-        def workload = prerequisiteWorkload()
+        def workload = prerequisiteWorkload(providerMode.startsWith('GENERIC') ? 'java.util.Set<java.lang.String>' : null)
         def scenario = scenarios(workload, '00')[0]
         def packageFixture = writePackage(workload, [scenario])
         def before = packageChecksums(packageFixture.directory)
@@ -2806,8 +2967,8 @@ class ScenarioExecutorSpec extends Specification {
         if (terminal == 'SUCCESS') {
             assert report.prerequisiteSetup().pendingEventsCleared() == 1
             assert report.prerequisiteSetup().emptyPendingEventBaseline()
-            assert report.prerequisiteSetup().bindings()*.status() == ['RESOLVED']
-            assert FixtureWorkflow.BODIES[0] == 'bound:first'
+            assert report.prerequisiteSetup().bindings().every { it.status() == 'RESOLVED' }
+            assert FixtureWorkflow.BODIES[0] == (providerMode == 'GENERIC_SET' ? '[bound]:first' : 'bound:first')
         } else {
             assert report.hardStopReason() == 'PREREQUISITE_BASELINE_FAILED'
         }
@@ -2815,6 +2976,8 @@ class ScenarioExecutorSpec extends Specification {
         where:
         providerMode    | includeProvider || terminal                       | setupStatus | measuredActions | impactStatus
         'SUCCESS'       | true            || 'SUCCESS'                      | 'SUCCEEDED' | 2               | 'EVALUATED'
+        'GENERIC_SET'   | true            || 'SUCCESS'                      | 'SUCCEEDED' | 2               | 'EVALUATED'
+        'GENERIC_WRONG' | true            || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
         'MISSING_KEY'   | true            || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
         'WRONG_TYPE'    | true            || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
         'SUCCESS'       | false           || 'PREREQUISITE_BASELINE_FAILED' | 'FAILED'    | 0               | 'NOT_EVALUATED'
@@ -3055,13 +3218,13 @@ class ScenarioExecutorSpec extends Specification {
                 draft.faultSlots(), draft.compensationCheckpoints(), draft.warnings())
     }
 
-    private static WorkloadPlan prerequisiteWorkload() {
+    private static WorkloadPlan prerequisiteWorkload(String additionalType = null) {
         def base = workload(['solo'], [['solo', 'first'], ['solo', 'second']])
         def oldInput = base.acceptedInputs()[0]
         def bindingNode = InputRecipeNode.builder('baseline_binding').executorReady(true)
-                .bindingKey('participant').bindingTypeFqn(String.name).build()
+                .bindingKey('participant').bindingTypeFqn(additionalType ?: String.name).build()
         def arguments = new ArrayList<>(oldInput.inputRecipe().arguments())
-        arguments[0] = new InputRecipeArgument(0, String.name, InputResolutionStatus.RESOLVED,
+        arguments[0] = new InputRecipeArgument(0, additionalType ?: String.name, InputResolutionStatus.RESOLVED,
                 true, [], 'provider binding', bindingNode)
         def recipe = new InputRecipe(InputRecipe.SCHEMA_VERSION, null, true, [], arguments)
         def input = new InputVariant(oldInput.deterministicId(), oldInput.sagaFqn(), oldInput.sourceClassFqn(),
@@ -3070,8 +3233,8 @@ class ScenarioExecutorSpec extends Specification {
                 oldInput.sourceModeConfidence(), oldInput.sourceModeEvidence(), oldInput.stableSourceText(),
                 oldInput.provenanceText(), oldInput.owners(), oldInput.constructorArgumentSummaries(),
                 oldInput.logicalKeyBindings(), oldInput.warnings(), recipe)
-        def baseline = new PrerequisiteBaseline('fixture-provider', '1',
-                [new BaselineBindingRequirement('participant', String.name)])
+        def requirements = [new BaselineBindingRequirement('participant', additionalType ?: String.name)]
+        def baseline = new PrerequisiteBaseline('fixture-provider', '1', requirements)
         def withoutId = new WorkloadPlan(base.schemaVersion(), null, base.kind(), base.executionShape(),
                 base.participants(), [input], base.forwardSchedule(), base.eventConsequences(), base.normalSchedule(),
                 baseline, base.conflictEvidence(), base.faultSlots(), base.compensationCheckpoints(), base.warnings())
@@ -3687,6 +3850,8 @@ class ScenarioExecutorSpec extends Specification {
             def bindings = switch (mode) {
                 case 'MISSING_KEY' -> [:]
                 case 'WRONG_TYPE' -> [participant: 42]
+                case 'GENERIC_SET' -> [participant: ['bound'] as Set]
+                case 'GENERIC_WRONG' -> [participant: ['bound']]
                 default -> [participant: 'bound']
             }
             new ScenarioPrerequisiteResult(bindings, [fixture: 'dummyapp-labelled'])

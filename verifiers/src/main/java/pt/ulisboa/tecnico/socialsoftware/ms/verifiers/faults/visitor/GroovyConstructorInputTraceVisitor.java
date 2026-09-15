@@ -2955,9 +2955,9 @@ public class GroovyConstructorInputTraceVisitor {
                                             String traceScopeKey,
                                             boolean helperScope,
                                             Map<String, Expression> rebindingFallbackScopes) {
-        if (resolvedTrace == null || resolvedTrace.recipe() == null
+        if (resolvedTrace == null || resolvedTrace.recipe() == null || variableName == null
                 || resolvedTrace.recipe().kind() != GroovyValueKind.CONSTRUCTOR
-                || variableName == null) {
+                && resolvedTrace.producerReference() == null) {
             return resolvedTrace;
         }
         List<ScopedMutation> mutations = activeMutationScopes.getOrDefault(variableName, List.of());

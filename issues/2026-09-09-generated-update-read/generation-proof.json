@@ -1,0 +1,5 @@
+{
+  "diagnostics" : [ "prerequisite scenario update-read-position-0 generated 1 workload plans from quizzes-impact-v2-qualification@1", "prerequisite scenario update-read-position-1 generated 1 workload plans from quizzes-impact-v2-qualification@1", "prerequisite scenario update-read-position-2 generated 1 workload plans from quizzes-impact-v2-qualification@1", "prerequisite scenario update-read-position-3 generated 1 workload plans from quizzes-impact-v2-qualification@1", "prerequisite scenario update-read-position-4 generated 1 workload plans from quizzes-impact-v2-qualification@1", "prerequisite scenario update-read-position-5 generated 1 workload plans from quizzes-impact-v2-qualification@1" ],
+  "scenarios" : 55,
+  "workloads" : 6
+}

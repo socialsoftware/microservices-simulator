@@ -1,0 +1,415 @@
+{
+  "boundedBroadSuites": [
+    {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.097",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DefaultProcessRunnerSpec"
+    },
+    {
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.113",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEnrichmentTestDiscoverySpec"
+    },
+    {
+      "tests": "20",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.407",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicCurrentReaderCorruptionSpec"
+    },
+    {
+      "tests": "8",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.032",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.CurrentDynamicNormalizationSpec"
+    },
+    {
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.098",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicEvidenceReaderSpec"
+    },
+    {
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.027",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.SurefireTestRunReporterSpec"
+    },
+    {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.037",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicRawEvidenceLifecycleSpec"
+    },
+    {
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.021",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicInputMapWriterSpec"
+    },
+    {
+      "tests": "10",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.115",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.dynamic.DynamicArtifactWriterSpec"
+    },
+    {
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.007",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassificationSpec"
+    },
+    {
+      "tests": "13",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.132",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.SourceModeClassifierSpec"
+    },
+    {
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.100",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.ApplicationAnalysisStateSpec"
+    },
+    {
+      "tests": "6",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.017",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state.GroovySourceIndexSpec"
+    },
+    {
+      "tests": "32",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.818",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingCalculatorSpec"
+    },
+    {
+      "tests": "9",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.054",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.PrerequisiteScenarioGeneratorSpec"
+    },
+    {
+      "tests": "91",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.126",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioModelSpec"
+    },
+    {
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.780",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappEventConsequencePackageSpec"
+    },
+    {
+      "tests": "14",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.036",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.RecoveryScheduleGeneratorSpec"
+    },
+    {
+      "tests": "28",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.042",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGeneratorSpec"
+    },
+    {
+      "tests": "19",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.019",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.EventConsequenceStaticBoundarySpec"
+    },
+    {
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.514",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleSelectionSpec"
+    },
+    {
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.015",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.InputRecipeMapperSpec"
+    },
+    {
+      "tests": "16",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.012",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedParticipantSpec"
+    },
+    {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.178",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.SetupPlanMapperNestedPropertySpec"
+    },
+    {
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.791",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter.ApplicationAnalysisScenarioModelAdapterSpec"
+    },
+    {
+      "tests": "26",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.313",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.DummyappAccountingFixtureFoundationSpec"
+    },
+    {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.StaticAnalysisArtifactWriterContractSpec"
+    },
+    {
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.128",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.CurrentExecutableArtifactContractSpec"
+    },
+    {
+      "tests": "28",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.424",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.export.OnDemandFaultScenarioServiceSpec"
+    },
+    {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.149",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventConsequenceVisitorDummyappSpec"
+    },
+    {
+      "tests": "33",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.521",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorDummyappSpec"
+    },
+    {
+      "tests": "37",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.574",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityVisitorSpec"
+    },
+    {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.085",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.EventHandlingBridgeVisitorDummyappSpec"
+    },
+    {
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.076",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.WorkflowFunctionalityCreationSiteVisitorSpec"
+    },
+    {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.053",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyClosureBoundarySpec"
+    },
+    {
+      "tests": "22",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.081",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitorSpec"
+    },
+    {
+      "tests": "1",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "5.246",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.SourceDerivedSharedSagaWorkloadAnalysisSpec"
+    },
+    {
+      "tests": "15",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.046",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.ServiceVisitorSpec"
+    },
+    {
+      "tests": "18",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.658",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorSpec"
+    },
+    {
+      "tests": "30",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "1.351",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioSetupPreflightProcessOrchestratorSpec"
+    },
+    {
+      "tests": "2",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.002",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorReadinessEvaluatorSpec"
+    },
+    {
+      "tests": "7",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.072",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorWrapperSpec"
+    },
+    {
+      "tests": "200",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "3.233",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorSpec"
+    },
+    {
+      "tests": "5",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.073",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioDateMaterializationSpec"
+    },
+    {
+      "tests": "57",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.197",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec"
+    },
+    {
+      "tests": "4",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.005",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorOrchestratorSpec"
+    },
+    {
+      "tests": "23",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.048",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ImpactV2AssessorSpec"
+    },
+    {
+      "tests": "3",
+      "failures": "0",
+      "errors": "0",
+      "skipped": "0",
+      "time": "0.001",
+      "name": "pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.VerifiersConfigurationSpec"
+    }
+  ],
+  "boundedBroadTests": 900,
+  "excludedSpecs": {
+    "ScenarioGeneratorApplicationSpec": "Full run stopped while exact profile-group counting remained CPU-bound; no full-suite pass claimed.",
+    "ApplicationsFileTreeParserSpec": "Earlier broad run: four tests, two failures caused by unexpected pre-existing ReadResponseFixture in exact inventory."
+  },
+  "logs": {
+    "/tmp/source-input-final-focused.log": {
+      "sha256": "59b4826056f9907aee966697c597fabe1dffed519e3378194084c7d105a65aff"
+    },
+    "/tmp/source-input-broad.log": {
+      "sha256": "93b2421e72abb743aff050869af05698a900e6aaf9cf42d6948a798349ad1b09"
+    },
+    "/tmp/source-input-broad-bounded.log": {
+      "sha256": "4f8741559f65f77a77c9c344078f88c3bb9880dcfa7db4c56a31892ede2eee4b"
+    },
+    "/tmp/source-input-full.log": {
+      "sha256": "96340d356a2e541cf04157170a6fd46e0d59528a646be93e7aa9525a25932253"
+    }
+  },
+  "commands": {
+    "broad": "JAVA_HOME=/Library/Java/JavaVirtualMachines/jdk-21.jdk/Contents/Home mvn -Dmaven.repo.local=/tmp/saga-read-m2.zHF7pU/repository -Dtest='!ScenarioGeneratorApplicationSpec,!ApplicationsFileTreeParserSpec' test"
+  },
+  "inventoryFailureEvidence": {
+    "extraClass": "com.example.dummyapp.diagnostics.ReadResponseFixture",
+    "fixtureLastCommitted": "c7439cb",
+    "parserAndInventoryTestAndJavaFixtureChangedByThisPackage": false
+  }
+}

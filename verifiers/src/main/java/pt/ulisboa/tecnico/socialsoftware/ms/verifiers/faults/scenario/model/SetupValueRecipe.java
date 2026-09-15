@@ -25,8 +25,13 @@ public record SetupValueRecipe(
     }
 
     public static SetupValueRecipe actionResult(String actionId, String declaredTypeFqn) {
+        return actionResult(actionId, declaredTypeFqn, List.of());
+    }
+
+    public static SetupValueRecipe actionResult(String actionId, String declaredTypeFqn,
+                                                List<SetupPropertyAssignment> assignments) {
         return new SetupValueRecipe(SetupValueKind.ACTION_RESULT, declaredTypeFqn, null, null,
-                null, List.of(), List.of(), List.of(), null, actionId, null, List.of());
+                null, List.of(), assignments, List.of(), null, actionId, null, List.of());
     }
 
     public static SetupValueRecipe actionProperty(String actionId, String propertyName, String declaredTypeFqn) {

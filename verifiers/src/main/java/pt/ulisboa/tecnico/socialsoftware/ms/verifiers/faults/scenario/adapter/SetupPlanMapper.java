@@ -59,12 +59,11 @@ final class SetupPlanMapper {
                     if (references.isEmpty()) continue;
                     SetupValueRecipe value = invalidParticipantReference(references,
                             traceByOccurrence, actionIdByOccurrence,
-                            ambiguousOccurrences, nestedReferenceBinding(argument),
-                            argument.expectedTypeFqn());
+                            ambiguousOccurrences, argument.expectedTypeFqn());
                     if (value == null) {
                         value = argument.producerReference() == null
                                 ? mapValue(argument.recipe(), argument.expectedTypeFqn(), actionIdByOccurrence)
-                                : referenceValue(argument.producerReference(),
+                                : referenceValue(argument.producerReference(), argument.recipe(),
                                 argument.expectedTypeFqn(), actionIdByOccurrence);
                     }
                     bindings.add(new SetupParticipantBinding(participant.inputVariantId(), argument.index(),
@@ -80,6 +79,9 @@ final class SetupPlanMapper {
         List<GroovySourceValueReference> references = new ArrayList<>();
         if (argument.producerReference() != null) {
             references.add(argument.producerReference());
+            if (argument.recipe() != null && argument.recipe().kind() != GroovyValueKind.CONSTRUCTOR) {
+                collectAssignmentSourceReferences(argument.recipe(), references);
+            }
         } else {
             collectSourceReferences(argument.recipe(), references);
         }
@@ -91,9 +93,15 @@ final class SetupPlanMapper {
         if (source == null) return;
         if (source.sourceReference() != null) {
             references.add(source.sourceReference());
-            return;
+        } else {
+            source.children().forEach(child -> collectSourceReferences(child, references));
         }
-        source.children().forEach(child -> collectSourceReferences(child, references));
+        collectAssignmentSourceReferences(source, references);
+    }
+
+    private void collectAssignmentSourceReferences(GroovyValueRecipe source,
+                                                    List<GroovySourceValueReference> references) {
+        if (source == null) return;
         if (source.metadata() != null) {
             source.metadata().assignments().stream().filter(Objects::nonNull)
                     .forEach(assignment -> collectSourceReferences(assignment.valueRecipe(), references));
@@ -104,7 +112,6 @@ final class SetupPlanMapper {
                                                          Map<String, GroovyFacadeSetupActionTrace> traceByOccurrence,
                                                          Map<String, String> actionIdByOccurrence,
                                                          Set<String> ambiguousOccurrences,
-                                                         boolean nestedReferenceBinding,
                                                          String expectedType) {
         LinkedHashSet<String> blockers = new LinkedHashSet<>();
         for (GroovySourceValueReference reference : references) {
@@ -117,8 +124,6 @@ final class SetupPlanMapper {
             } else if (!Objects.equals(reference.producerMethodName(),
                     traceByOccurrence.get(occurrence).methodName())) {
                 blockers.add("MISMATCHED_SETUP_SOURCE_REFERENCE:" + occurrence);
-            } else if (nestedReferenceBinding && !reference.propertyPath().isEmpty()) {
-                blockers.add("UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:" + reference.propertyPath());
             }
         }
         if (blockers.isEmpty()) return null;
@@ -126,17 +131,13 @@ final class SetupPlanMapper {
                 List.of(), List.of(), List.of(), null, null, null, List.copyOf(blockers));
     }
 
-    private boolean nestedReferenceBinding(GroovyTraceArgument argument) {
-        return argument != null && argument.producerReference() == null
-                && argument.recipe() != null && argument.recipe().sourceReference() == null;
-    }
-
     private SetupValueRecipe mapArgument(GroovyTraceArgument argument,
                                          Map<String, String> actionIdByOccurrence) {
         if (argument == null) return blocked("MISSING_SETUP_ARGUMENT", null);
         if (argument.producerReference() != null) {
             if (actionIdByOccurrence.containsKey(argument.producerReference().occurrenceId())) {
-                return referenceValue(argument.producerReference(), argument.expectedTypeFqn(), actionIdByOccurrence);
+                return referenceValue(argument.producerReference(), argument.recipe(),
+                        argument.expectedTypeFqn(), actionIdByOccurrence);
             }
             return blocked("UNRESOLVED_SETUP_SOURCE_REFERENCE:"
                     + argument.producerReference().occurrenceId(), argument.expectedTypeFqn());
@@ -149,7 +150,7 @@ final class SetupPlanMapper {
                                       Map<String, String> actionIdByOccurrence) {
         if (source != null && source.sourceReference() != null) {
             if (actionIdByOccurrence.containsKey(source.sourceReference().occurrenceId())) {
-                return referenceValue(source.sourceReference(), expectedType, actionIdByOccurrence);
+                return referenceValue(source.sourceReference(), source, expectedType, actionIdByOccurrence);
             }
             return blocked("UNRESOLVED_SETUP_SOURCE_REFERENCE:"
                     + source.sourceReference().occurrenceId(), expectedType);
@@ -264,9 +265,26 @@ final class SetupPlanMapper {
     private SetupValueRecipe referenceValue(GroovySourceValueReference reference,
                                              String expectedType,
                                              Map<String, String> actionIdByOccurrence) {
+        return referenceValue(reference, null, expectedType, actionIdByOccurrence);
+    }
+
+    private SetupValueRecipe referenceValue(GroovySourceValueReference reference,
+                                             GroovyValueRecipe source,
+                                             String expectedType,
+                                             Map<String, String> actionIdByOccurrence) {
         String actionId = actionIdByOccurrence.get(reference.occurrenceId());
         if (reference.propertyPath().isEmpty()) {
-            return SetupValueRecipe.actionResult(actionId, expectedType);
+            List<SetupPropertyAssignment> assignments = mapAssignments(source, actionIdByOccurrence);
+            LinkedHashSet<String> blockers = new LinkedHashSet<>();
+            assignments.forEach(assignment -> {
+                blockers.addAll(assignment.blockers());
+                blockers.addAll(assignment.value().blockers());
+            });
+            return new SetupValueRecipe(SetupValueKind.ACTION_RESULT, expectedType, null, null,
+                    null, List.of(), assignments, List.of(), null, actionId, null, List.copyOf(blockers));
+        }
+        if (mutatesProjectedProperty(source, reference.propertyPath())) {
+            return blocked("UNSUPPORTED_SETUP_RESULT_PROPERTY_MUTATION:" + reference.propertyPath(), expectedType);
         }
         if (reference.propertyPath().size() == 1 && reference.propertyPath().get(0) != null) {
             return SetupValueRecipe.actionProperty(actionId, reference.propertyPath().get(0), expectedType);
@@ -275,6 +293,36 @@ final class SetupPlanMapper {
             return SetupValueRecipe.actionProperty(actionId, "quiz.aggregateId", expectedType);
         }
         return blocked("UNSUPPORTED_SETUP_PROPERTY_PATH:" + reference.propertyPath(), expectedType);
+    }
+
+    private boolean mutatesProjectedProperty(GroovyValueRecipe source, List<String> propertyPath) {
+        if (source == null || propertyPath == null || propertyPath.isEmpty()) return false;
+        GroovyValueRecipe base = source;
+        while (base.kind() == GroovyValueKind.PROPERTY_ACCESS && base.children().size() == 1) {
+            base = base.children().getFirst();
+        }
+        if (base.kind() == GroovyValueKind.CONSTRUCTOR || base.metadata() == null) return false;
+        String rootProperty = propertyPath.getFirst();
+        return base.metadata().assignments().stream().filter(Objects::nonNull)
+                .anyMatch(assignment -> Objects.equals(rootProperty, assignment.propertyName()));
+    }
+
+    private List<SetupPropertyAssignment> mapAssignments(GroovyValueRecipe source,
+                                                          Map<String, String> actionIdByOccurrence) {
+        if (source == null || source.kind() == GroovyValueKind.CONSTRUCTOR || source.metadata() == null) {
+            return List.of();
+        }
+        List<GroovyAssignmentRecipe> sourceAssignments = source.metadata().assignments().stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparingInt(GroovyAssignmentRecipe::orderIndex))
+                .toList();
+        List<SetupPropertyAssignment> assignments = new ArrayList<>();
+        for (GroovyAssignmentRecipe assignment : sourceAssignments) {
+            SetupValueRecipe mapped = mapValue(assignment.valueRecipe(), null, actionIdByOccurrence);
+            assignments.add(new SetupPropertyAssignment(assignment.orderIndex(), assignment.propertyName(), mapped,
+                    assignment.blocker() == null ? List.of() : List.of(assignment.blocker())));
+        }
+        return List.copyOf(assignments);
     }
 
     private GroovyValueRecipe firstChild(GroovyValueRecipe recipe) {

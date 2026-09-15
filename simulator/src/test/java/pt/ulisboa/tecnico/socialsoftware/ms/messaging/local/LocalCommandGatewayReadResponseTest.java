@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactWriterContex
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadObservationContext;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseAdapter;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseEvidence;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseObservation;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommandHandler;
@@ -247,10 +248,11 @@ class LocalCommandGatewayReadResponseTest {
                 .containsExactly(ReadResponseEvidence.Outcome.FAILED);
     }
 
-    @Test
-    void observerSetupRecoveryAndEventCallsAreExcludedAndUnknownOrMismatchedAttributionCannotBecomeB() {
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void observerSetupRecoveryAndEventCallsAreExcludedAndUnknownOrMismatchedAttributionCannotBecomeB(boolean serialized) {
         RecordingObserver observer = new RecordingObserver();
-        LocalCommandGateway gateway = gateway(false, ignored -> new Parcel(41, 1L), List.of(ADAPTER));
+        LocalCommandGateway gateway = gateway(serialized, ignored -> new Parcel(41, 1L), List.of(ADAPTER));
         try (var scope = ImpactEvidenceObserverHolder.install(observer)) {
             gateway.send(new InspectParcel(41));
             try (var writer = ImpactWriterContext.enter(READER)) {
@@ -278,7 +280,7 @@ class LocalCommandGatewayReadResponseTest {
             ImpactWriterContext.Scope[] changed = new ImpactWriterContext.Scope[1];
             try (var writer = ImpactWriterContext.enter(READER)) {
                 try {
-                    gateway(false, ignored -> {
+                    gateway(serialized, ignored -> {
                         changed[0] = ImpactWriterContext.enter(writer("SAGA", "FORWARD", "another#0"));
                         return new Parcel(41, 1L);
                     }, List.of(ADAPTER)).send(new InspectParcel(41));
@@ -293,6 +295,63 @@ class LocalCommandGatewayReadResponseTest {
                 .hasSize(1);
         assertThat(ImpactWriterContext.current()).isEmpty();
         assertThat(ReadObservationContext.excludedRole()).isNull();
+    }
+
+    @ParameterizedTest
+    @ValueSource(booleans = {false, true})
+    void unmappedCommandsDoNotRequireReaderAttributionOnSuccessOrFailure(boolean serialized) {
+        RecordingObserver observer = new RecordingObserver();
+        try (var scope = ImpactEvidenceObserverHolder.install(observer)) {
+            assertThat(gateway(serialized, ignored -> null, List.of(ADAPTER))
+                    .send(new DerivedInspectParcel(41))).isNull();
+            assertThatThrownBy(() -> gateway(serialized, ignored -> {
+                throw new IllegalStateException("application failure");
+            }, List.of(ADAPTER)).send(new DerivedInspectParcel(41)))
+                    .isInstanceOf(IllegalStateException.class).hasMessage("application failure");
+            try (var excluded = ReadObservationContext.exclude("SETUP")) {
+                gateway(serialized, ignored -> null, List.of(ADAPTER)).send(new DerivedInspectParcel(41));
+            }
+        }
+        assertThat(observer.reads).extracting(ReadResponseEvidence.Observation::outcome).containsExactly(
+                ReadResponseEvidence.Outcome.DELIVERED_UNMAPPED,
+                ReadResponseEvidence.Outcome.EXCLUDED, ReadResponseEvidence.Outcome.EXCLUDED);
+        assertThat(observer.reads).extracting(ReadResponseEvidence.Observation::reason)
+                .containsExactly("NO_READ_ADAPTER", "COMMAND_OUTSIDE_DECLARED_SCOPE", "SETUP");
+        assertThat(observer.reads).allMatch(read -> read.reader() == null && read.identity() == null);
+    }
+
+    @Test
+    void missingPayloadRemainsInvalidBeforeAnyScopeOrReaderDecision() {
+        RecordingObserver observer = new RecordingObserver();
+        try (var scope = ImpactEvidenceObserverHolder.install(observer)) {
+            SagaCommand malformed = new SagaCommand(new InspectParcel(41));
+            ReflectionTestUtils.setField(malformed, "payload", null);
+            ReadResponseObservation.begin(malformed, false, List.of(ADAPTER)).delivered(null);
+            ReadResponseObservation.begin(malformed, false, List.of(ADAPTER))
+                    .failed(new IllegalStateException("application failure"));
+        }
+        assertThat(observer.reads).extracting(ReadResponseEvidence.Observation::outcome).containsExactly(
+                ReadResponseEvidence.Outcome.DELIVERED_INVALID, ReadResponseEvidence.Outcome.FAILED_INVALID);
+        assertThat(observer.reads).extracting(ReadResponseEvidence.Observation::reason)
+                .containsExactly("MISSING_COMMAND_PAYLOAD", "MISSING_COMMAND_PAYLOAD");
+    }
+
+    @Test
+    void brokenAdapterScopeCannotReplaceTheApplicationFailure() {
+        RecordingObserver observer = new RecordingObserver();
+        ParcelAdapter broken = new ParcelAdapter() {
+            @Override public Class<InspectParcel> commandType() { throw new IllegalStateException("scope failed"); }
+        };
+        IllegalArgumentException original = new IllegalArgumentException("application failure");
+        var scope = ImpactEvidenceObserverHolder.install(observer);
+        try (scope) {
+            assertThatThrownBy(() -> gateway(false, ignored -> { throw original; }, List.of(broken))
+                    .send(new InspectParcel(41))).isSameAs(original);
+        }
+        assertThat(observer.reads.getFirst().outcome()).isEqualTo(ReadResponseEvidence.Outcome.FAILED_INVALID);
+        assertThat(observer.reads.getFirst().reason()).isEqualTo("READ_ADAPTER_FAILED");
+        assertThat(scope.drainReadFailures()).extracting(ImpactEvidence.CoverageGap::reason)
+                .containsExactly("READ_ADAPTER_FAILED");
     }
 
     @Test
@@ -497,6 +556,7 @@ class LocalCommandGatewayReadResponseTest {
         InspectParcel(Integer requested) { super(new TestUnitOfWork(999L, "FindParcel"), "parcel", requested); }
     }
     public static class DerivedInspectParcel extends InspectParcel {
+        public DerivedInspectParcel() { }
         DerivedInspectParcel(Integer requested) { super(requested); }
     }
     public static class DerivedSagaCommand extends SagaCommand {

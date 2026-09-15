@@ -1,0 +1,347 @@
+{
+  "executions": 14,
+  "controls": 6,
+  "positives": 3,
+  "results": [
+    {
+      "label": "00-control-position-0",
+      "scenario": "689f46857a003faf53f0a699a9cad4d4ff8869e6c64fcc3e51e21d3dfc0242f6",
+      "workload": "7ff3a0c54d7c105b75d9a5a76a8d2026361a44b62c559b1805dbc540aaaa8d30",
+      "terminal": "SUCCESS",
+      "readPosition": 0,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "01-control-position-1",
+      "scenario": "6d96400427edaa757f926137e4194c812e36d76f2f6cf59c9f070658af3ef4b5",
+      "workload": "04beb39a2007eb09e1c033a6953da484c754382e86196e618a448c952c295ec6",
+      "terminal": "SUCCESS",
+      "readPosition": 1,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "02-control-position-2",
+      "scenario": "4c6ca3d50841f804d66d23d495229b949340996bf7a705ed0596301235f89b5a",
+      "workload": "1e0061483ac5d430caf76fe53795ca13cf3e50485a6eee2b10f9d05811ee9a42",
+      "terminal": "SUCCESS",
+      "readPosition": 2,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "03-control-position-3",
+      "scenario": "e728179d1891a0517f27eb80670bc19ff1aa182cb9d0fbb095277775da65bf15",
+      "workload": "bffdf66b1a6f12b9a15070cdfece9b2a3ea5199db00fb7604412e85cc4e02070",
+      "terminal": "SUCCESS",
+      "readPosition": 3,
+      "readVersion": 24,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "04-control-position-4",
+      "scenario": "600fc2b1add6ed07296f080f4f1520a437a80a5dd7f00a7a9e3f45ec1bb45fe4",
+      "workload": "8f0f04059e6f5b49e3d5047179a49943ab50d7a4a9d704204efde499cc23953f",
+      "terminal": "SUCCESS",
+      "readPosition": 4,
+      "readVersion": 24,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "05-control-position-5",
+      "scenario": "729ba22440eb08aaea33dd23fda4fc08a7d801074b795887b4f6a5b185959bba",
+      "workload": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "terminal": "SUCCESS",
+      "readPosition": 5,
+      "readVersion": 24,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "PRODUCER_COMPLETED_BEFORE_DELIVERY",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 0,
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "06-fault-position-0",
+      "scenario": "5ca221e8153ea23d73fe57e207bf942c57487b90c3bf3b20f8c62bc8d9a70004",
+      "workload": "7ff3a0c54d7c105b75d9a5a76a8d2026361a44b62c559b1805dbc540aaaa8d30",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 0,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "07-fault-position-1",
+      "scenario": "bf78d579e372f3e03f2ea042ce70d499de3944c2faf3aae9ecc0bee85cc815f1",
+      "workload": "04beb39a2007eb09e1c033a6953da484c754382e86196e618a448c952c295ec6",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 1,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "08-fault-position-2",
+      "scenario": "5751ba947de3c35b8f3afebdbef8adf52d42c1af058da44bfe425c75366aef78",
+      "workload": "1e0061483ac5d430caf76fe53795ca13cf3e50485a6eee2b10f9d05811ee9a42",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 2,
+      "readVersion": 23,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "09-fault-position-3",
+      "scenario": "f18b5b0689f6f6b6fb21c94b5e7c2dcb135d3c0485e8b7141eacc646fb355c4a",
+      "workload": "bffdf66b1a6f12b9a15070cdfece9b2a3ea5199db00fb7604412e85cc4e02070",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 3,
+      "readVersion": 24,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "10-fault-position-4",
+      "scenario": "692b368d690c9c3573485b82ce7c6e4e42723833ad107d0556ab95ed54278f7d",
+      "workload": "8f0f04059e6f5b49e3d5047179a49943ab50d7a4a9d704204efde499cc23953f",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 4,
+      "readVersion": 24,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "11-fault-position-5",
+      "scenario": "015e02438105fa6309a415422234cda86704c82e8e68bfbc659f903fba48d9b2",
+      "workload": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 24,
+      "expectedExposure": 1,
+      "observedExposure": 1,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "12-fault-position-5",
+      "scenario": "5be6c19fda3d1e7f37b858bae06642733a4142ffb7197b32efe94328de357962",
+      "workload": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 25,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    },
+    {
+      "label": "13-fault-position-5",
+      "scenario": "ec2c7b02e959e06560a46b67b170b179e83f3a6cd578015ae286dc1838b6ffca",
+      "workload": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "terminal": "PARTIAL_COMPENSATED",
+      "readPosition": 5,
+      "readVersion": 25,
+      "expectedExposure": 0,
+      "observedExposure": 0,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "coverage": "COMPLETE_WITHIN_SCOPE",
+      "gaps": [],
+      "impactV2": 1,
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "executedUpdate": {
+        "numberOfQuestions": 3,
+        "startTime": "2030-01-01T12:25",
+        "endTime": "2030-01-01T13:25"
+      }
+    }
+  ]
+}

@@ -493,7 +493,7 @@ public final class ScenarioExecutor {
                     throw new BaselineFailure("MISSING_BASELINE_BINDING",
                             "provider did not return required binding " + requirement.key());
                 }
-                Class<?> expected = Class.forName(requirement.typeFqn());
+                Class<?> expected = ScenarioMaterializer.loadClass(requirement.typeFqn());
                 if (value == null || !expected.isInstance(value)) {
                     bindingEvidence.add(new ScenarioExecutionReport.BaselineBinding(
                             requirement.key(), requirement.typeFqn(), value == null ? null : value.getClass().getName(),

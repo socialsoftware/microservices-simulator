@@ -1,0 +1,12 @@
+{
+  "input-investigation.json": "ee891779b1c73361b6a3b3634e40e265e0ba00e2c49201228b1093db09fbae00",
+  "positive-sidecar.json": "143370b3e12286c56fcfd1ccd6a105e9c784f7b007b2b23bd5b0cec9a3657467",
+  "retained-input-check.json": "debde8ca17ca662b8ef0b8d2bbf356c64a803a56a48df3bb2c71e77e8a765c61",
+  "INPUT-INVESTIGATION.md": "bf60f347fc7945474a130cf0937ddf21838fc4d130115ee88d832a963bbd58e1",
+  "generation-proof.json": "2e8b90e1addfb0473f03353212894bfd0087abeeabc0466c6484f056b924c165",
+  "validation.json": "349ca2aa6304c0b4c952832fd287d018cfe8e0859003ee6f4db8848be2342444",
+  "selection.json": "72b17fc82f698c7451e94989bad302bf75bf95e9032c1a01fe1d2833ee6beb7e",
+  "BRIEF.md": "a61a08e636753adefe4b368c0bba650246a9f694a01acd650ad0b6d18fc62fc3",
+  "HANDOFF.md": "186d5f5875fe156ceaec39c0ac91ce55c9cb839d9a27b8f53a68a836a6beba49",
+  "proof.json": "61f58eef7ea17921cc2a2f263bbbfde05aedbba365dd322aaaebdc73b5f61667"
+}

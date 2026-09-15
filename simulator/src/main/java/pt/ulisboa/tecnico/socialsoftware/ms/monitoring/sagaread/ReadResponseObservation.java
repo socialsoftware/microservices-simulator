@@ -58,11 +58,23 @@ public final class ReadResponseObservation {
     }
 
     public void failed(Throwable failure) {
-        String exclusion = exclusionReason();
-        String gap = readerGap();
-        if (exclusion != null) publish(null, Outcome.EXCLUDED, null, null, null, exclusion);
-        else if (gap != null) publish(null, Outcome.FAILED_INVALID, null, null, null, gap);
-        else publish(null, Outcome.FAILED, null, null, null, failure.getClass().getName());
+        try {
+            String exclusion = exclusionReason();
+            if (exclusion != null) {
+                publish(null, Outcome.EXCLUDED, null, null, null, exclusion);
+            } else if (payload == null) {
+                publish(null, Outcome.FAILED_INVALID, null, null, null, "MISSING_COMMAND_PAYLOAD");
+            } else if (commandAdapters().isEmpty()) {
+                publish(null, Outcome.EXCLUDED, null, null, null, "COMMAND_OUTSIDE_DECLARED_SCOPE");
+            } else {
+                String gap = readerGap();
+                publish(null, gap == null ? Outcome.FAILED : Outcome.FAILED_INVALID,
+                        null, null, null, gap == null ? failure.getClass().getName() : gap);
+            }
+        } catch (RuntimeException observationFailure) {
+            ImpactEvidenceObserverHolder.retainReadFailure(observer, "READ_ADAPTER_FAILED", observationFailure);
+            publish(null, Outcome.FAILED_INVALID, null, null, null, "READ_ADAPTER_FAILED");
+        }
     }
 
     private void observe(Object response) {
@@ -71,19 +83,18 @@ public final class ReadResponseObservation {
             publish(response, Outcome.EXCLUDED, null, null, null, exclusion);
             return;
         }
-        String gap = readerGap();
-        if (gap != null) {
-            publish(response, Outcome.DELIVERED_INVALID, null, null, null, gap);
-            return;
-        }
         if (payload == null) {
             publish(response, Outcome.DELIVERED_INVALID, null, null, null, "MISSING_COMMAND_PAYLOAD");
             return;
         }
-        List<ReadResponseAdapter<?, ?>> commandAdapters = adapters.stream()
-                .filter(adapter -> adapter.commandType() == payload.getClass()).toList();
+        List<ReadResponseAdapter<?, ?>> commandAdapters = commandAdapters();
         if (commandAdapters.isEmpty()) {
             publish(response, Outcome.DELIVERED_UNMAPPED, null, null, null, "NO_READ_ADAPTER");
+            return;
+        }
+        String gap = readerGap();
+        if (gap != null) {
+            publish(response, Outcome.DELIVERED_INVALID, null, null, null, gap);
             return;
         }
         List<ReadResponseAdapter<?, ?>> matches = commandAdapters.stream()
@@ -94,6 +105,11 @@ public final class ReadResponseObservation {
             return;
         }
         extract(matches.getFirst(), response);
+    }
+
+    private List<ReadResponseAdapter<?, ?>> commandAdapters() {
+        // Commands outside the declared read scope need no forward-reader attribution.
+        return adapters.stream().filter(adapter -> adapter.commandType() == payload.getClass()).toList();
     }
 
     private String exclusionReason() {

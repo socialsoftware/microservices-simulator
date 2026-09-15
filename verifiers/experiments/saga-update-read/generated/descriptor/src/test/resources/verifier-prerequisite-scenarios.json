@@ -1,0 +1,257 @@
+{
+  "schemaVersion": "microservices-simulator.prerequisite-scenario-descriptor.v2",
+  "scenarios": [
+    {
+      "id": "update-read-position-0",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "findTournamentStep",
+        "getOriginalTournamentStep",
+        "getTopicsStep",
+        "updateTournamentStep",
+        "findQuestionsByTopicIds",
+        "updateQuizStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    },
+    {
+      "id": "update-read-position-1",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getOriginalTournamentStep",
+        "findTournamentStep",
+        "getTopicsStep",
+        "updateTournamentStep",
+        "findQuestionsByTopicIds",
+        "updateQuizStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    },
+    {
+      "id": "update-read-position-2",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getOriginalTournamentStep",
+        "getTopicsStep",
+        "findTournamentStep",
+        "updateTournamentStep",
+        "findQuestionsByTopicIds",
+        "updateQuizStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    },
+    {
+      "id": "update-read-position-3",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getOriginalTournamentStep",
+        "getTopicsStep",
+        "updateTournamentStep",
+        "findTournamentStep",
+        "findQuestionsByTopicIds",
+        "updateQuizStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    },
+    {
+      "id": "update-read-position-4",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getOriginalTournamentStep",
+        "getTopicsStep",
+        "updateTournamentStep",
+        "findQuestionsByTopicIds",
+        "findTournamentStep",
+        "updateQuizStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    },
+    {
+      "id": "update-read-position-5",
+      "providerId": "quizzes-impact-v2-qualification",
+      "providerVersion": "1",
+      "participants": [
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "tournamentAggregateId",
+              "typeFqn": "java.lang.Integer"
+            }
+          ]
+        },
+        {
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "bindings": [
+            {
+              "argumentIndex": 1,
+              "key": "updatedTournament",
+              "typeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto"
+            },
+            {
+              "argumentIndex": 2,
+              "key": "updatedTournamentTopicIds",
+              "typeFqn": "java.util.Set<java.lang.Integer>"
+            }
+          ]
+        }
+      ],
+      "forwardRuntimeOrder": [
+        "getOriginalTournamentStep",
+        "getTopicsStep",
+        "updateTournamentStep",
+        "findQuestionsByTopicIds",
+        "updateQuizStep",
+        "findTournamentStep"
+      ],
+      "selectionKind": "NO_EVENT",
+      "expectedWorkloadCount": 1
+    }
+  ]
+}

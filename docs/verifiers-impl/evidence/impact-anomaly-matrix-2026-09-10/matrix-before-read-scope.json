@@ -1,0 +1,1896 @@
+{
+  "purpose": "Offline discussion, not an adopted search policy",
+  "newApplicationExecutions": 0,
+  "sourceQualification": {
+    "path": "issues/2026-09-09-source-update-read-inputs/runtime-validation.json",
+    "sha256": "29c53079405d78f2b7090cc63c4e40d3433fba91bd1cd08a91f1d68fe2078fef"
+  },
+  "coverageRuleForThisTableOnly": "Illustrate combined values only when both recorded measurements are complete within their declared scope; retain all other rows and nulls. This is not a production eligibility change.",
+  "rows": [
+    {
+      "label": "00-control-position-0",
+      "scenarioId": "689f46857a003faf53f0a699a9cad4d4ff8869e6c64fcc3e51e21d3dfc0242f6",
+      "workloadId": "7ff3a0c54d7c105b75d9a5a76a8d2026361a44b62c559b1805dbc540aaaa8d30",
+      "attemptId": "3ac6d841-a1dd-459d-b274-c5ff99c02de8",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 11,
+            "stage": "ASSESSMENT",
+            "subject": "3ac6d841-a1dd-459d-b274-c5ff99c02de8:call:11",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/00-control-position-0/execution-report.json",
+          "sha256": "8e7f2071f9bdc8448b1e9fc44ab4fd0842132361f576a4a7dbdcc1072c5f1a99"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/00-control-position-0/execution-report.impact-v2.json",
+          "sha256": "18ba5c30d6c1b64964f992efa56b20663b7e20a3f9a3c052b58677216fedc3ee"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/00-control-position-0/execution-report.saga-read-exposure.json",
+          "sha256": "867b24bde637ab47e7b8442157acfce790a0c44e0dc9f76b84cd6a8df1f167f7"
+        }
+      ]
+    },
+    {
+      "label": "01-control-position-1",
+      "scenarioId": "6d96400427edaa757f926137e4194c812e36d76f2f6cf59c9f070658af3ef4b5",
+      "workloadId": "04beb39a2007eb09e1c033a6953da484c754382e86196e618a448c952c295ec6",
+      "attemptId": "c7f69b96-1c54-4f00-8c80-891213078898",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 11,
+            "stage": "ASSESSMENT",
+            "subject": "c7f69b96-1c54-4f00-8c80-891213078898:call:11",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/01-control-position-1/execution-report.json",
+          "sha256": "ad406a610cf020502a08c47e9b1816223e24f335b26102785f3c51a6db91c861"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/01-control-position-1/execution-report.impact-v2.json",
+          "sha256": "988a7e4bb4edf21770016883d11fc34f5ae8bcbf7044ed5a22e3565c6560968d"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/01-control-position-1/execution-report.saga-read-exposure.json",
+          "sha256": "373f63a57165e32b6f37358846a998689a4a3e2f45a7edf934e03e3a470f2100"
+        }
+      ]
+    },
+    {
+      "label": "02-control-position-2",
+      "scenarioId": "4c6ca3d50841f804d66d23d495229b949340996bf7a705ed0596301235f89b5a",
+      "workloadId": "1e0061483ac5d430caf76fe53795ca13cf3e50485a6eee2b10f9d05811ee9a42",
+      "attemptId": "ce7d1745-4049-491e-8cf3-b915534d8dd3",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 11,
+            "stage": "ASSESSMENT",
+            "subject": "ce7d1745-4049-491e-8cf3-b915534d8dd3:call:11",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/02-control-position-2/execution-report.json",
+          "sha256": "a7b444182f1d06275fdfee5169c29a074df0e26a449024ae9b6b2282e06c1687"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/02-control-position-2/execution-report.impact-v2.json",
+          "sha256": "f1fe5f99f3043ccc2720b1fa737c9cdb40be139a0fa2ae59f5b07b50cc8e9bb6"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/02-control-position-2/execution-report.saga-read-exposure.json",
+          "sha256": "53eeda1415935347706b857de1743354b3362cdeac99e7c9d6a77ff115d619ed"
+        }
+      ]
+    },
+    {
+      "label": "03-control-position-3",
+      "scenarioId": "e728179d1891a0517f27eb80670bc19ff1aa182cb9d0fbb095277775da65bf15",
+      "workloadId": "bffdf66b1a6f12b9a15070cdfece9b2a3ea5199db00fb7604412e85cc4e02070",
+      "attemptId": "fd8d634c-5cf9-4e36-b968-51cb52601088",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 11,
+            "stage": "ASSESSMENT",
+            "subject": "fd8d634c-5cf9-4e36-b968-51cb52601088:call:11",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/03-control-position-3/execution-report.json",
+          "sha256": "436dae40e57bacf5834e1d9f6bcba45b0c9a9f3187e51a79051bf5a808fcf99a"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/03-control-position-3/execution-report.impact-v2.json",
+          "sha256": "f99901da627beeacf5d3ccb31d2fb5524857c6d9fad392228552cd3d372c6ae5"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/03-control-position-3/execution-report.saga-read-exposure.json",
+          "sha256": "27d541157be3a98497c7b331cc85c4ac6f4cc80c9ae4e80d55545d8ad29afd98"
+        }
+      ]
+    },
+    {
+      "label": "04-control-position-4",
+      "scenarioId": "600fc2b1add6ed07296f080f4f1520a437a80a5dd7f00a7a9e3f45ec1bb45fe4",
+      "workloadId": "8f0f04059e6f5b49e3d5047179a49943ab50d7a4a9d704204efde499cc23953f",
+      "attemptId": "3ec33034-d659-4d98-9cfe-96ee2c7ddae5",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "NO_SUBSEQUENT_COMPENSATING_UPDATE",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 11,
+            "stage": "ASSESSMENT",
+            "subject": "3ec33034-d659-4d98-9cfe-96ee2c7ddae5:call:11",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/04-control-position-4/execution-report.json",
+          "sha256": "ef7135ffac1b0407c5055124ee38790f0414496b3fc5077343f43fadab1a294a"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/04-control-position-4/execution-report.impact-v2.json",
+          "sha256": "71387dd07d6f1d4674ac7058c217c4510def6080ccb0e4572bc50467524412f6"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/04-control-position-4/execution-report.saga-read-exposure.json",
+          "sha256": "4826927c32e45f3cdfe7d2bfc2515a8e53429b00a7b63df53962e979f966d4eb"
+        }
+      ]
+    },
+    {
+      "label": "05-control-position-5",
+      "scenarioId": "729ba22440eb08aaea33dd23fda4fc08a7d801074b795887b4f6a5b185959bba",
+      "workloadId": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "attemptId": "d267f935-1742-4d33-8a4d-0ca20b879d39",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "PRODUCER_COMPLETED_BEFORE_DELIVERY",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 0,
+        "observedObjects": 0,
+        "positiveCategories": []
+      },
+      "anomalies": {
+        "coverage": "PARTIAL",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": [
+          {
+            "afterOrder": 10,
+            "stage": "ASSESSMENT",
+            "subject": "d267f935-1742-4d33-8a4d-0ca20b879d39:call:10",
+            "reason": "MISSING_READER_ATTRIBUTION"
+          }
+        ]
+      },
+      "finalChangedAttributes": [
+        "endTime",
+        "numberOfQuestions",
+        "startTime",
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": false,
+        "I_plus_quarter_A": null,
+        "I_plus_A": null,
+        "impactFirstTuple": null
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/05-control-position-5/execution-report.json",
+          "sha256": "f151a3dbe1822b4cfc2bc173a3fbd70868765612cab35b0f2ec3bc94703a8745"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/05-control-position-5/execution-report.impact-v2.json",
+          "sha256": "61d2a2f6e6441d7183ccf94dc53569a89a8e8e3113ed4c807ad6d525c821b2c3"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/05-control-position-5/execution-report.saga-read-exposure.json",
+          "sha256": "29148c3e821899d805e3ef85087aa054ed87d623b36d6596a67f20715ace0b58"
+        }
+      ]
+    },
+    {
+      "label": "06-fault-position-0",
+      "scenarioId": "5ca221e8153ea23d73fe57e207bf942c57487b90c3bf3b20f8c62bc8d9a70004",
+      "workloadId": "7ff3a0c54d7c105b75d9a5a76a8d2026361a44b62c559b1805dbc540aaaa8d30",
+      "attemptId": "6a9c73a5-7b51-4577-bf4c-4cb7d4b3a8fb",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "0cfee48fe2947b1bb6416445e390de8e840ad6313c13723dba471fae904edbf8",
+                  "cec6e2df263e6ce5ec5fe38c1fc94ccd956e4a986e02fde31ff94fea2756acb5"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.0,
+        "I_plus_A": 1,
+        "impactFirstTuple": [
+          1,
+          0
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/06-fault-position-0/execution-report.json",
+          "sha256": "da7b1e2aa3396b41c42c498f655a39b8cebeccacfbca5e8bc725954b6639f539"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/06-fault-position-0/execution-report.impact-v2.json",
+          "sha256": "264cd9520643b8cdd9d2cee89cda2b15d3a4b6f169e34bd015eec637fdadcf42"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/06-fault-position-0/execution-report.saga-read-exposure.json",
+          "sha256": "e82983cde48d0afea774df56c606739d178f8ba1d5183da33e58a4a45048e78f"
+        }
+      ]
+    },
+    {
+      "label": "07-fault-position-1",
+      "scenarioId": "bf78d579e372f3e03f2ea042ce70d499de3944c2faf3aae9ecc0bee85cc815f1",
+      "workloadId": "04beb39a2007eb09e1c033a6953da484c754382e86196e618a448c952c295ec6",
+      "attemptId": "fe595786-9074-4c14-86c8-2790f8e87165",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "0cfee48fe2947b1bb6416445e390de8e840ad6313c13723dba471fae904edbf8",
+                  "cec6e2df263e6ce5ec5fe38c1fc94ccd956e4a986e02fde31ff94fea2756acb5"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.0,
+        "I_plus_A": 1,
+        "impactFirstTuple": [
+          1,
+          0
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/07-fault-position-1/execution-report.json",
+          "sha256": "053168dcd55d98a2107e71f74cdab1da8d2b23c28433d61368f669d81ccca520"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/07-fault-position-1/execution-report.impact-v2.json",
+          "sha256": "34e276ed471f0b0a0c9deeab36ca0b8c97c314a307b2c7665ef425793bbfdcaf"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/07-fault-position-1/execution-report.saga-read-exposure.json",
+          "sha256": "c9d8ed8c3003704c8e8c4b178eb23b78b301fac2622f743667f3d3ffab26aea3"
+        }
+      ]
+    },
+    {
+      "label": "08-fault-position-2",
+      "scenarioId": "5751ba947de3c35b8f3afebdbef8adf52d42c1af058da44bfe425c75366aef78",
+      "workloadId": "1e0061483ac5d430caf76fe53795ca13cf3e50485a6eee2b10f9d05811ee9a42",
+      "attemptId": "c64ce9b6-7d99-4660-991b-ef3053fbc7a0",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 23,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PREEXISTS_MEASUREMENT",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "0cfee48fe2947b1bb6416445e390de8e840ad6313c13723dba471fae904edbf8",
+                  "cec6e2df263e6ce5ec5fe38c1fc94ccd956e4a986e02fde31ff94fea2756acb5"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.0,
+        "I_plus_A": 1,
+        "impactFirstTuple": [
+          1,
+          0
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/08-fault-position-2/execution-report.json",
+          "sha256": "6ade260a577941726fa6ce5ff8b98f8ba190ba3b4d34a58d0a72efa07ae0c9e9"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/08-fault-position-2/execution-report.impact-v2.json",
+          "sha256": "0777201eb75f2ec9917d9eb60074c79bad627647057e935b56dda6304ae625a2"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/08-fault-position-2/execution-report.saga-read-exposure.json",
+          "sha256": "086269f22d16fd37a50df628d7ad6618f427b390afd9e49ae23e9d66e107b900"
+        }
+      ]
+    },
+    {
+      "label": "09-fault-position-3",
+      "scenarioId": "f18b5b0689f6f6b6fb21c94b5e7c2dcb135d3c0485e8b7141eacc646fb355c4a",
+      "workloadId": "bffdf66b1a6f12b9a15070cdfece9b2a3ea5199db00fb7604412e85cc4e02070",
+      "attemptId": "8bf09f84-1df5-45cd-bfb4-32283097641e",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "541fb44ca6470e3e413512ff911371200119a639e04daebbff56a7bbe702240a",
+                  "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 1,
+        "findings": [
+          {
+            "id": "exposure:669be1dd-c24a-3aa7-8fef-326915961df1",
+            "verdict": "OBSERVED",
+            "category": "UPDATE",
+            "identity": {
+              "aggregateType": "SagaTournament",
+              "aggregateId": 12
+            },
+            "runtimeType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+            "producedVersion": 24,
+            "recoveryVersion": 25,
+            "producerSagaId": "p2",
+            "readerSagaId": "p1",
+            "forwardWriteId": "8bf09f84-1df5-45cd-bfb4-32283097641e:write:5",
+            "recoveryWriteId": "8bf09f84-1df5-45cd-bfb4-32283097641e:write:9",
+            "sourceScheduledStepId": "s3",
+            "checkpointId": "checkpoint-s3",
+            "restoredAttributes": [
+              "endTime",
+              "numberOfQuestions",
+              "startTime"
+            ],
+            "notRestoredAttributes": [
+              "tournamentTopics"
+            ],
+            "createdVersion": null,
+            "deletedVersion": null,
+            "creationWriteId": null,
+            "deletionWriteId": null,
+            "deliveryIds": [
+              "8bf09f84-1df5-45cd-bfb4-32283097641e:call:7"
+            ]
+          }
+        ],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.25,
+        "I_plus_A": 2,
+        "impactFirstTuple": [
+          1,
+          1
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/09-fault-position-3/execution-report.json",
+          "sha256": "4d04654b5a6810d39412c2481994a0fcb069204d7cb21e32d33b4087353aabec"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/09-fault-position-3/execution-report.impact-v2.json",
+          "sha256": "5a585e1b1a543ed2085097c63d6c0a1c135ee49385dd5e47422210aec9797630"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/09-fault-position-3/execution-report.saga-read-exposure.json",
+          "sha256": "3ca1bc37a99ada6f16efff94fcdd4052217f730beb252a5a4202cbf883d7fffa"
+        }
+      ]
+    },
+    {
+      "label": "10-fault-position-4",
+      "scenarioId": "692b368d690c9c3573485b82ce7c6e4e42723833ad107d0556ab95ed54278f7d",
+      "workloadId": "8f0f04059e6f5b49e3d5047179a49943ab50d7a4a9d704204efde499cc23953f",
+      "attemptId": "8da86905-aa61-4f96-b55c-a102fcd99f41",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "541fb44ca6470e3e413512ff911371200119a639e04daebbff56a7bbe702240a",
+                  "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 1,
+        "findings": [
+          {
+            "id": "exposure:b2a87a6b-4ef0-3f45-8cf1-c08da641d38a",
+            "verdict": "OBSERVED",
+            "category": "UPDATE",
+            "identity": {
+              "aggregateType": "SagaTournament",
+              "aggregateId": 12
+            },
+            "runtimeType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+            "producedVersion": 24,
+            "recoveryVersion": 25,
+            "producerSagaId": "p2",
+            "readerSagaId": "p1",
+            "forwardWriteId": "8da86905-aa61-4f96-b55c-a102fcd99f41:write:5",
+            "recoveryWriteId": "8da86905-aa61-4f96-b55c-a102fcd99f41:write:9",
+            "sourceScheduledStepId": "s3",
+            "checkpointId": "checkpoint-s3",
+            "restoredAttributes": [
+              "endTime",
+              "numberOfQuestions",
+              "startTime"
+            ],
+            "notRestoredAttributes": [
+              "tournamentTopics"
+            ],
+            "createdVersion": null,
+            "deletedVersion": null,
+            "creationWriteId": null,
+            "deletionWriteId": null,
+            "deliveryIds": [
+              "8da86905-aa61-4f96-b55c-a102fcd99f41:call:8"
+            ]
+          }
+        ],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.25,
+        "I_plus_A": 2,
+        "impactFirstTuple": [
+          1,
+          1
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/10-fault-position-4/execution-report.json",
+          "sha256": "a3a88c6545f6f94c3e891d9ca1dc4edf9e33e9b27ebc5cbf4ec4b0c155566753"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/10-fault-position-4/execution-report.impact-v2.json",
+          "sha256": "9b58783c1a2ca79be4758a2b8c5ff54fbc2f6e795ef9c641f1fdafd75a61320d"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/10-fault-position-4/execution-report.saga-read-exposure.json",
+          "sha256": "a78b0ec3392c8fb8572df8a853e760dd6a4331919ec5d4a3ce6783459ebc621b"
+        }
+      ]
+    },
+    {
+      "label": "11-fault-position-5",
+      "scenarioId": "015e02438105fa6309a415422234cda86704c82e8e68bfbc659f903fba48d9b2",
+      "workloadId": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "attemptId": "40df4684-d875-4879-ab36-30ccdcd9c87b",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 24,
+      "targetReadVerdict": "OBSERVED",
+      "targetReadReason": "READ_OF_UPDATE_SUBSEQUENTLY_PARTIALLY_COMPENSATED",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "541fb44ca6470e3e413512ff911371200119a639e04daebbff56a7bbe702240a",
+                  "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 1,
+        "findings": [
+          {
+            "id": "exposure:6ea515e5-1ac9-39bc-971c-f36e069953e8",
+            "verdict": "OBSERVED",
+            "category": "UPDATE",
+            "identity": {
+              "aggregateType": "SagaTournament",
+              "aggregateId": 12
+            },
+            "runtimeType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+            "producedVersion": 24,
+            "recoveryVersion": 25,
+            "producerSagaId": "p2",
+            "readerSagaId": "p1",
+            "forwardWriteId": "40df4684-d875-4879-ab36-30ccdcd9c87b:write:5",
+            "recoveryWriteId": "40df4684-d875-4879-ab36-30ccdcd9c87b:write:9",
+            "sourceScheduledStepId": "s3",
+            "checkpointId": "checkpoint-s3",
+            "restoredAttributes": [
+              "endTime",
+              "numberOfQuestions",
+              "startTime"
+            ],
+            "notRestoredAttributes": [
+              "tournamentTopics"
+            ],
+            "createdVersion": null,
+            "deletedVersion": null,
+            "creationWriteId": null,
+            "deletionWriteId": null,
+            "deliveryIds": [
+              "40df4684-d875-4879-ab36-30ccdcd9c87b:call:8"
+            ]
+          }
+        ],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.25,
+        "I_plus_A": 2,
+        "impactFirstTuple": [
+          1,
+          1
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/11-fault-position-5/execution-report.json",
+          "sha256": "871daf3366673430447a5e9c978ab32d1e656333615a3dab100a24ee1bd9b027"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/11-fault-position-5/execution-report.impact-v2.json",
+          "sha256": "259025d78b2c022c8df7391e8ebb5e13e6b628a6e3e20331eee3d55532ff15f1"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/11-fault-position-5/execution-report.saga-read-exposure.json",
+          "sha256": "b6db750cd3f77ff933b871cf543bb678aa8927f59cac2bfb0235a483402059ac"
+        }
+      ]
+    },
+    {
+      "label": "12-fault-position-5",
+      "scenarioId": "5be6c19fda3d1e7f37b858bae06642733a4142ffb7197b32efe94328de357962",
+      "workloadId": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "attemptId": "527f83f7-5bee-400b-aa6b-0958bca9142d",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 25,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "541fb44ca6470e3e413512ff911371200119a639e04daebbff56a7bbe702240a",
+                  "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.0,
+        "I_plus_A": 1,
+        "impactFirstTuple": [
+          1,
+          0
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/12-fault-position-5/execution-report.json",
+          "sha256": "362dc47fa3c3d142f922e8bbed708ab04701566213a181b3adc77033931babe1"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/12-fault-position-5/execution-report.impact-v2.json",
+          "sha256": "98f365f3d8efebacd1da6887c1b68a77593cfc2ac77efeb96e5b36e758e239ba"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/12-fault-position-5/execution-report.saga-read-exposure.json",
+          "sha256": "937b8f9c22cd29079edfb6486170fc8b41ede9d41c66290252fcc688c387d1e9"
+        }
+      ]
+    },
+    {
+      "label": "13-fault-position-5",
+      "scenarioId": "ec2c7b02e959e06560a46b67b170b179e83f3a6cd578015ae286dc1838b6ffca",
+      "workloadId": "ee0db0e388e10f506b3633d47f3b908dc44ec46e6b4e312b166e32ffd3efedd6",
+      "attemptId": "a04811a7-11d5-4a51-aed4-6ef540992149",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "participants": [
+        {
+          "sagaInstanceId": "p1",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+          "finalState": "COMMITTED"
+        },
+        {
+          "sagaInstanceId": "p2",
+          "sagaFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "finalState": "COMPENSATED"
+        }
+      ],
+      "readVersion": 25,
+      "targetReadVerdict": "NOT_OBSERVED",
+      "targetReadReason": "REVISION_PRODUCED_BY_RECOVERY",
+      "impact": {
+        "status": "COMPLETE",
+        "score": 1,
+        "observedObjects": 1,
+        "positiveCategories": [
+          {
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "findings": [
+              {
+                "category": "FAILED_OPERATION_RESIDUAL",
+                "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+                "affectedObject": {
+                  "aggregateType": "SagaTournament",
+                  "aggregateId": 12
+                },
+                "relatedObject": null,
+                "eventId": null,
+                "actionIds": [
+                  "541fb44ca6470e3e413512ff911371200119a639e04daebbff56a7bbe702240a",
+                  "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e"
+                ],
+                "versions": [
+                  23,
+                  24,
+                  25
+                ]
+              }
+            ]
+          }
+        ]
+      },
+      "anomalies": {
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0,
+        "findings": [],
+        "gaps": []
+      },
+      "finalChangedAttributes": [
+        "tournamentTopics"
+      ],
+      "actions": [
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getTopicsStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "findQuestionsByTopicIds",
+          "status": "COMPLETED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateQuizStep",
+          "status": "ASSIGNED_FAULT"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "updateTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "COMPENSATION",
+          "sagaInstanceId": "p2",
+          "runtimeStepName": "getOriginalTournamentStep",
+          "status": "COMPENSATED"
+        },
+        {
+          "kind": "FORWARD",
+          "sagaInstanceId": "p1",
+          "runtimeStepName": "findTournamentStep",
+          "status": "COMPLETED"
+        }
+      ],
+      "offlineIllustration": {
+        "bothMeasuresComplete": true,
+        "I_plus_quarter_A": 1.0,
+        "I_plus_A": 1,
+        "impactFirstTuple": [
+          1,
+          0
+        ]
+      },
+      "sources": [
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/13-fault-position-5/execution-report.json",
+          "sha256": "4795e98a83493bdc7b69fec80e757da96be8c1cba5355e922539740ad8095847"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/13-fault-position-5/execution-report.impact-v2.json",
+          "sha256": "c25aebb38298b91a6278224ddad71fbc0e1233ba8a7fd361a35c8adcfd30c6ac"
+        },
+        {
+          "path": "verifiers/target/saga-update-read/source-input-02/13-fault-position-5/execution-report.saga-read-exposure.json",
+          "sha256": "2d48c304d10eeac49e31cc34df2170761604a1842fcfa81114734d6731ad181b"
+        }
+      ]
+    }
+  ],
+  "historicalCoverageExample": {
+    "label": "controlled creation / read-only FindQuiz",
+    "impactStatus": "PARTIAL",
+    "impactScore": null,
+    "observedObjects": 0,
+    "impactUnknownReasons": [
+      {
+        "category": "FAILED_OPERATION_RESIDUAL",
+        "reason": "FAILED_SAGA_RECOVERY_INCOMPLETE",
+        "subject": "A",
+        "affectedObject": {
+          "aggregateType": "SagaQuiz",
+          "aggregateId": 9
+        },
+        "eventId": null
+      }
+    ],
+    "anomalyCoverage": "COMPLETE_WITHIN_SCOPE",
+    "observedAnomalies": 1,
+    "note": "Historical controlled workflow; not a current-policy re-execution or a measured I=0,A=1 case. No combined value assigned.",
+    "sources": [
+      {
+        "path": "verifiers/target/saga-read-exposure/m2/qualification-01/reader-only-direct-1/execution-report.json",
+        "sha256": "f638f98b222b1c3372324c373b89a28f13b2548a7597fbc21d1dd290cf20e313"
+      },
+      {
+        "path": "verifiers/target/saga-read-exposure/m2/qualification-01/reader-only-direct-1/execution-report.impact-v2.json",
+        "sha256": "ad0a3cc91266cf227f584877f13f10ee0c5cec92469a55e51d28082ed7ffc9ac"
+      },
+      {
+        "path": "verifiers/target/saga-read-exposure/m2/qualification-01/reader-only-direct-1/execution-report.saga-read-exposure.json",
+        "sha256": "88dc69d54e969e636017700ce457c6c68090e0376ff4676ea73c581c6047d4e0"
+      },
+      {
+        "path": "verifiers/target/saga-read-exposure/m2/qualification-01/reader-only-direct-1/experiment.json",
+        "sha256": "26223e429e5a738854b4e82de2ba0c2be50c23e48592598fe5ea980b3332470d"
+      }
+    ]
+  },
+  "separateEventComparison": {
+    "path": "docs/verifiers-impl/evidence/event-order-rejections-2026-09-08/comparison.json",
+    "sha256": "a8db7f43211c402044308bfcbb63a8b895766d6702a75ea24123481a3bbe51cb"
+  },
+  "hypotheticalTradeoff": {
+    "X": {
+      "I": 2,
+      "A": 0,
+      "I_plus_quarter_A": 2,
+      "I_plus_A": 2
+    },
+    "Y": {
+      "I": 1,
+      "A": 3,
+      "I_plus_quarter_A": 1.75,
+      "I_plus_A": 4
+    },
+    "equalWeightedAtLambda": "1/3",
+    "observedInThisCampaign": false
+  }
+}

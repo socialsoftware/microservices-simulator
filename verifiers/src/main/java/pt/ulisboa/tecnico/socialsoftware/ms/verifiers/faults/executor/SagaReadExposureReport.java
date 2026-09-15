@@ -12,6 +12,8 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.HexFormat;
 import java.util.List;
+import java.util.Map;
+import java.util.TreeMap;
 
 /** Independent metadata-only diagnostic. Contains neither application payloads nor a score. */
 @JsonInclude(JsonInclude.Include.NON_NULL)
@@ -39,11 +41,11 @@ public record SagaReadExposureReport(
         List<Assessment> assessments,
         List<Finding> findings,
         List<Gap> gaps) {
-    public static final String SCHEMA_VERSION = "microservices-simulator.saga-read-exposure.v1";
+    public static final String SCHEMA_VERSION = "microservices-simulator.saga-read-exposure.v2";
     public static final String SCOPE = "Exact declared outer-response contracts in measured synchronous Saga/local calls";
     public static final List<String> EXCLUDED_PATHS = List.of("SETUP", "OBSERVERS_AND_PROBES", "RECOVERY_READS",
             "INTERNAL_READS", "LISTS_AND_PREDICATES", "NESTED_REFERENCES", "IN_MEMORY_REUSE", "EVENT_CONSUMERS",
-            "UNMAPPED_COMMANDS", "GRPC_STREAM_TCC", "RESTORED_UPDATES", "DIRECT_WRITES_OUTSIDE_FRAMEWORK");
+            "UNMAPPED_COMMANDS", "GRPC_STREAM_TCC", "DIRECT_WRITES_OUTSIDE_FRAMEWORK");
 
     public SagaReadExposureReport {
         schemaVersion = SCHEMA_VERSION;
@@ -54,13 +56,19 @@ public record SagaReadExposureReport(
 
     public record Revision(ImpactEvidence.AggregateIdentity identity, String runtimeType, Long version,
                            String lifecycleState, boolean frameworkMetadataAvailable,
-                           ImpactEvidence.AggregateIdentity predecessorIdentity, Long predecessorVersion) {
+                           ImpactEvidence.AggregateIdentity predecessorIdentity, Long predecessorVersion,
+                           Map<String, String> applicationAttributeFingerprints) {
+        public Revision {
+            applicationAttributeFingerprints = applicationAttributeFingerprints == null ? Map.of()
+                    : java.util.Collections.unmodifiableMap(new TreeMap<>(applicationAttributeFingerprints));
+        }
         static Revision from(ImpactEvidence.AggregateSnapshot value) {
             if (value == null) return null;
             var metadata = value.frameworkMetadata();
             return new Revision(value.identity(), value.runtimeType(), value.version(), value.lifecycleState(),
                     metadata != null, metadata == null ? null : metadata.predecessorIdentity(),
-                    metadata == null ? null : metadata.predecessorVersion());
+                    metadata == null ? null : metadata.predecessorVersion(),
+                    SagaReadAttributeFingerprinter.fingerprint(value.applicationData()));
         }
     }
 
@@ -68,11 +76,21 @@ public record SagaReadExposureReport(
     public record Call(String id, long order, ReadResponseEvidence.Observation observation) { }
     public record Gap(long afterOrder, String stage, String subject, String reason) { }
     public record Assessment(String callId, String verdict, String reason, String findingId) { }
-    public record Finding(String id, String verdict, ImpactEvidence.AggregateIdentity identity, String runtimeType,
-                          Long createdVersion, Long deletedVersion, String producerSagaId, String readerSagaId,
-                          String creationWriteId, String deletionWriteId, String sourceScheduledStepId,
-                          String checkpointId, List<String> deliveryIds) {
-        public Finding { deliveryIds = copy(deliveryIds); }
+    public record Finding(String id, String verdict, String category,
+                          ImpactEvidence.AggregateIdentity identity, String runtimeType,
+                          Long producedVersion, Long recoveryVersion,
+                          String producerSagaId, String readerSagaId,
+                          String forwardWriteId, String recoveryWriteId,
+                          String sourceScheduledStepId, String checkpointId,
+                          List<String> restoredAttributes, List<String> notRestoredAttributes,
+                          Long createdVersion, Long deletedVersion,
+                          String creationWriteId, String deletionWriteId,
+                          List<String> deliveryIds) {
+        public Finding {
+            restoredAttributes = copy(restoredAttributes);
+            notRestoredAttributes = copy(notRestoredAttributes);
+            deliveryIds = copy(deliveryIds);
+        }
     }
 
     /** The minimal source facts needed to audit an occurrence/checkpoint join. */

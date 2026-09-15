@@ -265,6 +265,12 @@ public final class ExecutableArtifactWriter {
             case ACTION_RESULT -> {
                 value.put("kind", "result");
                 value.put("action", recipe.actionId());
+                if (!recipe.assignments().isEmpty()) {
+                    LinkedHashMap<String, Object> fields = new LinkedHashMap<>();
+                    recipe.assignments().stream().sorted(Comparator.comparingInt(SetupPropertyAssignment::orderIndex))
+                            .forEach(assignment -> fields.put(assignment.propertyName(), setupValue(assignment.value())));
+                    value.put("fields", fields);
+                }
             }
             case ACTION_RESULT_PROPERTY -> {
                 value.put("kind", "resultProperty");

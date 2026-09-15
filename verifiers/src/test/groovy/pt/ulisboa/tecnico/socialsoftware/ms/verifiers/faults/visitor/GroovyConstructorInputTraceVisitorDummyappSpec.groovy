@@ -236,6 +236,37 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         }
     }
 
+    def 'returned dto mutations are ordered and scoped to the later call snapshot'() {
+        given:
+        def traces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'mutated facade result feeds a later facade call' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(created)'
+        }
+
+        expect:
+        traces.size() == 1
+        def argument = traces.first().constructorArguments()[1]
+        argument.producerReference() != null
+        argument.producerReference().producerMethodName() == 'createItem'
+        argument.recipe().metadata().assignments()*.assignmentKind() == ['setter', 'property']
+        argument.recipe().metadata().assignments()*.propertyName() == ['name', 'price']
+        argument.recipe().metadata().assignments()*.valueRecipe()*.text() == ['updated', '33']
+        !argument.recipe().metadata().assignments()*.propertyName().contains('orderId')
+
+        and: 'the earlier producer input retains its original constructor snapshot'
+        def producer = state.groovyFullTraceResults.find {
+            it.sourceClassFqn == 'com.example.dummyapp.GroovySagaTracingSpec' &&
+                    it.sourceMethodName == 'mutated facade result feeds a later facade call' &&
+                    it.sourceExpressionText == 'itemFunctionalities.createItem(original)'
+        }
+        producer.constructorArguments()[1].producerReference() == null
+        producer.constructorArguments()[1].recipe().metadata().assignments()*.propertyName() ==
+                ['aggregateId', 'name', 'price', 'orderId']
+        producer.constructorArguments()[1].recipe().metadata().assignments()*.valueRecipe()*.text() ==
+                ['92', 'original', '12', '102']
+    }
+
     def 'feature-derived setup uses the exact target cutoff and retains prior void effects'() {
         given:
         def feature = 'feature preparation prefix feeds exact later target'

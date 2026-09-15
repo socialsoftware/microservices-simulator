@@ -338,6 +338,21 @@ class GroovySagaTracingSpec extends Specification {
         true
     }
 
+    def 'mutated facade result feeds a later facade call'() {
+        given:
+        def original = new ItemDto(aggregateId: 92, name: 'original', price: 12, orderId: 102)
+
+        when:
+        def created = itemFunctionalities.createItem(original)
+        created.setName('updated')
+        created.price = 33
+        itemFunctionalities.createItem(created)
+        created.setOrderId(999)
+
+        then:
+        true
+    }
+
     def 'feature preparation prefix feeds exact later target'() {
         given:
         def original = new ItemDto(aggregateId: 121, orderId: 221)

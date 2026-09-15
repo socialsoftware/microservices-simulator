@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec
+-------------------------------------------------------------------------------
+Tests run: 57, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.097 s -- in pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.SagaReadExposureSpec

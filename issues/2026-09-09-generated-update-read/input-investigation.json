@@ -1,0 +1,228 @@
+{
+  "scope": "Static investigation; no production source edits; counterfactual only relaxes nested aggregateId projection guard",
+  "inputs": [
+    {
+      "inputId": "055c27095c6dc94ea67b6a8a7095da0fffd91f780ed4c5bc94aa4ed7193ffb67",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+      "sourceMethod": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "0a2332d640a7b8749dca8457b6ca24ce2ac241443430c3cad06bca7e2e5b331f",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+      "sourceMethod": "concurrent: update - getOriginalTournamentStep; anonymize creator; update - resume; event",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "0d52de15e169a02f51fcacf3086e73c30df5d1302f881b3ec01513a782d8af67",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+      "sourceMethod": "sequential: update; remove",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "0f5261c6f83073ec82788a046025c99f32e6d7c45d3d841ae3793bbc15a789e8",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+      "sourceMethod": "update tournament then add participant",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "13a2e860612a8474f3fd08c95031bb9d94d21cc469abccc468976e474f878371",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+      "sourceMethod": "concurrent: update - getTopicsStep; remove; update - resume",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "1442ec57d898d14282521f6ee54657e69b7b4ea9289b5b062b7320bc508928bc",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+      "sourceMethod": "concurrent: update - getOriginalTournamentStep; remove; update - resume",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "1851f27f0aac9284ee6dffc903d43fbe14fc7a6e775f996a7d63202ad9b07168",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+      "sourceMethod": "update tournament with negative numberOfQuestions violates TOURNAMENT_NUMBER_OF_QUESTIONS_POSITIVE",
+      "currentSetupCandidates": 1,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": []
+    },
+    {
+      "inputId": "09a5a31cbbd31145929d54ee3b8cc3bda403d2bf2d4eda4b639cdb87ecabd30b",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest",
+      "sourceMethod": "update tournament then add participant",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateTournamentTest input 09a5a31cbbd31145929d54ee3b8cc3bda403d2bf2d4eda4b639cdb87ecabd30b: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    },
+    {
+      "inputId": "23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+      "sourceMethod": "update tournament successfully",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest input 23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    },
+    {
+      "inputId": "432697057fcf42b6b4476148369aa1c0aa6a85cf8f0f540cb885a018910a6dae",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+      "sourceMethod": "update tournament aborts when trying to create a quiz and there are not enough questions",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest input 432697057fcf42b6b4476148369aa1c0aa6a85cf8f0f540cb885a018910a6dae: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    },
+    {
+      "inputId": "466adc921215e534097dd23ab3336e2a7432f6132990bca3bdf4e47ca6a849bf",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest",
+      "sourceMethod": "update tournament aborts when trying to create the tournament and violates an invariant",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.UpdateTournamentTest input 466adc921215e534097dd23ab3336e2a7432f6132990bca3bdf4e47ca6a849bf: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    },
+    {
+      "inputId": "55d483cd7fdb053e3aabe4d4235849f78f56e3de30af9781291849553063cd17",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest",
+      "sourceMethod": "sequential: remove; update",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 0,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.RemoveTournamentAndUpdateTournamentTest input 55d483cd7fdb053e3aabe4d4235849f78f56e3de30af9781291849553063cd17: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    },
+    {
+      "inputId": "70c335c4bc2ac6a128b958297412f41047e724f783d3829d337f48194bae91c3",
+      "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+      "sourceClass": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+      "sourceMethod": "sequential: anonymize creator; update tournament; event",
+      "currentSetupCandidates": 0,
+      "counterfactualSetupCandidates": 1,
+      "fullSetupDiagnostics": [
+        "blocked source setup for pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest input 70c335c4bc2ac6a128b958297412f41047e724f783d3829d337f48194bae91c3: [Diagnostic[code=SETUP_BINDING_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=SETUP_VALUE_BLOCKER, message=UNSUPPORTED_NESTED_SETUP_RESULT_PROPERTY:[aggregateId]], Diagnostic[code=INCOMPATIBLE_SETUP_LITERAL, message=java.util.Set<java.lang.Integer>]]"
+      ]
+    }
+  ],
+  "successfulUpdateCounterfactualBindings": [
+    {
+      "inputVariantId": "23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9",
+      "argumentIndex": 1,
+      "expectedTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto",
+      "value": {
+        "kind": "ACTION_RESULT",
+        "declaredTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto",
+        "literalKind": null,
+        "literalValue": null,
+        "targetTypeFqn": null,
+        "constructorArguments": [],
+        "assignments": [],
+        "elements": [],
+        "receiver": null,
+        "actionId": "setup-action-14",
+        "propertyName": null,
+        "blockers": []
+      },
+      "blockers": []
+    },
+    {
+      "inputVariantId": "23becf1d36d693269fe1224ef91082aa14cd85b204ac03344d8f030a30de8dd9",
+      "argumentIndex": 2,
+      "expectedTypeFqn": "java.util.Set<java.lang.Integer>",
+      "value": {
+        "kind": "SET",
+        "declaredTypeFqn": "java.util.Set<java.lang.Integer>",
+        "literalKind": null,
+        "literalValue": null,
+        "targetTypeFqn": null,
+        "constructorArguments": [],
+        "assignments": [],
+        "elements": [
+          {
+            "kind": "ACTION_RESULT_PROPERTY",
+            "declaredTypeFqn": null,
+            "literalKind": null,
+            "literalValue": null,
+            "targetTypeFqn": null,
+            "constructorArguments": [],
+            "assignments": [],
+            "elements": [],
+            "receiver": null,
+            "actionId": "setup-action-8",
+            "propertyName": "aggregateId",
+            "blockers": []
+          },
+          {
+            "kind": "ACTION_RESULT_PROPERTY",
+            "declaredTypeFqn": null,
+            "literalKind": null,
+            "literalValue": null,
+            "targetTypeFqn": null,
+            "constructorArguments": [],
+            "assignments": [],
+            "elements": [],
+            "receiver": null,
+            "actionId": "setup-action-9",
+            "propertyName": "aggregateId",
+            "blockers": []
+          },
+          {
+            "kind": "ACTION_RESULT_PROPERTY",
+            "declaredTypeFqn": null,
+            "literalKind": null,
+            "literalValue": null,
+            "targetTypeFqn": null,
+            "constructorArguments": [],
+            "assignments": [],
+            "elements": [],
+            "receiver": null,
+            "actionId": "setup-action-10",
+            "propertyName": "aggregateId",
+            "blockers": []
+          }
+        ],
+        "receiver": null,
+        "actionId": null,
+        "propertyName": null,
+        "blockers": []
+      },
+      "blockers": []
+    }
+  ],
+  "sourceHashes": {
+    "verifiers/target/saga-update-read/input-audit-01/audit.json": "1b5aeaefdfb496de3963373a53eb1eff514875e4a897c74326b166c459543e57",
+    "verifiers/target/saga-update-read/input-audit-01/AuditUpdateReadInputs.java": "58daf5c119c713725b711f27b345d4bd45ffc969bd558325901f507915ec3550",
+    "verifiers/target/saga-update-read/input-audit-01/command.json": "6ef325d945380256e06d8d79784c49a011be7f0cd7a1f13810f514a1da3c83e9",
+    "verifiers/target/saga-update-read/input-audit-counterfactual/audit.json": "6e136e4e1ec9ef4fc352ca156f86e031433f56898323225f0db02446759d42e7",
+    "verifiers/target/saga-update-read/input-audit-counterfactual/SetupPlanMapper.java": "94615ab3c0d17e384dd0f9b057d7cb76205ec4ffa37948d8e100e06f55940484",
+    "verifiers/target/saga-update-read/input-audit-counterfactual/AuditUpdateReadInputs.java": "58daf5c119c713725b711f27b345d4bd45ffc969bd558325901f507915ec3550",
+    "verifiers/target/saga-update-read/input-audit-counterfactual/command.json": "5229ad30cacd849576f3b0de22ff5b667af3c7bc96f3e48c0cf13f2e4edfa888"
+  }
+}
