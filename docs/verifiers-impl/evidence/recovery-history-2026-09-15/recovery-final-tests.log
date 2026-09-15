@@ -1,0 +1,45 @@
+21:37:37.534 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x0000007001162398 for step read
+21:37:37.545 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x0000007001162398 for step read
+21:37:37.645 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x0000007001247570 for step read
+21:37:37.693 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x000000700127ef10 for step second
+21:37:37.694 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x000000700127ecf8 for step first
+21:37:37.695 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x000000700127fda0 for step step
+21:37:37.696 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x000000700127fda0 for step step
+21:37:37.697 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x0000007001284420 for step step
+21:37:37.726 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000070012a8238 for step read
+21:37:37.729 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000070012a8238 for step read
+21:37:37.730 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000070012a8238 for step read
+21:37:37.731 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000070012a8238 for step read
+Mockito is currently self-attaching to enable the inline-mock-maker. This will no longer work in future releases of the JDK. Please add Mockito as an agent to your build as described in Mockito's documentation: https://javadoc.io/doc/org.mockito/mockito-core/latest/org.mockito/org/mockito/Mockito.html#0.3
+Java HotSpot(TM) 64-Bit Server VM warning: Sharing is only supported for boot loader classes because bootstrap classpath has been appended
+WARNING: A Java agent has been loaded dynamically (/Users/andre/.m2/repository/net/bytebuddy/byte-buddy-agent/1.17.8/byte-buddy-agent-1.17.8.jar)
+WARNING: If a serviceability tool is in use, please run with -XX:+EnableDynamicAgentLoading to hide this warning
+WARNING: If a serviceability tool is not in use, please run with -Djdk.instrument.traceUsage for more information
+WARNING: Dynamic loading of agents will be disallowed by default in a future release
+21:37:38.158 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: EXACT_BRANCH with version 0
+21:37:38.165 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: first with from functionality EXACT_BRANCH
+21:37:38.165 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: first with from functionality EXACT_BRANCH
+21:37:38.166 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: EXACT_BRANCH with version 0
+21:37:38.167 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: second with from functionality EXACT_BRANCH
+21:37:38.167 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: second with from functionality EXACT_BRANCH
+21:37:38.167 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: EXACT_BRANCH with version 0
+21:37:38.171 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: INVALID_BRANCH with version 0
+21:37:38.181 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: FAILED_FINALIZE with version 0
+21:37:38.181 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: first with from functionality FAILED_FINALIZE
+21:37:38.181 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: first with from functionality FAILED_FINALIZE
+21:37:38.182 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: second with from functionality FAILED_FINALIZE
+21:37:38.182 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: second with from functionality FAILED_FINALIZE
+21:37:38.189 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaExecutorControlTest$TestFunctionality$$Lambda/0x0000007001416088 for step second
+21:37:38.191 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: PRE_BODY_ABORT with version 0
+21:37:38.192 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: first with from functionality PRE_BODY_ABORT
+21:37:38.192 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: first with from functionality PRE_BODY_ABORT
+21:37:38.192 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaExecutorControlTest$TestFunctionality$$Lambda/0x0000007001415c58 for step first
+21:37:38.194 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: CONTROLLED_BODY with version 0
+21:37:38.194 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: body with from functionality CONTROLLED_BODY
+21:37:38.194 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: CONTROLLED_BODY with version 0
+21:37:38.196 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- START EXECUTION FUNCTIONALITY: FINALIZE with version 0
+21:37:38.196 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: first with from functionality FINALIZE
+21:37:38.196 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: first with from functionality FINALIZE
+21:37:38.196 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- START EXECUTION STEP: second with from functionality FINALIZE
+21:37:38.196 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.ExecutionPlan -- END EXECUTION STEP: second with from functionality FINALIZE
+21:37:38.197 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.coordination.Workflow -- END EXECUTION FUNCTIONALITY: FINALIZE with version 0

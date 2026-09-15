@@ -1,0 +1,19 @@
+{
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/README.md": "3e2080ed8992847869c94ef7d709884131248b77b0338e9074d66a7862c51e98",
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/qualification.json": "51823bcebcd52c2e495a8d50d7252a90a5130a652f5d24de3bb94f2fe7fe596e",
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/recovery-final-tests.log": "ce0d572e07974060539857cf5f6b6e095c9ab260e4aebb9966a36645c5c7bd32",
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/recovery-red.log": "60188eeea7909aba555a4b872f67a8faa34c04932ccf8d00bad7e695784a9e8e",
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/recovery-search-tests.log": "1063327f9ab7ff5034767fdcdbe48d9804a4a5a72547cc9542da6818bf2a52d2",
+  "docs/verifiers-impl/evidence/recovery-history-2026-09-15/tests.json": "2dd88b3b9451ba9351cbd29aec460657062be0331347cffe7bb3627f34f1e30d",
+  "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/unitOfWork/SagaUnitOfWork.java": "1c3a3e3bba5ce77b75802b3d72d3abd2037230fd5313a17cc11f1cb2b275d6a3",
+  "simulator/src/test/java/pt/ulisboa/tecnico/socialsoftware/ms/transaction/sagas/unitOfWork/SagaStepwiseRecoveryTest.java": "14326b6a00dfaedd54fde7d1e35003bf501ed0a0fcbf933bd03acb82cb22a0c8",
+  "verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+  "verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+  "verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+  "verifiers/target/ga-500x3-2026-09-15/protocol.json": "d46ecac2df86d3ff02ec1b8ccc99f7c828588f7a25921cbc91ad85932de2e2ab",
+  "verifiers/target/recovery-history-fix-03/control-lost-copy/control.json": "cbf623bd004f3bcf7d400887ba8a27559399aeb3c141236c005c2c697d86c3cb",
+  "verifiers/target/recovery-history-fix-03/control-serial/control.json": "af06a6591afe4255406b8556bcf37727d7adafa8198becd022d734fc02aba7e3",
+  "verifiers/target/recovery-history-fix-03/pilot-ga/results.json": "a13a3bc13f506ce6d22f4806e83a892c5ba40260db96b51419a1c2f5a8722fc1",
+  "verifiers/target/recovery-history-fix-03/pilot-random/results.json": "da42a67b3b5ecdaa2a35fd51bfbf36da14ac02917433a5630b961fdbb7d346d1",
+  "verifiers/target/recovery-history-fix-03/pilot-timing.json": "de3a528dcc56e2559a8127d63bf4c104e30df05a47d03719d684e5a5304f4312"
+}

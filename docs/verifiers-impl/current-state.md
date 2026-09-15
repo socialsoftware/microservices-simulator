@@ -782,6 +782,15 @@ A seed-15156 sample of 12 unique variants has complete four-criterion fitness ze
 this does not classify the other 144 candidates. The previous lost-copy positive still
 reports count 1 with complete coverage. No business code, scoring policy or GA operator changed. Wider constructor overload resolution remains outside this DTO fix.
 
+The [implemented recovery-history correction](evidence/recovery-history-2026-09-15/README.md)
+now excludes compensation-issued semantic-state changes from forward undo history in the
+shared SagaUnitOfWork compensation path, including ordinary abort and executor recovery.
+Original records and actual writes remain; the scope crosses serialized command transport
+and is restored on failure. Sixteen simulator tests and 49 experiment tests pass.
+Replaying exactly the same twelve random candidates preserves all seven previously
+complete results and makes all four pending-recovery cases complete (scores 2, 2, 0, 2).
+The remaining compensation failure still has unavailable fitness.
+
 ### Bounded structural space map (2026-09-07)
 
 The [space-map experiment](../../verifiers/experiments/space-map/RESULTS.md) selected

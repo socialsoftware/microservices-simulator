@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Profile;
@@ -20,6 +21,8 @@ public class SagaUnitOfWork extends UnitOfWork {
     private final List<String> executedSteps;
     private final Set<String> abortedSteps;
     private String currentExecutingStep;
+    @JsonProperty
+    private boolean executingCompensation;
 
     private final TraceManager traceManager;
 
@@ -44,6 +47,7 @@ public class SagaUnitOfWork extends UnitOfWork {
         this.compensatingActions.clear();
         this.aggregatesInSaga.clear();
         this.currentExecutingStep = null;
+        this.executingCompensation = false;
     }
 
     public void registerCompensation(Runnable compensationAction) {
@@ -61,11 +65,14 @@ public class SagaUnitOfWork extends UnitOfWork {
         }
         this.traceManager.startSpanForCompensation(this.getFunctionalityName());
         logger.info("COMPENSATE: {} for step {}", action.getAction().getClass().getSimpleName(), stepName);
+        boolean previousCompensationExecution = executingCompensation;
+        executingCompensation = true;
         try {
             action.getAction().run();
             action.setExecuted(true);
             return true;
         } finally {
+            executingCompensation = previousCompensationExecution;
             this.traceManager.endSpanForCompensation(this.getFunctionalityName());
         }
     }
@@ -111,6 +118,10 @@ public class SagaUnitOfWork extends UnitOfWork {
     }
 
     public void savePreviousState(Integer aggregateId, SagaState previousState) {
+        // Recovery commands still change state, but must not extend forward undo history.
+        // Otherwise an unlock is recorded against the last forward step, or reintroduces
+        // its own pre-unlock state when that history is subsequently restored.
+        if (executingCompensation) return;
         this.previousStates.computeIfAbsent(this.currentExecutingStep, k -> new ArrayList<>())
                 .add(new AggregateStateRecord(aggregateId, previousState));
     }

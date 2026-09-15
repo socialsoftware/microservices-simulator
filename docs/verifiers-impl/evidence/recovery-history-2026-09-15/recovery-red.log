@@ -1,0 +1,231 @@
+21:31:00.625 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x000000980115b400 for step read
+21:31:00.650 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011be448 for step second
+21:31:00.654 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011be230 for step first
+21:31:00.655 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011c6020 for step step
+21:31:00.655 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011c6020 for step step
+21:31:00.657 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011c7720 for step step
+21:31:00.681 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011e6f08 for step read
+21:31:00.686 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011e6f08 for step read
+21:31:00.689 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011e6f08 for step read
+21:31:00.690 [main] INFO pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork -- COMPENSATE: SagaStepwiseRecoveryTest$$Lambda/0x00000098011e6f08 for step read
+[ERROR] Tests run: 9, Failures: 5, Errors: 0, Skipped: 0, Time elapsed: 0.202 s <<< FAILURE! -- in pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.failedStateChangingCompensationStaysRetryableAndRestoresForwardRecording -- Time elapsed: 0.059 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+	at pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.failedStateChangingCompensationStaysRetryableAndRestoresForwardRecording(SagaStepwiseRecoveryTest.java:90)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(boolean, boolean)[1] -- Time elapsed: 0.008 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+	at pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(SagaStepwiseRecoveryTest.java:63)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(boolean, boolean)[2] -- Time elapsed: 0.002 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: NORMAL
+ but was: READ
+	at pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(SagaStepwiseRecoveryTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(boolean, boolean)[3] -- Time elapsed: 0.001 s <<< FAILURE!
+java.lang.AssertionError: 
+
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+	at pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(SagaStepwiseRecoveryTest.java:63)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(boolean, boolean)[4] -- Time elapsed: 0.001 s <<< FAILURE!
+org.opentest4j.AssertionFailedError: 
+
+expected: NORMAL
+ but was: READ
+	at pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState(SagaStepwiseRecoveryTest.java:62)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:580)
+	at java.base/java.util.Optional.ifPresent(Optional.java:178)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:184)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.ReferencePipeline$Head.forEach(ReferencePipeline.java:762)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.stream.ReferencePipeline$7$1.accept(ReferencePipeline.java:276)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.stream.ReferencePipeline$3$1.accept(ReferencePipeline.java:197)
+	at java.base/java.util.ArrayList$ArrayListSpliterator.forEachRemaining(ArrayList.java:1708)
+	at java.base/java.util.stream.AbstractPipeline.copyInto(AbstractPipeline.java:509)
+	at java.base/java.util.stream.AbstractPipeline.wrapAndCopyInto(AbstractPipeline.java:499)
+	at java.base/java.util.stream.ForEachOps$ForEachOp.evaluateSequential(ForEachOps.java:151)
+	at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.evaluateSequential(ForEachOps.java:174)
+	at java.base/java.util.stream.AbstractPipeline.evaluate(AbstractPipeline.java:234)
+	at java.base/java.util.stream.ReferencePipeline.forEach(ReferencePipeline.java:596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+	at java.base/java.util.ArrayList.forEach(ArrayList.java:1596)
+
+[ERROR] Failures: 
+[ERROR]   SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState:63 
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+[ERROR]   SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState:62 
+expected: NORMAL
+ but was: READ
+[ERROR]   SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState:63 
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+[ERROR]   SagaStepwiseRecoveryTest.compensationPreservesForwardUndoHistoryAndOriginalState:62 
+expected: NORMAL
+ but was: READ
+[ERROR]   SagaStepwiseRecoveryTest.failedStateChangingCompensationStaysRetryableAndRestoresForwardRecording:90 
+Expecting actual:
+  {"leave"=[AggregateStateRecord[aggregateId=7, state=READ]], "read"=[AggregateStateRecord[aggregateId=7, state=NORMAL]]}
+to contain only following keys:
+  ["read"]
+keys not found:
+  []
+and keys not expected:
+  ["leave"]
+
+[ERROR] Tests run: 9, Failures: 5, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.4:test (default-test) on project MicroservicesSimulator: There are test failures.
+[ERROR] 
+[ERROR] See /Users/andre/meic/thesis/microservices-simulator/simulator/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

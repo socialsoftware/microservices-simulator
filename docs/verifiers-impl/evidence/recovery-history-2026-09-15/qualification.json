@@ -1,0 +1,156 @@
+{
+  "identicalRandomCandidateKeys": true,
+  "comparisons": [
+    {
+      "attempt": 1,
+      "oldStatus": "COMPLETE",
+      "oldScore": 2.0,
+      "newStatus": "COMPLETE",
+      "newScore": 2.0,
+      "blockers": [
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE"
+      ]
+    },
+    {
+      "attempt": 2,
+      "oldStatus": "COMPLETE",
+      "oldScore": 0.0,
+      "newStatus": "COMPLETE",
+      "newScore": 0.0,
+      "blockers": []
+    },
+    {
+      "attempt": 3,
+      "oldStatus": "COMPLETE",
+      "oldScore": 2.0,
+      "newStatus": "COMPLETE",
+      "newScore": 2.0,
+      "blockers": []
+    },
+    {
+      "attempt": 4,
+      "oldStatus": "COMPLETE",
+      "oldScore": 0.0,
+      "newStatus": "COMPLETE",
+      "newScore": 0.0,
+      "blockers": []
+    },
+    {
+      "attempt": 5,
+      "oldStatus": "PROCESS_FAILURE",
+      "oldScore": null,
+      "newStatus": "COMPLETE",
+      "newScore": 2.0,
+      "blockers": [
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE",
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE"
+      ]
+    },
+    {
+      "attempt": 6,
+      "oldStatus": "PROCESS_FAILURE",
+      "oldScore": null,
+      "newStatus": "PROCESS_FAILURE",
+      "newScore": null,
+      "blockers": [
+        "COMPENSATION_FAILED"
+      ]
+    },
+    {
+      "attempt": 7,
+      "oldStatus": "PROCESS_FAILURE",
+      "oldScore": null,
+      "newStatus": "COMPLETE",
+      "newScore": 2.0,
+      "blockers": [
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE"
+      ]
+    },
+    {
+      "attempt": 8,
+      "oldStatus": "COMPLETE",
+      "oldScore": 0.0,
+      "newStatus": "COMPLETE",
+      "newScore": 0.0,
+      "blockers": []
+    },
+    {
+      "attempt": 9,
+      "oldStatus": "PROCESS_FAILURE",
+      "oldScore": null,
+      "newStatus": "COMPLETE",
+      "newScore": 0.0,
+      "blockers": [
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE"
+      ]
+    },
+    {
+      "attempt": 10,
+      "oldStatus": "COMPLETE",
+      "oldScore": 1.0,
+      "newStatus": "COMPLETE",
+      "newScore": 1.0,
+      "blockers": []
+    },
+    {
+      "attempt": 11,
+      "oldStatus": "COMPLETE",
+      "oldScore": 0.0,
+      "newStatus": "COMPLETE",
+      "newScore": 0.0,
+      "blockers": []
+    },
+    {
+      "attempt": 12,
+      "oldStatus": "PROCESS_FAILURE",
+      "oldScore": null,
+      "newStatus": "COMPLETE",
+      "newScore": 2.0,
+      "blockers": [
+        "UNASSIGNED_RUNTIME_FORWARD_FAILURE"
+      ]
+    }
+  ],
+  "arms": {
+    "random": {
+      "integrity": "PASS",
+      "stopReason": "BUDGET",
+      "positiveScenarios": 6,
+      "nullFitnessAttempts": 1,
+      "generationSeconds": 29.835834333323874,
+      "duplicates": 0,
+      "attempts": 12,
+      "reportHashesVerified": 72,
+      "runtimeSeconds": 382.38063320703804
+    },
+    "ga": {
+      "integrity": "PASS",
+      "stopReason": "BUDGET",
+      "positiveScenarios": 3,
+      "nullFitnessAttempts": 4,
+      "generationSeconds": 29.729427291895263,
+      "duplicates": 3,
+      "attempts": 12,
+      "reportHashesVerified": 72,
+      "runtimeSeconds": 382.5799531652592
+    }
+  },
+  "timing": {
+    "startedAt": 1789504838.9444008,
+    "finishedAt": 1789505255.319572,
+    "wallSeconds": 416.3751711845398,
+    "arms": [
+      {
+        "strategy": "random",
+        "exitCode": 0,
+        "finishedAt": 1789505255.315686
+      },
+      {
+        "strategy": "ga",
+        "exitCode": 0,
+        "finishedAt": 1789505255.319343
+      }
+    ]
+  },
+  "estimatedCampaignHoursAtPilotThroughput": 14.45747122168541
+}

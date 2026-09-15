@@ -1,0 +1,15 @@
+.......................arm #1: PROCESS_FAILURE I=None A=None
+..arm #1: COMPLETE I=0 A=None
+.arm #1: COMPLETE I=0 A=None
+.arm #1: COMPLETE I=0 A=None
+.arm #1: PARTIAL I=None A=None
+.arm #1: PROCESS_FAILURE I=None A=None
+.arm #1: COMPLETE I=0 A=None
+.arm #1: COMPLETE I=0 A=None
+.arm #1: UNAVAILABLE I=None A=1
+..arm #1: INVALID_REPORT I=None A=None
+...............
+----------------------------------------------------------------------
+Ran 49 tests in 0.198s
+
+OK

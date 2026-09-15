@@ -1,0 +1,16 @@
+{
+  "TEST-pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaExecutorControlTest.xml": {
+    "tests": "6",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "time": "0.463"
+  },
+  "TEST-pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaStepwiseRecoveryTest.xml": {
+    "tests": "10",
+    "errors": "0",
+    "failures": "0",
+    "skipped": "0",
+    "time": "0.308"
+  }
+}
