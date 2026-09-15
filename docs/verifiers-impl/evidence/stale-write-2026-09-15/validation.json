@@ -1,0 +1,383 @@
+{
+  "status": "PASS",
+  "validatorSha256": "3ea50ea38fc7f1af6f3d9c80333210839f5bb985834b69be394246a61b5d31a6",
+  "executions": 10,
+  "overwriteExecutions": 4,
+  "controlExecutions": 6,
+  "productionDetectorImplemented": false,
+  "productionScoreChanged": false,
+  "rows": [
+    {
+      "case": "forward-stale",
+      "serialized": false,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": true,
+      "overwrites": [
+        {
+          "beforeVersion": 23,
+          "afterVersion": 24,
+          "overwriter": {
+            "kind": "SAGA",
+            "executionAttemptId": "forward-stale",
+            "workloadPlanId": "stale-write",
+            "sagaInstanceId": "A",
+            "actionId": "A:FORWARD:updateTournamentStep",
+            "phase": "FORWARD",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          }
+        }
+      ],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 23,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 22
+        },
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 24,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/forward-stale-false.json",
+      "sha256": "b3948bf8df1307ffd2f15d4338a0fa373926229b953adc5508bac181d90bc7e2"
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": false,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "RENAMED TOPIC",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 23,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 22
+        },
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 24,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 21
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/forward-fresh-false.json",
+      "sha256": "73950402cc9f581911a8d7129e617f6449742159f586bebb10e6aef5932eec89"
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": false,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": true,
+      "overwrites": [
+        {
+          "beforeVersion": 24,
+          "afterVersion": 25,
+          "overwriter": {
+            "kind": "SAGA",
+            "executionAttemptId": "recovery-stale",
+            "workloadPlanId": "stale-write",
+            "sagaInstanceId": "A",
+            "actionId": "A:RECOVERY:updateTournamentStep",
+            "phase": "RECOVERY",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          }
+        }
+      ],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 24,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 23
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 25,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-stale-false.json",
+      "sha256": "d9463ba11d1d67886651218c8e9bd5f0575eef9da4236e3b9b13034f56f7aa1b"
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": false,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "RENAMED TOPIC",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 24,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 25,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 23
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-delayed-event-false.json",
+      "sha256": "68ac371eb9001ac26774fb2f247cbaafb4ec5a967ce9177a1b74bda9bca51fb0"
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": false,
+      "status": "PASS",
+      "sourceTopicName": "TOPIC 1",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 22,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-no-event-false.json",
+      "sha256": "34dc2376353dfb3345372d2d54ac06f8a8c73948733dbd761868e11b37330814"
+    },
+    {
+      "case": "forward-stale",
+      "serialized": true,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": true,
+      "overwrites": [
+        {
+          "beforeVersion": 23,
+          "afterVersion": 24,
+          "overwriter": {
+            "kind": "SAGA",
+            "executionAttemptId": "forward-stale",
+            "workloadPlanId": "stale-write",
+            "sagaInstanceId": "A",
+            "actionId": "A:FORWARD:updateTournamentStep",
+            "phase": "FORWARD",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          }
+        }
+      ],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 23,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 22
+        },
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 24,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/forward-stale-true.json",
+      "sha256": "1005cfa3bd2d0468efd0aae10465d1a89dcbc54adbcea93b76ff20bc54f161f7"
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": true,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "RENAMED TOPIC",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 23,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 22
+        },
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 24,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 21
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/forward-fresh-true.json",
+      "sha256": "18580e86eb01c32b60da18e31f89751a91c92de1cb2f7761d4201e3fb8c8e994"
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": true,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": true,
+      "overwrites": [
+        {
+          "beforeVersion": 24,
+          "afterVersion": 25,
+          "overwriter": {
+            "kind": "SAGA",
+            "executionAttemptId": "recovery-stale",
+            "workloadPlanId": "stale-write",
+            "sagaInstanceId": "A",
+            "actionId": "A:RECOVERY:updateTournamentStep",
+            "phase": "RECOVERY",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          }
+        }
+      ],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 24,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 23
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 25,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-stale-true.json",
+      "sha256": "d681a508d69f931ac12838a9e747fad8847bcc408a6a16c7fcc6456f7e9344ee"
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": true,
+      "status": "PASS",
+      "sourceTopicName": "RENAMED TOPIC",
+      "finalCopiedTopicName": "RENAMED TOPIC",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 24,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "C:deliver",
+          "phase": "EVENT",
+          "version": 25,
+          "name": "RENAMED TOPIC",
+          "topicVersion": 23
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-delayed-event-true.json",
+      "sha256": "801a010af36cb8213fd7c52a626491e71b082636406bd6f0beb5c53d671a9fa2"
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": true,
+      "status": "PASS",
+      "sourceTopicName": "TOPIC 1",
+      "finalCopiedTopicName": "TOPIC 1",
+      "overwriteObserved": false,
+      "overwrites": [],
+      "readerScope": "Topic DTO returns are currently unmapped; cached DTOs are experiment-only evidence.",
+      "timeline": [
+        {
+          "writer": "A:FORWARD:updateTournamentStep",
+          "phase": "FORWARD",
+          "version": 21,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        },
+        {
+          "writer": "A:RECOVERY:updateTournamentStep",
+          "phase": "RECOVERY",
+          "version": 22,
+          "name": "TOPIC 1",
+          "topicVersion": 7
+        }
+      ],
+      "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/stale-write/run-01/recovery-no-event-true.json",
+      "sha256": "ea1edb9f77c0b54341defb3d1dcb0ed378802936b52da69f41dfdd7dade40998"
+    }
+  ]
+}

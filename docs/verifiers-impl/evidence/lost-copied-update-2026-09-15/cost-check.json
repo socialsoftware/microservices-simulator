@@ -1,0 +1,46 @@
+{
+  "businessObservationsPreserved": true,
+  "rows": [
+    {
+      "enabled": false,
+      "pair": 0,
+      "process": {
+        "exitCode": 0,
+        "status": "EXITED",
+        "wallSeconds": 13.711369624943472
+      },
+      "traceBytes": 0
+    },
+    {
+      "enabled": true,
+      "pair": 0,
+      "process": {
+        "exitCode": 0,
+        "status": "EXITED",
+        "wallSeconds": 14.27634370897431
+      },
+      "traceBytes": 65754
+    },
+    {
+      "enabled": true,
+      "pair": 1,
+      "process": {
+        "exitCode": 0,
+        "status": "EXITED",
+        "wallSeconds": 14.052814624970779
+      },
+      "traceBytes": 65754
+    },
+    {
+      "enabled": false,
+      "pair": 1,
+      "process": {
+        "exitCode": 0,
+        "status": "EXITED",
+        "wallSeconds": 14.309241209062748
+      },
+      "traceBytes": 0
+    }
+  ],
+  "scope": "Two paired fresh JVM/container launches; wall time includes Docker, JVM and Spring startup. Order reversed in second pair. Descriptive smoke check, not an isolated or statistically established instrumentation overhead."
+}

@@ -88,7 +88,7 @@ public final class ScenarioCatalogPackageReader {
     public ExecutablePackageContents readCurrent(Path manifestPath) {
         StaticPackageContents staticContents = CurrentStaticPackageReader.read(manifestPath);
         ScenarioCatalogManifest.Current current = staticContents.manifest();
-        if (current.files().size() < 8 || current.files().size() > 10
+        if (current.files().size() < 8 || current.files().size() > 11
                 || !current.files().keySet().containsAll(CurrentStaticPackageReader.EXECUTABLE_ROLES)) {
             throw new IllegalArgumentException("current executable package must contain setups, workloads, faultScenarios, and requests");
         }
@@ -108,6 +108,7 @@ public final class ScenarioCatalogPackageReader {
                 records.get("workloads"));
         return new ExecutablePackageContents(current, staticContents.accounting(),
                 staticContents.sagaFacts(), staticContents.inputFacts(), staticContents.interactionFacts(),
+                staticContents.copyContracts(), staticContents.copyContractPath(),
                 records.get("setups"), records.get("workloads"), records.get("faultScenarios"),
                 records.get("requests"), paths.get("setups"), paths.get("workloads"),
                 paths.get("faultScenarios"), paths.get("requests"), staticContents.accountingPath(),
@@ -637,7 +638,8 @@ public final class ScenarioCatalogPackageReader {
         private static final Set<String> STATIC_ROLES = Set.of("accounting", "sagas", "inputs", "interactions");
         private static final Set<String> EXECUTABLE_ROLES = Set.of("setups", "workloads", "faultScenarios", "requests");
         private static final Set<String> DYNAMIC_ROLES = Set.of("dynamicObservations", "dynamicAttributionLinks");
-        private static final Set<String> ROLES = new java.util.LinkedHashSet<>() {{ addAll(STATIC_ROLES); addAll(EXECUTABLE_ROLES); addAll(DYNAMIC_ROLES); }};
+        private static final Set<String> OPTIONAL_STATIC_ROLES = Set.of("copy-contracts");
+        private static final Set<String> ROLES = new java.util.LinkedHashSet<>() {{ addAll(STATIC_ROLES); addAll(OPTIONAL_STATIC_ROLES); addAll(EXECUTABLE_ROLES); addAll(DYNAMIC_ROLES); }};
 
         private static StaticPackageContents read(Path manifestPath) {
             Path manifest = Objects.requireNonNull(manifestPath, "manifestPath").toAbsolutePath().normalize();
@@ -668,6 +670,9 @@ public final class ScenarioCatalogPackageReader {
                 String pathText = text(metadata, "path", "manifest files." + entry.getKey());
                 String sha = text(metadata, "sha256", "manifest files." + entry.getKey());
                 if (!sha.matches("[0-9a-f]{64}")) throw invalid("manifest files." + entry.getKey() + " has invalid sha256");
+                if ("copy-contracts".equals(entry.getKey()) && !"copy-contracts.json".equals(pathText)) {
+                    throw invalid("manifest files.copy-contracts path must be copy-contracts.json");
+                }
                 Path resolved = resolveInside(root, pathText, entry.getKey());
                 if (!resolvedPaths.add(resolved.toString())) throw invalid("manifest artifact paths must be unique");
                 files.put(entry.getKey(), new ScenarioCatalogManifest.Current.ArtifactFile(pathText, sha));
@@ -689,6 +694,8 @@ public final class ScenarioCatalogPackageReader {
             Path sagaPath = verifyAndResolve(root, files.get("sagas"), "sagas");
             Path inputPath = verifyAndResolve(root, files.get("inputs"), "inputs");
             Path interactionPath = verifyAndResolve(root, files.get("interactions"), "interactions");
+            Path copyContractPath = files.containsKey("copy-contracts")
+                    ? verifyAndResolve(root, files.get("copy-contracts"), "copy-contracts") : null;
             JsonNode accounting = readSingleJson(accountingPath, "accounting");
             validateAccounting(accounting);
             List<JsonNode> sagas = readJsonLines(sagaPath, "sagas");
@@ -705,6 +712,9 @@ public final class ScenarioCatalogPackageReader {
                     : readJsonLines(dynamicObservationPath, "dynamicObservations");
             List<JsonNode> dynamicAttributions = dynamicAttributionPath == null ? List.of()
                     : readJsonLines(dynamicAttributionPath, "dynamicAttributionLinks");
+            JsonNode copyContracts = copyContractPath == null ? null
+                    : readSingleJson(copyContractPath, "copy-contracts");
+            if (copyContracts != null) validateCopyContracts(copyContracts);
             if (dynamicObservationPath != null && dynamicObservations.isEmpty()) {
                 throw invalid("manifest-linked dynamicObservations artifact must not be empty");
             }
@@ -714,7 +724,76 @@ public final class ScenarioCatalogPackageReader {
             validateDynamic(accounting, dynamicObservations, dynamicAttributions, sagas, inputs);
             return new StaticPackageContents(new ScenarioCatalogManifest.Current(version.asInt(), files), accounting,
                     sagas, inputs, interactions, accountingPath, sagaPath, inputPath, interactionPath,
+                    copyContracts, copyContractPath,
                     dynamicObservations, dynamicAttributions, dynamicObservationPath, dynamicAttributionPath);
+        }
+
+        private static void validateCopyContracts(JsonNode artifact) {
+            requireObject(artifact, "copy-contracts");
+            allowed(artifact, Set.of("schema", "support", "limitations", "contracts"), "copy-contracts");
+            if (!"copy-contracts.v1".equals(text(artifact, "schema", "copy-contracts"))) {
+                throw invalid("copy-contracts schema must be copy-contracts.v1");
+            }
+            JsonNode support = required(artifact, "support", "copy-contracts");
+            requireObject(support, "copy-contracts support");
+            allowed(support, Set.of("status", "description"), "copy-contracts support");
+            if (!"bounded".equals(text(support, "status", "copy-contracts support"))) {
+                throw invalid("copy-contracts support status must be bounded");
+            }
+            text(support, "description", "copy-contracts support");
+            JsonNode limitations = required(artifact, "limitations", "copy-contracts");
+            if (!limitations.isArray() || limitations.isEmpty()) {
+                throw invalid("copy-contracts limitations must be a non-empty array");
+            }
+            limitations.forEach(value -> {
+                if (!value.isTextual() || value.asText().isBlank()) {
+                    throw invalid("copy-contracts limitations must contain non-blank text");
+                }
+            });
+            JsonNode contracts = required(artifact, "contracts", "copy-contracts");
+            if (!contracts.isArray()) throw invalid("copy-contracts contracts must be an array");
+            String previous = null;
+            for (JsonNode contract : contracts) {
+                requireObject(contract, "copy contract");
+                allowed(contract, Set.of("sourceType", "targetType", "sourceKey", "targetKey", "fields", "proof", "sourceFiles"), "copy contract");
+                String sourceType = text(contract, "sourceType", "copy contract");
+                String targetType = text(contract, "targetType", "copy contract");
+                String sourceKey = text(contract, "sourceKey", "copy contract");
+                String targetKey = text(contract, "targetKey", "copy contract");
+                if (!"aggregateId".equals(sourceKey)) throw invalid("copy contract sourceKey must be aggregateId");
+                JsonNode fields = required(contract, "fields", "copy contract");
+                requireObject(fields, "copy contract fields");
+                if (fields.size() < 2 || !fields.has(sourceKey)
+                        || !targetKey.equals(fields.path(sourceKey).asText())) {
+                    throw invalid("copy contract fields must include identity plus one business field");
+                }
+                fields.fields().forEachRemaining(entry -> {
+                    if (entry.getKey().isBlank() || !entry.getValue().isTextual()
+                            || entry.getValue().asText().isBlank()) {
+                        throw invalid("copy contract fields must map non-blank source fields to target fields");
+                    }
+                });
+                JsonNode proof = required(contract, "proof", "copy contract");
+                if (!proof.isArray() || proof.size() != fields.size()) {
+                    throw invalid("copy contract proof must cover every inferred field");
+                }
+                JsonNode sourceFiles = required(contract, "sourceFiles", "copy contract");
+                if (!sourceFiles.isArray() || sourceFiles.isEmpty()) {
+                    throw invalid("copy contract sourceFiles must be a non-empty array");
+                }
+                sourceFiles.forEach(file -> {
+                    requireObject(file, "copy contract source file");
+                    allowed(file, Set.of("path", "sha256"), "copy contract source file");
+                    text(file, "path", "copy contract source file");
+                    String sha256 = text(file, "sha256", "copy contract source file");
+                    if (!sha256.matches("[0-9a-f]{64}")) throw invalid("copy contract source file has invalid sha256");
+                });
+                String order = sourceType + "\u0000" + targetType + "\u0000" + targetKey;
+                if (previous != null && previous.compareTo(order) >= 0) {
+                    throw invalid("copy contracts must have unique deterministic ordering");
+                }
+                previous = order;
+            }
         }
 
         private static Path verifyAndResolve(Path root, ScenarioCatalogManifest.Current.ArtifactFile metadata, String role) {
@@ -1540,6 +1619,8 @@ public final class ScenarioCatalogPackageReader {
             Path sagaFactsPath,
             Path inputFactsPath,
             Path interactionFactsPath,
+            JsonNode copyContracts,
+            Path copyContractPath,
             List<JsonNode> dynamicObservations,
             List<JsonNode> dynamicAttributionLinks,
             Path dynamicObservationPath,
@@ -1559,6 +1640,8 @@ public final class ScenarioCatalogPackageReader {
             List<JsonNode> sagaFacts,
             List<JsonNode> inputFacts,
             List<JsonNode> interactionFacts,
+            JsonNode copyContracts,
+            Path copyContractPath,
             List<JsonNode> setupRecords,
             List<JsonNode> workloadRecords,
             List<JsonNode> faultScenarioRecords,

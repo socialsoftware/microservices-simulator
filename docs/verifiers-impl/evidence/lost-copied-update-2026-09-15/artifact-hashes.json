@@ -1,0 +1,8 @@
+{
+  "controlled-validation.json": "567116f326a4793c994e104442681fe644619d56c332b64d1fa95d240381a503",
+  "copy-contracts.json": "243c6121181efce5eaa2e9d10dbeaaebd47092159a7cdb9cfac3f4fe906675ed",
+  "cost-check.json": "2aab83199ef64462a7508846e46bf87f4dd6535dcd7947b9da262fb4db179015",
+  "generated-cases.json": "0c86d1f92f86f76e7f2ff8288eb1c1e9bcc0f97f9a05ea17fa77f892e204f713",
+  "non-interference.json": "7c575572909e585631bf0d9530c02eba58a5152b830f5cde4659818af98eb5cd",
+  "weighted-feedback.json": "23d41a94d984d131ebce41ff628d6d86c5fb2926ed641e693a3976e1659e3716"
+}

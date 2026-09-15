@@ -17,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidencePr
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.dynamic.DynamicEvidenceRecorderHolder;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseAdapter;
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.sagaread.ReadResponseObservation;
+import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.copiedupdate.CopiedUpdateObservation;
 
 import java.util.List;
 
@@ -63,12 +64,15 @@ public class LocalCommandGateway extends CommandGateway {
 
         ReadResponseObservation observation = sagaReadExposureEnabled
                 ? ReadResponseObservation.begin(command, serializeMessages, readResponseAdapters) : null;
+        CopiedUpdateObservation.begin(command);
         try {
             Object result = dispatch(command);
             if (observation != null) observation.delivered(result);
+            CopiedUpdateObservation.end(result, null);
             return result;
         } catch (RuntimeException | Error failure) {
             if (observation != null) observation.failed(failure);
+            CopiedUpdateObservation.end(null, failure);
             throw failure;
         }
     }

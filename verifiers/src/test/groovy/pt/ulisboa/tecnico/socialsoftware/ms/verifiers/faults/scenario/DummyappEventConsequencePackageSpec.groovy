@@ -67,7 +67,7 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
 
         then:
         current.manifest().files().keySet() ==
-                ['accounting', 'sagas', 'inputs', 'interactions', 'setups', 'workloads',
+                ['accounting', 'sagas', 'inputs', 'interactions', 'copy-contracts', 'setups', 'workloads',
                  'faultScenarios', 'requests'] as Set
         current.manifest().files().every { role, artifact ->
             Arrays.equals(Files.readAllBytes(firstDirectory.resolve(artifact.path())),

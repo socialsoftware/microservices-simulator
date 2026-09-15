@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.Qu
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.service.TopicService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.Tournament
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto
@@ -39,6 +40,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
     private QuizFunctionalities quizFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
+    @Autowired
+    private TopicFunctionalities topicFunctionalities
 
     @Autowired
     private TournamentService tournamentService
@@ -115,6 +118,25 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         quizDto.availableDate == DateHandler.toISOString(TIME_2)
         quizDto.conclusionDate == DateHandler.toISOString(TIME_4)
         quizDto.questionDtos.size() == 3
+    }
+
+    def 'update topic and tournament successfully'() {
+        given:
+        topicDto1.setName('RENAMED TOPIC')
+        tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
+        tournamentDto.setEndTime(DateHandler.toISOString(TIME_4))
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when:
+        topicFunctionalities.updateTopic(topicDto1)
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+
+        then:
+        topicFunctionalities.getTopicByAggregateId(topicDto1.getAggregateId()).name == 'RENAMED TOPIC'
+        def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        updatedTournamentDto.numberOfQuestions == 3
+        updatedTournamentDto.topics.find { it.aggregateId == topicDto1.aggregateId }.name == 'RENAMED TOPIC'
     }
 
     def 'update tournament aborts when trying to create the tournament and violates an invariant'() {

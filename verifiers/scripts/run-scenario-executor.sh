@@ -8,8 +8,9 @@ set -euo pipefail
 : "${PREFLIGHT:=false}"
 : "${DRY_RUN:=false}"
 : "${SERVER_PORT:=0}"
+: "${LOST_COPIED_UPDATE:=false}"
 
-for boolean_name in PREFLIGHT DRY_RUN; do
+for boolean_name in PREFLIGHT DRY_RUN LOST_COPIED_UPDATE; do
   boolean_value="${!boolean_name}"
   if [[ "$boolean_value" != "true" && "$boolean_value" != "false" ]]; then
     echo "$boolean_name must be exactly 'true' or 'false'" >&2
@@ -113,7 +114,17 @@ else
   fi
 fi
 
-java -Dmicroservices.simulator.event-replay.enabled=true -cp "$CP" \
+COPY_JAVA_ARGS=()
+if [[ "$LOST_COPIED_UPDATE" == "true" && "$PREFLIGHT" != "true" ]]; then
+  COPY_JAVA_ARGS+=(
+    "-javaagent:/verifiers/target/verifiers-0.0.1-SNAPSHOT-copy-agent.jar"
+    "-Dsimulator.copied-update.contracts=$(dirname "$PACKAGE_PATH")/copy-contracts.json"
+    "-Dsimulator.copied-update.source-root=$APP_DIR"
+  )
+  EXECUTOR_ARGS+=(--microservices.simulator.lost-copied-update.enabled=true)
+fi
+
+java "${COPY_JAVA_ARGS[@]}" -Dmicroservices.simulator.event-replay.enabled=true -cp "$CP" \
   pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.ScenarioExecutorCli \
   "${EXECUTOR_ARGS[@]}" \
   --verifiers.application.enabled=false \

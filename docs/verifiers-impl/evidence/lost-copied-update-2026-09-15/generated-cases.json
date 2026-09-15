@@ -1,0 +1,219 @@
+{
+  "rows": [
+    {
+      "attempt": "attempt-001",
+      "scenarioId": "2d0fe675a8f88f0ea4fed53ac3ebb033ce583ef88209a77fb8e5d8941b568a68",
+      "workloadId": "4d36f10b68efc977d9495444fdf2f181b1df64b788d474c897b0e98f33ab2f7e",
+      "faultVector": "0000000",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "I": 0,
+      "A": 0,
+      "AStatus": "COMPLETE",
+      "ACoverage": "COMPLETE_WITHIN_SCOPE",
+      "lostCopiedUpdateCount": 0,
+      "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "coverageGaps": [],
+      "findings": [],
+      "rawDirectory": "verifiers/target/lost-copied-update/generated-positive-qualification-01/attempt-001",
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "ca66c566222c64a4b8c64af4e71ec16798ce2a5648e3be088f4607fbb109fef8",
+        "execution-report.impact-v2.json": "9533bad3dad4c5bff935317013f41085b10e3620bb8b2c1ff42fc68692626d19",
+        "execution-report.impact.json": "e6cf7a988b2a5c3528c3ac888af1dbd778238042710cff2a7a84dd0e60ed9215",
+        "execution-report.json": "43d46adaee888fd9abbe1016bc17802ff4868391fa4f305181a22f50d281d0c2",
+        "execution-report.saga-read-exposure.json": "b24193fca7a8763ee8e52639fea2d4bf92e7fcdb03bb10a95f892d9781686c4c",
+        "replay.json": "c56a8d8b701de8ee6432f79bf4a075545e68cce9fe9c1837c0de3c2dd9d3b4ff"
+      }
+    },
+    {
+      "attempt": "attempt-002",
+      "scenarioId": "bcf5758ce8d4d9f6479967c553af3c780d03f1e35fd38703daf24c7324ab753c",
+      "workloadId": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4",
+      "faultVector": "0000000",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "I": 0,
+      "A": 0,
+      "AStatus": "COMPLETE",
+      "ACoverage": "COMPLETE_WITHIN_SCOPE",
+      "lostCopiedUpdateCount": 1,
+      "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "coverageGaps": [],
+      "findings": [
+        {
+          "findingId": "lost-copied-update:d8d2f1eb-bff7-360d-bdd3-8802d5df3ff4",
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 12
+          },
+          "beforeVersion": 26,
+          "afterVersion": 27,
+          "phase": "FORWARD",
+          "writer": {
+            "kind": "SAGA",
+            "executionAttemptId": "c4118479-74d5-4e64-815f-a5073e645257",
+            "workloadPlanId": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4",
+            "sagaInstanceId": "p2",
+            "actionId": "5aeb75518dad0dbcb0c67869a4687bb47e02dc2ab72cad9b06a3083798e62fac",
+            "phase": "FORWARD",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          },
+          "fields": [
+            {
+              "fieldPath": "$.tournamentTopics[topicAggregateId=5].topicName",
+              "oldValue": "TOPIC_NAME_1",
+              "overwrittenValue": "RENAMED TOPIC",
+              "readOrder": 5,
+              "inputOrder": 18,
+              "constructorOrder": 22,
+              "foreignWriteOrder": 16,
+              "overwriteOrder": 28,
+              "foreignWriter": {
+                "kind": "EVENT_CONSUMER",
+                "executionAttemptId": "c4118479-74d5-4e64-815f-a5073e645257",
+                "workloadPlanId": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4",
+                "sagaInstanceId": "p1",
+                "actionId": "80e8e5cf319f8f9b4f0739bca56c5c155d3c6d47cd95a3aca9e4ea38f66586bc",
+                "phase": "EVENT",
+                "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
+                "stepName": "handleUpdateTopicEvents",
+                "eventId": 4
+              }
+            }
+          ]
+        }
+      ],
+      "rawDirectory": "verifiers/target/lost-copied-update/generated-positive-qualification-01/attempt-002",
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "8fb69f890de5430ef8f9eee2a3d105a20313f413399df29b7e80fa0d43e879a6",
+        "execution-report.impact-v2.json": "a5be4e27455e146213e23b6c9c1ac093e0ae56d216d1545038693299d943f965",
+        "execution-report.impact.json": "7393ccfa21cc6f9234206150313bef5ae51063172e65c4f988cd2ed7dbf54bb3",
+        "execution-report.json": "706e16d54216dfd33f76aab56594749685a6c6aced0771b28dd6f5a62815fe7e",
+        "execution-report.saga-read-exposure.json": "f4bea8b7e8e9312adc6484d34195ed6ab608761078c54eaf521e44a40986207a",
+        "replay.json": "1c9c984f7dbc3835aa8ff382ac5f70d76c691ae1fa087fcf8fc05ce564125fde"
+      }
+    },
+    {
+      "attempt": "attempt-003",
+      "scenarioId": "ec628a3dee2caf2afcab7337eb108a241c38b1e68dfb0bf1599632679d98ca3b",
+      "workloadId": "09012cdb7635d5e9fa5f0c805077456689fb1174382f68f45041eb91171a8bf7",
+      "faultVector": "0000000",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "I": 0,
+      "A": 0,
+      "AStatus": "COMPLETE",
+      "ACoverage": "PARTIAL",
+      "lostCopiedUpdateCount": 0,
+      "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "coverageGaps": [],
+      "findings": [],
+      "rawDirectory": "verifiers/target/lost-copied-update/generated-positive-qualification-01/attempt-003",
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "6f7fdf7c6ec33b62a1dc6aa160aca58394d35516e448eb7e028afc6ffc3fa151",
+        "execution-report.impact-v2.json": "d12de0dd3fbf30d5db7356d0e190bf581c4e20712828b38ed3438661029c0cd3",
+        "execution-report.impact.json": "efef74b53ace2101e9fea2c08b96aa8d23074c08bebf81f5e1c30406738e123d",
+        "execution-report.json": "d9865ae8c3e7ac5e2d336264459d20743feca26ef8daeefceaab7153bb5cee91",
+        "execution-report.saga-read-exposure.json": "ac91a3b14a26e535904ace3b0a3f6b77835b44df79ffcef00a444eb3081a6213",
+        "replay.json": "9ab532bb1a81a2a0232a0747ce2fba3722c1122ef1b7e76bde668145ff16673a"
+      }
+    },
+    {
+      "attempt": "attempt-004",
+      "scenarioId": "9f36be3a657fb9998bb91acc86abe8cb8142530575cb9090246e494a496767fb",
+      "workloadId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+      "faultVector": "0000001",
+      "terminalStatus": "PARTIAL_COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "I": 0,
+      "A": 0,
+      "AStatus": "COMPLETE",
+      "ACoverage": "COMPLETE_WITHIN_SCOPE",
+      "lostCopiedUpdateCount": 0,
+      "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "coverageGaps": [],
+      "findings": [],
+      "rawDirectory": "verifiers/target/lost-copied-update/generated-positive-qualification-01/attempt-004",
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "ccc466daf4b323cb9e5acdabd1b6af2bfa3b6825bc0e51ead14fb4a255aa4c59",
+        "execution-report.impact-v2.json": "8584813f22b6da0c7e0df88f99a48aaa993294880870e745231d899a83270d1f",
+        "execution-report.impact.json": "bc8f8b268929c0479f805b8ecccdcb8e8afc71d68ccd7af0cbd61596b9028700",
+        "execution-report.json": "ddfb6d6f7032faa273a91ba0749c1412e90a2c39ea7446df1fe0e1c0f861ed15",
+        "execution-report.saga-read-exposure.json": "6d8ac0ebdce0943ce4ef2904d01572506a8a3b0edb9ae5baccc37162eee6c82f",
+        "replay.json": "807e68c4c77328df19e9b846a70d690807c36824194189fecdf7b755b0583499"
+      }
+    },
+    {
+      "attempt": "attempt-005",
+      "scenarioId": "0890a9eaad73b2047b7f38798388237e2c763202edcc2177fc16a4f2523c5f3b",
+      "workloadId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+      "faultVector": "0000010",
+      "terminalStatus": "PARTIAL_COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "I": null,
+      "A": 0,
+      "AStatus": "COMPLETE",
+      "ACoverage": "COMPLETE_WITHIN_SCOPE",
+      "lostCopiedUpdateCount": 1,
+      "lostCopiedUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "coverageGaps": [],
+      "findings": [
+        {
+          "findingId": "lost-copied-update:2ba8d7e0-7c73-3d25-b9e1-55b77fe48eef",
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 12
+          },
+          "beforeVersion": 27,
+          "afterVersion": 28,
+          "phase": "RECOVERY",
+          "writer": {
+            "kind": "SAGA",
+            "executionAttemptId": "0cf93312-a3c4-4a58-84a2-1c21a2689051",
+            "workloadPlanId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+            "sagaInstanceId": "p2",
+            "actionId": "94635de517a5950520b1fb945dcbaf54aa1a4b3933294222ce4b7116ff26ab7e",
+            "phase": "RECOVERY",
+            "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "stepName": "updateTournamentStep",
+            "eventId": null
+          },
+          "fields": [
+            {
+              "fieldPath": "$.tournamentTopics[topicAggregateId=5].topicName",
+              "oldValue": "TOPIC_NAME_1",
+              "overwrittenValue": "RENAMED TOPIC",
+              "readOrder": 1,
+              "inputOrder": 32,
+              "constructorOrder": 40,
+              "foreignWriteOrder": 30,
+              "overwriteOrder": 43,
+              "foreignWriter": {
+                "kind": "EVENT_CONSUMER",
+                "executionAttemptId": "0cf93312-a3c4-4a58-84a2-1c21a2689051",
+                "workloadPlanId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+                "sagaInstanceId": "p1",
+                "actionId": "80e8e5cf319f8f9b4f0739bca56c5c155d3c6d47cd95a3aca9e4ea38f66586bc",
+                "phase": "EVENT",
+                "functionalityName": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
+                "stepName": "handleUpdateTopicEvents",
+                "eventId": 4
+              }
+            }
+          ]
+        }
+      ],
+      "rawDirectory": "verifiers/target/lost-copied-update/generated-positive-qualification-01/attempt-005",
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "28af589eb8332a184686e4b0719d2adc65d630c6cd7a3f64b89d928933f988dc",
+        "execution-report.impact-v2.json": "22076eef788ba6158d0640a93d090a79996440b090f80277b0d37eef3c09e03c",
+        "execution-report.impact.json": "9c48fc8ab1a3dc07abf8ea4978a2d66d1ace963553ec509306550ca83aeb6452",
+        "execution-report.json": "9e70b2448f3dd043112bc43348b061d7ea4fabf8eeff2c5b0baaae02addc56df",
+        "execution-report.saga-read-exposure.json": "4d1176e5cf7870d0762303af9a5fd6af906ae1473f968cde3788121db3ab3936",
+        "replay.json": "63fc2e77a6fef42fe106a938d70050bcb8c3eddf968aea88eade8d4762cefa7b"
+      }
+    }
+  ]
+}

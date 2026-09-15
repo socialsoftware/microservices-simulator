@@ -1,0 +1,129 @@
+{
+  "fitness": {
+    "policy": "weighted-criteria-v2",
+    "weights": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "LOST_COPIED_UPDATE": 1,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    }
+  },
+  "newApplicationExecutions": 0,
+  "rows": [
+    {
+      "attempt": 2,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 1,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 1
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessScore": 1.0,
+      "fitnessUnavailableReasons": [],
+      "label": "forward-stale-positive",
+      "lostCopiedUpdateCount": 1,
+      "scenarioId": "bcf5758ce8d4d9f6479967c553af3c780d03f1e35fd38703daf24c7324ab753c",
+      "scheduleConformance": "EXACT",
+      "terminalStatus": "SUCCESS",
+      "workloadId": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4"
+    },
+    {
+      "attempt": 3,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": null,
+          "coverage": "PARTIAL",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessScore": 0.0,
+      "fitnessUnavailableReasons": [],
+      "label": "fresh-read-control",
+      "lostCopiedUpdateCount": 0,
+      "scenarioId": "ec628a3dee2caf2afcab7337eb108a241c38b1e68dfb0bf1599632679d98ca3b",
+      "scheduleConformance": "EXACT",
+      "terminalStatus": "SUCCESS",
+      "workloadId": "09012cdb7635d5e9fa5f0c805077456689fb1174382f68f45041eb91171a8bf7"
+    },
+    {
+      "attempt": 5,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": null,
+          "coverage": "PARTIAL",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 1,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 1
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessScore": 1.0,
+      "fitnessUnavailableReasons": [],
+      "label": "recovery-stale-positive",
+      "lostCopiedUpdateCount": 1,
+      "scenarioId": "0890a9eaad73b2047b7f38798388237e2c763202edcc2177fc16a4f2523c5f3b",
+      "scheduleConformance": "EXACT",
+      "terminalStatus": "PARTIAL_COMPENSATED",
+      "workloadId": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87"
+    }
+  ]
+}

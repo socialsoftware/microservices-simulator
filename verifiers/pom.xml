@@ -31,6 +31,10 @@
     </properties>
     <dependencies>
         <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.github.javaparser</groupId>
             <artifactId>javaparser-symbol-solver-core</artifactId>
             <version>3.28.0</version>
@@ -75,6 +79,23 @@
 
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-jar-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>copy-observer-agent</id>
+                        <goals><goal>jar</goal></goals>
+                        <configuration>
+                            <classifier>copy-agent</classifier>
+                            <includes><include>**/copiedupdate/agent/**</include></includes>
+                            <archive><manifestEntries>
+                                <Premain-Class>pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.copiedupdate.agent.CopiedUpdateAgent</Premain-Class>
+                            </manifestEntries></archive>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>

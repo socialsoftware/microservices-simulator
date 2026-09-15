@@ -264,6 +264,7 @@ public class SagaUnitOfWorkService extends UnitOfWorkService<SagaUnitOfWork> {
         unitOfWork.setVersion(commitVersion);
         recordAggregateAccess("WRITE", aggregate, unitOfWork, "SagaUnitOfWorkService.registerChanged");
         registerCommittedWriteObservation(managedAggregate, unitOfWork);
+        pt.ulisboa.tecnico.socialsoftware.ms.monitoring.copiedupdate.CopiedUpdateObservation.registered(aggregate);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

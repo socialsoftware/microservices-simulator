@@ -123,7 +123,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                         .toList()));
         return new ScenarioModelAdapterResult(sagaDefinitions, adaptedInputs.inputVariants(), eventDefinitions,
                 setupBindings, counts, new ArrayList<>(diagnostics), dispatchesBySaga,
-                aggregateKeyInputEvidence);
+                aggregateKeyInputEvidence, state.copyContractArtifact);
     }
 
     private List<SourceAggregateKeyInputEvidence> adaptAggregateKeyInputEvidence(

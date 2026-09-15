@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.adapter;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CopyContractArtifact;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SourceSetupPlanBinding;
@@ -20,7 +21,8 @@ public record ScenarioModelAdapterResult(
         Map<String, Integer> counts,
         List<String> diagnostics,
         Map<String, List<StepDispatchFootprint>> dispatchesBySaga,
-        List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence) {
+        List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+        CopyContractArtifact copyContractArtifact) {
 
     public ScenarioModelAdapterResult {
         sagaDefinitions = sagaDefinitions == null ? List.of() : List.copyOf(sagaDefinitions);
@@ -40,6 +42,7 @@ public record ScenarioModelAdapterResult(
         }
         aggregateKeyInputEvidence = aggregateKeyInputEvidence == null
                 ? List.of() : List.copyOf(aggregateKeyInputEvidence);
+        copyContractArtifact = copyContractArtifact == null ? CopyContractArtifact.empty() : copyContractArtifact;
     }
 
     public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
@@ -49,7 +52,7 @@ public record ScenarioModelAdapterResult(
                                       Map<String, Integer> counts,
                                       List<String> diagnostics) {
         this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, sourceSetupPlanBindings,
-                counts, diagnostics, Map.of(), List.of());
+                counts, diagnostics, Map.of(), List.of(), CopyContractArtifact.empty());
     }
 
     public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
@@ -57,14 +60,28 @@ public record ScenarioModelAdapterResult(
                                       List<EventConsequenceDefinition> eventConsequenceDefinitions,
                                       Map<String, Integer> counts,
                                       List<String> diagnostics) {
-        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, List.of(), counts, diagnostics, Map.of(), List.of());
+        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, List.of(), counts, diagnostics,
+                Map.of(), List.of(), CopyContractArtifact.empty());
     }
 
     public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
                                       List<InputVariant> inputVariants,
                                       Map<String, Integer> counts,
                                       List<String> diagnostics) {
-        this(sagaDefinitions, inputVariants, List.of(), List.of(), counts, diagnostics, Map.of(), List.of());
+        this(sagaDefinitions, inputVariants, List.of(), List.of(), counts, diagnostics,
+                Map.of(), List.of(), CopyContractArtifact.empty());
+    }
+
+    public ScenarioModelAdapterResult(List<SagaDefinition> sagaDefinitions,
+                                      List<InputVariant> inputVariants,
+                                      List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                      List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                      Map<String, Integer> counts,
+                                      List<String> diagnostics,
+                                      Map<String, List<StepDispatchFootprint>> dispatchesBySaga,
+                                      List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence) {
+        this(sagaDefinitions, inputVariants, eventConsequenceDefinitions, sourceSetupPlanBindings,
+                counts, diagnostics, dispatchesBySaga, aggregateKeyInputEvidence, CopyContractArtifact.empty());
     }
 
 }

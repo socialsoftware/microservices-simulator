@@ -94,6 +94,9 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas',
             'com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade',
             'com.example.dummyapp.diagnostics.ReadResponseFixture',
+            'com.example.dummyapp.inferredcopy.CardInput',
+            'com.example.dummyapp.inferredcopy.ComputedCard',
+            'com.example.dummyapp.inferredcopy.StoredCard',
         ] as Set)
 
         and:
@@ -218,6 +221,9 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas',
             'com.example.dummyapp.order.coordination.OrderFunctionalitiesFacade',
             'com.example.dummyapp.diagnostics.ReadResponseFixture',
+            'com.example.dummyapp.inferredcopy.CardInput',
+            'com.example.dummyapp.inferredcopy.ComputedCard',
+            'com.example.dummyapp.inferredcopy.StoredCard',
         ] as Set)
     }
 }

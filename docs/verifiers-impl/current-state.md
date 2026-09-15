@@ -163,6 +163,15 @@ It is an extent measure, not a business-harm or severity oracle. Coverage gaps a
 attempts remain distinct from an evaluated zero. Partial reports retain an observed
 affected-object lower bound while their complete score remains null.
 
+### Lost copied update
+
+A **lost copied update** is a committed overwrite that reuses a Saga's earlier copied
+input and removes an intervening foreign change to the same persisted cell. The supported
+rule follows direct scalar copies through inferred constructors, including keyed embedded
+objects, in ordinary writes and compensation. One overwriting aggregate version counts
+once, with its proved fields grouped in the finding. It does not cover arbitrary computed
+replacements or determine programmer intent.
+
 ### Exposure to a subsequently compensated creation
 
 **Exposure to a subsequently compensated creation** is proven delivery to one Saga of
@@ -964,6 +973,82 @@ fresh-process timing pairs establish neither a speed improvement nor scaling. Th
 no retention cap: identity/revision joins are indexed, but per-call history/action scans
 can cost `O(R * W_same_identity + R * A)`. See the results for every sample, audit correction,
 source/build hash and reproduction command.
+
+## Stale-write research evidence
+
+The [controlled stale-write experiment](evidence/stale-write-2026-09-15/README.md) reproduces
+an event-applied Topic name being overwritten by cached input in UpdateTournament's
+normal step and compensation. Ten fresh application runs (five cases, serialization off/on)
+produce four stale-write witnesses and six controls. The original Topic retains the new
+name; the Tournament copy returns to the old name in the two positive histories.
+
+Those original runs were application research evidence; they did not add a production
+classifier, qualify generated workloads or introduce a score component. Existing observations identify committed
+writers and versions, while cached DTO payloads are recorded by the harness. Generic input
+provenance and matching nested copied values were missing from that original experiment.
+That experiment left the four configurable fitness criteria unchanged.
+
+The subsequent [automatic-copy proof](evidence/inferred-stale-write-2026-09-15/README.md)
+extracts nine direct constructor-copy contracts from application source, without manual
+Quizzes field mappings. An experimental Java agent tracks returned objects, command-input
+reuse, local serialization, executed constructors and placement in registered aggregates;
+the assessor joins those observations to committed versions and foreign writes. Ten fresh
+Quizzes executions produce four copied-name overwrite positives and six controls, across
+both local serialization modes, with no recorded probe or assessed-path gaps. Ten dummyapp
+Spock cases cover unrelated names and provenance/transport boundaries; five evidence-removal
+checks prevent classification without the execution chain. Business observations and
+committed writes match the original runs apart from two wall-clock audit timestamp fields.
+
+The subsequent integration uses that same supported pattern in ordinary execution.
+`ConstructorCopyVisitor` passes inferred contracts through analysis state and the adapter
+into optional, manifest-attested `copy-contracts.json` (`copy-contracts.v1`). It retains
+full source hashes, field-copy proof, deterministic ordering and explicit limitations.
+New generation writes it; readers continue accepting older packages without it.
+
+`CopiedUpdateAgent` instruments only inferred one-argument constructors before class loading.
+It verifies their source provenance against the selected application source root. Native
+`LocalCommandGateway`, `LocalCommandService` and `SagaUnitOfWorkService.registerChanged`
+hooks record returned objects, actual outbound/inbound reuse and aggregate placement.
+`CopiedUpdateSession` owns one attempt's object identities and clears them at completion.
+The collector reuses the post-setup ImpactV2 baseline and transaction-confirmed snapshots.
+Missing instrumentation or mismatched contracts disables recording and remains unavailable.
+
+`LostCopiedUpdateAssessor` checks the exact response path, outgoing input, retained inbound
+transport-link occurrence, constructor, registration and matching committed version. The
+immediate predecessor must be a foreign write after the read that changed the same cell;
+the attributed later write must put back the old copied value. Complete aggregate identity
+and writer/attempt attribution are required. Aliases at concrete persisted paths are
+checked separately, then grouped into one finding per overwriting aggregate version.
+
+Enable ordinary Compose execution with `LOST_COPIED_UPDATE=true`. The launcher builds the
+agent and matching application, supplies the contracts and source root, and enables the
+collector. The output sibling is `<execution-stem>-lost-copied-updates.json`; it includes
+raw evidence, baseline, grouped findings, coverage gaps and execution identity. Search
+runtime descriptors can supply a hashed `lostCopiedUpdateAgent` and hashed source root.
+The fifth weight consumes this sidecar; missing/incomplete enabled evidence makes fitness
+unavailable. Observed findings can remain visible alongside gaps. Existing I and read A
+measurements retain their definitions.
+
+The integrated observer and assessor reproduce all ten controlled histories: four positive
+executions and six controls, with no coverage gaps. Committed business observations match
+the uninstrumented runs after the documented audit-field exclusions. The small cost check
+uses two paired fresh-process runs; it does not establish scalable or isolated overhead.
+See [integration evidence](evidence/lost-copied-update-2026-09-15/README.md).
+
+The ordinary generated qualification adds a source-derived two-operation test history.
+With the existing type-only fallback explicitly enabled, it produces a forward positive,
+fresh-input control and recovery positive with copied-update counts 1/0/1 and exact
+schedule conformance. The forward positive has complete I=0 and read A=0; the fifth
+criterion supplies new feedback. Strict selection remains unable to prove the Topic key
+inside UpdateTournament's input collection; runtime qualification supplies the exact
+identity evidence. The bounded 100-workload export is not an application-wide total.
+Retained-only five-weight rescoring yields 1/0/1 when only the new weight is enabled.
+
+Source inference remains limited to supported scalar getter/setter constructor copies and
+the simulator `aggregateId` convention. Untracked clones, modified inputs, missing origins
+and unsupported transport paths are explicit gaps where encountered. Computed replacements,
+arbitrary setter-based transformations and general concurrent-thread tracing are outside
+scope; complete coverage refers only to the declared observed-copy pattern.
 
 ## ImpactV2 assessment
 

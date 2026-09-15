@@ -1,0 +1,161 @@
+{
+  "kind": "LOST_COPIED_UPDATE_DISABLED_NON_INTERFERENCE",
+  "rawPath": "verifiers/target/lost-copied-update/generated-positive-noninterference-01/comparison.json",
+  "rawSha256": "461f2c757db59ac354cd2d5f5c0688ce679ad517421947583600293cc8d1b714",
+  "cases": [
+    {
+      "sourceAttempt": "002",
+      "equal": true,
+      "execution": {
+        "scheduleConformance": "EXACT",
+        "status": "COMPLETE",
+        "terminalStatus": "SUCCESS"
+      },
+      "impact": {
+        "I": 0,
+        "assessmentStatus": "COMPLETE",
+        "categories": [
+          {
+            "candidateCount": 6,
+            "category": "DELETED_DEPENDENCY",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          },
+          {
+            "candidateCount": 0,
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          },
+          {
+            "candidateCount": 1,
+            "category": "UNRESOLVED_DELIVERED_EVENT",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          }
+        ],
+        "gapReasons": [],
+        "observedAffectedObjectCount": 0
+      },
+      "read": {
+        "A": 0,
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "findingCount": 0,
+        "gapReasons": [],
+        "observedExposureCount": 0,
+        "status": "COMPLETE"
+      },
+      "applicationCommittedDataSha256": "238919cd5cbb23bb1b5d570129112d3a40be931c9de6b48f90a3cce8ee7b1157"
+    },
+    {
+      "sourceAttempt": "003",
+      "equal": true,
+      "execution": {
+        "scheduleConformance": "EXACT",
+        "status": "COMPLETE",
+        "terminalStatus": "SUCCESS"
+      },
+      "impact": {
+        "I": 0,
+        "assessmentStatus": "COMPLETE",
+        "categories": [
+          {
+            "candidateCount": 6,
+            "category": "DELETED_DEPENDENCY",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          },
+          {
+            "candidateCount": 0,
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          },
+          {
+            "candidateCount": 1,
+            "category": "UNRESOLVED_DELIVERED_EVENT",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          }
+        ],
+        "gapReasons": [],
+        "observedAffectedObjectCount": 0
+      },
+      "read": {
+        "A": 0,
+        "coverage": "PARTIAL",
+        "findingCount": 0,
+        "gapReasons": [
+          "PRODUCER_ACTION_UNPROVEN"
+        ],
+        "observedExposureCount": 0,
+        "status": "COMPLETE"
+      },
+      "applicationCommittedDataSha256": "f52eb1e776ac9c8eba2bf9be08374bce39d8a1c3ac830db0b5b688362dc71d68"
+    },
+    {
+      "sourceAttempt": "005",
+      "equal": true,
+      "execution": {
+        "scheduleConformance": "EXACT",
+        "status": "PARTIAL",
+        "terminalStatus": "PARTIAL_COMPENSATED"
+      },
+      "impact": {
+        "I": null,
+        "assessmentStatus": "PARTIAL",
+        "categories": [
+          {
+            "candidateCount": 6,
+            "category": "DELETED_DEPENDENCY",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          },
+          {
+            "candidateCount": 1,
+            "category": "FAILED_OPERATION_RESIDUAL",
+            "coverageStatus": "PARTIAL",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": [
+              "COMPETING_OR_UNKNOWN_WRITER"
+            ]
+          },
+          {
+            "candidateCount": 1,
+            "category": "UNRESOLVED_DELIVERED_EVENT",
+            "coverageStatus": "COMPLETE",
+            "findingCount": 0,
+            "positiveObjectCount": 0,
+            "unknownReasons": []
+          }
+        ],
+        "gapReasons": [],
+        "observedAffectedObjectCount": 0
+      },
+      "read": {
+        "A": 0,
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "findingCount": 0,
+        "gapReasons": [],
+        "observedExposureCount": 0,
+        "status": "COMPLETE"
+      },
+      "applicationCommittedDataSha256": "2fa722164e487367582c0a0c7c5bf6b8c78d5bdd9558ad29c8e75ddc5976e405"
+    }
+  ]
+}

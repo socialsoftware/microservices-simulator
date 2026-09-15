@@ -1,0 +1,348 @@
+{
+  "schema" : "copy-contracts.v1",
+  "support" : {
+    "status" : "bounded",
+    "description" : "Direct scalar getter-to-setter copies in one-argument entity constructors; source aggregateId supplies identity"
+  },
+  "limitations" : [ "Computed expressions are unsupported", "Setter-based updates outside the supported constructor are unsupported", "Arbitrary cloning and remote transport are unsupported", "An empty contracts array means no supported contracts were inferred, not complete application coverage" ],
+  "contracts" : [ {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionCourse",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "courseAggregateId",
+    "fields" : {
+      "aggregateId" : "courseAggregateId",
+      "name" : "courseName",
+      "version" : "courseVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "courseAggregateId",
+      "line" : 25,
+      "expression" : "setCourseAggregateId(causalCourseRemote.getAggregateId());"
+    }, {
+      "sourceField" : "name",
+      "targetField" : "courseName",
+      "line" : 26,
+      "expression" : "setCourseName(causalCourseRemote.getName());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "courseVersion",
+      "line" : 27,
+      "expression" : "setCourseVersion(causalCourseRemote.getVersion());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/course/aggregate/CourseDto.java",
+      "sha256" : "faa4e82b14de905d94d8aaa9c703d5ee0a0c2a2d2c9b5af7b045c4324bf6dee8"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/aggregate/QuestionCourse.java",
+      "sha256" : "8567fe6536795e02dba7e50d5ba5feb7f9eedfbabb9dd57e89473093e9b035bc"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicCourse",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "courseAggregateId",
+    "fields" : {
+      "aggregateId" : "courseAggregateId",
+      "version" : "courseVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "courseAggregateId",
+      "line" : 23,
+      "expression" : "setCourseAggregateId(courseDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "courseVersion",
+      "line" : 24,
+      "expression" : "setCourseVersion(courseDto.getVersion());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/course/aggregate/CourseDto.java",
+      "sha256" : "faa4e82b14de905d94d8aaa9c703d5ee0a0c2a2d2c9b5af7b045c4324bf6dee8"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/aggregate/TopicCourse.java",
+      "sha256" : "29454ff23d6293ca728db4663334cb09a25ca02b6f05475d23bed898be02d007"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizCourseExecution",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "courseExecutionAggregateId",
+    "fields" : {
+      "aggregateId" : "courseExecutionAggregateId",
+      "version" : "courseExecutionVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "courseExecutionAggregateId",
+      "line" : 25,
+      "expression" : "setCourseExecutionAggregateId(courseExecutionDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "courseExecutionVersion",
+      "line" : 26,
+      "expression" : "setCourseExecutionVersion(courseExecutionDto.getVersion());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/aggregate/CourseExecutionDto.java",
+      "sha256" : "1bb7a47d59cb432e21da71c293f7c1441f14b897ffabe21f44118169aef5cdc7"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/aggregate/QuizCourseExecution.java",
+      "sha256" : "27052b808e7402464b57620fbb57c976667248e2a1dbe61a70c11eba4c40f940"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentCourseExecution",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "courseExecutionAggregateId",
+    "fields" : {
+      "acronym" : "courseExecutionAcronym",
+      "aggregateId" : "courseExecutionAggregateId",
+      "courseAggregateId" : "courseExecutionCourseId",
+      "status" : "courseExecutionStatus",
+      "version" : "courseExecutionVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "courseExecutionAggregateId",
+      "line" : 27,
+      "expression" : "setCourseExecutionAggregateId(courseExecutionDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "courseExecutionVersion",
+      "line" : 28,
+      "expression" : "setCourseExecutionVersion(courseExecutionDto.getVersion());"
+    }, {
+      "sourceField" : "courseAggregateId",
+      "targetField" : "courseExecutionCourseId",
+      "line" : 29,
+      "expression" : "setCourseExecutionCourseId(courseExecutionDto.getCourseAggregateId());"
+    }, {
+      "sourceField" : "acronym",
+      "targetField" : "courseExecutionAcronym",
+      "line" : 30,
+      "expression" : "setCourseExecutionAcronym(courseExecutionDto.getAcronym());"
+    }, {
+      "sourceField" : "status",
+      "targetField" : "courseExecutionStatus",
+      "line" : 31,
+      "expression" : "setCourseExecutionStatus(courseExecutionDto.getStatus());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/aggregate/CourseExecutionDto.java",
+      "sha256" : "1bb7a47d59cb432e21da71c293f7c1441f14b897ffabe21f44118169aef5cdc7"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentCourseExecution.java",
+      "sha256" : "3a8d3249acab3df11e93f928f73e19e0f2e8e8af6a6979068d6da0f7865fc475"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizQuestion",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "questionAggregateId",
+    "fields" : {
+      "aggregateId" : "questionAggregateId",
+      "content" : "content",
+      "sequence" : "sequence",
+      "title" : "title",
+      "version" : "questionVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "questionAggregateId",
+      "line" : 29,
+      "expression" : "setQuestionAggregateId(questionDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "questionVersion",
+      "line" : 30,
+      "expression" : "setQuestionVersion(questionDto.getVersion());"
+    }, {
+      "sourceField" : "title",
+      "targetField" : "title",
+      "line" : 31,
+      "expression" : "setTitle(questionDto.getTitle());"
+    }, {
+      "sourceField" : "content",
+      "targetField" : "content",
+      "line" : 32,
+      "expression" : "setContent(questionDto.getContent());"
+    }, {
+      "sourceField" : "sequence",
+      "targetField" : "sequence",
+      "line" : 33,
+      "expression" : "setSequence(questionDto.getSequence());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/aggregate/QuestionDto.java",
+      "sha256" : "65aeb8f277c9c450544380963394332aaa9f00be6f72b4c84cac6a4dcf83c2f8"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/quiz/aggregate/QuizQuestion.java",
+      "sha256" : "2fdb8079204d211898a6f4ad3453ce1dafdc6a8fc72aca44d97aa3e31e902132"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionTopic",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "topicAggregateId",
+    "fields" : {
+      "aggregateId" : "topicAggregateId",
+      "courseId" : "courseAggregateId",
+      "name" : "topicName",
+      "version" : "topicVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "topicAggregateId",
+      "line" : 28,
+      "expression" : "setTopicAggregateId(topicDto.getAggregateId());"
+    }, {
+      "sourceField" : "name",
+      "targetField" : "topicName",
+      "line" : 29,
+      "expression" : "setTopicName(topicDto.getName());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "topicVersion",
+      "line" : 30,
+      "expression" : "setTopicVersion(topicDto.getVersion());"
+    }, {
+      "sourceField" : "courseId",
+      "targetField" : "courseAggregateId",
+      "line" : 31,
+      "expression" : "setCourseAggregateId(topicDto.getCourseId());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/aggregate/QuestionTopic.java",
+      "sha256" : "0a02a6c3a3c6457536282a23859651ab7a174b011b6d71efa1c98427c57db850"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/aggregate/TopicDto.java",
+      "sha256" : "b811d0724d78dd09567f961f4ac6c052bc972689e77dcde0f9275a8c004c2755"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentTopic",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "topicAggregateId",
+    "fields" : {
+      "aggregateId" : "topicAggregateId",
+      "courseId" : "topicCourseAggregateId",
+      "name" : "topicName",
+      "version" : "topicVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "topicAggregateId",
+      "line" : 27,
+      "expression" : "setTopicAggregateId(topicDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "topicVersion",
+      "line" : 28,
+      "expression" : "setTopicVersion(topicDto.getVersion());"
+    }, {
+      "sourceField" : "name",
+      "targetField" : "topicName",
+      "line" : 29,
+      "expression" : "setTopicName(topicDto.getName());"
+    }, {
+      "sourceField" : "courseId",
+      "targetField" : "topicCourseAggregateId",
+      "line" : 30,
+      "expression" : "setTopicCourseAggregateId(topicDto.getCourseId());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/aggregate/TopicDto.java",
+      "sha256" : "b811d0724d78dd09567f961f4ac6c052bc972689e77dcde0f9275a8c004c2755"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentTopic.java",
+      "sha256" : "fa12bac2a215ef906c49671805910994d125b5b9d5bc3f861b84ba5e10afebf1"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionStudent",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "userAggregateId",
+    "fields" : {
+      "active" : "active",
+      "aggregateId" : "userAggregateId",
+      "name" : "name",
+      "username" : "username",
+      "version" : "userVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "userAggregateId",
+      "line" : 32,
+      "expression" : "setUserAggregateId(userDto.getAggregateId());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "userVersion",
+      "line" : 33,
+      "expression" : "setUserVersion(userDto.getVersion());"
+    }, {
+      "sourceField" : "name",
+      "targetField" : "name",
+      "line" : 34,
+      "expression" : "setName(userDto.getName());"
+    }, {
+      "sourceField" : "username",
+      "targetField" : "username",
+      "line" : 35,
+      "expression" : "setUsername(userDto.getUsername());"
+    }, {
+      "sourceField" : "active",
+      "targetField" : "active",
+      "line" : 36,
+      "expression" : "setActive(userDto.isActive());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/execution/aggregate/CourseExecutionStudent.java",
+      "sha256" : "a5fd5858a0970f47442c15ced8d7fab1b55609c25fec208843f1600a4fb68111"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/aggregate/UserDto.java",
+      "sha256" : "412518244c844aca9738c3b3bbff0f688eb83ff3f61f28599b57ecf75ce710bd"
+    } ]
+  }, {
+    "sourceType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto",
+    "targetType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentParticipant",
+    "sourceKey" : "aggregateId",
+    "targetKey" : "participantAggregateId",
+    "fields" : {
+      "aggregateId" : "participantAggregateId",
+      "name" : "participantName",
+      "username" : "participantUsername",
+      "version" : "participantVersion"
+    },
+    "proof" : [ {
+      "sourceField" : "aggregateId",
+      "targetField" : "participantAggregateId",
+      "line" : 35,
+      "expression" : "setParticipantAggregateId(userDto.getAggregateId());"
+    }, {
+      "sourceField" : "name",
+      "targetField" : "participantName",
+      "line" : 36,
+      "expression" : "setParticipantName(userDto.getName());"
+    }, {
+      "sourceField" : "username",
+      "targetField" : "participantUsername",
+      "line" : 37,
+      "expression" : "setParticipantUsername(userDto.getUsername());"
+    }, {
+      "sourceField" : "version",
+      "targetField" : "participantVersion",
+      "line" : 38,
+      "expression" : "setParticipantVersion(userDto.getVersion());"
+    } ],
+    "sourceFiles" : [ {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/TournamentParticipant.java",
+      "sha256" : "7ed7af58b8120190526da38dd9a68158c676509574945944d3d3c7f8d53dd0d3"
+    }, {
+      "path" : "src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/aggregate/UserDto.java",
+      "sha256" : "412518244c844aca9738c3b3bbff0f688eb83ff3f61f28599b57ecf75ce710bd"
+    } ]
+  } ]
+}

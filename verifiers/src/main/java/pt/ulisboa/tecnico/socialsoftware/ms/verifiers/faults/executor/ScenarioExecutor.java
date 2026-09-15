@@ -105,7 +105,18 @@ public final class ScenarioExecutor {
             rejectExecutionOutputAlias(options.impactOutputPath(), sagaReadOutput);
             rejectExecutionOutputAlias(impactV2Output, sagaReadOutput);
         }
+        boolean observeCopiedUpdates = LostCopiedUpdateCollector.enabled(runtimeContext);
+        Path copiedOutput = observeCopiedUpdates ? lostCopiedUpdateOutputPath(options.outputPath()) : null;
+        if (observeCopiedUpdates) {
+            rejectPackageOutputAlias(options.packagePath(), copiedOutput, selectedPackage, "Lost copied update report");
+            rejectExecutionOutputAlias(options.outputPath(), copiedOutput);
+            rejectExecutionOutputAlias(options.impactOutputPath(), copiedOutput);
+            rejectExecutionOutputAlias(impactV2Output, copiedOutput);
+            if (sagaReadOutput != null) rejectExecutionOutputAlias(sagaReadOutput, copiedOutput);
+        }
         String attemptId = UUID.randomUUID().toString();
+        LostCopiedUpdateCollector copiedCollector = observeCopiedUpdates
+                ? new LostCopiedUpdateCollector(attemptId, options.packagePath()) : null;
         FaultScenario scenario = selectedPackage == null ? null : selectedPackage.faultScenario();
         WorkloadPlan workload = selectedPackage == null ? null : selectedPackage.workloadPlan();
         ImpactV1Collector impactCollector = options.impactOutputPath() == null
@@ -121,6 +132,7 @@ public final class ScenarioExecutor {
         ImpactV2EvidenceCollector impactV2Collector = new ImpactV2EvidenceCollector(attemptId,
                 workload == null ? null : workload.deterministicId(),
                 scenario == null ? options.faultScenarioId() : scenario.deterministicId(), sagaReadCollector);
+        impactV2Collector.copiedUpdates(copiedCollector);
         ScenarioExecutionReport report;
         if (scenario == null) {
             report = selectionFailureReport(options, attemptId, null, options.faultScenarioId(),
@@ -139,6 +151,7 @@ public final class ScenarioExecutor {
             try {
                 writeImpactReport(options, failedReport, findings(impactCollector));
                 writeImpactV2Evidence(impactV2Output, impactV2Collector.report(failedReport));
+                writeCopiedEvidence(copiedOutput, copiedCollector, failedReport);
                 writeSagaReadEvidence(sagaReadOutput, sagaReadCollector, failedReport, packageReference,
                         new SagaReadExposureReport.ArtifactReference("EXECUTION_REPORT", String.valueOf(options.outputPath()),
                                 null, "UNAVAILABLE", "EXECUTION_REPORT_WRITE_FAILED"));
@@ -149,6 +162,7 @@ public final class ScenarioExecutor {
         }
         writeImpactReport(options, report, findings(impactCollector));
         writeImpactV2Evidence(impactV2Output, impactV2Collector.report(report));
+        writeCopiedEvidence(copiedOutput, copiedCollector, report);
         writeSagaReadEvidence(sagaReadOutput, sagaReadCollector, report, packageReference,
                 observeSagaReads ? SagaReadExposureReport.ArtifactReference.file("EXECUTION_REPORT", options.outputPath()) : null);
         return report;
@@ -2204,4 +2218,20 @@ public final class ScenarioExecutor {
                     slot.sagaInstanceId(), slot.runtimeStepName(), slot.assignedBit(), state, reason);
         }
     }
+    public static Path lostCopiedUpdateOutputPath(Path executionOutput) {
+        String filename = executionOutput.getFileName().toString();
+        String stem = filename.endsWith(".json") ? filename.substring(0, filename.length() - 5) : filename;
+        return executionOutput.resolveSibling(stem + "-lost-copied-updates.json");
+    }
+
+    private void writeCopiedEvidence(Path path, LostCopiedUpdateCollector collector, ScenarioExecutionReport report) {
+        if (path == null || collector == null) return;
+        try {
+            collector.finish();
+            mapper.writerWithDefaultPrettyPrinter().writeValue(path.toFile(), collector.report(report));
+        } catch (Exception failure) {
+            logger.warn("Failed to write lost copied update evidence to {}; preserving execution outcome", path, failure);
+        }
+    }
+
 }

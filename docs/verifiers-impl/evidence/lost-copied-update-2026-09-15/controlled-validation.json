@@ -1,0 +1,88 @@
+{
+  "executions": 10,
+  "positiveExecutions": 4,
+  "controls": 6,
+  "rows": [
+    {
+      "case": "forward-stale",
+      "serialized": false,
+      "findings": 1,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65766
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": false,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65819
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": false,
+      "findings": 1,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65062
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": false,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 64246
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": false,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 52371
+    },
+    {
+      "case": "forward-stale",
+      "serialized": true,
+      "findings": 1,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65754
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": true,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65807
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": true,
+      "findings": 1,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 65045
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": true,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 64229
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": true,
+      "findings": 0,
+      "coverageGaps": 0,
+      "businessObservationsPreserved": true,
+      "traceBytes": 52354
+    }
+  ],
+  "comparisonScope": "Initial/final business observations and all committed identities, revisions, writers, lifecycle, dependencies and business data; excludes framework metadata and top-level creationDate/lastModifiedTime wall-clock audit fields."
+}

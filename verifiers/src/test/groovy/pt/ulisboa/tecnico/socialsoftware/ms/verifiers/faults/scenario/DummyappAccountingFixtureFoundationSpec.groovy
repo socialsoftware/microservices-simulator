@@ -625,17 +625,20 @@ class DummyappAccountingFixtureFoundationSpec extends VisitorTestSupport {
 
         then:
         manifest.formatVersion() == 1
-        manifest.files().keySet() == ['accounting', 'sagas', 'inputs', 'interactions'] as Set
-        manifest.files().values()*.path as Set == ['accounting.json', 'sagas.jsonl', 'inputs.jsonl', 'interactions.jsonl'] as Set
+        manifest.files().keySet() == ['accounting', 'sagas', 'inputs', 'interactions', 'copy-contracts'] as Set
+        manifest.files().values()*.path as Set == ['accounting.json', 'sagas.jsonl', 'inputs.jsonl',
+                                                   'interactions.jsonl', 'copy-contracts.json'] as Set
         manifest.files().values().every { it.sha256() ==~ /[0-9a-f]{64}/ }
         emittedManifest.fieldNames().toList() == expectedManifest.fieldNames().toList()
-        emittedManifest.path('files').fieldNames().toList() == expectedManifest.path('files').fieldNames().toList()
+        emittedManifest.path('files').fieldNames().toList().findAll { it != 'copy-contracts' } ==
+                expectedManifest.path('files').fieldNames().toList()
         expectedManifest.path('files').fields().every { entry ->
             emittedManifest.path('files').path(entry.key).fieldNames().toList() == entry.value.fieldNames().toList() &&
                     emittedManifest.path('files').path(entry.key).path('path').asText() == entry.value.path('path').asText()
         }
         Files.list(directory).collect { it.fileName.toString() }.sort() ==
-                ['accounting.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl', 'scenario-catalog-manifest.json']
+                ['accounting.json', 'copy-contracts.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl',
+                 'scenario-catalog-manifest.json']
         assert accounting.fieldNames().toList() == expected.fieldNames().toList()
         assert accounting.path('configuration').fieldNames().toList() == expected.path('configuration').fieldNames().toList()
         assert accounting.path('sagas').fieldNames().toList() == expected.path('sagas').fieldNames().toList()

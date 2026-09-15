@@ -1,0 +1,189 @@
+{
+  "status": "PASS",
+  "executions": 10,
+  "positiveExecutions": 4,
+  "controlExecutions": 6,
+  "inferredQuizzesContracts": 9,
+  "spockReportedTests": 13,
+  "spockCases": 10,
+  "requiredEvidenceRemovalChecks": [
+    "RESPONSE",
+    "COMMAND_INPUT",
+    "CONSTRUCTOR_COPY",
+    "REGISTERED_COPY",
+    "COMMITTED_WRITE"
+  ],
+  "applicationSourcesChanged": false,
+  "productionDetectorIntegrated": false,
+  "productionScoreChanged": false,
+  "nonInterferenceComparisonExcludes": [
+    "applicationData.creationDate",
+    "applicationData.lastModifiedTime"
+  ],
+  "validatorSha256": "e0ba7722b6203ff317409d5f2180781eda3c4ffb104e40e10e356cc9b632891a",
+  "assessorSha256": "619eea5e2925bf708fff2ba3ca138ff1ac68a2a96bf4032221f9c879c81cf876",
+  "rows": [
+    {
+      "case": "forward-stale",
+      "serialized": false,
+      "applicationOutcomeUnchanged": true,
+      "findings": [
+        {
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 11
+          },
+          "fieldPath": "$.tournamentTopics[topicAggregateId=4].topicName",
+          "oldValue": "TOPIC 1",
+          "overwrittenValue": "RENAMED TOPIC",
+          "phase": "FORWARD",
+          "readOrder": 5,
+          "inputOrder": 18,
+          "constructorOrder": 22,
+          "foreignWriteOrder": 16,
+          "overwriteOrder": 28,
+          "beforeVersion": 23,
+          "afterVersion": 24
+        }
+      ],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "bae07c423ba54e94d0ff9665182a722630c1fa37354511abb201f0754e2a30a4"
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": false,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "9a0dad275b91f0f18b832ce5c102acfbcb60295493448bf3e0488224521388bf"
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": false,
+      "applicationOutcomeUnchanged": true,
+      "findings": [
+        {
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 11
+          },
+          "fieldPath": "$.tournamentTopics[topicAggregateId=4].topicName",
+          "oldValue": "TOPIC 1",
+          "overwrittenValue": "RENAMED TOPIC",
+          "phase": "RECOVERY",
+          "readOrder": 1,
+          "inputOrder": 32,
+          "constructorOrder": 39,
+          "foreignWriteOrder": 28,
+          "overwriteOrder": 43,
+          "beforeVersion": 24,
+          "afterVersion": 25
+        }
+      ],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "5b3adaf40438f68d8aec4199c00c70e22a505fa5a0ab3fa638a0fd189939c284"
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": false,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "df051316ec0f9d162b1709dd4b16b37e70d4df3d6eb661c34d5a5e3763eef61b"
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": false,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "7f0c4460c75b5b5a883f00e9e6e243e68024eb977f2abe654043f2cce1a3aa94"
+    },
+    {
+      "case": "forward-stale",
+      "serialized": true,
+      "applicationOutcomeUnchanged": true,
+      "findings": [
+        {
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 11
+          },
+          "fieldPath": "$.tournamentTopics[topicAggregateId=4].topicName",
+          "oldValue": "TOPIC 1",
+          "overwrittenValue": "RENAMED TOPIC",
+          "phase": "FORWARD",
+          "readOrder": 3,
+          "inputOrder": 18,
+          "constructorOrder": 22,
+          "foreignWriteOrder": 16,
+          "overwriteOrder": 28,
+          "beforeVersion": 23,
+          "afterVersion": 24
+        }
+      ],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "d7869bc9603e1c3f238c47800e5c1b72d48182ae714816d6e7a7bae3af5b9cbd"
+    },
+    {
+      "case": "forward-fresh",
+      "serialized": true,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "08476937130a092b2515a5f0fee7fdbb6180b39342ebbc18e49df12f3e0eea12"
+    },
+    {
+      "case": "recovery-stale",
+      "serialized": true,
+      "applicationOutcomeUnchanged": true,
+      "findings": [
+        {
+          "aggregate": {
+            "aggregateType": "SagaTournament",
+            "aggregateId": 11
+          },
+          "fieldPath": "$.tournamentTopics[topicAggregateId=4].topicName",
+          "oldValue": "TOPIC 1",
+          "overwrittenValue": "RENAMED TOPIC",
+          "phase": "RECOVERY",
+          "readOrder": 1,
+          "inputOrder": 32,
+          "constructorOrder": 40,
+          "foreignWriteOrder": 28,
+          "overwriteOrder": 43,
+          "beforeVersion": 24,
+          "afterVersion": 25
+        }
+      ],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "a50e8c7911787c76ac562654c1bee8f7951a5edcb815da31e60ac4e4f9788011"
+    },
+    {
+      "case": "recovery-delayed-event",
+      "serialized": true,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "40b56aaac0d0e1ef0eb9b7d323ab4b59bc03514e814e5f5a18538802e608cac8"
+    },
+    {
+      "case": "recovery-no-event",
+      "serialized": true,
+      "applicationOutcomeUnchanged": true,
+      "findings": [],
+      "coverageGaps": [],
+      "scope": "Observed unchanged scalar copies through inferred constructors; not complete lost-update detection.",
+      "traceSha256": "35de6c8953197894e8a4a519236aadbea37d523c198d763d6f8edd8113753f86"
+    }
+  ]
+}

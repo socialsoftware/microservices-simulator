@@ -240,12 +240,14 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         Files.exists(interactionPath)
         Files.exists(manifestPath)
         Files.list(runDirectory).collect { it.fileName.toString() }.sort() ==
-                ['accounting.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl', 'scenario-catalog-manifest.json']
+                ['accounting.json', 'copy-contracts.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl',
+                 'scenario-catalog-manifest.json']
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
         manifest.path('formatVersion').isInt()
-        manifest.path('files').fieldNames().toList() as Set == ['accounting', 'sagas', 'inputs', 'interactions'] as Set
+        manifest.path('files').fieldNames().toList() as Set ==
+                ['accounting', 'sagas', 'inputs', 'interactions', 'copy-contracts'] as Set
         manifest.path('files').elements().every { it.fieldNames().toList() as Set == ['path', 'sha256'] as Set }
 
         and:
@@ -394,6 +396,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 'scenario-catalog-manifest.json',
                 'setups.jsonl',
                 'accounting.json',
+                'copy-contracts.json',
                 'workloads.jsonl'
         ] as Set
 

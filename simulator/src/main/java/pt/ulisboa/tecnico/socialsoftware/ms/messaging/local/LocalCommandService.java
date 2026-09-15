@@ -65,6 +65,7 @@ public class LocalCommandService {
     }
 
     public Object send(Command command) {
+        pt.ulisboa.tecnico.socialsoftware.ms.monitoring.copiedupdate.CopiedUpdateObservation.inbound(command);
         CommandHandler handler;
 
         try {

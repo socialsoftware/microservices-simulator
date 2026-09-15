@@ -71,6 +71,7 @@ public final class StaticAnalysisArtifactWriter {
     public static final String DEFAULT_SAGA_FACT_FILE = "sagas.jsonl";
     public static final String DEFAULT_INPUT_FACT_FILE = "inputs.jsonl";
     public static final String DEFAULT_INTERACTION_FACT_FILE = "interactions.jsonl";
+    public static final String DEFAULT_COPY_CONTRACT_FILE = "copy-contracts.json";
 
     private static final ObjectMapper MAPPER = new ObjectMapper();
 
@@ -174,7 +175,8 @@ public final class StaticAnalysisArtifactWriter {
                 safeModel.aggregateKeyInputEvidence(), accountingReport);
 
         return publishProjection(manifest, accounting, sagas, inputs, interactions,
-                account, sagaFacts, inputFacts, interactionFacts);
+                root.resolve(DEFAULT_COPY_CONTRACT_FILE), account, sagaFacts, inputFacts, interactionFacts,
+                safeModel.copyContractArtifact());
     }
 
     /* Package-private seam used by the exact fixture contract test. */
@@ -187,7 +189,7 @@ public final class StaticAnalysisArtifactWriter {
         return publishProjection(root.resolve("scenario-catalog-manifest.json"),
                 root.resolve(DEFAULT_ACCOUNTING_FILE), root.resolve(DEFAULT_SAGA_FACT_FILE),
                 root.resolve(DEFAULT_INPUT_FACT_FILE), root.resolve(DEFAULT_INTERACTION_FACT_FILE),
-                accounting, sagas, inputs, interactions);
+                null, accounting, sagas, inputs, interactions, null);
     }
 
     private static ScenarioCatalogManifest.Current publishProjection(Path manifest,
@@ -195,15 +197,18 @@ public final class StaticAnalysisArtifactWriter {
                                                                       Path sagaPath,
                                                                       Path inputPath,
                                                                       Path interactionPath,
+                                                                      Path copyContractPath,
                                                                       Object accounting,
                                                                       List<?> sagas,
                                                                       List<?> inputs,
-                                                                      List<?> interactions) throws IOException {
+                                                                      List<?> interactions,
+                                                                      Object copyContracts) throws IOException {
         createParents(manifest, accountingPath, sagaPath, inputPath, interactionPath);
         writeJsonLines(sagaPath, sagas);
         writeJsonLines(inputPath, inputs);
         writeJsonLines(interactionPath, interactions);
         writeCompactJson(accountingPath, accounting);
+        if (copyContractPath != null) writeCompactJson(copyContractPath, copyContracts);
 
         Path root = manifest.getParent();
         LinkedHashMap<String, ScenarioCatalogManifest.Current.ArtifactFile> files = new LinkedHashMap<>();
@@ -211,6 +216,7 @@ public final class StaticAnalysisArtifactWriter {
         files.put("sagas", file(sagaPath, root));
         files.put("inputs", file(inputPath, root));
         files.put("interactions", file(interactionPath, root));
+        if (copyContractPath != null) files.put("copy-contracts", file(copyContractPath, root));
         ScenarioCatalogManifest.Current result = new ScenarioCatalogManifest.Current(
                 ScenarioCatalogManifest.Current.FORMAT_VERSION, files);
         writeCompactJson(manifest, result);

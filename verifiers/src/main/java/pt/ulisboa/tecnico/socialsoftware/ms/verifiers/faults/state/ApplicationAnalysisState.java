@@ -2,6 +2,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.state;
 
 import com.github.javaparser.ast.type.Type;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.buildingblock.*;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CopyContractArtifact;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -25,6 +26,7 @@ public class ApplicationAnalysisState {
     public final List<GroovyConstructorInputTrace> groovyConstructorInputTraces = new ArrayList<>();
     public final List<GroovyFullTraceResult> groovyFullTraceResults = new ArrayList<>();
     public final List<GroovyFacadeSetupActionTrace> groovyFacadeSetupActionTraces = new ArrayList<>();
+    public CopyContractArtifact copyContractArtifact = CopyContractArtifact.empty();
     private final Map<String, Map<String, CommandRootKeyPath>> commandRootKeyPaths = new LinkedHashMap<>();
 
     /**
