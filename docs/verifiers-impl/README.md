@@ -4,13 +4,13 @@ This directory documents the current verifier and fault-analysis scenario pipeli
 
 ## Reading order
 
-For the advisor discussion, start with the [European Portuguese meeting note](reunioes/2026-09-08.md).
-It explains the domain and develops the first control/fault case in full; the remaining
-case sheets await review of that format. The handbook below remains the authority for
-the implementation contract and complete technical evidence.
+Start from the current implementation and remaining work below. The Portuguese meeting
+notes explain the domain and experiments discussed on [8 September](reunioes/2026-09-08.md)
+and [11 September](reunioes/2026-09-11.md); they are dated discussion material, not the
+current implementation status.
 
 1. [`current-state.md`](current-state.md) — canonical handbook: purpose, concepts, inputs, the current manifest-described package, metrics, operations, current evidence, commands, limits, and safe claims.
-2. [`roadmap.md`](roadmap.md) — detailed future outcomes and their completion boundaries.
+2. [`roadmap.md`](roadmap.md) — current priorities, remaining outcomes and conditional follow-ups.
 3. [`decisions/`](decisions/index.md) — only when you need the rationale behind a non-obvious active design choice.
 
 Do not start from old issue packages or Git history when answering a current-behavior question. They preserve chronology, not current truth.
@@ -19,7 +19,14 @@ Do not start from old issue packages or Git history when answering a current-beh
 
 | Question | Read |
 |---|---|
-| What will we discuss with the advisor, in Portuguese? | [Meeting note — 8 September](reunioes/2026-09-08.md) |
+| Can copied-value overwrites be observed without manual application field mappings? | [Integrated detector qualification](evidence/lost-copied-update-2026-09-15/README.md); [earlier inference proof](evidence/inferred-stale-write-2026-09-15/README.md) |
+| Where are the Portuguese explanations used in advisor discussions? | [11 September note](reunioes/2026-09-11.md); [domain and earlier cases — 8 September](reunioes/2026-09-08.md) |
+| What is the larger GA/random comparison, and is it finished? | [Recovery-qualified campaign](evidence/recovery-history-2026-09-15/README.md); live status in `verifiers/target/ga-500x3-2026-09-15/status.json` |
+| Which smaller benchmark has a complete positive reference map? | [29-case reference and discovery experiment](evidence/ga-discovery-2026-09-10/README.md) — its denominator does not apply to the larger campaign |
+| How do I search one workload with GA/random and replay a result? | [Fixed-workload search](../../verifiers/experiments/fixed-workload-ga/README.md) and [qualification](../../verifiers/experiments/fixed-workload-ga/RESULTS.md) |
+| How do I weight individual impact/anomaly criteria or revalue saved results? | [Configurable fitness](../../verifiers/experiments/fixed-workload-ga/README.md#configurable-fitness) |
+| How do candidate combined scores compare on actual results? | [Earlier offline matrix](evidence/impact-anomaly-matrix-2026-09-10/README.md) and [configurable-fitness qualification](evidence/weighted-fitness-2026-09-15/README.md); weights are user preferences, not inferred severity |
+| Which Saga anomalies and literature should inform the next impact work? | [Exploratory theory and simulator mapping](research/saga-anomalies.md) — research, not an approved implementation contract |
 | What changes when several listeners process the same event? | [Combined-event qualification](current-state.md#combined-event-qualification) and [Portuguese case](reunioes/2026-09-08.md#32-a-remocao-termina-mas-falta-avisar-os-objetos-dependentes) |
 | What does the current potential-impact score measure? | [ImpactV2 contract](current-state.md#impactv2-assessment) and [latest qualification](current-state.md#owned-cycle-coverage-and-control-requalification) |
 | How do Quizzes, the four runs, and the impact question fit together? | [`Current state — Quizzes impact example`](current-state.md#understanding-impact-through-quizzes) |

@@ -25,7 +25,9 @@ theme:
     - search.suggest
 nav:
   - Start: README.md
-  - Reunião de orientação: reunioes/2026-09-08.md
+  - Reunião — impacto e anomalias: reunioes/2026-09-11.md
+  - Reunião anterior — domínio: reunioes/2026-09-08.md
+  - Impact/anomaly comparison: evidence/impact-anomaly-matrix-2026-09-10/README.md
   - Meeting evidence: evidence/impact-2026-09-06/README.md
   - Combined-event evidence: evidence/combined-events-2026-09-06/README.md
   - Current State: current-state.md
