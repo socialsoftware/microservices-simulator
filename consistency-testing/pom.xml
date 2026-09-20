@@ -118,7 +118,7 @@
                             <goal>unpack-dependencies</goal>
                         </goals>
                         <configuration>
-                            <includeScopes>test</includeScopes>
+                            <includeScope>test</includeScope>
 
                             <!-- Extend this list with any imported Spring Boot app -->
                             <includeArtifactIds>QuizzesTutorConsistencyTesting</includeArtifactIds>
