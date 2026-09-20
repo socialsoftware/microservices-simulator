@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.aggregate;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Comparator;
@@ -21,6 +22,7 @@ public abstract class EventHandler {
               .collect(Collectors.toSet());
    }
 
+   @Transactional(readOnly = true)
    public Set<EventSubscription> getEventSubscriptions(Integer subscriberAggregateId, Class<? extends Event> eventClass) {
       return aggregateRepository.findAll().stream()
               .filter(aggregate -> Objects.equals(aggregate.getAggregateId(), subscriberAggregateId))
