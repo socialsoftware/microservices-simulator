@@ -13,7 +13,8 @@ class CampaignProgressTest {
     @Test
     void snapshotsKeepCompletedGroupsWhileLeavingTheRemainingPlanVisible() {
         CampaignProgress progress = new CampaignProgress(
-                "example.Application", 42L, List.of("--example=true"), 20, "target/reports", List.of(), 1_000L);
+                "example.Application", 42L, List.of("--example=true"), 20, "target/reports", List.of(),
+                List.of("catalog/first__second"), 1_000L);
 
         progress.registerCatalog("catalog", 3, 6, 2);
         OrchestrationReport beforeExploration = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null);
@@ -21,6 +22,7 @@ class CampaignProgressTest {
         assertEquals(2, beforeExploration.plannedGroups());
         assertEquals(0, beforeExploration.completedGroups());
         assertEquals(2, beforeExploration.catalogs().getFirst().unexploredGroups());
+        assertEquals(List.of("catalog/first__second"), beforeExploration.groupSelectors());
         assertNull(beforeExploration.finishedAtEpochMillis());
         assertNull(beforeExploration.lastCompletedGroup());
 

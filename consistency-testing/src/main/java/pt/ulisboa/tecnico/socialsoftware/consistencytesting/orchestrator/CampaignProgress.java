@@ -30,6 +30,7 @@ final class CampaignProgress {
     private final int iterationsPerGroup;
     private final String reportsDirectory;
     private final List<String> ignoredSemanticLockSelectors;
+    private final List<String> groupSelectors;
     private final long startedAtEpochMillis;
     private final List<CatalogProgress> catalogs = new ArrayList<>();
     private final List<OrchestrationReport.Finding> findings = new ArrayList<>();
@@ -45,6 +46,7 @@ final class CampaignProgress {
             int iterationsPerGroup,
             String reportsDirectory,
             List<String> ignoredSemanticLockSelectors,
+            List<String> groupSelectors,
             long startedAtEpochMillis) {
 
         this.application = application;
@@ -53,6 +55,7 @@ final class CampaignProgress {
         this.iterationsPerGroup = iterationsPerGroup;
         this.reportsDirectory = reportsDirectory;
         this.ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
+        this.groupSelectors = List.copyOf(groupSelectors);
         this.startedAtEpochMillis = startedAtEpochMillis;
         this.outcomeMetrics = new CampaignMetrics(startedAtEpochMillis);
     }
@@ -112,6 +115,7 @@ final class CampaignProgress {
                 reportsDirectory,
                 REPORT_SCHEMA_VERSION,
                 ignoredSemanticLockSelectors,
+                groupSelectors,
                 planHash,
                 status,
                 startedAtEpochMillis,

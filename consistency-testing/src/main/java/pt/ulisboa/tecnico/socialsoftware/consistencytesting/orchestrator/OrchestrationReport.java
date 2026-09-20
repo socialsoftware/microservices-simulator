@@ -25,6 +25,9 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  *                                     schema
  * @param ignoredSemanticLockSelectors semantic-lock selectors omitted during
  *                                     exploration; empty for a normal campaign
+ * @param groupSelectors               exact {@code catalog/group-label}
+ *                                     selections; empty when every planned group
+ *                                     is explored
  * @param planHash                     SHA-256 fingerprint of the plan explored;
  *                                     {@code null} until planning completes
  * @param status                       whether the campaign is still running,
@@ -54,6 +57,7 @@ public record OrchestrationReport(
         String reportsDirectory,
         int reportSchemaVersion,
         List<String> ignoredSemanticLockSelectors,
+        List<String> groupSelectors,
         @Nullable String planHash,
         CampaignStatus status,
         long startedAtEpochMillis,
@@ -68,6 +72,7 @@ public record OrchestrationReport(
     public OrchestrationReport {
         springAppArgs = List.copyOf(springAppArgs);
         ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
+        groupSelectors = groupSelectors == null ? List.of() : List.copyOf(groupSelectors);
     }
 
     public enum CampaignStatus {
@@ -130,7 +135,9 @@ public record OrchestrationReport(
 
     /**
      * @param possiblePairs    how many pairs brute force would have run
-     * @param groupsPlanned    how many pairs the planner actually scheduled
+     * @param groupsPlanned    how many planner-produced groups are in this
+     *                         campaign's effective plan, after optional selection
+     *                         is applied
      * @param unexploredGroups groups planned but not explored (only non-zero
      *                         if a campaign stops early)
      * @param findingCount     how many runs the planner found worth
@@ -242,12 +249,14 @@ public record OrchestrationReport(
                         StringUtils.formatDuration(durationMillis));
 
         String reports = "reports: " + reportsDirectory;
+        String groupsSelected = groupSelectors.isEmpty()
+                ? "groups: all planned groups"
+                : "groups: " + groupSelectors;
 
         String perCatalog = catalogs.stream()
-                .map(catalog -> "  catalog '%s': %d functionalities, %d/%d pairs planned, %d runs, %d finding(s)"
+                .map(catalog -> "  catalog '%s': %d functionalities, %s, %d runs, %d finding(s)"
                         .formatted(catalog.name(), catalog.functionalitiesProfiled(),
-                                catalog.groupsPlanned(), catalog.possiblePairs(),
-                                catalog.runsExecuted(), catalog.findingCount()))
+                                describePlanSize(catalog), catalog.runsExecuted(), catalog.findingCount()))
                 .collect(Collectors.joining(System.lineSeparator()));
 
         String total = "total: %d/%d group(s), %d finding(s) in %d run(s)".formatted(
@@ -265,11 +274,20 @@ public record OrchestrationReport(
                 outcomeMetrics.stepExceptionsObserved(), outcomeMetrics.runsWithStepExceptions());
         String statuses = "number of runs carrying each status: " + outcomeMetrics.statusRunCounts();
 
-        return String.join(System.lineSeparator(), header, reports, perCatalog, total, outcomes, statuses);
+        return String.join(
+                System.lineSeparator(), header, reports, groupsSelected, perCatalog, total, outcomes, statuses);
     }
 
     private static String formatOptionalDuration(Long durationMillis) {
         return durationMillis == null ? "not observed" : StringUtils.formatDuration(durationMillis);
+    }
+
+    private String describePlanSize(CatalogSummary catalog) {
+        if (groupSelectors.isEmpty()) {
+            return "%d/%d pairs planned".formatted(catalog.groupsPlanned(), catalog.possiblePairs());
+        }
+        return "%d group(s) custom selected from %d possible pairs"
+                .formatted(catalog.groupsPlanned(), catalog.possiblePairs());
     }
 
     private static String describe(Finding finding) {

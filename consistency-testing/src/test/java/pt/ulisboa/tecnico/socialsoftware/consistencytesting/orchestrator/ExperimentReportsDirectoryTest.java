@@ -25,7 +25,7 @@ class ExperimentReportsDirectoryTest {
     }
 
     @Test
-    void usesAutomaticExperimentDirectoryOnlyForFaultsAtTheNormalDefaultPath() {
+    void semanticLockFaultUsesAutomaticExperimentDirectoryAtDefaultPath() {
         Instant startedAt = Instant.parse("2026-08-30T21:45:22Z");
         UUID runId = UUID.fromString("7f3a91c2-0000-0000-0000-000000000000");
         Set<SemanticLockId> ignoredLocks = Set.of(new SemanticLockId("example.State", "LOCKED"));
@@ -33,11 +33,24 @@ class ExperimentReportsDirectoryTest {
         assertEquals(
                 Path.of("target", "consistency-experiments", "2026-08-30_21-45-22-7f3a91c2"),
                 Orchestrator.resolveReportsDirectory(
-                        Path.of("target", "consistency-reports"), ignoredLocks, null, startedAt, runId));
+                        Path.of("target", "consistency-reports"), ignoredLocks, Set.of(), null, startedAt, runId));
         assertEquals(
                 Path.of("target", "chosen-directory"),
                 Orchestrator.resolveReportsDirectory(
-                        Path.of("target", "consistency-reports"), ignoredLocks,
+                        Path.of("target", "consistency-reports"), ignoredLocks, Set.of(),
                         "target/chosen-directory", startedAt, runId));
+    }
+
+    @Test
+    void selectedGroupsUseAutomaticExperimentDirectoryAtDefaultPath() {
+        assertEquals(
+                Path.of("target", "consistency-experiments", "2026-08-30_21-45-22-7f3a91c2"),
+                Orchestrator.resolveReportsDirectory(
+                        Path.of("target", "consistency-reports"),
+                        Set.of(),
+                        Set.of(GroupSelector.parse("catalog/first__second")),
+                        null,
+                        Instant.parse("2026-08-30T21:45:22Z"),
+                        UUID.fromString("7f3a91c2-0000-0000-0000-000000000000")));
     }
 }

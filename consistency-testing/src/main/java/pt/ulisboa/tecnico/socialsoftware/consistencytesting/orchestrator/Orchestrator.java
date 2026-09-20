@@ -15,6 +15,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,6 +72,7 @@ public final class Orchestrator {
     private static final long DEFAULT_MASTER_SEED = 42L;
     private static final Path DEFAULT_REPORTS_DIRECTORY = Path.of("target", "consistency-reports");
     private static final String IGNORED_SEMANTIC_LOCKS_PROPERTY = "consistency.ignoredSemanticLocks";
+    private static final String GROUP_SELECTORS_PROPERTY = "consistency.groupSelectors";
     private static final String REPORTS_DIRECTORY_PROPERTY = "consistency.reportsDirectory";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
@@ -92,6 +94,7 @@ public final class Orchestrator {
     private long masterSeed = DEFAULT_MASTER_SEED;
     private Path reportsDirectory = DEFAULT_REPORTS_DIRECTORY;
     private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
+    private Set<GroupSelector> groupSelectors = Set.of();
 
     private Orchestrator(Class<?> springAppClass) {
         this.springAppClass = springAppClass;
@@ -103,6 +106,11 @@ public final class Orchestrator {
         if (configuredIgnoredLocks != null && !configuredIgnoredLocks.isBlank()) {
             orchestrator.withIgnoredSemanticLockSelectors(
                     Arrays.stream(configuredIgnoredLocks.split(",", -1)).map(String::trim).toList());
+        }
+        String configuredGroups = System.getProperty(GROUP_SELECTORS_PROPERTY);
+        if (configuredGroups != null && !configuredGroups.isBlank()) {
+            orchestrator.withGroupSelectors(
+                    Arrays.stream(configuredGroups.split(",", -1)).map(String::trim).toList());
         }
         return orchestrator;
     }
@@ -167,6 +175,25 @@ public final class Orchestrator {
         return this;
     }
 
+    /**
+     * Restricts exploration to the specified planned groups. Each selector has form
+     * {@code catalog/group-label}, using the catalog name and group label shown in
+     * campaign reports. Empty means explore every planned group.
+     * <p>
+     * Selected catalogs are identified before profiling, avoiding unrelated solo
+     * runs. Group selection happens only after normal, fault-free profiling and
+     * planning. Every selector must match exactly one planned group; typos fail the
+     * campaign instead of silently exploring nothing.
+     */
+    public Orchestrator withGroupSelectors(Collection<String> selectors) {
+        Set<GroupSelector> parsedSelectors = new HashSet<>();
+        for (String selector : selectors) {
+            parsedSelectors.add(GroupSelector.parse(selector));
+        }
+        this.groupSelectors = Set.copyOf(parsedSelectors);
+        return this;
+    }
+
     /*
      * TODO budget strategy: every planned group currently gets exactly
      * `iterationsPerGroup` runs, so a large catalog's campaign grows without bound
@@ -195,7 +222,8 @@ public final class Orchestrator {
 
         CampaignProgress progress = new CampaignProgress(
                 springAppClass.getName(), masterSeed, effectiveSpringAppArgs, iterationsPerGroup,
-                StringUtils.toPortableString(effectiveReportsDirectory), ignoredSemanticLockSelectors(), startedAt);
+                StringUtils.toPortableString(effectiveReportsDirectory), ignoredSemanticLockSelectors(),
+                configuredGroupSelectors(), startedAt);
 
         CampaignSummaryWriter summaryWriter = new CampaignSummaryWriter(effectiveReportsDirectory);
 
@@ -207,11 +235,15 @@ public final class Orchestrator {
             checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
             driver.init();
 
-            List<FunctionalityCatalog> catalogs = getCatalogs(driver);
-            log.info("Campaign over {}: {} catalog(s), {} iteration(s) per group, master seed {}",
-                    springAppClass.getSimpleName(), catalogs.size(), iterationsPerGroup, masterSeed);
+            List<FunctionalityCatalog> catalogs = selectCatalogs(getCatalogs(driver), groupSelectors);
+            String groupSelection = groupSelectors.isEmpty()
+                    ? "all planned groups"
+                    : "custom selected groups " + configuredGroupSelectors();
+            log.info("Campaign over {}: {} selected catalog(s), {}, {} iteration(s) per group, master seed {}",
+                    springAppClass.getSimpleName(), catalogs.size(), groupSelection, iterationsPerGroup, masterSeed);
 
-            List<PlannedCatalog> plans = catalogs.stream().map(catalog -> planCatalog(driver, catalog)).toList();
+            List<PlannedCatalog> plans = selectPlannedGroups(
+                    catalogs.stream().map(catalog -> planCatalog(driver, catalog)).toList(), groupSelectors);
             progress.setPlanHash(planHashOf(plans));
             checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
@@ -338,6 +370,7 @@ public final class Orchestrator {
         return resolveReportsDirectory(
                 reportsDirectory,
                 ignoredSemanticLocks,
+                groupSelectors,
                 System.getProperty(REPORTS_DIRECTORY_PROPERTY),
                 Instant.ofEpochMilli(startedAtEpochMillis),
                 UUID.randomUUID());
@@ -352,6 +385,7 @@ public final class Orchestrator {
     static Path resolveReportsDirectory(
             Path requestedDirectory,
             Set<SemanticLockId> ignoredLocks,
+            Set<GroupSelector> selectedGroups,
             String reportsDirectoryProperty,
             Instant startedAt,
             UUID runId) {
@@ -359,24 +393,115 @@ public final class Orchestrator {
         if (reportsDirectoryProperty != null && !reportsDirectoryProperty.isBlank()) {
             return Path.of(reportsDirectoryProperty);
         }
-        if (!isExperiment(ignoredLocks) || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
+        if (!isExperiment(ignoredLocks, selectedGroups) || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
             return requestedDirectory;
         }
         return ExperimentReportsDirectory.pathForExperiment(startedAt, runId);
     }
 
-    private static boolean isExperiment(Set<SemanticLockId> ignoredLocks) {
-        return !ignoredLocks.isEmpty();
+    private static boolean isExperiment(Set<SemanticLockId> ignoredLocks, Set<GroupSelector> selectedGroups) {
+        return !ignoredLocks.isEmpty() || !selectedGroups.isEmpty();
     }
 
     private List<String> ignoredSemanticLockSelectors() {
         return ignoredSemanticLocks.stream().map(SemanticLockId::toSelector).sorted().toList();
     }
 
+    List<String> configuredGroupSelectors() {
+        return groupSelectors.stream().map(GroupSelector::toSelector).sorted().toList();
+    }
+
+    static List<FunctionalityCatalog> selectCatalogs(
+            List<FunctionalityCatalog> catalogs, Set<GroupSelector> selectors) {
+
+        if (selectors.isEmpty()) {
+            return List.copyOf(catalogs);
+        }
+
+        Set<String> requestedCatalogs = selectors.stream()
+                .map(GroupSelector::catalog)
+                .collect(Collectors.toSet());
+        Set<String> availableCatalogs = catalogs.stream()
+                .map(FunctionalityCatalog::name)
+                .collect(Collectors.toSet());
+        List<String> unknownCatalogs = requestedCatalogs.stream()
+                .filter(catalog -> !availableCatalogs.contains(catalog))
+                .sorted()
+                .toList();
+        if (!unknownCatalogs.isEmpty()) {
+            throw new IllegalArgumentException("Unknown catalog(s) in group selectors: " + unknownCatalogs);
+        }
+
+        return catalogs.stream().filter(catalog -> requestedCatalogs.contains(catalog.name())).toList();
+    }
+
+    static List<PlannedCatalog> selectPlannedGroups(List<PlannedCatalog> plans, Set<GroupSelector> selectors) {
+        if (selectors.isEmpty()) {
+            return List.copyOf(plans);
+        }
+
+        Map<GroupSelector, Integer> matchCounts = initialMatchCounts(selectors);
+
+        List<PlannedCatalog> selectedPlans = new ArrayList<>();
+        for (PlannedCatalog plan : plans) {
+            List<FunctionalityGroup> selectedGroups = selectedGroupsIn(plan, selectors, matchCounts);
+            if (!selectedGroups.isEmpty()) {
+                selectedPlans.add(new PlannedCatalog(
+                        plan.catalog(), plan.functionalitiesProfiled(), plan.possiblePairs(), selectedGroups));
+            }
+        }
+
+        validateGroupSelectorMatches(matchCounts);
+        return List.copyOf(selectedPlans);
+    }
+
+    /** Sort selectors before insertion so validation messages are deterministic. */
+    private static Map<GroupSelector, Integer> initialMatchCounts(Set<GroupSelector> selectors) {
+        Map<GroupSelector, Integer> matchCounts = new LinkedHashMap<>();
+        selectors.stream()
+                .sorted(Comparator.comparing(GroupSelector::toSelector))
+                .forEach(selector -> matchCounts.put(selector, 0));
+        return matchCounts;
+    }
+
+    private static List<FunctionalityGroup> selectedGroupsIn(
+            PlannedCatalog plan, Set<GroupSelector> selectors, Map<GroupSelector, Integer> matchCounts) {
+
+        List<FunctionalityGroup> selectedGroups = plan.groups().stream()
+                .filter(group -> selectors.contains(new GroupSelector(plan.catalog().name(), group.label())))
+                .toList();
+
+        for (FunctionalityGroup group : selectedGroups) {
+            GroupSelector matched = new GroupSelector(plan.catalog().name(), group.label());
+            matchCounts.computeIfPresent(matched, (selector, count) -> count + 1);
+        }
+        return selectedGroups;
+    }
+
+    private static void validateGroupSelectorMatches(Map<GroupSelector, Integer> matchCounts) {
+        List<String> unmatched = matchCounts.entrySet().stream()
+                .filter(entry -> entry.getValue() == 0)
+                .map(entry -> entry.getKey().toSelector())
+                .toList();
+        if (!unmatched.isEmpty()) {
+            throw new IllegalArgumentException("No planned group matched selector(s): " + unmatched);
+        }
+
+        // Defensive guard: planned groups are currently unique, but this protects
+        // the exact-selector contract if planning later produces duplicates.
+        List<String> ambiguous = matchCounts.entrySet().stream()
+                .filter(entry -> entry.getValue() > 1)
+                .map(entry -> entry.getKey().toSelector())
+                .toList();
+        if (!ambiguous.isEmpty()) {
+            throw new IllegalStateException("Group selector(s) matched multiple planned groups: " + ambiguous);
+        }
+    }
+
     private static String planHashOf(List<PlannedCatalog> plans) {
         String canonicalPlan = plans.stream()
                 .map(PlannedCatalog::canonicalForm)
-                .collect(java.util.stream.Collectors.joining("\n"));
+                .collect(Collectors.joining("\n"));
         try {
             return java.util.HexFormat.of().formatHex(
                     MessageDigest.getInstance("SHA-256").digest(canonicalPlan.getBytes(StandardCharsets.UTF_8)));
@@ -455,13 +580,13 @@ public final class Orchestrator {
         return catalogs;
     }
 
-    private record PlannedCatalog(
+    record PlannedCatalog(
             FunctionalityCatalog catalog,
             int functionalitiesProfiled,
             int possiblePairs,
             List<FunctionalityGroup> groups) {
 
-        private PlannedCatalog {
+        PlannedCatalog {
             groups = List.copyOf(groups);
         }
 
