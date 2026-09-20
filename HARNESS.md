@@ -117,8 +117,16 @@ A run starts from two files under `applications/{app-name}/`:
 
 | File | Owns |
 |------|------|
-| `{app-name}-domain-model.md` | Entities, relationships, rules (§3.1 single-entity, §3.2 cross-entity), functionalities (§4) |
-| `{app-name}-aggregate-grouping.md` | Aggregate partitioning (§1), snapshots (§2), the event DAG (§3), events (§4) |
+| `{app-name}-domain-model.md` — **the plain domain** | Entities (§1), relationships including composition (§2), rules stated as standing invariants (§3.1 single-entity, §3.2 cross-entity), functionalities with Primary Entity / Other Entities (§4) |
+| `{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4), rule realisation and cross-file notes (§5) |
+
+**One plain domain, N aggregate groupings.** The domain model describes the domain and nothing else.
+Every consequence of *one* decomposition — which entities co-locate, what is cached, what propagates
+by event, whether a standing invariant is realised transactionally or as a precondition nothing
+restores — lives in the grouping file. Several grouping files may exist over one domain model, and
+writing a second one must require **zero** edits to it. `/classify-and-plan` derives the aggregate
+mapping by joining domain §4 against grouping §1, so co-located entities collapse automatically and
+the same domain model yields different plans under different groupings.
 
 Every later phase treats the pair as given. `/classify-and-plan` will not question an aggregate
 boundary, and no Phase 2 session will add a functionality §4 omitted. The spec pair is the

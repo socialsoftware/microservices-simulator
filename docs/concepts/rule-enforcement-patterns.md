@@ -29,11 +29,23 @@ Human domain experts define the rules in the domain model template (`{App}-domai
 
 ### Step 1 — Classify §3.1 rules (single-entity)
 
-Every rule in §3.1 of the domain model involves only fields of a single aggregate.
+Every rule in §3.1 of the domain model involves only fields of a single **entity**. The domain model
+is a plain domain and knows nothing about aggregates; the shortcut below holds anyway, because §1 of
+the aggregate grouping places every entity in exactly one aggregate, so a single-entity rule is
+always a single-aggregate rule.
 
 → **Always P1 — implement as an intra-invariant inside `verifyInvariants()`.**
 
 ### Step 2 — Classify §3.2 rules (cross-entity)
+
+> **Which pattern a §3.2 rule gets is a function of the grouping, not of the domain model.** The
+> domain model states each rule once, as a standing invariant, and says nothing about how it is
+> enforced. The same rule is P1 under a grouping that co-locates its entities, P2 under one that
+> splits them and propagates, and P3 or P4 under one that splits them and checks at operation time.
+> Read the grouping's §1, §2 and §3.a — and its §5 Rule realisation table, which records the policy
+> per rule — before applying the flowchart. A second grouping over the same domain model is expected
+> to produce a different classification for the same rule name, and that is the mechanism working,
+> not a contradiction.
 
 For each rule in §3.2, follow the flowchart below in order:
 

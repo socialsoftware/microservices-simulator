@@ -12,8 +12,11 @@ next session — agents are told exactly what to read and what to produce, not o
 
 | File | Content |
 |------|---------|
-| `{App}-domain-model.md` | Entities, attributes, relationships, rules (§3.1/§3.2), functionalities (§4) |
-| `{App}-aggregate-grouping.md` | Aggregate partitioning (§1), snapshots (§2), event DAG (§3), events (§4) |
+| `{App}-domain-model.md` — the plain domain | Entities (§1), relationships incl. composition (§2), rules as standing invariants (§3.1/§3.2), functionalities with Primary Entity / Other Entities (§4) |
+| `{App}-aggregate-grouping.md` | Aggregate partitioning + snapshot value objects (§1), snapshots (§2), technical fields (§2.b), event DAG + consistency policy (§3), events (§4), rule realisation + cross-file notes (§5) |
+
+One plain domain, N aggregate groupings: the domain model names no aggregate, and a second grouping
+over it must require no edit to it. See `HARNESS.md` § 5.
 
 ---
 
@@ -130,7 +133,8 @@ question an aggregate boundary, and no Phase 2 session adds a functionality the 
 Write it with [`docs/templates/domain-model-template.md`](templates/domain-model-template.md) and
 [`docs/templates/aggregate-grouping-template.md`](templates/aggregate-grouping-template.md), which
 define the section numbers and table shapes the harness parses; `/author-spec <pointer to the
-application being modelled>`, which interviews you through the design tree and writes the pair; and
+application being modelled>`, which interviews you through the design tree in two parts — the plain
+domain first, the grouping only after you sign it off — and writes one file at the end of each; and
 `applications/trainticket/`, a finished pair kept as a worked example. `HARNESS.md` § 5 and the
 templates own the detail.
 
@@ -175,13 +179,16 @@ plan.md does not exist yet. Phase 1 creates it.
 `harness-log.md` belongs to Phase 0: this phase **halts** if it is absent rather than creating one,
 because creating it here would create it without a declared mode. The agent must:
 
-1. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
-2. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
+1. Join §4 of domain-model (Primary Entity / Other Entities) against §1 of aggregate-grouping
+   (Entities contained) → the Derived Aggregate Mapping table. Entities the grouping co-locates
+   collapse to one aggregate; an operation left with no other aggregate needs no saga coordination.
+2. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
+3. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
    Implementation Order table. Aggregates with no upstream deps come first.
-3. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
-   (split from §4 of domain-model), events published/subscribed (from aggregate-grouping §4),
+4. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
+   (split from §4 of domain-model by the derived mapping), events published/subscribed (from aggregate-grouping §4),
    cross-aggregate prerequisites (P4a rules and P3 DTO-check rules) with their step names, and the full file list per session.
-4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
+5. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 
 ### Does not modify
 Any source file, and not the `harness-log.md` header. Output is plan.md, plus any harness-log rows

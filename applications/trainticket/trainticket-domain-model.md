@@ -1,12 +1,23 @@
-# TrainTicket — Domain Model
+# TrainTicket — Domain Model (the plain domain)
 
 > Follows the structure defined in [`docs/templates/domain-model-template.md`](../../docs/templates/domain-model-template.md).
+
+<!-- plain-domain: allow — provenance note; it must name what moved out of this file -->
+> **Provenance note — 2026-09-19.** This file and
+> [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) were re-partitioned after
+> the run that produced this application, so that the pair is one *plain domain* plus one *aggregate
+> grouping* over it. Every decomposition decision — aggregate membership, snapshots, technical
+> fields, the event DAG, the consistency policy and how each cross-entity rule is realised — moved
+> out of this file and into the grouping. **Nothing the pair specifies changed**: the union of the
+> two files is semantically identical to the union of their pre-rewrite versions, which git holds.
+> The application was not regenerated.
+<!-- plain-domain: end -->
 
 **How to use this file:**
 1. Read the preamble to understand what this application is a subset of, and which rules are the benchmark's and which are this file's.
 2. Read §1–§2 to understand the entities, their attributes, and how they relate.
-3. Read §3 to understand every consistency rule and its predicate.
-4. See [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) for the concrete aggregate partitioning decision and its consistency-policy consequences.
+3. Read §3 to understand every consistency rule and its predicate, stated as a standing invariant over the domain.
+4. See [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) for the concrete partitioning decision, its consistency policy, and how each rule below is realised under it.
 
 ---
 
@@ -16,25 +27,19 @@
 
 This application models the **canonical book-a-ticket flow** of the [TrainTicket](https://github.com/FudanSELab/train-ticket)
 microservices benchmark, plus the order lifecycle that follows it. It is a deliberate subset: the
-benchmark has 40+ services, this application has 8 aggregates.
+benchmark has 40+ services, this application models nine entities drawn from eight of them.
 
-The 8 aggregates map **1:1 onto TrainTicket's data-owning services** in that flow:
+Eight TrainTicket services own the data this subset keeps — `ts-station-service`,
+`ts-route-service`, `ts-train-service`, `ts-price-service`, `ts-travel-service`,
+`ts-contacts-service`, `ts-user-service` and `ts-order-service`. How those eight map onto this
+application's decomposition is a grouping decision and is stated in
+[`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md).
 
-| Aggregate | TrainTicket service |
-|---|---|
-| Station | `ts-station-service` |
-| Route | `ts-route-service` |
-| TrainType | `ts-train-service` |
-| PriceConfig | `ts-price-service` |
-| Trip | `ts-travel-service` |
-| Contacts | `ts-contacts-service` |
-| User | `ts-user-service` |
-| Order | `ts-order-service` |
-
-Five TrainTicket services in this flow own **no data at all** and therefore become saga steps rather
-than aggregates: `ts-preserve-service` (booking orchestration), `ts-basic-service` (assembles
+Five TrainTicket services in this flow own **no data at all** and therefore contribute no entity:
+`ts-preserve-service` (booking orchestration), `ts-basic-service` (assembles
 Route + TrainType + PriceConfig to compute a fare), `ts-seat-service` (derives availability by
-querying orders), `ts-cancel-service` and `ts-execute-service` (order status transitions).
+querying orders), `ts-cancel-service` and `ts-execute-service` (order status transitions). What
+their behaviour becomes here is stated in the grouping file.
 
 Deliberately **out of scope**: assurance, food, consign, delivery, voucher, rebook, payment/balance,
 notification, auth, and the `ts-order-other-service` / `ts-travel2-service` duplicates.
@@ -49,8 +54,9 @@ notification, auth, and the `ts-order-other-service` / `ts-travel2-service` dupl
 
 No rule in §3 comes from railway domain knowledge that TrainTicket does not itself contain.
 
-Provenance is recorded here rather than as a column in §3.1 or a marker on the §3.2 headings, because
-both of those are positions `/classify-and-plan` parses.
+Provenance is recorded here rather than as a column in §3.1 or a marker on the §3.2 headings,
+because both of those positions are part of the parsed shape this file's sections are required to
+keep.
 
 Every assignment below names the site that justifies it. The tiers were re-derived rule by rule
 against the pinned commit at the §9 review, which moved seven of them, and again at the §10 review,
@@ -60,6 +66,21 @@ which moved one more and re-declared two — see §9 and §10 of the rationale.
 `PAID → COLLECTED` and `COLLECTED → USED`; `CancelServiceImpl` guards `{NOTPAID, PAID} → CANCELLED`),
 `ORDER_REFUND_AMOUNT` (`CancelServiceImpl.calculateRefund`, `CancelServiceImpl.java:200`). Every
 other §3.1 rule is implied.
+
+**Enforced tier, §3.2:** `STATIONS_EXIST` (`AdminRouteServiceImpl.checkStationsExists`, called from
+`createAndModifyRoute`), `UNIQUE_STATION_NAME` (`StationServiceImpl.create` rejects a duplicate name;
+`Station.name` is also `@Column(unique = true)`), `ROUTE_AND_TRAIN_TYPE_EXIST` (**Trip block only** —
+`AdminTravelServiceImpl.checkTravelInfo`, called from `addTravel` and `updateTravel`),
+`UNIQUE_TRIP_NUMBER` (`TravelServiceImpl.java:61`, which declines to save a second trip under an
+existing id), `UNIQUE_USER_NAME` (`UserServiceImpl.saveUser`, whose own comment reads
+`// avoid same user name`), `TRIP_EXISTS` (`TravelServiceImpl.getTripAllDetailInfo` returns
+"Trip not found" and `PreserveServiceImpl` rejects the booking on it), `CONTACTS_EXIST`
+(`PreserveServiceImpl` step 2 rejects the booking when the contacts fetch fails),
+`ENDPOINTS_ON_TRIP_ROUTE` (`BasicServiceImpl.queryForTravel`, which rejects with
+"Station not correct in Route" unless `indexOf(from) < indexOf(to)` on the route's station list),
+`PRICE_MATCHES_TARIFF` (`BasicServiceImpl.java:102-107`: the distance subtraction at `:102`, the
+multiplication by each class's rate at `:106` and `:107`), `SEAT_CAPACITY_NOT_EXCEEDED`. Every other
+§3.2 rule is implied.
 
 **Two rules straddle the tiers**, each with an enforced core and an implied strengthening this file
 states on top of it. Both are declared here rather than passed off as wholly enforced.
@@ -77,21 +98,6 @@ states on top of it. Both are declared here rather than passed off as wholly enf
   This file's table forbids those, and that half is **implied** — the state machine is not a state
   machine if any state can jump to `PAID`. Found at the §10 review, which is also where the claim
   that `ROUTE_ENDPOINTS_MATCH_STATION_LIST` was the only straddling rule was corrected.
-
-**Enforced tier, §3.2:** `STATIONS_EXIST` (`AdminRouteServiceImpl.checkStationsExists`, called from
-`createAndModifyRoute`), `UNIQUE_STATION_NAME` (`StationServiceImpl.create` rejects a duplicate name;
-`Station.name` is also `@Column(unique = true)`), `ROUTE_AND_TRAIN_TYPE_EXIST` (**Trip block only** —
-`AdminTravelServiceImpl.checkTravelInfo`, called from `addTravel` and `updateTravel`),
-`UNIQUE_TRIP_NUMBER` (`TravelServiceImpl.java:61`, which declines to save a second trip under an
-existing id), `UNIQUE_USER_NAME` (`UserServiceImpl.saveUser`, whose own comment reads
-`// avoid same user name`), `TRIP_EXISTS` (`TravelServiceImpl.getTripAllDetailInfo` returns
-"Trip not found" and `PreserveServiceImpl` rejects the booking on it), `CONTACTS_EXIST`
-(`PreserveServiceImpl` step 2 rejects the booking when the contacts fetch fails),
-`ENDPOINTS_ON_TRIP_ROUTE` (`BasicServiceImpl.queryForTravel`, which rejects with
-"Station not correct in Route" unless `indexOf(from) < indexOf(to)` on the route's station list),
-`PRICE_MATCHES_TARIFF` (`BasicServiceImpl.java:102-107`: the distance subtraction at `:102`, the
-multiplication by each class's rate at `:106` and `:107`), `SEAT_CAPACITY_NOT_EXCEEDED`. Every other
-§3.2 rule is implied.
 
 `SEAT_CAPACITY_NOT_EXCEEDED` is enforced-but-corrected: TrainTicket has the check, and the check is
 defect **F1** below.
@@ -155,13 +161,13 @@ review.
   `SEAT_CAPACITY_NOT_EXCEEDED` in §3.2 is the corrected rule.
 - **F2 — admin deletion leaves dangling references.** `deleteStation`, `deleteTrain`, `deletePrice`,
   `deleteRoute` and `deleteTravel` remove entities that other services still reference by name or id,
-  with no propagation of any kind. This application reproduces that behaviour faithfully — see
-  §3 of [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) — which is why every
-  §3.2 rule below is phrased as a **precondition that held at operation time**, never as a standing
-  invariant over a live reference.
+  with no propagation of any kind. What this application does about that is a consistency-policy
+  decision and is stated in
+  [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md); §3.2 below states the
+  invariants themselves, which the benchmark violates.
 - **F3 — `Route` correlates two lists by index.** `Route` carries `List<String> stations` and
   `List<Integer> distances`, related only by position, with nothing enforcing equal length or
-  ordering. This file normalises them into an owned `RouteStation` value object; the ordering
+  ordering. This file normalises them into an associative entity `RouteStation`; the ordering
   invariants survive as `ROUTE_DISTANCES_MONOTONIC` and `ROUTE_SEQUENCE_CONTIGUOUS`.
 - **F4 — dates, money and the seat number are `String`.** `Order.price`, `Order.travelDate`,
   `Order.boughtDate`, `Order.travelTime` and `Order.seatNumber` are all `String`, parsed ad hoc at
@@ -181,14 +187,9 @@ review.
 
 ### Other deliberate departures
 
-- **References are by aggregate id, not by natural key.** TrainTicket references entities by name
-  (`Route.stations` holds station *names*, `Trip.trainTypeName` holds a type *name*,
-  `Order.trainNumber` holds a trip identifier string). The simulator identifies aggregates by
-  `Integer aggregateId`, so every reference becomes an id, with the human-readable name cached
-  alongside it only where the benchmark genuinely stores a copy.
 - **`Trip` is a schedule template.** `Trip.startTime` / `endTime` are times of day; a concrete
   journey is a `(Trip, travelDate)` pair, which is why seat availability in §3.2 is keyed on
-  `(tripAggregateId, travelDate, seatClass)`. This matches
+  `(Trip, travelDate, seatClass)`. This matches
   `OrderRepository.findByTravelDateAndTrainNumber`.
 - **The scalper rate limit is not modelled at all.** `ts-security-service` is out of scope, and the
   rule it would have contributed was dropped on provenance grounds — see § "Rule provenance" above.
@@ -201,69 +202,67 @@ review.
 
 ## §1 — Entities
 
-Each entity lists only its own scalar attributes. Cross-entity references appear in §2. The **Owns**
-column lists value objects that live inside this entity's boundary and have no independent identity
-(they are created and deleted with the entity).
+Each entity lists only its own scalar attributes. Cross-entity references appear in §2.
 
-> **Soft-delete:** Every aggregate inherits `state: AggregateState` from the simulator `Aggregate` base class (values: `ACTIVE`, `INACTIVE`, `DELETED`). This field is **not** a domain attribute and must **not** appear in the entity table. It is set by `remove()` on the base class.
+| Entity | Attributes |
+|---|---|
+| **Station** | `name: String`, `stayTime: Integer` |
+| **Route** | `startStationName: String`, `endStationName: String` |
+| **RouteStation** | `sequence: Integer`, `distanceFromStart: Integer` |
+| **TrainType** | `name: String` (immutable), `economyClassSeats: Integer`, `firstClassSeats: Integer`, `averageSpeed: Integer` |
+| **PriceConfig** | `basicPriceRate: BigDecimal`, `firstClassPriceRate: BigDecimal` |
+| **Trip** | `tripNumber: String` (immutable), `startTime: LocalTime`, `endTime: LocalTime` |
+| **User** | `userName: String` (immutable), `password: String`, `gender: Gender (NONE \| MALE \| FEMALE \| OTHER)`, `documentType: DocumentType (NONE \| ID_CARD \| PASSPORT \| OTHER)`, `documentNumber: String`, `email: String` |
+| **Contacts** | `name: String`, `documentType: DocumentType (NONE \| ID_CARD \| PASSPORT \| OTHER)`, `documentNumber: String`, `phoneNumber: String` |
+| **Order** | `boughtDate: LocalDateTime` (immutable), `travelDate: LocalDate` (immutable), `departureTime: LocalDateTime` (immutable), `tripNumber: String` (immutable), `fromStationName: String` (immutable), `toStationName: String` (immutable), `seatClass: SeatClass (FIRST_CLASS \| SECOND_CLASS)` (immutable), `seatNumber: Integer` (immutable), `contactsName: String` (immutable), `contactsDocumentType: DocumentType` (immutable), `contactsDocumentNumber: String` (immutable), `price: BigDecimal` (immutable), `status: OrderStatus (NOTPAID \| PAID \| COLLECTED \| USED \| CANCELLED)` (default: NOTPAID), `refundAmount: BigDecimal` (default: null), `cancelledTime: LocalDateTime` (default: null) |
 
-| Entity | Attributes | Owns |
-|---|---|---|
-| **Station** | `name: String`, `stayTime: Integer` | — |
-| **Route** | `startStationName: String`, `endStationName: String` | RouteStation × N |
-| **RouteStation** | `sequence: Integer`, `stationAggregateId: Integer`, `stationName: String`, `distanceFromStart: Integer` | — |
-| **TrainType** | `name: String` (immutable), `economyClassSeats: Integer`, `firstClassSeats: Integer`, `averageSpeed: Integer` | — |
-| **PriceConfig** | `basicPriceRate: BigDecimal`, `firstClassPriceRate: BigDecimal` | — |
-| **Trip** | `tripNumber: String` (immutable), `startTime: LocalTime`, `endTime: LocalTime` | — |
-| **User** | `userName: String` (immutable), `password: String`, `gender: Gender (NONE \| MALE \| FEMALE \| OTHER)`, `documentType: DocumentType (NONE \| ID_CARD \| PASSPORT \| OTHER)`, `documentNumber: String`, `email: String` | — |
-| **Contacts** | `name: String`, `documentType: DocumentType (NONE \| ID_CARD \| PASSPORT \| OTHER)`, `documentNumber: String`, `phoneNumber: String` | — |
-| **Order** | `boughtDate: LocalDateTime` (immutable), `travelDate: LocalDate` (immutable), `departureTime: LocalDateTime` (immutable), `tripNumber: String` (immutable), `fromStationName: String` (immutable), `toStationName: String` (immutable), `seatClass: SeatClass (FIRST_CLASS \| SECOND_CLASS)` (immutable), `seatNumber: Integer` (immutable), `contactsName: String` (immutable), `contactsDocumentType: DocumentType` (immutable), `contactsDocumentNumber: String` (immutable), `price: BigDecimal` (immutable), `status: OrderStatus (NOTPAID \| PAID \| COLLECTED \| USED \| CANCELLED)` (default: NOTPAID), `refundAmount: BigDecimal` (default: null), `cancelledTime: LocalDateTime` (default: null) | — |
-
-> **Single-reference snapshots:** where an aggregate holds exactly one reference to an external
-> aggregate (`Trip → Route`, `Trip → TrainType`, `PriceConfig → Route`, `PriceConfig → TrainType`,
-> `Contacts → User`, `Order → Trip`, `Order → Contacts`, `Order → User`), the cached id is stored
-> directly on the aggregate and is defined only in §2 of
-> [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md). `RouteStation` above
-> carries the cached fields for the one **collection** reference. Field names here and in grouping §2
-> are deliberately identical, so drift between the two files is visible.
+> **`RouteStation` is an associative entity.** `sequence` and `distanceFromStart` are attributes of a
+> station's *position on a route*, belonging to neither the `Route` nor the `Station`. It therefore
+> gets its own row here and two `N → 1` relationships in §2, one of them a composition. Nothing about
+> that says where it is stored.
 
 > **`Order` is a frozen contract.** Every purchased value on `Order` is immutable: the passenger
-> identity, the fare, the seat, the endpoints and the departure moment are copied at purchase and
-> never track later edits to their sources. Only `status`, `refundAmount` and `cancelledTime` mutate.
-> This is what makes the immutability rules in §3.1 enforceable by Java `final` rather than by a
-> runtime check, and it is why no `lastModifiedTime` technical field is needed.
+> identity, the fare, the seat, the endpoints and the departure moment are the terms of the purchase,
+> agreed once and never tracking later edits to the entities they were read from. Only `status`,
+> `refundAmount` and `cancelledTime` mutate. This is what makes the immutability rules in §3.1
+> enforceable by Java `final` rather than by a runtime check.
+>
+> The frozen fields are domain facts, not copies of convenience: what a passenger bought is a
+> property of the purchase. They stay on `Order` under every grouping.
 
 > **`departureTime`** is `travelDate` combined with the `Trip.startTime` in force at purchase. It is
-> stored so that `ORDER_REFUND_AMOUNT` can compare the cancellation instant against the departure
-> instant from purely local state.
+> part of the contract so that `ORDER_REFUND_AMOUNT` can compare the cancellation instant against the
+> departure instant that was agreed.
 
-> **`cancelledTime`** is a domain value — the instant the cancellation was requested — not a
-> technical timestamp. It is set once, at cancellation, and is what `ORDER_REFUND_AMOUNT` predicates
-> on, so the refund is deterministic and does not depend on when `verifyInvariants()` happens to run.
+> **`cancelledTime`** is a domain value — the instant the cancellation was requested — not an
+> implementation timestamp. It is set once, at cancellation, and is what `ORDER_REFUND_AMOUNT`
+> predicates on, so the refund is deterministic.
 
 ---
 
 ## §2 — Relationships
 
 The direction is always from the referencing entity to the referenced entity. **Immutable** means the
-reference is set at creation and never changed.
+reference is set at creation and never changed. **Composition** means the referencing entity has no
+independent existence and is destroyed with its target.
 
-| From | To | Cardinality | Immutable |
-|---|---|---|---|
-| RouteStation | Station | N → 1 | yes |
-| Trip | Route | N → 1 | yes |
-| Trip | TrainType | N → 1 | yes |
-| PriceConfig | Route | N → 1 | yes |
-| PriceConfig | TrainType | N → 1 | yes |
-| Contacts | User | N → 1 | yes |
-| Order | Trip | N → 1 | yes |
-| Order | Contacts | N → 1 | yes |
-| Order | User (account) | N → 1 | yes |
+| From | To | Cardinality | Immutable | Composition |
+|---|---|---|---|---|
+| RouteStation | Route | N → 1 | yes | yes |
+| RouteStation | Station | N → 1 | yes | no |
+| Trip | Route | N → 1 | yes | no |
+| Trip | TrainType | N → 1 | yes | no |
+| PriceConfig | Route | N → 1 | yes | no |
+| PriceConfig | TrainType | N → 1 | yes | no |
+| Contacts | User | N → 1 | yes | no |
+| Order | Trip | N → 1 | yes | no |
+| Order | Contacts | N → 1 | yes | no |
+| Order | User (account) | N → 1 | yes | no |
 
-> **Route → Station is `N → M` in effect** but is expressed as `RouteStation → Station` above, since
-> `RouteStation` is the owned value object that carries the position and the cumulative distance. A
-> route's station list is mutable (`UpdateRoute` replaces it); an individual `RouteStation`'s
-> reference is not.
+> **Route → Station is `N → M` in effect**, resolved through `RouteStation`, which carries the
+> position and the cumulative distance. `Route.routeStations` below denotes the set of
+> `RouteStation`s whose `route` is that `Route`. A route's station list is mutable (`UpdateRoute`
+> replaces it); an individual `RouteStation`'s references are not.
 
 ---
 
@@ -276,12 +275,6 @@ These rules inspect only fields of a single entity.
 | Rule | Entity | Predicate |
 |---|---|---|
 | STATION_STAY_TIME_NON_NEGATIVE | Station | `Station.stayTime >= 0` |
-| ROUTE_HAS_AT_LEAST_TWO_STATIONS | Route | `count(Route.routeStations) >= 2` |
-| ROUTE_SEQUENCE_CONTIGUOUS | Route | The multiset of `routeStations.sequence` is exactly `0 .. count(routeStations) - 1` |
-| ROUTE_DISTANCES_MONOTONIC | Route | `∀ i ∈ 1 .. count(routeStations) - 1: routeStations[i].distanceFromStart > routeStations[i-1].distanceFromStart`, where `[i]` denotes ordering by `sequence` |
-| ROUTE_FIRST_DISTANCE_IS_ZERO | Route | The `RouteStation` with `sequence == 0` has `distanceFromStart == 0` |
-| ROUTE_STATIONS_DISTINCT | Route | All entries in `Route.routeStations` have distinct `stationAggregateId` |
-| ROUTE_ENDPOINTS_MATCH_STATION_LIST | Route | `Route.startStationName == routeStations[0].stationName ∧ Route.endStationName == routeStations[last].stationName` |
 | TRAIN_TYPE_NAME_FINAL | TrainType | `TrainType.name` is immutable (Java `final` field) |
 | TRAIN_TYPE_SEATS_NON_NEGATIVE | TrainType | `TrainType.economyClassSeats >= 0 ∧ TrainType.firstClassSeats >= 0` |
 | TRAIN_TYPE_HAS_SEATS | TrainType | `TrainType.economyClassSeats + TrainType.firstClassSeats > 0` |
@@ -299,11 +292,15 @@ These rules inspect only fields of a single entity.
 | ORDER_CANCELLATION_FIELDS_SET | Order | `Order.status == CANCELLED ⟺ (Order.cancelledTime != null ∧ Order.refundAmount != null)` |
 | ORDER_REFUND_AMOUNT | Order | `Order.status == CANCELLED ∧ (prev == null ∨ prev.status != CANCELLED) ⟹ Order.refundAmount == (prev.status == NOTPAID ? 0 : (Order.cancelledTime > Order.departureTime ? 0 : Order.price × 0.80))` |
 
+> **The six `ROUTE_*` rules are in §3.2, not here.** They relate `Route` to its `RouteStation`s, and
+> `RouteStation` is an entity of its own (§1). Whether the two share a boundary — and therefore
+> whether the rules cost anything to enforce — is a question for the grouping file, not for this one.
+
 > **Immutability fields:** `ORDER_CONTRACT_FIELDS_FINAL` — `boughtDate`, `travelDate`,
 > `departureTime`, `tripNumber`, `fromStationName`, `toStationName`, `seatClass`, `seatNumber`,
 > `contactsName`, `contactsDocumentType`, `contactsDocumentNumber`, `price`, and the references to
 > Trip, Contacts and User — is enforced by Java `final` fields and by the absence of setters after
-> construction. No `verifyInvariants()` check is needed. The same applies to `TRAIN_TYPE_NAME_FINAL`,
+> construction. No runtime check is needed. The same applies to `TRAIN_TYPE_NAME_FINAL`,
 > `TRIP_NUMBER_FINAL` and `USER_NAME_FINAL`.
 
 > **`ORDER_SEAT_NUMBER_POSITIVE` is implied, not enforced.** It was listed as enforced until the §9
@@ -312,11 +309,7 @@ These rules inspect only fields of a single entity.
 > `SEAT_NUMBER_WITHIN_CAPACITY`'s upper bound, so the two rules are the two halves of one expression
 > and must sit in the same tier. Both are implied: the data model needs them, no code asserts them.
 
-> **`ROUTE_ENDPOINTS_MATCH_STATION_LIST` straddles the tiers.** Containment is enforced
-> (`AdminRouteServiceImpl.java:58`); the first-and-last positions are implied. See § "Rule
-> provenance" in the preamble for why the strengthening is admitted.
-
-> **`ORDER_STATUS_TRANSITION` straddles the tiers too.** Every edge into `COLLECTED`, `USED` and
+> **`ORDER_STATUS_TRANSITION` straddles the tiers.** Every edge into `COLLECTED`, `USED` and
 > `CANCELLED` is enforced by the `ExecuteServiceImpl` and `CancelServiceImpl` guards named in the
 > preamble. The edge into `PAID` is not: `OrderServiceImpl.payOrder` writes `status = PAID` without
 > reading the previous status, so the benchmark accepts paying an order that is already `CANCELLED`
@@ -342,14 +335,68 @@ These rules inspect only fields of a single entity.
 
 ### 3.2 — Cross-entity rules
 
-> **All rules in this section are preconditions checked at operation time, not standing invariants.**
-> This application reproduces TrainTicket's consistency policy faithfully: nothing propagates when
-> referenced data changes or is deleted (finding **F2**). A rule phrased as "`Order.trip` references
-> a Trip that has not been deleted" would be unenforceable, because no mechanism informs Order.
-> Every rule below therefore reads as "held when the operation ran", and is enforced either by a saga
-> fetch that fails when the precondition is unmet (**P4a**), by a service guard over a
-> saga-assembled DTO or over the aggregate's own table (**P3**), or by the saga passing one computed
-> value to the aggregate it constructs (**P4b**). **No rule in this application is P2.**
+Every rule below is a **standing invariant over the domain**: a statement that is either true or
+false of a domain state, with no claim about when or how it is checked. Whether a given realisation
+maintains an invariant continuously, checks it once when the operation runs, or tolerates its later
+violation is recorded in §5 of
+[`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md).
+
+"`X` has been removed" is the domain's notion of deletion. An entity that has been removed is still
+referenceable but no longer counts as existing.
+
+---
+
+#### Rule: ROUTE_HAS_AT_LEAST_TWO_STATIONS
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation |
+| Predicate | `count(Route.routeStations) >= 2` |
+
+---
+
+#### Rule: ROUTE_SEQUENCE_CONTIGUOUS
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation |
+| Predicate | The multiset of `Route.routeStations.sequence` is exactly `0 .. count(Route.routeStations) - 1` |
+
+---
+
+#### Rule: ROUTE_DISTANCES_MONOTONIC
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation |
+| Predicate | `∀ i ∈ 1 .. count(Route.routeStations) - 1: routeStations[i].distanceFromStart > routeStations[i-1].distanceFromStart`, where `[i]` denotes ordering by `sequence` |
+
+---
+
+#### Rule: ROUTE_FIRST_DISTANCE_IS_ZERO
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation |
+| Predicate | The `RouteStation` of `Route` with `sequence == 0` has `distanceFromStart == 0` |
+
+---
+
+#### Rule: ROUTE_STATIONS_DISTINCT
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation, Station |
+| Predicate | No two entries in `Route.routeStations` reference the same `Station` |
+
+---
+
+#### Rule: ROUTE_ENDPOINTS_MATCH_STATION_LIST
+
+| Field | Value |
+|---|---|
+| Entities | Route, RouteStation, Station |
+| Predicate | `Route.startStationName == routeStations[0].station.name ∧ Route.endStationName == routeStations[last].station.name`, where `[i]` denotes ordering by `sequence` |
 
 ---
 
@@ -358,7 +405,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Route, Station |
-| Predicate | `∀rs ∈ Route.routeStations: rs.stationAggregateId named a Station that was ACTIVE when the route was created or updated` |
+| Predicate | `∀rs ∈ Route.routeStations: rs.station has not been removed` |
 
 ---
 
@@ -367,7 +414,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Station |
-| Predicate | No two active Stations share the same `name` |
+| Predicate | No two Stations that have not been removed share the same `name` |
 
 ---
 
@@ -376,7 +423,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Trip, Route, TrainType |
-| Predicate | `Trip.routeAggregateId` and `Trip.trainTypeAggregateId` named a Route and a TrainType that were ACTIVE when the trip was created |
+| Predicate | `Trip.route` and `Trip.trainType` have not been removed |
 
 ---
 
@@ -385,7 +432,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Trip |
-| Predicate | No two active Trips share the same `tripNumber` |
+| Predicate | No two Trips that have not been removed share the same `tripNumber` |
 
 ---
 
@@ -395,7 +442,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | PriceConfig, Route, TrainType |
-| Predicate | No two active PriceConfigs share the same `(routeAggregateId, trainTypeAggregateId)` pair — this is the lookup key `queryPriceConfigByRouteIdAndTrainType` assumes is unique |
+| Predicate | No two PriceConfigs that have not been removed share the same `(route, trainType)` pair — this is the lookup key `queryPriceConfigByRouteIdAndTrainType` assumes is unique |
 
 ---
 
@@ -405,7 +452,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | User |
-| Predicate | No two active Users share the same `userName` |
+| Predicate | No two Users that have not been removed share the same `userName` |
 
 ---
 
@@ -414,7 +461,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Trip |
-| Predicate | `Order.tripAggregateId` named a Trip that was ACTIVE when the order was created |
+| Predicate | `Order.trip` has not been removed |
 
 ---
 
@@ -423,25 +470,20 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Contacts |
-| Predicate | `Order.contactsAggregateId` named a Contacts that was ACTIVE when the order was created |
+| Predicate | `Order.contacts` has not been removed |
 
 ---
-
 
 #### Rule: CONTACTS_BELONG_TO_ACCOUNT (Order)
 
 | Field | Value |
 |---|---|
 | Entities | Order, Contacts |
-| Predicate | `Order.userAggregateId == Contacts.userAggregateId` — a passenger may only be booked under the account that owns that contact record |
+| Predicate | `Order.account == Order.contacts.account` — a passenger may only be booked under the account that owns that contact record |
 
-> **User is deliberately absent from the Entities list.** The rule is *about* account ownership, but
-> both sides of the comparison are local to the booking saga: `Order.userAggregateId` comes from the
-> request and `Contacts.userAggregateId` from the `Contacts` fetch §4 already declares. No User read
-> is needed, and §4 declares none — see §3 of
-> [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) on why `PreserveTicket`
-> does not read User. Listing User here would make `/classify-and-plan` raise a cross-aggregate
-> prerequisite with no operation to satisfy it.
+> **User is not listed under Entities.** The rule is *about* account ownership, but no attribute of
+> `User` is read: both sides of the comparison are references, and the predicate compares their
+> identity. The account appears only as the shared target.
 
 ---
 
@@ -450,14 +492,13 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, Route |
-| Predicate | `Order.fromStationName` and `Order.toStationName` both name a `RouteStation` of the Trip's Route, and `sequence(from) < sequence(to)` |
+| Predicate | `Order.fromStationName` and `Order.toStationName` both name a station of the Trip's Route, and `sequence(from) < sequence(to)` |
 
-> **Station is deliberately absent from the Entities list.** The predicate resolves entirely from
-> `RouteStation.stationName` and `RouteStation.sequence`, which the Route fetch already carries, so
-> no Station read is needed and §4 declares none for `PreserveTicket`. TrainTicket does call
-> `checkStationExists` on both endpoints before this check (`BasicServiceImpl.java:49-51`), so adding
-> the read would be faithful rather than authored; it is declined because the endpoint names on the
-> order are validated against the route's own station list, which is the stronger of the two checks.
+> **Station is not listed under Entities.** The predicate resolves against the Route's own station
+> list, which carries both the ordering and the names. TrainTicket does call `checkStationExists` on
+> both endpoints before this check (`BasicServiceImpl.java:49-51`), so validating the endpoints
+> against `Station` as well would be faithful rather than authored; it is declined because matching
+> them against the route's station list is the stronger of the two checks.
 
 ---
 
@@ -467,12 +508,10 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, PriceConfig |
-| Predicate | A PriceConfig for the pair `(Trip.routeAggregateId, Trip.trainTypeAggregateId)` was ACTIVE when the order was created |
+| Predicate | A PriceConfig for the pair `(Trip.route, Trip.trainType)` exists and has not been removed |
 
-> Enforced by the `GetPriceConfigByRouteAndTrainType` fetch in the booking saga, which throws when no
-> configuration exists for the pair — **P4a**. Stated as its own rule so that the saga step has a rule
-> name to cite, as `docs/concepts/rule-enforcement-patterns.md` § P4 requires, and so the fare source
-> gets the same explicit existence block as `TRIP_EXISTS` and `CONTACTS_EXIST`.
+> Stated as its own rule so that the fare source gets the same explicit existence block as
+> `TRIP_EXISTS` and `CONTACTS_EXIST`.
 >
 > **This is a correction, not a reproduction — finding F5.** TrainTicket does not fail the booking
 > when the tariff is missing: `BasicServiceImpl.queryForTravel` catches the resulting exception and
@@ -506,18 +545,10 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Trip, TrainType |
-| Predicate | `count(existing Orders o where o.tripAggregateId == tripAggregateId ∧ o.travelDate == travelDate ∧ o.seatClass == seatClass ∧ o.status != CANCELLED ∧ o.state != DELETED) < capacity(Trip.trainType, seatClass)` |
+| Predicate | For every `(trip, travelDate, seatClass)`: `count(Orders o where o.trip == trip ∧ o.travelDate == travelDate ∧ o.seatClass == seatClass ∧ o.status != CANCELLED ∧ o has not been removed) <= capacity(trip.trainType, seatClass)`, where `capacity` is `firstClassSeats` for `FIRST_CLASS` and `economyClassSeats` for `SECOND_CLASS` |
 
-> The count is over the Order aggregate's own table, keyed exactly as
-> `OrderRepository.findByTravelDateAndTrainNumber`. `capacity` is supplied to the Order service by
-> the booking saga, which fetched the Trip's TrainType. TrainTicket's own version of this check is
-> defect **F1**.
-
-> **Phrased pre-mutation, deliberately.** `existing` excludes the order being created, and the
-> inequality is strict, because this rule is enforced as a **P3** service guard that runs *before* any
-> aggregate mutation. Writing it as a post-state invariant (`count(...) <= capacity`) and transcribing
-> it literally into that guard would admit `capacity + 1` bookings. See the §3.2 preamble: every rule
-> in this section is a precondition, not a standing invariant.
+> The count is keyed exactly as `OrderRepository.findByTravelDateAndTrainNumber`. TrainTicket's own
+> version of this check is defect **F1**.
 
 ---
 
@@ -526,7 +557,7 @@ These rules inspect only fields of a single entity.
 | Field | Value |
 |---|---|
 | Entities | Order, Trip |
-| Predicate | No two Orders with `status != CANCELLED ∧ state != DELETED` share the same `(tripAggregateId, travelDate, seatClass, seatNumber)` |
+| Predicate | No two Orders that have not been removed and whose `status != CANCELLED` share the same `(trip, travelDate, seatClass, seatNumber)` |
 
 > **Implied, not enforced — re-tiered at the §10 review.** `SeatServiceImpl.distributeSeat` picks a
 > random seat number and retries while `isContained(soldTickets, seat)`
@@ -557,9 +588,8 @@ These rules inspect only fields of a single entity.
 | Entities | Order, Trip, TrainType |
 | Predicate | `1 <= Order.seatNumber <= capacity(Trip.trainType, Order.seatClass)`, where `capacity` is `firstClassSeats` for `FIRST_CLASS` and `economyClassSeats` for `SECOND_CLASS` |
 
-> Bounds the seat number above, which `ORDER_SEAT_NUMBER_POSITIVE` in §3.1 cannot: `capacity` lives on
-> TrainType, so the limit crosses an aggregate boundary and the booking saga passes it in alongside
-> the one it already passes for `SEAT_CAPACITY_NOT_EXCEEDED`. The two rules are the two halves of
+> Bounds the seat number above, which `ORDER_SEAT_NUMBER_POSITIVE` in §3.1 cannot: `capacity` lives
+> on TrainType, which is a different entity. The two rules are the two halves of
 > `rand.nextInt(range) + 1` in `SeatServiceImpl.distributeSeat`, which is why they share a tier.
 >
 > **This rule also covers the seat-class case.** When `capacity` is `0` the interval `[1, 0]` is
@@ -573,70 +603,74 @@ These rules inspect only fields of a single entity.
 
 ## §4 — Functionalities
 
-> This section is a complete inventory of every operation the application exposes, write and read, one row per operation regardless of how many aggregates it touches.
+> This section is a complete inventory of every operation the application exposes, write and read,
+> one row per operation regardless of how many entities it touches.
 >
-> **Other Aggregates** lists only aggregates the saga itself reads or writes; an empty cell means the operation needs no saga coordination. Because this application publishes no domain events, there are no aggregates reacting asynchronously — the "Other Aggregates" column is the complete picture of cross-aggregate interaction.
+> **Other Entities** lists every entity besides the primary one that the operation reads or writes.
+> The mapping onto the units of one partitioning — and therefore which operations need cross-boundary
+> coordination — is derived by joining these columns against §1 of
+> [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md).
 
-| Functionality | Primary Aggregate | Other Aggregates | Kind | Description |
+| Functionality | Primary Entity | Other Entities | Kind | Description |
 |---|---|---|---|---|
 | CreateStation | Station | — | Write | Create a station with its name and dwell time |
 | UpdateStation | Station | — | Write | Update a station's name or dwell time |
-| DeleteStation | Station | — | Write | Soft-delete a station |
-| CreateRoute | Route | Station | Write | Create a route as an ordered list of stations with cumulative distances |
-| UpdateRoute | Route | Station | Write | Replace a route's station list and distances, and its start and end station names with them |
-| DeleteRoute | Route | — | Write | Soft-delete a route |
+| DeleteStation | Station | — | Write | Remove a station |
+| CreateRoute | Route | RouteStation, Station | Write | Create a route as an ordered list of stations with cumulative distances |
+| UpdateRoute | Route | RouteStation, Station | Write | Replace a route's station list and distances, and its start and end station names with them |
+| DeleteRoute | Route | RouteStation | Write | Remove a route |
 | CreateTrainType | TrainType | — | Write | Create a train type with its seat counts per class and average speed |
 | UpdateTrainType | TrainType | — | Write | Update a train type's seat counts or average speed |
-| DeleteTrainType | TrainType | — | Write | Soft-delete a train type |
+| DeleteTrainType | TrainType | — | Write | Remove a train type |
 | CreatePriceConfig | PriceConfig | — | Write | Create the per-distance fare rates for one route and train type |
 | UpdatePriceConfig | PriceConfig | — | Write | Update the fare rates of an existing price configuration |
-| DeletePriceConfig | PriceConfig | — | Write | Soft-delete a price configuration |
+| DeletePriceConfig | PriceConfig | — | Write | Remove a price configuration |
 | CreateTrip | Trip | Route, TrainType | Write | Create a scheduled trip on a route with a train type and times of day |
 | UpdateTrip | Trip | — | Write | Update a trip's start or end time |
-| DeleteTrip | Trip | — | Write | Soft-delete a trip |
+| DeleteTrip | Trip | — | Write | Remove a trip |
 | CreateUser | User | — | Write | Create a user account |
 | UpdateUser | User | — | Write | Update a user's password, gender, document or email |
-| DeleteUser | User | — | Write | Soft-delete a user account |
+| DeleteUser | User | — | Write | Remove a user account |
 | CreateContacts | Contacts | — | Write | Create a passenger contact record owned by an account |
 | UpdateContacts | Contacts | — | Write | Update a contact's name, document or phone number |
-| DeleteContacts | Contacts | — | Write | Soft-delete a contact record |
-| PreserveTicket | Order | Trip, Route, TrainType, PriceConfig, Contacts | Write | Book a ticket: resolve the passenger contact and its owning account, validate the journey against the trip's route, compute the fare from distance and rates, allocate the **lowest seat number in `[1, capacity]` not already held by a non-cancelled order for that departure**, and create the order as NOTPAID |
+| DeleteContacts | Contacts | — | Write | Remove a contact record |
+| PreserveTicket | Order | Trip, Route, RouteStation, TrainType, PriceConfig, Contacts | Write | Book a ticket for a passenger contact under its owning account, on a journey between two stations of the trip's route, at the fare the route distance and the train type's rates give, on the **lowest seat number in `[1, capacity]` not already held by a non-cancelled order for that departure**, as a NOTPAID order |
 | PayOrder | Order | — | Write | Move an order from NOTPAID to PAID |
 | CollectTicket | Order | — | Write | Move a paid order to COLLECTED |
 | UseTicket | Order | — | Write | Move a collected order to USED |
 | CancelOrder | Order | — | Write | Cancel an unpaid or paid order, stamping the cancellation time and computing the refund |
-| DeleteOrder | Order | — | Write | Soft-delete an order |
-| GetStationById | Station | — | Read | Retrieve a single station by its aggregate id |
+| DeleteOrder | Order | — | Write | Remove an order |
+| GetStationById | Station | — | Read | Retrieve a single station by its id |
 | GetStations | Station | — | Read | List all stations |
-| GetRouteById | Route | — | Read | Retrieve a single route by its aggregate id |
-| GetRoutes | Route | — | Read | List all routes |
-| GetRoutesByStation | Route | — | Read | List the routes that stop at a given station |
-| GetTrainTypeById | TrainType | — | Read | Retrieve a single train type by its aggregate id |
+| GetRouteById | Route | RouteStation | Read | Retrieve a single route by its id |
+| GetRoutes | Route | RouteStation | Read | List all routes |
+| GetRoutesByStation | Route | RouteStation | Read | List the routes that stop at a given station |
+| GetTrainTypeById | TrainType | — | Read | Retrieve a single train type by its id |
 | GetTrainTypes | TrainType | — | Read | List all train types |
-| GetPriceConfigById | PriceConfig | — | Read | Retrieve a single price configuration by its aggregate id |
+| GetPriceConfigById | PriceConfig | — | Read | Retrieve a single price configuration by its id |
 | GetPriceConfigs | PriceConfig | — | Read | List all price configurations |
 | GetPriceConfigByRouteAndTrainType | PriceConfig | — | Read | Retrieve the fare rates configured for a given route and train type; fails when no configuration exists for the pair |
-| GetTripById | Trip | — | Read | Retrieve a single trip by its aggregate id |
+| GetTripById | Trip | — | Read | Retrieve a single trip by its id |
 | GetTrips | Trip | — | Read | List all trips |
-| GetUserById | User | — | Read | Retrieve a single user by its aggregate id |
+| GetUserById | User | — | Read | Retrieve a single user by its id |
 | GetUsers | User | — | Read | List all users |
-| GetContactsById | Contacts | — | Read | Retrieve a single contact record by its aggregate id |
+| GetContactsById | Contacts | — | Read | Retrieve a single contact record by its id |
 | GetContactsByAccount | Contacts | — | Read | List the contact records owned by an account |
-| GetOrderById | Order | — | Read | Retrieve a single order by its aggregate id |
+| GetOrderById | Order | — | Read | Retrieve a single order by its id |
 | GetOrders | Order | — | Read | List all orders |
 | GetOrdersByAccount | Order | — | Read | List the orders placed by an account |
 | GetLeftTicketCount | Order | Trip, TrainType | Read | Count the seats still available for a given trip, travel date and seat class, by subtracting the non-cancelled orders from the train type's capacity |
 
-> **`GetLeftTicketCount` is the application's one read saga.** It assembles state from three
-> aggregates without writing anything, and is TrainTicket's `ts-seat-service.getLeftTicketOfInterval`.
+> **`GetLeftTicketCount` spans three entities.** It is TrainTicket's
+> `ts-seat-service.getLeftTicketOfInterval`, and it writes nothing.
 >
-> A second read saga, `SearchTrips`, spanned five aggregates and was cut at the §9 review to keep the
+> A second read, `SearchTrips`, spanned five entities and was cut at the §9 review to keep the
 > first delivery small; it is recorded in §7 of the rationale as the first planned extension once the
 > core is built. Cutting it also removed `GetTripsByRoute` and returned `GetRoutesByStation` to a
 > plain list, since both existed only to serve it.
 
-> **`PreserveTicket` is the only multi-aggregate write.** The other four Order operations are
-> single-aggregate state transitions, matching TrainTicket's `ts-cancel-service` and
+> **`PreserveTicket` is the only write that touches more than two entities.** The other four Order
+> operations are single-entity state transitions, matching TrainTicket's `ts-cancel-service` and
 > `ts-execute-service`, both of which do nothing but read an order and write its status.
 
 ---

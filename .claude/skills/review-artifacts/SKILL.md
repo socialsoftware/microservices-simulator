@@ -1,19 +1,22 @@
 ---
 name: review-artifacts
-description: Garbage collector for the harness itself - a static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md covering path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance and ambiguous guidance. Recommended after any substantial harness change, and after each finished aggregate when self-healing is ON; optional otherwise. Expensive: it reads every harness file in full, so run it in a fresh session. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
+description: Garbage collector for the harness itself - a static consistency check over docs/, .claude/skills/, .claude/agents/, AGENTS.md and HARNESS.md covering path validity, P1-P4 and R1-R8 alignment, neutral-domain compliance, plain-domain contamination in every application's domain model, and ambiguous guidance. Recommended after any substantial harness change, and after each finished aggregate when self-healing is ON; optional otherwise. Expensive: it reads every harness file in full, so run it in a fresh session. No arguments. Writes a structured report to reviews/review-{YYYY-MM-DD}.md.
 argument-hint: "(no arguments)"
 ---
 
 # Review Artifacts
 
 Static pre-flight check over the harness itself: `docs/**`, `.claude/skills/**`,
-`.claude/agents/**`, `AGENTS.md` and `HARNESS.md`. It reads only those three trees and those two root
-files, checks them for internal consistency, and writes one dated report. Every check
+`.claude/agents/**`, `AGENTS.md` and `HARNESS.md`. It reads those three trees and those two root
+files, checks them for internal consistency, and writes one dated report. Two checks reach outside
+that set by name: Check 4 reads `plan.md`'s aggregate list and Check 5 reads every
+`applications/*/*-domain-model.md`. Every check
 reads files directly from disk. The only write is the report file produced at the end.
 
 **What it is for:** collecting the debris that hand-editing and mid-run repair leave in the harness —
 paths that no longer resolve, two files prescribing different things, a piece of knowledge that lost
-its single owner, a domain noun leaked in from the application being generated.
+its single owner, a domain noun leaked in from the application being generated, a decomposition
+decision leaked into a plain domain.
 
 **It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
 in a fresh session, never inline in a Phase 2 session or alongside work whose context you still
@@ -38,8 +41,9 @@ Running it is always the human's call, under both Phase 2 entry points.
 **What it is not:** it does not evaluate how the harness performed on a real run. That is
 `/harness-retrospective`, which reads a completed run's `harness-log.md`, retros and reviews.
 This skill's ground truth is the harness files themselves; that skill's ground truth is empirical
-evidence from a run. The only thing this skill reads under `applications/` is the aggregate name
-list in `plan.md`, needed by Check 4 (Step 6), and it reads nothing else there.
+evidence from a run. Two things under `applications/` are read, each by one named check and for
+nothing else: the aggregate name list in `plan.md`, for Check 4 (Step 6), and every
+`*-domain-model.md`, for Check 5 (Step 6.5).
 
 One invocation reviews all artifacts. No arguments needed.
 
@@ -348,6 +352,125 @@ is more useful than a bare "0 violations".
 
 ---
 
+## Step 6.5: Check 5 — Plain-Domain Contamination
+
+`docs/templates/domain-model-template.md` § "What this file must never say" gives the plain domain a
+closed vocabulary: it describes the domain and names no decomposition. The property that buys is
+**one plain domain, N aggregate groupings** — a second grouping file must be writable over an
+existing domain model with zero edits to it. One leaked `aggregateId`, one `state == DELETED`, one
+"entity A caches entity B's identifier" and that property is gone, silently, because nothing fails
+until someone tries to write the second grouping.
+
+This check is the control. It scans **every** `applications/*/*-domain-model.md`, not only the run
+in progress: a contaminated domain model is a defect in that pair whenever it is found.
+
+### 6.5.a — Run the scan
+
+`python3`, not `rg`, for the reason Step 6.a gives.
+
+```bash
+cd "$(git rev-parse --show-toplevel)"
+python3 - <<'EOF'
+import re, sys, glob
+
+CASE_SENSITIVE = [
+    r'\w*AggregateId\b', r'\w+Version\b', r'\bOwns\b', r'\bACTIVE\b', r'\bINACTIVE\b',
+    r'\bDELETED\b', r'\bEventSubscription\b', r'Primary Aggregate', r'Other Aggregates',
+    r'\bAggregateState\b', r'\bP[1-4][ab]?\b',
+]
+CASE_INSENSITIVE = [
+    r'\baggregates?\b', r'\bsnapshots?\b', r'\bcach(e|ed|es|ing)\b', r'\bevents?\b',
+    r'\bsubscri\w*', r'\bsagas?\b', r'\bco-located\b',
+]
+
+CODE  = re.compile(r'`[^`]*`')
+LINK  = re.compile(r'\]\([^)]*\)')
+OPEN  = re.compile(r'<!--\s*plain-domain:\s*allow\b(.*?)-->')
+CLOSE = re.compile(r'<!--\s*plain-domain:\s*end\s*-->')
+
+def masked(line):
+    out = list(line)
+    for rx in (CODE, LINK):
+        for m in rx.finditer(line):
+            for i in range(m.start(), m.end()):
+                out[i] = ' '
+    return ''.join(out)
+
+failed = False
+for path in sorted(glob.glob('applications/*/*-domain-model.md')):
+    hits, allowed, reasons, inside = [], 0, [], False
+    for n, line in enumerate(open(path), 1):
+        m = OPEN.search(line)
+        if m:
+            inside = True
+            reasons.append((n, m.group(1).strip(' -')))
+        if inside:
+            if CLOSE.search(line):
+                inside = False
+            allowed += 1
+            continue
+        text = masked(line)
+        for rx in CASE_SENSITIVE:
+            mm = re.search(rx, text)
+            if mm: hits.append((n, mm.group(0), line.rstrip()))
+        for rx in CASE_INSENSITIVE:
+            mm = re.search(rx, text, re.I)
+            if mm: hits.append((n, mm.group(0), line.rstrip()))
+    print(f"== {path}  ({allowed} allow-listed lines)")
+    for n, why in reasons:
+        print(f"   allow @{n}: {why or '(NO REASON GIVEN)'}")
+    if not hits:
+        print("   clean")
+        continue
+    failed = True
+    for n, tok, line in hits:
+        print(f"   {n}: [{tok}] {line[:160]}")
+sys.exit(1 if failed else 0)
+EOF
+```
+
+**What the two suppression rules are and why.**
+
+- **Inline code and link targets are masked.** A domain model legitimately links to its grouping
+  file, whose filename contains "aggregate", and legitimately writes a field name in backticks.
+  Matching inside either produces noise that no rewrite can remove.
+- **An explicit allow region.** A line inside
+  `<!-- plain-domain: allow — <reason> -->` … `<!-- plain-domain: end -->` is skipped, and the
+  script prints the reason for every region it honoured. This is the documented allow-list: it lives
+  in the file it exempts, it names its justification, and the review reads those reasons back. The
+  two legitimate uses so far are a **provenance note** (which must name what moved out of the file)
+  and a **preamble that names benchmark services or a source system** whose own names carry the
+  vocabulary. A region with `(NO REASON GIVEN)` is itself a finding.
+
+**A region left unclosed exempts the rest of the file**, which is how a whole domain model is
+excused: a marker on line 1 with no `end` covers everything. That form is for a **historic run
+record authored before the plain-domain contract** and deliberately not re-partitioned. It is not a
+way to silence a live pair — for one of those, exempt the individual lines and say why.
+
+A domain whose subject matter genuinely contains one of these words — an event-ticketing
+application, say — uses an allow region for the affected lines and states that in its provenance
+preamble. Do not widen the pattern list to accommodate it; the pattern list is the contract, and a
+per-file exemption keeps the contract legible.
+
+### 6.5.b — Classify each hit
+
+Each hit is one of:
+
+| Verdict | Meaning | What to write |
+|---|---|---|
+| `Contamination` | a decomposition fact, or its vocabulary, stated in the plain domain | the domain-vocabulary rewrite, and which grouping section the displaced fact belongs in |
+| `False positive` | ordinary English that the masking did not catch | the reason |
+| `Undocumented exemption` | an allow region with no reason | the reason to add, or the region to remove |
+
+**These findings are not harness friction, and this skill's agent never fixes them.** A spec pair is
+run record, not the Harness bucket (`AGENTS.md` § "What the harness is"), so a contaminated domain
+model is neither a Type 1 edit to make on sight nor a Type 2 question about the harness. Report it;
+the human decides whether to re-partition that pair. The one thing that *is* harness friction is a
+gap in the template or in `/author-spec` that let the contamination through, and that is filed
+normally under Check 1, 2 or 3.
+
+---
+
 ## Step 7: Write the Report
 
 Run `mkdir -p reviews` (no-op if exists).
@@ -365,6 +488,7 @@ unilaterally:
 | Check 2 — Pattern Alignment | Type 1 candidates | Two artifacts prescribing different things for the same pattern is a demonstrable contradiction. |
 | Check 3 — Improvement Opportunities | **Type 2 - must halt** | Missing examples and ambiguous guidance are silences, not contradictions: nothing in the harness is provably wrong, so the fix is a design decision the human owns. |
 | Check 4 — Neutral Domain | Type 1 candidates | A domain noun in a harness file contradicts `_shared/conventions.md` § "Neutral domain". |
+| Check 5 — Plain-Domain Contamination | **Neither - human's call** | The file is a spec pair, which is run record and not the Harness bucket. Report and stop. A template or `/author-spec` gap that allowed it is a separate finding under Checks 1-3. |
 
 A Check 3 finding never becomes Type 1 by being obviously right, small, or already agreed in
 conversation. If a Check 3 finding also exposes a genuine contradiction, the contradiction is a
@@ -447,6 +571,22 @@ Check 1 or Check 2 finding and belongs in that section, filed on its own evidenc
 
 ---
 
+## Check 5 — Plain-Domain Contamination
+
+**Type:** neither Type 1 nor Type 2 - report only; the spec pair is run record.
+
+**Domain models scanned:** {count} | **Clean:** {count} | **With findings:** {count}
+
+| Domain model | Line | Token | Verdict | Rewrite / destination |
+|---|---|---|---|---|
+
+### Allow regions honoured
+
+| Domain model | Line | Stated reason |
+|---|---|---|
+
+---
+
 ## Action Items
 
 | Priority | Category | File | Finding | Suggested Fix |
@@ -473,6 +613,8 @@ Output to the conversation (not to the report file):
 4. Count of Major items and count of Minor items
 5. Neutral-domain verdict: number of `Violation` rows from Check 4, or "clean", or "skipped (no run
    in progress)"
+6. Plain-domain verdict: number of `Contamination` rows from Check 5 and the domain models they are
+   in, or "clean across {n} domain models"
 
 ---
 
@@ -485,11 +627,12 @@ Output to the conversation (not to the report file):
 4. **Quote the evidence.** For every Critical or Major finding, quote the conflicting text
    verbatim from both sources (with file path and approximate line context).
 5. **Static scope only.** The review set is `docs/**`, `.claude/skills/**`, `.claude/agents/**`,
-   `AGENTS.md` and `HARNESS.md`; Check 4 additionally scans `CLAUDE.md` commits, per Step 1.b. The
-   single permitted
-   read under `applications/**` is the `### {N}. {Aggregate}` header list in `plan.md`, for Check 4
-   (Step 6). No retros, no reviews, no harness log, no generated source. Empirical evaluation of a
-   completed run belongs to `/harness-retrospective`.
+   `AGENTS.md` and `HARNESS.md`; Check 4 additionally scans `CLAUDE.md` commits, per Step 1.b. Two
+   reads under `applications/**` are permitted, both by a named check and for nothing else: the
+   `### {N}. {Aggregate}` header list in `plan.md`, for Check 4 (Step 6), and
+   `applications/*/*-domain-model.md`, for Check 5 (Step 6.5). No retros, no reviews, no harness
+   log, no generated source. Empirical evaluation of a completed run belongs to
+   `/harness-retrospective`.
 6. **Running during a generation run is expected.** Unchecked `- [ ]` boxes in a `plan.md` are not a
    precondition failure - this skill is the aggregate-boundary checkpoint, in both self-healing modes
    (`AGENTS.md` § "Harness evolution"). Never halt on them.

@@ -90,6 +90,13 @@ Extract from the §3.1 table (columns: Rule, Entity, Predicate):
 
 **Note:** All §3.1 rules are automatically classified as P1 (Intra-Invariant). No `rule-enforcement-patterns.md` consultation needed for these.
 
+> **§3.1 is strictly single-*entity*, and the P1 shortcut still holds.** The plain domain knows
+> nothing about aggregates, so §3.1 means "one entity's own fields". The shortcut survives because
+> grouping §1 places every entity in exactly one aggregate, so a single-entity rule is always
+> single-aggregate. What *has* changed is that a rule relating an entity to an entity the old
+> template would have called an owned value object now sits in §3.2 and gets classified there —
+> normally landing on P1 anyway, because the grouping co-locates the two.
+
 #### 2.b: Parse §3.2 — Cross-Entity Rules
 
 Extract from the custom block format. Each rule is a separate block whose shape
@@ -128,19 +135,23 @@ For each match:
 
 #### 2.c: Parse §4 — Functionalities
 
-Extract from the §4 table (columns: Functionality, Primary Aggregate, Other Aggregates, Kind, Description):
+Extract from the §4 table (columns: Functionality, **Primary Entity**, **Other Entities**, Kind, Description):
 - Functionality name (string)
 - Kind (`Write` or `Read`; match case-insensitively)
-- Primary Aggregate (string)
-- Other Aggregates (comma-separated or "—" for none)
+- Primary Entity (string)
+- Other Entities (comma-separated or "—" for none)
 - Description (string)
+
+**The domain model names entities, not aggregates.** It is a plain domain and cannot name a
+decomposition; Step 3.5 joins these two columns against grouping §1 to derive the aggregate mapping
+the rest of this skill uses.
 
 **Operation type is read from the `Kind` column, never inferred.** The domain model declares it; the
 description is prose and is not evidence. Do not apply keyword heuristics to the description and do
 not prompt the user to disambiguate — a missing or unrecognised `Kind` value is a malformed spec:
 halt with `"Functionality '{functionality_name}' has no valid Kind (expected 'Write' or 'Read'). Fix §4 of the domain model."`
 
-**Output:** List of tuples `{functionality_name, operation_type, primary_aggregate, other_aggregates, description}`.
+**Output:** List of tuples `{functionality_name, operation_type, primary_entity, other_entities, description}`.
 
 ---
 
@@ -150,13 +161,23 @@ Extract three distinct datasets:
 
 #### 3.a: Parse §1 — Aggregates
 
-Extract from the §1 table (columns: Aggregate, Description, Entities contained, Service):
+Extract from the §1 table (columns: Aggregate, Description, Entities contained, **Snapshot value objects**, Service):
 - Aggregate name (string)
 - Description (string)
-- Entities contained (string, may be comma-separated)
+- Entities contained (string, may be comma-separated) — **domain entities**, named exactly as
+  domain §1 names them
+- Snapshot value objects (comma-separated, or "—") — classes this grouping introduces that are
+  **not** domain entities: local copies of another aggregate's data, whose cached fields §2 lists
 - Service class name (string)
 
-**Output:** List of tuples `{aggregate_name, description, entities, service}`. Build a map `aggregate_name → {description, entities, service}` for later lookup.
+**Output:** List of tuples `{aggregate_name, description, entities, snapshot_value_objects, service}`.
+Build a map `aggregate_name → {description, entities, snapshot_value_objects, service}` for later
+lookup, and the inverse map `entity_name → aggregate_name` over the "Entities contained" column.
+
+> **A grouping written against the pre-2026-09-19 template has no "Snapshot value objects" column.**
+> Treat a missing column as empty for every row and continue; the classes it would have named appear
+> in "Entities contained" instead, and Step 6's file emission — which enumerates the union of the two
+> columns — produces the same list either way.
 
 #### 3.b: Parse §3 — Dependency DAG
 
@@ -245,6 +266,62 @@ Single snapshots never need a separate Dto in either case.
   non-empty "Updated on event"; each needs an entity class, no Dto
 - `inline_single_snapshots[agg]` → single snapshots with no "Updated on event"; **no files at all**,
   they become fields on the aggregate
+
+---
+
+### Step 3.5: Derive the Aggregate Mapping from Grouping §1
+
+The domain model is a plain domain: it names entities, and nothing in it says which aggregate an
+entity belongs to. Grouping §1 says exactly that. Join them here, once, and use the result for the
+rest of the skill.
+
+**Build the entity index.** From Step 3.a, for every aggregate row and every name in its
+"Entities contained" cell, record `entity_to_aggregate[entity] = aggregate`.
+
+> An entity named in **two** rows is a malformed grouping: halt with
+> `"Entity '{entity}' appears in the 'Entities contained' column of more than one aggregate ({A}, {B}). Fix §1 of the aggregate grouping."`
+
+**Map each functionality.** For every functionality parsed in Step 2.c:
+
+```
+primary_aggregate  = entity_to_aggregate[F.primary_entity]
+other_aggregates   = { entity_to_aggregate[e] for e in F.other_entities } - { primary_aggregate }
+```
+
+Two consequences, and they are the point of the separation:
+
+- **Co-located entities collapse.** When an operation's other entities all sit in the primary's
+  aggregate, `other_aggregates` is empty and the operation is a plain service method with no saga
+  coordination — derived, not declared. A second grouping that splits those entities apart turns the
+  same functionality into a saga with no edit to the domain model.
+- **Nothing is read from the domain model about aggregates.** `primary_aggregate` and
+  `other_aggregates` are *derived* values from here on; every later step uses them exactly as it
+  used the old §4 columns.
+
+**Halt condition — an unplaced entity.** If any entity named in domain §4 (either column) is absent
+from `entity_to_aggregate`, halt with:
+
+```
+"Functionality '{functionality_name}' names entity '{entity}', which appears in no 'Entities contained'
+ cell of §1 of the aggregate grouping. Either add it to an aggregate or remove it from §4 of the domain
+ model."
+```
+
+Do not guess a placement and do not fall back to treating the name as an aggregate. A missing
+placement means the pair is incomplete, and every downstream count — sessions, file lists, the
+topological order — would be wrong in a way that only surfaces mid-implementation.
+
+**Map each rule's entities too.** Apply the same index to the `Entities` list of every §3.2 rule
+parsed in Step 2.b, giving `rule_aggregates[rule] = { entity_to_aggregate[e] for e in rule.entities }`.
+Step 4's first question — "does the rule involve only data that lives inside a single aggregate?" —
+is answered from this set together with the snapshot fields from Step 3.d. An entity in a rule's
+`Entities` list that is absent from the index is **not** a halt: flag
+`"Needs review — Rule {rule_name} names unplaced entity '{entity}'"` and continue, because a rule may
+legitimately name a concept the grouping realises as a snapshot value object rather than as a
+contained entity.
+
+**Output:** `entity_to_aggregate`, and every functionality tuple extended with
+`{primary_aggregate, other_aggregates}`.
 
 ---
 
@@ -379,8 +456,9 @@ FOR each aggregate A at position i in sorted_aggregates:
 ```
 
 **5.5b — Reverse reads.** A **read** functionality is not a rule and has no pattern, so 5.5a cannot
-see it. Apply the same test to §4 directly: any read functionality whose "Other Aggregates" cell names
-an aggregate ordered later than its own Primary Aggregate is unimplementable in its own session `b`.
+see it. Apply the same test to the mapping Step 3.5 derived: any read functionality whose
+`other_aggregates` set contains an aggregate ordered later than its own `primary_aggregate` is
+unimplementable in its own session `b`.
 
 ```
 FOR each read functionality F in §4:
@@ -556,7 +634,7 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 ```
 | Session | Files |
 |---------|-------|
-| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per §1 entity), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `{src}microservices/exception/{AppClass}ErrorMessage.java` (edited), `{AppClass}SpockTest.groovy` (edited), `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
+| 2.N.a | `aggregate/{Aggregate}.java`, `aggregate/{OwnedEntity}.java` (per class in the §1 union - see below), `aggregate/{DomainEnum}.java` (per enum-typed §1 attribute), `aggregate/{CollectionSnapshotEntity}.java` (per × N snapshot from §2), `aggregate/{CollectionSnapshotEntity}Dto.java` (per × N snapshot entity), `aggregate/{SubscribingSnapshotEntity}.java` (per single §2 snapshot that subscribes to an event - see below), `aggregate/{Aggregate}Factory.java`, `aggregate/{Aggregate}CustomRepository.java`, `aggregate/sagas/Saga{Aggregate}.java`, `aggregate/sagas/states/{Aggregate}SagaState.java`, `aggregate/sagas/factories/Sagas{Aggregate}Factory.java`, `aggregate/sagas/repositories/{Aggregate}CustomRepositorySagas.java`, `aggregate/{Aggregate}Dto.java`, `aggregate/{Aggregate}Repository.java`, `{Aggregate}ServiceApplication.java`, `{src}microservices/exception/{AppClass}ErrorMessage.java` (edited), `{AppClass}SpockTest.groovy` (edited), `sagas/{aggregate}/{Aggregate}IntraInvariantTest.groovy`, `{src}microservices/domain/{AppClass}DomainConstants.java` (only if Step 6.e gave this aggregate a sentinel to declare) |
 ```
 
 > **`(edited)` entries** are files that already exist and are appended to, not created. Session `a`
@@ -575,7 +653,13 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 > `{Aggregate}ServiceApplication.java` must always appear in the 2.N.a row — the factory and
 > repository even when the aggregate has no cross-table lookups, and the service application
 > unconditionally, since it is the per-aggregate Spring entry point rather than a domain artifact.
-> Every owned entity class listed in the §1 "Entities contained" column must appear individually.
+> **The §1 union.** An aggregate's non-root classes are the union of its two §1 columns:
+> "Entities contained" (domain entities the grouping co-locates with the root) and
+> "Snapshot value objects" (classes the grouping introduces for data it copies from elsewhere).
+> Every name in either column, other than the aggregate root itself, gets its own
+> `aggregate/{OwnedEntity}.java` and must appear individually in the 2.N.a row. The two columns are
+> emitted identically; they differ only in where the name came from, which is what lets a second
+> grouping move a name from one column to the other without the file list changing shape.
 >
 > **Domain enums are derivable from §1 and must be listed.** Scan the §1 attribute types of the
 > aggregate and every owned entity: any attribute whose type is not a primitive, a `String`, a date/time
@@ -657,7 +741,8 @@ Paths in the tables below resolve against **three** roots, and the leading segme
 **Substitution rules:**
 - `{Aggregate}` → aggregate name (PascalCase, e.g., "Warehouse")
 - `{AGGREGATE}` → aggregate name in SCREAMING_SNAKE_CASE, as it appears in `ServiceMapping` (e.g., "WAREHOUSE")
-- `{OwnedEntity}` → the §1 "Entities contained" name **verbatim**. Do not prepend the aggregate name:
+- `{OwnedEntity}` → the name as the §1 union spells it ("Entities contained" or
+  "Snapshot value objects"), **verbatim**. Do not prepend the aggregate name:
   a §1 entry of `Shipment` yields `Shipment.java`, not `WarehouseShipment.java`. Prepend the aggregate
   name **only** to break an actual collision — another aggregate in §1 already claims that class name,
   or the name is already taken by an aggregate class. Prepending by reflex produces names that stutter
@@ -675,8 +760,9 @@ Paths in the tables below resolve against **three** roots, and the leading segme
     entity. Use that name **verbatim**; do not qualify it again. A `| Warehouse / WarehouseSlot × N |
     Shipment |` row yields `WarehouseSlot`, never `WarehouseShipment` or `WarehouseWarehouseSlot`.
 
-  Cross-check the result against the §1 "Entities contained" column of the aggregate grouping, which
-  is authoritative: the class name you emit must appear there. Appears twice in 2.N.a, once for the
+  Cross-check the result against the §1 union of the aggregate grouping ("Entities contained" plus
+  "Snapshot value objects"), which is authoritative: the class name you emit must appear in one of
+  the two columns. Appears twice in 2.N.a, once for the
   entity class and once for the Dto; omit if no `× N` rows exist for this aggregate.
 - `{SubscribingSnapshotEntity}` → same naming as above, for each single §2 snapshot with a non-empty
   "Updated on event"; omit if this aggregate has none
@@ -733,6 +819,27 @@ Rows: one per §3.2 rule
   do-not-implement note from Step 4
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
+
+#### Derived Aggregate Mapping Table
+
+The domain model names entities; grouping §1 places them. This table is the join Step 3.5 computed,
+written down so that a reader of `plan.md` can see where each operation's aggregates came from
+without re-deriving it, and so that a second grouping over the same domain produces a visibly
+different table from an identical domain model.
+
+```markdown
+## Derived Aggregate Mapping
+
+Derived by joining §4 of {App}-domain-model.md (Primary Entity / Other Entities) against §1 of
+{App}-aggregate-grouping.md (Entities contained). Entities this grouping co-locates collapse to one
+aggregate; an empty "Other aggregates" cell means the operation needs no saga coordination.
+
+| Functionality | Primary entity | Other entities | Primary aggregate | Other aggregates |
+|---|---|---|---|---|
+```
+
+Rows: one per functionality, in §4 order. Columns 2 and 3 are copied from §4; columns 4 and 5 are
+the derived values from Step 3.5, with `—` for an empty set.
 
 #### Aggregate Implementation Order Table
 ```markdown
