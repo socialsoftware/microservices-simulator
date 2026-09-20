@@ -5,8 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
+
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
 
 class CampaignProgressTest {
 
@@ -31,7 +34,12 @@ class CampaignProgressTest {
 
         OrchestrationReport.GroupSummary completedGroup = new OrchestrationReport.GroupSummary(
                 "first__second", "first", "second", false, List.of("Course"), 20, 1,
-                Map.of("DIRTY_READ", 2));
+                Map.of("DIRTY_READ", 2),
+                new BehavioralCoverage("normalized-behavior-v2", 20, 4, 16, 0.2,
+                        7, 3, 0.15,
+                        IntStream.rangeClosed(1, 20).map(i -> Math.min(i, 4)).boxed().toList(),
+                        IntStream.rangeClosed(1, 20).map(i -> i == 1 ? 3 : i == 2 ? 5 : 7).boxed().toList(),
+                        IntStream.rangeClosed(1, 20).map(i -> i == 1 ? 3 : i <= 3 ? 2 : 0).boxed().toList()));
         OrchestrationReport.Finding finding = new OrchestrationReport.Finding(
                 "catalog", "first__second", 7, List.of("CRITICAL_STEP_FAILURE"),
                 List.of("DIRTY_READ"), List.of("first::step"), "catalog/first__second/test-report-00008.json");

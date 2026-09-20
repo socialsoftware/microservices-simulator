@@ -13,6 +13,7 @@ import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
@@ -322,12 +324,18 @@ public final class Orchestrator {
             List<TestResult> results = driver.exploreGroup(catalog, group, progress::recordCompletedRun);
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
-            progress.recordCompletedGroup(
-                    catalog.name(), summaryOf(group, results, groupFindings.size()), groupFindings);
+            OrchestrationReport.GroupSummary groupSummary = summaryOf(group, results, groupFindings.size());
+            progress.recordCompletedGroup(catalog.name(), groupSummary, groupFindings);
             OrchestrationReport summary = checkpoint.write(OrchestrationReport.CampaignStatus.RUNNING, null);
 
-            log.info("Catalog '{}', group '{}': {} run(s), {} finding(s)",
-                    catalog.name(), group.label(), results.size(), groupFindings.size());
+            BehavioralCoverage coverage = Objects.requireNonNull(groupSummary.behavioralCoverage());
+            // Convert fraction to percentage and round to one decimal place for log output.
+            double discoveryPercentage = Math.round(coverage.discoveryRate() * 1_000.0) / 10.0;
+            log.info("Catalog '{}', group '{}': {} run(s), {} finding(s), {} unique behavior(s) ({}% discovery), "
+                    + "{} feature(s) discovered by {} run(s)",
+                    catalog.name(), group.label(), results.size(), groupFindings.size(),
+                    coverage.uniqueBehaviors(), discoveryPercentage,
+                    coverage.uniqueFeatures(), coverage.runsAddingFeatures());
             log.info("{}", CampaignProgressDisplay.format(summary));
         }
     }
@@ -543,7 +551,7 @@ public final class Orchestrator {
                 group.label(), group.first().toString(), group.second().toString(), group.isSelfPair(),
                 group.conflicts().stream()
                         .map(FunctionalityGroup.Conflict::identity).sorted().toList(),
-                results.size(), findingCount, Map.copyOf(anomalyCounts));
+                results.size(), findingCount, Map.copyOf(anomalyCounts), BehavioralCoverage.from(results));
     }
 
     /**

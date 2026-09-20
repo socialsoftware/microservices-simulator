@@ -14,6 +14,7 @@ import org.junit.jupiter.api.io.TempDir;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.AnomalyView;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.BehavioralFingerprintView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.EffectView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.InterInvariantViolationView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.ReadsFromView;
@@ -28,6 +29,7 @@ class TestReportWriterTest {
 
         TestReport report = new TestReport(
                 List.of("update-1::getOriginalTournamentStep", "update-1::commitStep"),
+                new BehavioralFingerprintView("normalized-behavior-v2", "abc123", List.of("step|update-1")),
                 List.of("INTER_INVARIANT_VIOLATION"),
                 List.of(new AnomalyView("DIRTY_READ",
                         "Step 'x' read a 'Tournament' write made by 'y', whose functionality later compensated")),

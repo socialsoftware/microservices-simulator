@@ -9,6 +9,7 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
 /**
@@ -26,7 +27,8 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  * @param ignoredSemanticLockSelectors semantic-lock selectors omitted during
  *                                     exploration; empty for a normal campaign
  * @param groupSelectors               exact {@code catalog/group-label}
- *                                     selections; empty when every planned group
+ *                                     selections; empty when every planned
+ *                                     group
  *                                     is explored
  * @param planHash                     SHA-256 fingerprint of the plan explored;
  *                                     {@code null} until planning completes
@@ -164,6 +166,7 @@ public record OrchestrationReport(
      *                           attention
      * @param anomalyCounts      anomaly type -> how many runs of this group
      *                           exhibited it
+     * @param behavioralCoverage behavioral diversity summary for this group
      */
     public record GroupSummary(
             String label,
@@ -173,7 +176,8 @@ public record OrchestrationReport(
             List<String> conflictIdentities,
             int runsExecuted,
             int findingCount,
-            Map<String, Integer> anomalyCounts) {
+            Map<String, Integer> anomalyCounts,
+            @Nullable BehavioralCoverage behavioralCoverage) {
     }
 
     /**
@@ -242,6 +246,22 @@ public record OrchestrationReport(
         return catalogs.stream().mapToInt(catalog -> catalog.groups().size()).sum();
     }
 
+    public int uniqueGroupLocalBehaviors() {
+        return catalogs.stream()
+                .flatMap(catalog -> catalog.groups().stream())
+                .filter(group -> group.behavioralCoverage() != null)
+                .mapToInt(group -> group.behavioralCoverage().uniqueBehaviors())
+                .sum();
+    }
+
+    public int duplicateBehaviorRuns() {
+        return catalogs.stream()
+                .flatMap(catalog -> catalog.groups().stream())
+                .filter(group -> group.behavioralCoverage() != null)
+                .mapToInt(group -> group.behavioralCoverage().duplicateRuns())
+                .sum();
+    }
+
     /** A short, human-readable summary of the campaign. */
     public String summary() {
         String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, duration=%s]"
@@ -273,9 +293,17 @@ public record OrchestrationReport(
                 formatOptionalDuration(outcomeMetrics.firstInterInvariantViolationElapsedMillis()),
                 outcomeMetrics.stepExceptionsObserved(), outcomeMetrics.runsWithStepExceptions());
         String statuses = "number of runs carrying each status: " + outcomeMetrics.statusRunCounts();
+        boolean completeBehavioralCoverage = catalogs.stream()
+                .flatMap(catalog -> catalog.groups().stream())
+                .allMatch(group -> group.behavioralCoverage() != null);
+        String behavior = completeBehavioralCoverage
+                ? "behavioral coverage: %d unique group-local behavior(s), %d duplicate run(s), %.1f%% discovery"
+                        .formatted(uniqueGroupLocalBehaviors(), duplicateBehaviorRuns(),
+                                totalRuns() == 0 ? 0.0 : 100.0 * uniqueGroupLocalBehaviors() / totalRuns())
+                : "behavioral coverage: unavailable in one or more group reports";
 
-        return String.join(
-                System.lineSeparator(), header, reports, groupsSelected, perCatalog, total, outcomes, statuses);
+        return String.join(System.lineSeparator(),
+                header, reports, groupsSelected, perCatalog, total, outcomes, behavior, statuses);
     }
 
     private static String formatOptionalDuration(Long durationMillis) {

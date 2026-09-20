@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
@@ -16,6 +17,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 /** A serialization-friendly, flattened view of a {@link TestResult}. */
 public record TestReport(
         List<String> schedule,
+        BehavioralFingerprintView behavioralFingerprint,
         List<String> statuses,
         List<AnomalyView> anomalies,
         Map<String, List<InterInvariantViolationView>> interInvariantViolations,
@@ -44,6 +46,12 @@ public record TestReport(
     }
 
     public record SemanticLockActivityView(String step, String lock, Integer aggregateId, String outcome) {
+    }
+
+    public record BehavioralFingerprintView(String schema, String hash, List<String> features) {
+        public BehavioralFingerprintView {
+            features = List.copyOf(features);
+        }
     }
 
     public static TestReport from(TestResult result) {
@@ -89,10 +97,11 @@ public record TestReport(
                 .toList();
 
         int functionalityCount = result.functionalities().size();
+        BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
 
         return new TestReport(
-                schedule, statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
-                semanticLockTrace, stepExceptions, functionalityCount);
+                schedule, toView(fingerprint), statuses, anomalies, interInvariantViolations,
+                effectSequence, readsFrom, semanticLockTrace, stepExceptions, functionalityCount);
     }
 
     private static AnomalyView toView(Anomaly anomaly) {
@@ -126,6 +135,11 @@ public record TestReport(
 
     private static InterInvariantViolationView toView(InterInvariantViolation interInvariantViolation) {
         return new InterInvariantViolationView(interInvariantViolation.description());
+    }
+
+    private static BehavioralFingerprintView toView(BehavioralFingerprint fingerprint) {
+        return new BehavioralFingerprintView(
+                fingerprint.schema(), fingerprint.hash(), fingerprint.features());
     }
 
     private static String describeException(Exception exception) {

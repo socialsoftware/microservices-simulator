@@ -19,9 +19,18 @@ public final class FunctionalityId {
             "initialStateSetup");
 
     private final String id;
+    /**
+     * Identity with database-generated delivery identifiers removed where possible.
+     */
+    private final String behavioralIdentity;
 
     private FunctionalityId(String id) {
+        this(id, id);
+    }
+
+    private FunctionalityId(String id, String behavioralIdentity) {
         this.id = id;
+        this.behavioralIdentity = behavioralIdentity;
     }
 
     public static FunctionalityId forSagaFunctionality(String functionalityId) {
@@ -56,13 +65,35 @@ public final class FunctionalityId {
             Integer subscriberAggregateId,
             Integer publisherAggregateId) {
 
-        return new FunctionalityId(String.join(ID_CONNECTOR,
+        String concreteIdentity = String.join(ID_CONNECTOR,
                 "event", eventClazz.getName(),
                 "eventId", encodeEventId(eventId),
                 "fromAggregate", publisherAggregateId.toString(),
                 "toAggregate", subscriberAggregateId.toString(),
                 "capturedAfter", capturedAfterStepId.toString(),
-                "withHandler", eventHandlerClazz.getName()));
+                "withHandler", eventHandlerClazz.getName());
+
+        /*
+         * Persisted event and aggregate IDs are recreated between runs. Keep them in
+         * the concrete scheduler identity, but omit them from the observational
+         * identity used to compare behavior across runs. Captured-after remains: it
+         * distinguishes deliveries materialized at different logical points, and is
+         * already normalized recursively when it is itself an event delivery.
+         */
+        String behavioralIdentity = String.join(ID_CONNECTOR,
+                "event", eventClazz.getName(),
+                "capturedAfter", capturedAfterStepId.behavioralIdentity(),
+                "withHandler", eventHandlerClazz.getName());
+
+        return new FunctionalityId(concreteIdentity, behavioralIdentity);
+    }
+
+    /**
+     * Returns identity used for behavioral comparison, never for scheduling or
+     * addressing a concrete event delivery.
+     */
+    String behavioralIdentity() {
+        return behavioralIdentity;
     }
 
     /**

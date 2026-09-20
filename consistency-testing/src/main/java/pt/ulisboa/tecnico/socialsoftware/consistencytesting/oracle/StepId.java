@@ -11,24 +11,30 @@ public final class StepId {
      * setup.
      */
     private static final StepId INITIAL_STATE_SETUP_STEP = new StepId(
-            FunctionalityId.forInitialStateSetupFunctionality(), "step");
+            FunctionalityId.forInitialStateSetupFunctionality(), "step", StepKind.FUNCTIONALITY);
 
     private final FunctionalityId functionalityId;
     private final String id;
-    private final boolean crossRunStableIdentity;
+    /** Identity used for cross-run behavioral comparison. */
+    private final String behavioralIdentity;
+    private final StepKind stepKind;
+    private final boolean isIdentityStableAcrossRuns;
 
-    private StepId(FunctionalityId functionalityId, String id, boolean crossRunStableIdentity) {
+    private StepId(
+            FunctionalityId functionalityId, String id, StepKind stepKind, boolean isIdentityStableAcrossRuns) {
         this.functionalityId = functionalityId;
         this.id = functionalityId.toString() + ID_SEPARATOR + id;
-        this.crossRunStableIdentity = crossRunStableIdentity;
+        this.behavioralIdentity = functionalityId.behavioralIdentity() + ID_SEPARATOR + id;
+        this.stepKind = stepKind;
+        this.isIdentityStableAcrossRuns = isIdentityStableAcrossRuns;
     }
 
-    private StepId(FunctionalityId functionalityId, String id) {
-        this(functionalityId, id, true);
+    private StepId(FunctionalityId functionalityId, String id, StepKind stepKind) {
+        this(functionalityId, id, stepKind, true);
     }
 
     public static StepId forFunctionalityStep(FunctionalityId functionalityId, String stepName) {
-        return new StepId(functionalityId, stepName);
+        return new StepId(functionalityId, stepName, StepKind.FUNCTIONALITY);
     }
 
     /**
@@ -39,11 +45,11 @@ public final class StepId {
      * @return the corresponding {@link StepId}
      */
     public static StepId forCompensationStep(FunctionalityId functionalityId, String stepName) {
-        return new StepId(functionalityId, stepName + ID_CONNECTOR + "compensation");
+        return new StepId(functionalityId, stepName + ID_CONNECTOR + "compensation", StepKind.COMPENSATION);
     }
 
     public static StepId forCommitStep(FunctionalityId functionalityId) {
-        return new StepId(functionalityId, "commitStep");
+        return new StepId(functionalityId, "commitStep", StepKind.COMMIT);
     }
 
     /**
@@ -53,7 +59,7 @@ public final class StepId {
      * @return the corresponding {@link StepId}
      */
     public static StepId forAbortStep(FunctionalityId functionalityId, String stepName) {
-        return new StepId(functionalityId, stepName + ID_CONNECTOR + "abort");
+        return new StepId(functionalityId, stepName + ID_CONNECTOR + "abort", StepKind.ABORT);
     }
 
     /**
@@ -61,7 +67,7 @@ public final class StepId {
      * The identity of this step will not be considered stable across runs.
      */
     public static StepId forEventHandlerStep(FunctionalityId eventHandlerFunctionalityId) {
-        return new StepId(eventHandlerFunctionalityId, "handlerStep", false);
+        return new StepId(eventHandlerFunctionalityId, "handlerStep", StepKind.EVENT_HANDLER, false);
     }
 
     /** The synthetic step that represents the entire initial state setup. */
@@ -82,7 +88,21 @@ public final class StepId {
      * materialize.
      */
     public boolean isIdentityStableAcrossRuns() {
-        return crossRunStableIdentity;
+        return isIdentityStableAcrossRuns;
+    }
+
+    /**
+     * Logical identity used only for cross-run behavioral observations. Unlike
+     * {@link #toString()}, event-delivery identities omit database-generated event
+     * and aggregate IDs. It must never be used to schedule or address a concrete
+     * step: distinct deliveries can intentionally share this identity.
+     */
+    String behavioralIdentity() {
+        return behavioralIdentity;
+    }
+
+    StepKind stepKind() {
+        return stepKind;
     }
 
     @Override
