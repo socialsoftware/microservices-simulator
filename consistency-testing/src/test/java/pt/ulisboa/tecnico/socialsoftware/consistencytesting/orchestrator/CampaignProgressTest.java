@@ -16,8 +16,8 @@ class CampaignProgressTest {
     @Test
     void snapshotsKeepCompletedGroupsWhileLeavingTheRemainingPlanVisible() {
         CampaignProgress progress = new CampaignProgress(
-                "example.Application", 42L, List.of("--example=true"), 20, "target/reports", List.of(),
-                List.of("catalog/first__second"), 1_000L);
+                "example.Application", 42L, List.of("--example=true"), 20, "random-constraints", "target/reports",
+                List.of(), List.of("catalog/first__second"), 1_000L);
 
         progress.registerCatalog("catalog", 3, 6, 2);
         OrchestrationReport beforeExploration = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null);

@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
 /**
@@ -21,6 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  * @param springAppArgs                application arguments used for this
  *                                     campaign
  * @param iterationsPerGroup           oracle runs performed per planned group
+ * @param scheduleExplorationStrategy  within-group scheduling policy
  * @param reportsDirectory             where the per-run reports were written
  * @param reportSchemaVersion          version of the campaign/report metadata
  *                                     schema
@@ -56,6 +58,7 @@ public record OrchestrationReport(
         long masterSeed,
         List<String> springAppArgs,
         int iterationsPerGroup,
+        String scheduleExplorationStrategy,
         String reportsDirectory,
         int reportSchemaVersion,
         List<String> ignoredSemanticLockSelectors,
@@ -73,6 +76,9 @@ public record OrchestrationReport(
 
     public OrchestrationReport {
         springAppArgs = List.copyOf(springAppArgs);
+        scheduleExplorationStrategy = scheduleExplorationStrategy == null
+                ? ScheduleExplorationStrategy.RANDOM_CONSTRAINTS.propertyValue()
+                : scheduleExplorationStrategy;
         ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
         groupSelectors = groupSelectors == null ? List.of() : List.copyOf(groupSelectors);
     }
@@ -264,8 +270,8 @@ public record OrchestrationReport(
 
     /** A short, human-readable summary of the campaign. */
     public String summary() {
-        String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, duration=%s]"
-                .formatted(application, status, masterSeed, iterationsPerGroup,
+        String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, strategy=%s, duration=%s]"
+                .formatted(application, status, masterSeed, iterationsPerGroup, scheduleExplorationStrategy,
                         StringUtils.formatDuration(durationMillis));
 
         String reports = "reports: " + reportsDirectory;

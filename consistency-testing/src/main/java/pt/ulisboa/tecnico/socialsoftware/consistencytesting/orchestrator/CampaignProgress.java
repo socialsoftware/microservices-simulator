@@ -6,6 +6,7 @@ import java.util.List;
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 
 /**
  * Mutable campaign state used to produce durable, immutable report snapshots.
@@ -28,6 +29,7 @@ final class CampaignProgress {
     private final long masterSeed;
     private final List<String> springAppArgs;
     private final int iterationsPerGroup;
+    private final String scheduleExplorationStrategy;
     private final String reportsDirectory;
     private final List<String> ignoredSemanticLockSelectors;
     private final List<String> groupSelectors;
@@ -44,6 +46,7 @@ final class CampaignProgress {
             long masterSeed,
             List<String> springAppArgs,
             int iterationsPerGroup,
+            String scheduleExplorationStrategy,
             String reportsDirectory,
             List<String> ignoredSemanticLockSelectors,
             List<String> groupSelectors,
@@ -53,6 +56,7 @@ final class CampaignProgress {
         this.masterSeed = masterSeed;
         this.springAppArgs = List.copyOf(springAppArgs);
         this.iterationsPerGroup = iterationsPerGroup;
+        this.scheduleExplorationStrategy = scheduleExplorationStrategy;
         this.reportsDirectory = reportsDirectory;
         this.ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
         this.groupSelectors = List.copyOf(groupSelectors);
@@ -112,6 +116,7 @@ final class CampaignProgress {
                 masterSeed,
                 springAppArgs,
                 iterationsPerGroup,
+                scheduleExplorationStrategy,
                 reportsDirectory,
                 REPORT_SCHEMA_VERSION,
                 ignoredSemanticLockSelectors,

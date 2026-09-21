@@ -9,6 +9,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
@@ -31,6 +32,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestCase;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FeedbackScheduleCorpus.Plan;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 
@@ -53,6 +55,11 @@ public final class TestDriver {
      * (seeds the whole random schedule).
      */
     private static final long DEFAULT_MASTER_SEED = 42L;
+
+    /**
+     * Fixed salt used to derive an independent, reproducible feedback RNG stream.
+     */
+    private static final long GUIDANCE_SEED_SALT = 0x9E3779B97F4A7C15L;
 
     /**
      * Cap on inter-dependencies injected per run: more constraints make a run
@@ -80,6 +87,8 @@ public final class TestDriver {
 
     private int iterations = DEFAULT_ITERATIONS;
     private long masterSeed = DEFAULT_MASTER_SEED;
+    private ScheduleExplorationStrategy scheduleExplorationStrategy =
+            ScheduleExplorationStrategy.RANDOM_CONSTRAINTS;
 
     public TestDriver(Class<?> springAppClass, List<String> springAppBaseArgs, Path reportsDirectory) {
         oracle = new Oracle(springAppClass, springAppBaseArgs);
@@ -115,6 +124,11 @@ public final class TestDriver {
      */
     public TestDriver setMasterSeed(long masterSeed) {
         this.masterSeed = masterSeed;
+        return this;
+    }
+
+    public TestDriver setScheduleExplorationStrategy(ScheduleExplorationStrategy strategy) {
+        this.scheduleExplorationStrategy = Objects.requireNonNull(strategy);
         return this;
     }
 
@@ -162,14 +176,16 @@ public final class TestDriver {
     }
 
     /**
-     * Runs the fixed budget of randomized explorations over the test case produced
+     * Runs the fixed budget of schedule explorations over the test case produced
      * by {@code initialStateSetup} and returns every run's {@link TestResult}.
      * <p>
      * The supplier must return a fresh {@link TestCase.Builder} on each call (it
      * sets up DB state, which the oracle clears after every run). It may already
      * carry baseline inter-dependencies; those flow through untouched, and the
-     * driver folds the resulting happens-before edges into its graph so the
-     * constraints it injects never contradict them.
+     * the random-constraints strategy folds the resulting happens-before edges into
+     * its graph so the constraints it injects never contradict them. Dynamic
+     * strategies keep caller-supplied dependencies but inject no learned cross-run
+     * constraints.
      * <p>
      * Invokes {@code beforeCleanupHook} with each run's result while that run's
      * data is still in the database, which is the only moment a caller can inspect
@@ -185,7 +201,11 @@ public final class TestDriver {
             @Nullable Path reportSubdirectory) {
 
         Random rng = new Random(masterSeed);
+        // XOR mixes the fixed salt into the seed, producing a different but still
+        // reproducible stream for choosing corpus parents and mutations.
+        Random guidanceRng = new Random(masterSeed ^ GUIDANCE_SEED_SALT);
         List<TestResult> results = new ArrayList<>();
+        FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
 
         Set<StepId> observedSteps = new HashSet<>();
         StepDependencies observedIntraDependencies = new StepDependencies();
@@ -198,14 +218,25 @@ public final class TestDriver {
             // realize different concrete interleavings.
             oracle.setSchedulerSeed(rng.nextLong());
 
-            Set<InterDependency> chosen = chooseInterDependencies(
-                    observedSteps, observedIntraDependencies, observedInterDependencies, rng);
+            Plan schedulePlan = scheduleExplorationStrategy == ScheduleExplorationStrategy.FEEDBACK_GUIDED
+                    ? corpus.nextPlan(guidanceRng)
+                    : Plan.randomSchedule();
+
+            oracle.setSchedulerChoicePrefix(schedulePlan.choicePrefix());
+
+            Set<InterDependency> chosen = scheduleExplorationStrategy
+                    == ScheduleExplorationStrategy.RANDOM_CONSTRAINTS
+                            ? chooseInterDependencies(
+                                    observedSteps, observedIntraDependencies, observedInterDependencies, rng)
+                            : Set.of();
 
             TestResult result = oracle.runTest(
                     () -> buildTestCase(initialStateSetup, chosen), beforeCleanupHook);
 
             results.add(result);
-            reportWriter.write(TestReport.from(result), reportSubdirectory);
+            FeedbackScheduleCorpus.Observation observation = corpus.observe(result);
+            TestReport report = TestReport.from(result, scheduleExplorationStrategy, schedulePlan, observation);
+            reportWriter.write(report, reportSubdirectory);
 
             observedSteps.addAll(result.schedule());
             observedSteps.addAll(result.intraDependencies().getSteps());
@@ -380,6 +411,7 @@ public final class TestDriver {
             Function<AggregateHandlesRegistry, WorkflowFunctionality> factory = entry.getValue();
 
             oracle.setSchedulerSeed(masterSeed);
+            oracle.setSchedulerChoicePrefix(List.of());
 
             // The registry only exists once the run's initial state was set up,
             // but is needed after the run to resolve effects to handles.

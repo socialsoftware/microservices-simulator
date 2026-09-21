@@ -12,6 +12,7 @@ public record TestResult(
         StepDependencies interDependencies,
         Map<FunctionalityId, WorkflowFunctionality> functionalities,
         List<StepId> schedule,
+        ScheduleTrace scheduleTrace,
 
         // TODO exceptions can become memory heavy, this could be optimized memory-wise
         Map<StepId, Exception> exceptions,
@@ -35,6 +36,7 @@ public record TestResult(
         interDependencies = StepDependencies.copyOf(interDependencies);
         functionalities = Objects.requireNonNull(Map.copyOf(functionalities));
         schedule = Objects.requireNonNull(List.copyOf(schedule));
+        scheduleTrace = Objects.requireNonNull(scheduleTrace);
         exceptions = Objects.requireNonNull(Map.copyOf(exceptions));
         statuses = Objects.requireNonNull(Set.copyOf(statuses));
         effectSequence = Objects.requireNonNull(List.copyOf(effectSequence));
@@ -42,6 +44,25 @@ public record TestResult(
         semanticLockTrace = Objects.requireNonNull(List.copyOf(semanticLockTrace));
         anomalies = Objects.requireNonNull(List.copyOf(anomalies));
         interInvariantViolations = Objects.requireNonNull(Map.copyOf(interInvariantViolations));
+    }
+
+    /** Compatibility constructor for callers that do not execute a scheduler. */
+    public TestResult(
+            StepDependencies intraDependencies,
+            StepDependencies interDependencies,
+            Map<FunctionalityId, WorkflowFunctionality> functionalities,
+            List<StepId> schedule,
+            Map<StepId, Exception> exceptions,
+            Set<TestStatus> statuses,
+            List<StepEffect> effectSequence,
+            Set<ReadsFromRelation> readsFromRelations,
+            List<SemanticLockActivity> semanticLockTrace,
+            List<Anomaly> anomalies,
+            Map<String, Set<InterInvariantViolation>> interInvariantViolations) {
+
+        this(intraDependencies, interDependencies, functionalities, schedule, ScheduleTrace.empty(),
+                exceptions, statuses, effectSequence, readsFromRelations, semanticLockTrace,
+                anomalies, interInvariantViolations);
     }
 
     /**

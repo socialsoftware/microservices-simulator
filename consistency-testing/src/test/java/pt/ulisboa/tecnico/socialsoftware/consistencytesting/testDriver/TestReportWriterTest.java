@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestRepor
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.InterInvariantViolationView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.ReadsFromView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.SemanticLockActivityView;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.ScheduleExplorationView;
 
 class TestReportWriterTest {
 
@@ -30,6 +31,7 @@ class TestReportWriterTest {
         TestReport report = new TestReport(
                 List.of("update-1::getOriginalTournamentStep", "update-1::commitStep"),
                 new BehavioralFingerprintView("normalized-behavior-v2", "abc123", List.of("step|update-1")),
+                new ScheduleExplorationView("random-constraints", null, 0, true, false, 0, false, 0, List.of()),
                 List.of("INTER_INVARIANT_VIOLATION"),
                 List.of(new AnomalyView("DIRTY_READ",
                         "Step 'x' read a 'Tournament' write made by 'y', whose functionality later compensated")),

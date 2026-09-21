@@ -5,11 +5,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import org.jspecify.annotations.Nullable;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleDecision;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
@@ -18,6 +21,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 public record TestReport(
         List<String> schedule,
         BehavioralFingerprintView behavioralFingerprint,
+        ScheduleExplorationView scheduleExploration,
         List<String> statuses,
         List<AnomalyView> anomalies,
         Map<String, List<InterInvariantViolationView>> interInvariantViolations,
@@ -54,7 +58,40 @@ public record TestReport(
         }
     }
 
-    public static TestReport from(TestResult result) {
+    public record ScheduleDecisionView(int readySetSize, int selectedIndex) {
+    }
+
+    public record ScheduleExplorationView(
+            String strategy,
+            @Nullable String parentFingerprintHash,
+            int mutatedChoices,
+            boolean rewardEligible,
+            boolean newBehavior,
+            int newFeatures,
+            boolean admittedToCorpus,
+            int corpusSize,
+            List<ScheduleDecisionView> decisions) {
+
+        public ScheduleExplorationView {
+            decisions = List.copyOf(decisions);
+        }
+    }
+
+    static TestReport from(
+            TestResult result,
+            ScheduleExplorationStrategy strategy,
+            FeedbackScheduleCorpus.Plan plan,
+            FeedbackScheduleCorpus.Observation observation) {
+
+        return from(result, strategy, plan, observation, BehavioralFingerprint.from(result));
+    }
+
+    private static TestReport from(
+            TestResult result,
+            ScheduleExplorationStrategy strategy,
+            FeedbackScheduleCorpus.Plan plan,
+            FeedbackScheduleCorpus.Observation observation,
+            BehavioralFingerprint fingerprint) {
         List<String> schedule = result.schedule().stream()
                 .map(Object::toString)
                 .toList();
@@ -97,11 +134,25 @@ public record TestReport(
                 .toList();
 
         int functionalityCount = result.functionalities().size();
-        BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
+
+        List<ScheduleDecisionView> decisions = result.scheduleTrace().decisions().stream()
+                .map(TestReport::toView).toList();
+
+        BehavioralFingerprintView behavioralFingerprintView = new BehavioralFingerprintView(fingerprint.schema(), fingerprint.hash(), fingerprint.features());
+
+        ScheduleExplorationView scheduleExplorationView = new ScheduleExplorationView(
+                        strategy.propertyValue(), plan.parentFingerprintHash(), plan.mutatedChoices(),
+                        observation.rewardEligible(), observation.newBehavior(), observation.newFeatures(),
+                        observation.admittedToCorpus(), observation.corpusSize(), decisions);
 
         return new TestReport(
-                schedule, toView(fingerprint), statuses, anomalies, interInvariantViolations,
-                effectSequence, readsFrom, semanticLockTrace, stepExceptions, functionalityCount);
+                schedule, behavioralFingerprintView, scheduleExplorationView,
+                statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
+                semanticLockTrace, stepExceptions, functionalityCount);
+    }
+
+    private static ScheduleDecisionView toView(ScheduleDecision decision) {
+        return new ScheduleDecisionView(decision.readySetSize(), decision.selectedIndex());
     }
 
     private static AnomalyView toView(Anomaly anomaly) {

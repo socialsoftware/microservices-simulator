@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
-import java.util.Random;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
@@ -45,7 +44,7 @@ final class ScheduleExecutor {
     private final TracingSagaUnitOfWorkService.TraceSession traceSession;
     private final DeferredEventApplicationService.CaptureSession captureSession;
     private final Set<EventHandling> eventHandlings;
-    private final Random scheduleRng;
+    private final ScheduleChoiceController scheduleChoices;
     private final Map<FunctionalityId, WorkflowFunctionality> functionalities;
     private final Set<InterInvariant> interInvariants;
     private final StepDependencies interDependencies;
@@ -77,6 +76,21 @@ final class ScheduleExecutor {
             Set<EventHandling> eventHandlings,
             long schedulerSeed) {
 
+        this(functionalities, interInvariants, interDependencies, uowService, traceSession,
+                captureSession, eventHandlings, schedulerSeed, List.of());
+    }
+
+    ScheduleExecutor(
+            Map<FunctionalityId, WorkflowFunctionality> functionalities,
+            Set<InterInvariant> interInvariants,
+            StepDependencies interDependencies,
+            SagaUnitOfWorkService uowService,
+            TracingSagaUnitOfWorkService.TraceSession traceSession,
+            DeferredEventApplicationService.CaptureSession captureSession,
+            Set<EventHandling> eventHandlings,
+            long schedulerSeed,
+            List<Integer> schedulerChoicePrefix) {
+
         this.functionalities = Map.copyOf(functionalities);
         this.interInvariants = Set.copyOf(interInvariants);
         this.interDependencies = new StepDependencies(interDependencies);
@@ -84,7 +98,7 @@ final class ScheduleExecutor {
         this.captureSession = captureSession;
         this.traceSession = traceSession;
         this.eventHandlings = eventHandlings;
-        this.scheduleRng = new Random(schedulerSeed);
+        this.scheduleChoices = new ScheduleChoiceController(schedulerSeed, schedulerChoicePrefix);
 
         for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
             addSteps(OracleStepFactory.buildStepsForFunctionality(
@@ -123,6 +137,7 @@ final class ScheduleExecutor {
                 interDependencies,
                 functionalities,
                 List.copyOf(schedule), // list will reflect the LinkedHashSet order
+                scheduleChoices.trace(),
                 stepExceptionsMap,
                 detectedStatuses,
                 effectSequence,
@@ -458,7 +473,7 @@ final class ScheduleExecutor {
             return Optional.empty();
         }
 
-        return Optional.of(readySet.get(scheduleRng.nextInt(readySet.size())));
+        return Optional.of(readySet.get(scheduleChoices.choose(readySet.size())));
     }
 
     private boolean stepCanExecute(StepId stepId) {

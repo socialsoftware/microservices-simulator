@@ -37,7 +37,7 @@ class CampaignSummaryWriterTest {
             OrchestrationReport.CampaignStatus status, Long finishedAtEpochMillis, long durationMillis) {
 
         return new OrchestrationReport(
-                "example.Application", 42L, List.of("--example=true"), 20, "target/reports",
+                "example.Application", 42L, List.of("--example=true"), 20, "random-constraints", "target/reports",
                 1, List.of(), List.of("catalog/first__second"), "abc123", status,
                 100L, finishedAtEpochMillis, null, null, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(

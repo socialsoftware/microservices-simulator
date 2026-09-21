@@ -31,6 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.Functiona
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityFootprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityGroup;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityGroupPlanner;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestDriver;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
@@ -47,7 +48,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
  * footprint;</li>
  * <li>plan the pairs worth running concurrently
  * ({@link FunctionalityGroupPlanner});</li>
- * <li>explore each planned group for a fixed budget of randomized schedules
+ * <li>explore each planned group for a fixed budget of schedules
  * ({@link TestDriver#exploreGroup});</li>
  * <li>collect every run worth attention into an
  * {@link OrchestrationReport}.</li>
@@ -76,6 +77,7 @@ public final class Orchestrator {
     private static final String IGNORED_SEMANTIC_LOCKS_PROPERTY = "consistency.ignoredSemanticLocks";
     private static final String GROUP_SELECTORS_PROPERTY = "consistency.groupSelectors";
     private static final String REPORTS_DIRECTORY_PROPERTY = "consistency.reportsDirectory";
+    private static final String SCHEDULE_EXPLORATION_PROPERTY = "consistency.scheduleExploration";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -97,6 +99,7 @@ public final class Orchestrator {
     private Path reportsDirectory = DEFAULT_REPORTS_DIRECTORY;
     private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
     private Set<GroupSelector> groupSelectors = Set.of();
+    private ScheduleExplorationStrategy scheduleExplorationStrategy = ScheduleExplorationStrategy.RANDOM_CONSTRAINTS;
 
     private Orchestrator(Class<?> springAppClass) {
         this.springAppClass = springAppClass;
@@ -113,6 +116,11 @@ public final class Orchestrator {
         if (configuredGroups != null && !configuredGroups.isBlank()) {
             orchestrator.withGroupSelectors(
                     Arrays.stream(configuredGroups.split(",", -1)).map(String::trim).toList());
+        }
+        String configuredScheduleExploration = System.getProperty(SCHEDULE_EXPLORATION_PROPERTY);
+        if (configuredScheduleExploration != null && !configuredScheduleExploration.isBlank()) {
+            orchestrator.withScheduleExplorationStrategy(
+                    ScheduleExplorationStrategy.parse(configuredScheduleExploration));
         }
         return orchestrator;
     }
@@ -196,6 +204,12 @@ public final class Orchestrator {
         return this;
     }
 
+    /** Selects within-group schedule exploration. */
+    public Orchestrator withScheduleExplorationStrategy(ScheduleExplorationStrategy strategy) {
+        this.scheduleExplorationStrategy = Objects.requireNonNull(strategy);
+        return this;
+    }
+
     /*
      * TODO budget strategy: every planned group currently gets exactly
      * `iterationsPerGroup` runs, so a large catalog's campaign grows without bound
@@ -205,8 +219,8 @@ public final class Orchestrator {
      * interpretable (the summary already reports `unexploredGroups`);
      * - round-robin over groups, so every group gets some attention before any
      * group gets more;
-     * - adaptive budgets, giving more runs to groups that already produced
-     * findings.
+     * - adaptive budgets, rewarding new behavior and first-seen finding families,
+     * while penalizing duplicate behavior rather than raw repeated findings.
      */
 
     /**
@@ -220,10 +234,12 @@ public final class Orchestrator {
 
         TestDriver driver = new TestDriver(springAppClass, effectiveSpringAppArgs, effectiveReportsDirectory)
                 .setIterations(iterationsPerGroup)
-                .setMasterSeed(masterSeed);
+                .setMasterSeed(masterSeed)
+                .setScheduleExplorationStrategy(scheduleExplorationStrategy);
 
         CampaignProgress progress = new CampaignProgress(
                 springAppClass.getName(), masterSeed, effectiveSpringAppArgs, iterationsPerGroup,
+                scheduleExplorationStrategy.propertyValue(),
                 StringUtils.toPortableString(effectiveReportsDirectory), ignoredSemanticLockSelectors(),
                 configuredGroupSelectors(), startedAt);
 
@@ -241,8 +257,10 @@ public final class Orchestrator {
             String groupSelection = groupSelectors.isEmpty()
                     ? "all planned groups"
                     : "custom selected groups " + configuredGroupSelectors();
-            log.info("Campaign over {}: {} selected catalog(s), {}, {} iteration(s) per group, master seed {}",
-                    springAppClass.getSimpleName(), catalogs.size(), groupSelection, iterationsPerGroup, masterSeed);
+            log.info(
+                    "Campaign over {}: {} selected catalog(s), {}, {} iteration(s) per group, master seed {}, strategy {}",
+                    springAppClass.getSimpleName(), catalogs.size(), groupSelection, iterationsPerGroup,
+                    masterSeed, scheduleExplorationStrategy.propertyValue());
 
             List<PlannedCatalog> plans = selectPlannedGroups(
                     catalogs.stream().map(catalog -> planCatalog(driver, catalog)).toList(), groupSelectors);
@@ -379,6 +397,7 @@ public final class Orchestrator {
                 reportsDirectory,
                 ignoredSemanticLocks,
                 groupSelectors,
+                scheduleExplorationStrategy,
                 System.getProperty(REPORTS_DIRECTORY_PROPERTY),
                 Instant.ofEpochMilli(startedAtEpochMillis),
                 UUID.randomUUID());
@@ -394,6 +413,7 @@ public final class Orchestrator {
             Path requestedDirectory,
             Set<SemanticLockId> ignoredLocks,
             Set<GroupSelector> selectedGroups,
+            ScheduleExplorationStrategy strategy,
             String reportsDirectoryProperty,
             Instant startedAt,
             UUID runId) {
@@ -401,14 +421,20 @@ public final class Orchestrator {
         if (reportsDirectoryProperty != null && !reportsDirectoryProperty.isBlank()) {
             return Path.of(reportsDirectoryProperty);
         }
-        if (!isExperiment(ignoredLocks, selectedGroups) || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
+        if (!isExperiment(ignoredLocks, selectedGroups, strategy)
+                || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
             return requestedDirectory;
         }
         return ExperimentReportsDirectory.pathForExperiment(startedAt, runId);
     }
 
-    private static boolean isExperiment(Set<SemanticLockId> ignoredLocks, Set<GroupSelector> selectedGroups) {
-        return !ignoredLocks.isEmpty() || !selectedGroups.isEmpty();
+    private static boolean isExperiment(
+            Set<SemanticLockId> ignoredLocks,
+            Set<GroupSelector> selectedGroups,
+            ScheduleExplorationStrategy strategy) {
+
+        return !ignoredLocks.isEmpty() || !selectedGroups.isEmpty()
+                || strategy != ScheduleExplorationStrategy.RANDOM_CONSTRAINTS;
     }
 
     private List<String> ignoredSemanticLockSelectors() {

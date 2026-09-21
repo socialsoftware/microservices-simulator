@@ -86,6 +86,7 @@ public final class Oracle {
     private @Nullable String[] springAppArgs;
     private @Nullable ConfigurableApplicationContext springContext;
     private long schedulerSeed = DEFAULT_SCHEDULER_SEED;
+    private List<Integer> schedulerChoicePrefix = List.of();
     private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
 
     private @Nullable Set<EventHandling> eventHandlings;
@@ -294,7 +295,8 @@ public final class Oracle {
                     traceSession,
                     captureSession,
                     eventHandlings,
-                    schedulerSeed);
+                    schedulerSeed,
+                    schedulerChoicePrefix);
 
             return scheduleExecutor.execute();
         }
@@ -302,6 +304,15 @@ public final class Oracle {
 
     public Oracle setSchedulerSeed(long schedulerSeed) {
         this.schedulerSeed = schedulerSeed;
+        return this;
+    }
+
+    /**
+     * Replays scheduler choice positions while available, then resumes seeded
+     * random scheduling. Positions are mapped into each run's current ready set.
+     */
+    public Oracle setSchedulerChoicePrefix(List<Integer> schedulerChoicePrefix) {
+        this.schedulerChoicePrefix = List.copyOf(schedulerChoicePrefix);
         return this;
     }
 
