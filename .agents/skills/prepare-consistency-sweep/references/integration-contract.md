@@ -60,6 +60,12 @@ Add `consistency-sweep` profile with `activatedProperties` set to `test,sagas,lo
 
 `mvn test-compile -Pconsistency-sweep` catches Maven, import, constructor, and syntax problems.
 
+The engine clears aggregate data through the simulator's base Spring Data repository bean named
+`aggregateRepository`. It selects that bean by name because an application's specialized repository
+may extend `AggregateRepository`, making type-only lookup ambiguous. Application repositories should
+extend `JpaRepository` for their concrete aggregate type, as described in the
+[`docs/concepts/aggregate.md`](../../../../docs/concepts/aggregate.md) guidance.
+
 `TestDriver.init()` boots application with oracle profile and requires both providers. `profileFunctionalities(catalog)` runs every entry alone once. It validates setup, handles, factory construction, execution, and confirmed invariants.
 
 Neutral catalog entries must complete successfully in solo profiling. Step
