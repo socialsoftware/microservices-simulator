@@ -31,6 +31,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.Functiona
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityFootprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityGroup;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityGroupPlanner;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.PlanningPolicy;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestDriver;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
@@ -84,6 +85,7 @@ public final class Orchestrator {
     private static final String MINIMUM_RUNS_PER_GROUP_PROPERTY = "consistency.minimumRunsPerGroup";
     private static final String MAXIMUM_RUNS_PER_GROUP_PROPERTY = "consistency.maximumRunsPerGroup";
     private static final String ALLOCATION_BATCH_SIZE_PROPERTY = "consistency.allocationBatchSize";
+    private static final String PLANNING_POLICY_PROPERTY = "consistency.planningPolicy";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -111,6 +113,7 @@ public final class Orchestrator {
     private int minimumRunsPerGroup;
     private int maximumRunsPerGroup;
     private int allocationBatchSize;
+    private PlanningPolicy planningPolicy = PlanningPolicy.FOOTPRINT_CONFLICTS;
 
     private Orchestrator(Class<?> springAppClass) {
         this.springAppClass = springAppClass;
@@ -132,6 +135,10 @@ public final class Orchestrator {
         if (configuredScheduleExploration != null && !configuredScheduleExploration.isBlank()) {
             orchestrator.withScheduleExplorationStrategy(
                     ScheduleExplorationStrategy.parse(configuredScheduleExploration));
+        }
+        String configuredPlanningPolicy = System.getProperty(PLANNING_POLICY_PROPERTY);
+        if (configuredPlanningPolicy != null && !configuredPlanningPolicy.isBlank()) {
+            orchestrator.withPlanningPolicy(PlanningPolicy.parse(configuredPlanningPolicy));
         }
         String configuredGroupBudget = System.getProperty(GROUP_BUDGET_STRATEGY_PROPERTY);
         if (configuredGroupBudget != null && !configuredGroupBudget.isBlank()) {
@@ -234,6 +241,15 @@ public final class Orchestrator {
     }
 
     /**
+     * Selects which functionality pairs enter the campaign plan. Default is
+     * {@link PlanningPolicy#FOOTPRINT_CONFLICTS}.
+     */
+    public Orchestrator withPlanningPolicy(PlanningPolicy policy) {
+        this.planningPolicy = Objects.requireNonNull(policy);
+        return this;
+    }
+
+    /**
      * Shares one bounded run budget across every selected group. Each group first receives
      * {@code minimumRunsPerGroup}; remaining batches are distributed dynamically according to results.
      */
@@ -307,8 +323,8 @@ public final class Orchestrator {
 
             List<PlannedCatalog> plans = selectPlannedGroups(
                     catalogs.stream().map(catalog -> planCatalog(driver, catalog)).toList(), groupSelectors);
-            progress.setPlanHash(planHashOf(plans));
             // Register the complete plan before execution so checkpoints show campaign-wide totals, including future catalogs.
+            progress.setPlanHash(planHashOf(planningPolicy, plans));
             plans.forEach(plan -> progress.registerCatalog(
                     plan.catalog().name(), plan.functionalitiesProfiled(),
                     plan.possiblePairs(), plan.groups().size()));
@@ -373,7 +389,8 @@ public final class Orchestrator {
          */
         Map<FunctionalityId, FunctionalityFootprint> footprints = driver.profileFunctionalities(catalog);
 
-        List<FunctionalityGroup> groups = FunctionalityGroupPlanner.planGroups(footprints.values()).stream()
+        List<FunctionalityGroup> groups = FunctionalityGroupPlanner.planGroups(
+                footprints.values(), planningPolicy).stream()
                 .sorted(Comparator.comparing(FunctionalityGroup::label))
                 .toList();
 
@@ -561,6 +578,7 @@ public final class Orchestrator {
                 groupSelectors,
                 scheduleExplorationStrategy,
                 groupBudgetStrategy,
+                planningPolicy,
                 System.getProperty(REPORTS_DIRECTORY_PROPERTY),
                 Instant.ofEpochMilli(startedAtEpochMillis),
                 UUID.randomUUID());
@@ -578,6 +596,7 @@ public final class Orchestrator {
             Set<GroupSelector> selectedGroups,
             ScheduleExplorationStrategy strategy,
             GroupBudgetStrategy groupBudgetStrategy,
+            PlanningPolicy planningPolicy,
             String reportsDirectoryProperty,
             Instant startedAt,
             UUID runId) {
@@ -585,23 +604,68 @@ public final class Orchestrator {
         if (reportsDirectoryProperty != null && !reportsDirectoryProperty.isBlank()) {
             return Path.of(reportsDirectoryProperty);
         }
-        if (!isExperiment(ignoredLocks, selectedGroups, strategy, groupBudgetStrategy)
+        if (!isExperiment(ignoredLocks, selectedGroups, strategy, groupBudgetStrategy, planningPolicy)
                 || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
             return requestedDirectory;
         }
         return ExperimentReportsDirectory.pathForExperiment(startedAt, runId);
     }
 
+    static Path resolveReportsDirectory(
+            Path requestedDirectory,
+            Set<SemanticLockId> ignoredLocks,
+            Set<GroupSelector> selectedGroups,
+            ScheduleExplorationStrategy strategy,
+            GroupBudgetStrategy groupBudgetStrategy,
+            String reportsDirectoryProperty,
+            Instant startedAt,
+            UUID runId) {
+
+        return resolveReportsDirectory(requestedDirectory, ignoredLocks, selectedGroups,
+                strategy, groupBudgetStrategy, PlanningPolicy.FOOTPRINT_CONFLICTS,
+                reportsDirectoryProperty, startedAt, runId);
+    }
+
+    static Path resolveReportsDirectory(
+            Path requestedDirectory,
+            Set<SemanticLockId> ignoredLocks,
+            Set<GroupSelector> selectedGroups,
+            ScheduleExplorationStrategy strategy,
+            String reportsDirectoryProperty,
+            Instant startedAt,
+            UUID runId) {
+
+        return resolveReportsDirectory(requestedDirectory, ignoredLocks, selectedGroups,
+                strategy, GroupBudgetStrategy.FIXED_PER_GROUP, PlanningPolicy.FOOTPRINT_CONFLICTS,
+                reportsDirectoryProperty, startedAt, runId);
+    }
+
+    static Path resolveReportsDirectory(
+            Path requestedDirectory,
+            Set<SemanticLockId> ignoredLocks,
+            Set<GroupSelector> selectedGroups,
+            String reportsDirectoryProperty,
+            Instant startedAt,
+            UUID runId) {
+
+        return resolveReportsDirectory(requestedDirectory, ignoredLocks, selectedGroups,
+                ScheduleExplorationStrategy.RANDOM_CONSTRAINTS,
+                GroupBudgetStrategy.FIXED_PER_GROUP, PlanningPolicy.FOOTPRINT_CONFLICTS,
+                reportsDirectoryProperty, startedAt, runId);
+    }
+
     private static boolean isExperiment(
             Set<SemanticLockId> ignoredLocks,
             Set<GroupSelector> selectedGroups,
             ScheduleExplorationStrategy strategy,
-            GroupBudgetStrategy groupBudgetStrategy) {
+            GroupBudgetStrategy groupBudgetStrategy,
+            PlanningPolicy planningPolicy) {
 
         // TODO if FIXED_PER_GROUP and RANDOM_CONSTRAINTS stop being the defaults, change this
         return !ignoredLocks.isEmpty() || !selectedGroups.isEmpty()
                 || strategy != ScheduleExplorationStrategy.RANDOM_CONSTRAINTS
-                || groupBudgetStrategy != GroupBudgetStrategy.FIXED_PER_GROUP;
+                || groupBudgetStrategy != GroupBudgetStrategy.FIXED_PER_GROUP
+                || planningPolicy != PlanningPolicy.FOOTPRINT_CONFLICTS;
     }
 
     private List<String> ignoredSemanticLockSelectors() {
@@ -699,10 +763,14 @@ public final class Orchestrator {
         }
     }
 
-    private static String planHashOf(List<PlannedCatalog> plans) {
+    static String planHashOf(PlanningPolicy planningPolicy, List<PlannedCatalog> plans) {
+        Objects.requireNonNull(planningPolicy, "planningPolicy");
         String canonicalPlan = plans.stream()
                 .map(PlannedCatalog::canonicalForm)
                 .collect(Collectors.joining("\n"));
+        if (planningPolicy != PlanningPolicy.FOOTPRINT_CONFLICTS) {
+            canonicalPlan = "planning-policy=" + planningPolicy.propertyValue() + "\n" + canonicalPlan;
+        }
         try {
             return java.util.HexFormat.of().formatHex(
                     MessageDigest.getInstance("SHA-256").digest(canonicalPlan.getBytes(StandardCharsets.UTF_8)));
@@ -721,6 +789,10 @@ public final class Orchestrator {
         DEFAULT_SWEEP_LOGGING_ARGS.forEach(argument -> argumentsByProperty.put(argumentProperty(argument), argument));
         applicationArgs.forEach(argument -> argumentsByProperty.put(argumentProperty(argument), argument));
         return List.copyOf(argumentsByProperty.values());
+    }
+
+    PlanningPolicy getPlanningPolicy() {
+        return planningPolicy;
     }
 
     private static String argumentProperty(String argument) {

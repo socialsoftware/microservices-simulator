@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.PlanningPolicy;
 
 class ExperimentReportsDirectoryTest {
 
@@ -86,6 +87,22 @@ class ExperimentReportsDirectoryTest {
                         Set.of(),
                         ScheduleExplorationStrategy.RANDOM_CONSTRAINTS,
                         GroupBudgetStrategy.ADAPTIVE_NOVELTY,
+                        null,
+                        Instant.parse("2026-08-30T21:45:22Z"),
+                        UUID.fromString("7f3a91c2-0000-0000-0000-000000000000")));
+    }
+
+    @Test
+    void allGroupsPlanningUsesAnAutomaticExperimentDirectory() {
+        assertEquals(
+                Path.of("target", "consistency-experiments", "2026-08-30_21-45-22-7f3a91c2"),
+                Orchestrator.resolveReportsDirectory(
+                        Path.of("target", "consistency-reports"),
+                        Set.of(),
+                        Set.of(),
+                        ScheduleExplorationStrategy.RANDOM_CONSTRAINTS,
+                        GroupBudgetStrategy.FIXED_PER_GROUP,
+                        PlanningPolicy.ALL_GROUPS,
                         null,
                         Instant.parse("2026-08-30T21:45:22Z"),
                         UUID.fromString("7f3a91c2-0000-0000-0000-000000000000")));

@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
 
@@ -255,5 +256,50 @@ class FunctionalityGroupPlannerTest {
         assertEquals(List.of(id("aReader"), id("zWriter")), pair.members(),
                 "members should be sorted by id");
         assertFalse(pair.isSelfPair());
+    }
+
+    @Test
+    void defaultPolicyRetainsOnlyGroupsWithConflictEvidence() {
+        Set<FunctionalityGroup> groups = FunctionalityGroupPlanner.planGroups(tournamentCrowd());
+
+        assertFalse(groups.isEmpty());
+        assertTrue(groups.stream().allMatch(group -> !group.conflicts().isEmpty()));
+        assertEquals(
+                groups,
+                FunctionalityGroupPlanner.planGroups(
+                        tournamentCrowd(), PlanningPolicy.FOOTPRINT_CONFLICTS));
+    }
+
+    @Test
+    void allGroupsPartitionsEveryPairByNormalPolicyRetention() {
+        List<FunctionalityFootprint> footprints = tournamentCrowd();
+        Set<FunctionalityGroup> normal = FunctionalityGroupPlanner.planGroups(footprints);
+        Set<FunctionalityGroup> all = FunctionalityGroupPlanner.planGroups(
+                footprints, PlanningPolicy.ALL_GROUPS);
+
+        Set<FunctionalityGroup> retained = all.stream()
+                .filter(group -> !group.conflicts().isEmpty())
+                .collect(Collectors.toSet());
+        Set<FunctionalityGroup> pruned = all.stream()
+                .filter(group -> group.conflicts().isEmpty())
+                .collect(Collectors.toSet());
+
+        assertEquals(21, all.size(), "six functionalities produce 6*7/2 unordered pairs");
+        assertEquals(normal, retained, "ALL_GROUPS must preserve exact normal conflict evidence");
+        assertTrue(retained.stream().noneMatch(pruned::contains));
+        assertEquals(all.size(), retained.size() + pruned.size());
+        assertEquals(6, all.stream().filter(FunctionalityGroup::isSelfPair).count());
+        assertTrue(requirePair(all, "browser", "browser").conflicts().isEmpty(),
+                "read-only self-pair is present only as normally pruned evidence");
+    }
+
+    @Test
+    void allGroupsOrderingIsDeterministicAcrossInputOrder() {
+        List<FunctionalityFootprint> footprints = tournamentCrowd();
+
+        assertEquals(
+                List.copyOf(FunctionalityGroupPlanner.planGroups(footprints, PlanningPolicy.ALL_GROUPS)),
+                List.copyOf(FunctionalityGroupPlanner.planGroups(
+                        footprints.reversed(), PlanningPolicy.ALL_GROUPS)));
     }
 }

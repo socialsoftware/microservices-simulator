@@ -6,6 +6,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
@@ -40,6 +41,19 @@ public final class FunctionalityGroupPlanner {
      * groups carrying their conflict evidence.
      */
     public static Set<FunctionalityGroup> planGroups(Collection<FunctionalityFootprint> footprints) {
+        return planGroups(footprints, PlanningPolicy.FOOTPRINT_CONFLICTS);
+    }
+
+    /**
+     * Plans unordered pairs, including self-pairs, according to {@code policy}.
+     * Under {@link PlanningPolicy#ALL_GROUPS}, empty conflict evidence identifies
+     * pairs that the default {@link PlanningPolicy#FOOTPRINT_CONFLICTS} would prune.
+     */
+    public static Set<FunctionalityGroup> planGroups(
+            Collection<FunctionalityFootprint> footprints, PlanningPolicy policy) {
+
+        Objects.requireNonNull(policy, "policy");
+
         // Sort by id to ensure canonical order of the pairs (first <= second).
         List<FunctionalityFootprint> sorted = footprints.stream()
                 .sorted(Comparator.comparing(footprint -> footprint.functionalityId().toString()))
@@ -52,7 +66,7 @@ public final class FunctionalityGroupPlanner {
                 FunctionalityFootprint second = sorted.get(j);
 
                 Set<FunctionalityGroup.Conflict> conflicts = conflictsBetween(first, second);
-                if (!conflicts.isEmpty()) {
+                if (policy == PlanningPolicy.ALL_GROUPS || !conflicts.isEmpty()) {
                     groups.add(new FunctionalityGroup(
                             first.functionalityId(), second.functionalityId(), conflicts));
                 }

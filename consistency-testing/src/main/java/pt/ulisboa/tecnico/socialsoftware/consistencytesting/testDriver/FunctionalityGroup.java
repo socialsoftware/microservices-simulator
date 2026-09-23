@@ -8,9 +8,9 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
 
 /**
- * A pair of functionalities the planner deems worth testing concurrently,
- * together with the evidence of why: the shared identities they conflict on and
- * what each member does to them.
+ * A pair of functionalities selected for concurrent testing. Under the default
+ * policy, its conflicts explain why it was selected. Under the ALL_GROUPS policy,
+ * the conflict set is empty when the default policy would prune the pair.
  * <p>
  * Members are held in canonical order ({@code first <= second} by id), so an
  * unordered pair has exactly one representation: structural equality and set
@@ -26,7 +26,8 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  * @param first     the member that sorts first by id (equal to {@code second}
  *                  in a self-pair)
  * @param second    the member that sorts second by id
- * @param conflicts the per-identity evidence this group was built from
+ * @param conflicts the per-identity conflict evidence; empty only for pairs
+ *                  retained by ALL_GROUPS beyond the default policy
  */
 public record FunctionalityGroup(
         FunctionalityId first, FunctionalityId second, Set<Conflict> conflicts) {

@@ -181,8 +181,9 @@ public record OrchestrationReport(
     }
 
     /**
-     * @param conflictIdentities the aggregate handles (or types) the planner
-     *                           paired these two functionalities on
+     * @param conflictIdentities the aggregate handles (or types) on which the
+     *                           members conflict; empty for an ALL_GROUPS pair
+     *                           that the default policy would prune
      * @param findingCount       how many runs of this group the planner found worth
      *                           attention
      * @param anomalyCounts      anomaly type -> how many runs of this group

@@ -97,6 +97,21 @@ class CampaignProgressTest {
         assertEquals(1, report.catalogs().getFirst().groups().size());
     }
 
+    @Test
+    void unrestrictedAllGroupsTotalsAndEmptyConflictClassificationSurviveSnapshots() {
+        CampaignProgress progress = new CampaignProgress(
+                "example.Application", 42L, List.of(), 20, "target/reports", List.of(), List.of(), 1_000L);
+        progress.registerCatalog("catalog", 2, 3, 3);
+        progress.recordCompletedGroup("catalog", new OrchestrationReport.GroupSummary(
+                "first__first", "first", "first", true, List.of(), 20, 0, Map.of(), null), List.of());
+
+        OrchestrationReport report = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null);
+
+        assertEquals(report.catalogs().getFirst().possiblePairs(), report.catalogs().getFirst().groupsPlanned());
+        assertEquals(List.of(), report.catalogs().getFirst().groups().getFirst().conflictIdentities());
+        assertEquals(2, report.catalogs().getFirst().unexploredGroups());
+    }
+
     private static OrchestrationReport.GroupSummary groupSummary(int runs, int findings) {
         return new OrchestrationReport.GroupSummary(
                 "first__second", "first", "second", false, List.of("Course"),
