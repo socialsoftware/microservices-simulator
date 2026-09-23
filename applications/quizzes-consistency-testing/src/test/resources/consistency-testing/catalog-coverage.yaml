@@ -9,6 +9,19 @@ positive_control_exclusions:
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.MoveParticipantBetweenTournamentsFunctionalitySagas
     scenario: impossible-compensation
     reason: "The planted started-target variant throws during its solo path, so the current engine rejects it before pair planning. Production code and its test factory remain intact; the neutral catalog uses a solo-valid target."
+semantic_lock_experiments:
+  runner: pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.QuizzesSemanticLockExperiment
+  command: "mvn test -Pconsistency-lock-experiments -Dtest=QuizzesSemanticLockExperiment"
+  paired_comparisons:
+    - lock: IN_TOURNAMENT_QUOTA_UPDATE
+      protected_result: "one join is rejected; MAX_TOURNAMENTS_PER_USER remains true"
+      ignored_result: "both joins commit; MAX_TOURNAMENTS_PER_USER is reported as an inter-invariant violation"
+      sweep_eligible: true
+    - lock: IN_MOVE_PARTICIPANT
+      protected_result: "source removal is rejected while movement owns the source; compensation restores the participant"
+      ignored_result: "source removal commits before compensation; compensation fails critically"
+      sweep_eligible: false
+      reason: "The fault-triggering started target makes the move functionality invalid in isolation, and the current catalog contract admits only solo-valid functionality instances."
 saga_aggregates:
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.SagaQuizAnswer
     source: applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/answer/aggregate/sagas/SagaQuizAnswer.java

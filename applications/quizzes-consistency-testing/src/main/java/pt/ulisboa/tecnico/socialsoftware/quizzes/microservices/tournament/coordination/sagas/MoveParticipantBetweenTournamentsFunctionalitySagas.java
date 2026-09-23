@@ -5,6 +5,7 @@ import java.util.Arrays;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaStep;
@@ -13,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.LeaveTournamentCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
 /**
@@ -90,14 +92,15 @@ public class MoveParticipantBetweenTournamentsFunctionalitySagas extends Workflo
             this.userDto = (UserDto) commandGateway.send(getStudentCommand);
         });
 
-        // No semantic lock is taken on the source tournament, so nothing stops another
-        // saga from acting on the version this step publishes - a version in which the
-        // user is already gone, even though the move may still be undone.
+        // The source lock prevents another saga from acting on the intermediate version
+        // this step publishes while the move may still need to be undone.
         SagaStep leaveSourceTournamentStep = new SagaStep("leaveSourceTournamentStep", () -> {
             LeaveTournamentCommand leaveTournamentCommand = new LeaveTournamentCommand(
                     unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(),
                     sourceTournamentAggregateId, userAggregateId);
-            commandGateway.send(leaveTournamentCommand);
+            SagaCommand sagaCommand = new SagaCommand(leaveTournamentCommand);
+            sagaCommand.setSemanticLock(TournamentSagaState.IN_MOVE_PARTICIPANT);
+            commandGateway.send(sagaCommand);
         }, new ArrayList<>(Arrays.asList(getUserStep)));
 
         // Puts the user back into the source tournament if the move fails

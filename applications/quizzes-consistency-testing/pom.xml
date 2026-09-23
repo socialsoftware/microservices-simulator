@@ -144,6 +144,32 @@
             </build>
         </profile>
 
+        <!--
+            Runs matched semantic-lock experiments. These deliberately inject
+            ignored locks and therefore stay separate from the valid-only
+            consistency catalog and from the ordinary test build.
+        -->
+        <profile>
+            <id>consistency-lock-experiments</id>
+            <properties>
+                <activatedProperties>test,sagas,local</activatedProperties>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <version>3.5.3</version>
+                        <configuration>
+                            <includes>
+                                <include>**/QuizzesSemanticLockExperiment.java</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
         <!-- Microservice Profiles -->
         <profile>
             <id>answer-service</id>

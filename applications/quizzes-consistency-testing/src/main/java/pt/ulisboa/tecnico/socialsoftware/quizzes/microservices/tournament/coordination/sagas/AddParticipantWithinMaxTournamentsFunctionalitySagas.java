@@ -15,6 +15,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.ServiceMapping;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.execution.GetStudentByExecutionIdAndUserIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.AddParticipantCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.CountUserTournamentsInExecutionCommand;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.states.CourseExecutionSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.UserDto;
 
@@ -87,7 +88,10 @@ public class AddParticipantWithinMaxTournamentsFunctionalitySagas extends Workfl
         SagaStep getUserStep = new SagaStep("getUserStep", () -> {
             GetStudentByExecutionIdAndUserIdCommand getStudentCommand = new GetStudentByExecutionIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userAggregateId);
-            this.userDto = (UserDto) commandGateway.send(getStudentCommand);
+            SagaCommand sagaCommand = new SagaCommand(getStudentCommand);
+            sagaCommand.setForbiddenStates(List.of(CourseExecutionSagaState.IN_TOURNAMENT_QUOTA_UPDATE));
+            sagaCommand.setSemanticLock(CourseExecutionSagaState.IN_TOURNAMENT_QUOTA_UPDATE);
+            this.userDto = (UserDto) commandGateway.send(sagaCommand);
         });
 
         // Reads the quota across every tournament of the execution.

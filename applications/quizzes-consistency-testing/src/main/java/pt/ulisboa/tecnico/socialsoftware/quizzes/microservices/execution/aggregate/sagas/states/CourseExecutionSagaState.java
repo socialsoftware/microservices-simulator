@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggreg
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum CourseExecutionSagaState implements SagaState {
+    IN_TOURNAMENT_QUOTA_UPDATE {
+        @Override
+        public String getStateName() {
+            return "IN_TOURNAMENT_QUOTA_UPDATE";
+        }
+    },
     IN_UPDATE_NAME {
         @Override
         public String getStateName() {

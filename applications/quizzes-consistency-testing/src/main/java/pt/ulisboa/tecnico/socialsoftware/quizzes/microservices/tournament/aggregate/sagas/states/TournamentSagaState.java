@@ -3,6 +3,12 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggre
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 public enum TournamentSagaState implements SagaState {
+    IN_MOVE_PARTICIPANT {
+        @Override
+        public String getStateName() {
+            return "IN_MOVE_PARTICIPANT";
+        }
+    },
     // TODO change to more generic states
     IN_UPDATE_TOURNAMENT {
         @Override

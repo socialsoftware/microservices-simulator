@@ -37,7 +37,9 @@ public class RemoveTournamentFunctionalitySagas extends WorkflowFunctionality {
         SagaStep getTournamentStep = new SagaStep("getTournamentStep", () -> {
             GetTournamentByIdCommand getTournamentByIdCommand = new GetTournamentByIdCommand(unitOfWork, ServiceMapping.TOURNAMENT.getServiceName(), tournamentAggregateId);
             SagaCommand sagaCommand = new SagaCommand(getTournamentByIdCommand);
-            sagaCommand.setForbiddenStates(new ArrayList<>(List.of(TournamentSagaState.IN_UPDATE_TOURNAMENT)));
+            sagaCommand.setForbiddenStates(new ArrayList<>(List.of(
+                    TournamentSagaState.IN_UPDATE_TOURNAMENT,
+                    TournamentSagaState.IN_MOVE_PARTICIPANT)));
             sagaCommand.setSemanticLock(TournamentSagaState.IN_DELETE_TOURNAMENT);
             TournamentDto tournamentDto = (TournamentDto) commandGateway.send(sagaCommand);
             setTournamentDto(tournamentDto);
