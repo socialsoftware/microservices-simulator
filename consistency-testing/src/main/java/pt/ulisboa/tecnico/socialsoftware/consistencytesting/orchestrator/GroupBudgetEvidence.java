@@ -25,8 +25,11 @@ final class GroupBudgetEvidence {
 
         for (TestResult result : results) {
             if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)
-                    || result.statuses().contains(TestStatus.EXECUTION_LIMIT_EXCEEDED)) {
-                continue; // incomplete or unresolvable schedules do not provide useful budget feedback
+                    || result.statuses().contains(TestStatus.EXECUTION_LIMIT_EXCEEDED)
+                    || result.hasOnlySemanticLockGuardRejections()) {
+                // Incomplete or unresolvable schedules and semantic-lock guard rejections
+                // do NOT provide useful budget feedback
+                continue;
             }
             BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
             if (behaviors.add(fingerprint.hash())) {
@@ -52,9 +55,9 @@ final class GroupBudgetEvidence {
 
     /** Avoids rewarding concrete IDs or every repeated instance of one bug. */
     private static String findingFamilyOf(BehavioralFingerprint fingerprint) {
-        // Keep status and finding outcome fields. Ignore step, effect, conflict, reads-from,
-        // and semantic-lock features because they describe execution details that can vary
-        // between occurrences of the same underlying bug.
+        // Keep status and finding outcome fields. Ignore step, effect, conflict,
+        // reads-from, and semantic-lock features because they describe execution
+        // details that can vary between occurrences of the same underlying bug.
         return fingerprint.features().stream()
                 .filter(feature -> feature.startsWith("status|")
                         || feature.startsWith("inter-invariant-violation|")

@@ -41,7 +41,7 @@ class CampaignSummaryWriterTest {
                 1, List.of(), List.of("catalog/first__second"), "abc123", status,
                 100L, finishedAtEpochMillis, null, null, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(
-                        0, 0, 0, 0, null, 0, 0, null, List.of(), 0, 0, java.util.Map.of()),
+                        0, 0, 0, 0, null, 0, 0, null, List.of(), 0, 0, 0, java.util.Map.of()),
                 List.of(), List.of(), null);
     }
 }

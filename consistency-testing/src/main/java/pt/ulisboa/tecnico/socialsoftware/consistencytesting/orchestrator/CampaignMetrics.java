@@ -24,6 +24,7 @@ final class CampaignMetrics {
     private final Set<String> violatedInterInvariantNames = new TreeSet<>();
     private int stepExceptionsObserved;
     private int runsWithStepExceptions;
+    private int semanticLockGuardRejectionRuns;
     // TreeMap keeps status counts in alphabetical order
     private final Map<String, Integer> statusRunCounts = new TreeMap<>();
 
@@ -72,6 +73,9 @@ final class CampaignMetrics {
         if (exceptionCount > 0) {
             runsWithStepExceptions++;
         }
+        if (result.hasOnlySemanticLockGuardRejections()) {
+            semanticLockGuardRejectionRuns++;
+        }
 
         result.statuses().forEach(status -> statusRunCounts.merge(status.name(), 1, Integer::sum));
     }
@@ -94,6 +98,7 @@ final class CampaignMetrics {
                 violatedInterInvariantNames.stream().toList(),
                 stepExceptionsObserved,
                 runsWithStepExceptions,
+                semanticLockGuardRejectionRuns,
                 statusRunCounts);
     }
 

@@ -123,6 +123,12 @@ public record OrchestrationReport(
      *                                                  reported as broken
      * @param stepExceptionsObserved                    total failed step executions
      * @param runsWithStepExceptions                    runs with a failed step
+     * @param semanticLockGuardRejectionRuns            runs where every recorded
+     *                                                  exception was caused by a
+     *                                                  semantic-lock guard rejection,
+     *                                                  with no status, anomaly, or
+     *                                                  invariant violation; these
+     *                                                  are evidence, not findings
      * @param statusRunCounts                           exact oracle status -> count
      *                                                  of completed runs carrying
      *                                                  it
@@ -139,6 +145,7 @@ public record OrchestrationReport(
             List<String> violatedInterInvariantNames,
             int stepExceptionsObserved,
             int runsWithStepExceptions,
+            int semanticLockGuardRejectionRuns,
             Map<String, Integer> statusRunCounts) {
 
         public OutcomeMetrics {
@@ -146,6 +153,7 @@ public record OrchestrationReport(
             // TreeMap so serialized reports keep status names in alphabetical order.
             statusRunCounts = Collections.unmodifiableMap(new TreeMap<>(statusRunCounts));
         }
+
     }
 
     /**
@@ -381,6 +389,8 @@ public record OrchestrationReport(
                 outcomeMetrics.runsWithInterInvariantViolations(),
                 formatOptionalDuration(outcomeMetrics.firstInterInvariantViolationElapsedMillis()),
                 outcomeMetrics.stepExceptionsObserved(), outcomeMetrics.runsWithStepExceptions());
+        String semanticLockGuardRejections = "semantic-lock guard rejection runs: %d (not findings)"
+                .formatted(outcomeMetrics.semanticLockGuardRejectionRuns());
         String statuses = "number of runs carrying each status: " + outcomeMetrics.statusRunCounts();
         boolean completeBehavioralCoverage = catalogs.stream()
                 .flatMap(catalog -> catalog.groups().stream())
@@ -393,7 +403,7 @@ public record OrchestrationReport(
 
         return String.join(
                 System.lineSeparator(), header, reports, groupsSelected, budget,
-                perCatalog, total, outcomes, behavior, statuses);
+                perCatalog, total, outcomes, semanticLockGuardRejections, behavior, statuses);
     }
 
     private static String formatOptionalDuration(Long durationMillis) {

@@ -29,6 +29,7 @@ public record TestReport(
         List<ReadsFromView> readsFromRelations,
         List<SemanticLockActivityView> semanticLockTrace,
         Map<String, String> stepExceptions,
+        boolean semanticLockGuardRejected,
         int functionalityCount) {
 
     public record InterInvariantViolationView(String description) {
@@ -148,7 +149,7 @@ public record TestReport(
         return new TestReport(
                 schedule, behavioralFingerprintView, scheduleExplorationView,
                 statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
-                semanticLockTrace, stepExceptions, functionalityCount);
+                semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(), functionalityCount);
     }
 
     private static ScheduleDecisionView toView(ScheduleDecision decision) {

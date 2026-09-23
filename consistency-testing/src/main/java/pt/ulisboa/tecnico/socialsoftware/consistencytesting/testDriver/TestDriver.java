@@ -371,8 +371,12 @@ public final class TestDriver {
      * Detected {@link Anomaly anomalies} deliberately do NOT make a run a finding
      * by themselves — they are reported as evidence, but an anomaly alone does not
      * mean the application misbehaved.
+     * Runs containing only semantic-lock guard rejections are also not findings.
      */
     public static boolean isFinding(TestResult result) {
+        if (result.hasOnlySemanticLockGuardRejections()) {
+            return false;
+        }
         return !result.exceptions().isEmpty()
                 || result.statuses().stream().anyMatch(INTERESTING_STATUSES::contains);
     }

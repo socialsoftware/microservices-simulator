@@ -44,6 +44,7 @@ class TestReportWriterTest {
                 List.of(new SemanticLockActivityView(
                         "update-1::getTopicsStep", "example.LockState#UPDATE", 7, "ACQUIRED")),
                 Map.of("update-1::getOriginalTournamentStep", "SimulatorException: boom!"),
+                false,
                 1);
 
         Path written = writer.write(report);

@@ -42,7 +42,7 @@ class CampaignProgressDisplayTest {
                 OrchestrationReport.CampaignStatus.RUNNING,
                 1_000L, null, lastCompletedGroupCatalog, lastCompletedGroup, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(
-                        runsPlanned, runsCompleted, 0, 0, null, 0, 0, null, List.of(), 0, 0, Map.of()),
+                        runsPlanned, runsCompleted, 0, 0, null, 0, 0, null, List.of(), 0, 0, 0, Map.of()),
                 List.of(), List.of(), null);
     }
 }

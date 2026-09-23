@@ -11,7 +11,9 @@ public record SemanticLockActivity(
 
     public enum Outcome {
         ACQUIRED,
-        SKIPPED
+        SKIPPED,
+        /** The operation was blocked by a semantic lock held by another saga. */
+        REJECTED
     }
 
     public SemanticLockActivity {

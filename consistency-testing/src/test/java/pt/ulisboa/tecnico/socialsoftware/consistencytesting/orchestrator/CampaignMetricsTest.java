@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.List;
@@ -14,8 +15,13 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Functionality
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestDriver;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 class CampaignMetricsTest {
 
@@ -52,6 +58,20 @@ class CampaignMetricsTest {
         assertNull(snapshot.firstInterInvariantViolationElapsedMillis());
     }
 
+    @Test
+    void countsProtectedSemanticLockConflictsSeparatelyFromFindings() {
+        CampaignMetrics metrics = new CampaignMetrics(1_000L);
+        TestResult result = protectedSemanticLockConflict();
+        metrics.record(result, 1_005L);
+
+        OrchestrationReport.OutcomeMetrics snapshot = metrics.snapshot(1);
+
+        assertEquals(1, snapshot.stepExceptionsObserved());
+        assertEquals(1, snapshot.runsWithStepExceptions());
+        assertEquals(1, snapshot.semanticLockGuardRejectionRuns());
+        assertFalse(TestDriver.isFinding(result));
+    }
+
     private static TestResult cleanResult() {
         return new TestResult(
                 new StepDependencies(), new StepDependencies(), Map.of(), List.of(), Map.of(), Set.of(),
@@ -74,5 +94,27 @@ class CampaignMetricsTest {
                         "courseHasQuestions", Set.of(
                                 new InterInvariantViolation("course has no questions"),
                                 new InterInvariantViolation("course has two quizzes"))));
+    }
+
+    private static TestResult protectedSemanticLockConflict() {
+        FunctionalityId functionality = FunctionalityId.forSagaFunctionality("createQuiz");
+        StepId step = StepId.forFunctionalityStep(functionality, "saveQuiz");
+        SagaState lock = TestSagaState.LOCKED;
+        return new TestResult(
+                new StepDependencies(), new StepDependencies(), Map.of(), List.of(step),
+                Map.of(step, new SimulatorException("Aggregate is being used in %s saga.", "LOCKED")),
+                Set.of(), List.of(), Set.of(),
+                List.of(new SemanticLockActivity(step, SemanticLockId.from(lock), 17,
+                        SemanticLockActivity.Outcome.REJECTED)),
+                List.of(), Map.of());
+    }
+
+    private enum TestSagaState implements SagaState {
+        LOCKED;
+
+        @Override
+        public String getStateName() {
+            return "LOCKED";
+        }
     }
 }

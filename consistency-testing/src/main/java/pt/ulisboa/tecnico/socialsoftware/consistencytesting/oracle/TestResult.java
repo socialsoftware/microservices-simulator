@@ -6,7 +6,6 @@ import java.util.Objects;
 import java.util.Set;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-
 public record TestResult(
         StepDependencies intraDependencies,
         StepDependencies interDependencies,
@@ -73,5 +72,19 @@ public record TestResult(
      */
     public Map<String, Set<InterInvariantViolation>> interInvariantViolations() {
         return interInvariantViolations;
+    }
+
+    /**
+     * A run where every recorded exception was caused by a semantic-lock guard
+     * rejecting an operation, with no status, anomaly, or invariant violation observed.
+     */
+    public boolean hasOnlySemanticLockGuardRejections() {
+        return !exceptions.isEmpty()
+                && statuses.isEmpty()
+                && anomalies.isEmpty()
+                && interInvariantViolations.isEmpty()
+                && semanticLockTrace.stream()
+                        .anyMatch(activity -> activity.outcome() == SemanticLockActivity.Outcome.REJECTED)
+                && exceptions.values().stream().allMatch(SemanticLockConflicts::isConflict);
     }
 }

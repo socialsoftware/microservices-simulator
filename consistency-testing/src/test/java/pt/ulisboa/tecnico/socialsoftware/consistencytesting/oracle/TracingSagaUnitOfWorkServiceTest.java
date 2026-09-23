@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoInteractions;
@@ -17,6 +18,7 @@ import jakarta.persistence.EntityManager;
 import org.junit.jupiter.api.Test;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
@@ -103,6 +105,58 @@ class TracingSagaUnitOfWorkServiceTest {
         service.registerSagaState(17, TestSagaState.IGNORED, new SagaUnitOfWork(1L, "testFunctionality"));
 
         verifyNoInteractions(repository);
+    }
+
+    @Test
+    void recordsRejectedLockAcquisitionAgainstTheExecutingOracleStep() throws ReflectiveOperationException {
+        TracingSagaUnitOfWorkService service = serviceWithAggregateInState(TestSagaState.IGNORED);
+
+        StepId stepId = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("testFunctionality"), "testStep");
+
+        try (TracingSagaUnitOfWorkService.TraceSession traceSession = service.beginTrace();
+                TracingSagaUnitOfWorkService.TraceSession.StepScope stepScope = traceSession.beginStep(stepId)) {
+
+            assertThrows(SimulatorException.class, () -> service.registerSagaState(
+                    17, TestSagaState.NOT_IGNORED, new SagaUnitOfWork(1L, "testFunctionality")));
+
+            assertEquals(List.of(new SemanticLockActivity(
+                    stepId, SemanticLockId.from(TestSagaState.NOT_IGNORED), 17,
+                    SemanticLockActivity.Outcome.REJECTED)), traceSession.getSemanticLockTrace());
+        }
+    }
+
+    @Test
+    void recordsTheActualForbiddenLockThatRejectedAProtectionCheck() throws ReflectiveOperationException {
+        TracingSagaUnitOfWorkService service = serviceWithAggregateInState(TestSagaState.IGNORED);
+
+        StepId stepId = StepId.forFunctionalityStep(
+                FunctionalityId.forSagaFunctionality("testFunctionality"), "testStep");
+
+        try (TracingSagaUnitOfWorkService.TraceSession traceSession = service.beginTrace();
+                TracingSagaUnitOfWorkService.TraceSession.StepScope stepScope = traceSession.beginStep(stepId)) {
+
+            assertThrows(SimulatorException.class, () -> service.verifySagaState(
+                    17, List.of(TestSagaState.NOT_IGNORED, TestSagaState.IGNORED)));
+
+            assertEquals(List.of(new SemanticLockActivity(
+                    stepId, SemanticLockId.from(TestSagaState.IGNORED), 17,
+                    SemanticLockActivity.Outcome.REJECTED)), traceSession.getSemanticLockTrace());
+        }
+    }
+
+    private static TracingSagaUnitOfWorkService serviceWithAggregateInState(TestSagaState currentState)
+            throws ReflectiveOperationException {
+
+        TracingSagaUnitOfWorkService service = new TracingSagaUnitOfWorkService();
+        SagaAggregateRepository repository = mock(SagaAggregateRepository.class);
+        Aggregate aggregate = mock(Aggregate.class, org.mockito.Mockito.withSettings()
+                .extraInterfaces(SagaAggregate.class));
+        SagaAggregate sagaAggregate = (SagaAggregate) aggregate;
+        when(repository.findNonDeletedSagaAggregate(17)).thenReturn(Optional.of(aggregate));
+        when(sagaAggregate.getSagaState()).thenReturn(currentState);
+        setField(service, SagaUnitOfWorkService.class, "sagaAggregateRepository", repository);
+        return service;
     }
 
     private static void setField(Object target, Class<?> declaringClass, String fieldName, Object value)

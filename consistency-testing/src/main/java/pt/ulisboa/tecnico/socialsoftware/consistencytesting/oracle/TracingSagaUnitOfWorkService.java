@@ -9,9 +9,12 @@ import java.util.concurrent.ConcurrentLinkedQueue;
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate;
+import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+
+import static pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorErrorMessage.AGGREGATE_BEING_USED_IN_OTHER_SAGA;
 
 public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
 
@@ -62,7 +65,9 @@ public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
         }
     }
 
-    private void traceSemanticLock(SemanticLockId semanticLock, Integer aggregateId, SemanticLockActivity.Outcome outcome) {
+    private void traceSemanticLock(
+            SemanticLockId semanticLock, Integer aggregateId, SemanticLockActivity.Outcome outcome) {
+
         TraceSession session = this.activeSession;
         if (session != null) {
             session.registerSemanticLock(semanticLock, aggregateId, outcome);
@@ -115,8 +120,34 @@ public class TracingSagaUnitOfWorkService extends SagaUnitOfWorkService {
             return;
         }
 
-        super.registerSagaState(aggregateId, state, unitOfWork);
-        traceSemanticLock(semanticLock, aggregateId, SemanticLockActivity.Outcome.ACQUIRED);
+        try {
+            super.registerSagaState(aggregateId, state, unitOfWork);
+            traceSemanticLock(semanticLock, aggregateId, SemanticLockActivity.Outcome.ACQUIRED);
+        } catch (SimulatorException exception) {
+            if (SemanticLockConflicts.isConflict(exception)) {
+                traceSemanticLock(semanticLock, aggregateId, SemanticLockActivity.Outcome.REJECTED);
+            }
+            throw exception;
+        }
+    }
+
+    @Override
+    public void verifySagaState(Integer aggregateId, List<SagaState> forbiddenStates) {
+        try {
+            super.verifySagaState(aggregateId, forbiddenStates);
+        } catch (SimulatorException exception) {
+            if (SemanticLockConflicts.isConflict(exception)) {
+                // Recover the conflicting SagaState from the exception message and trace the
+                // semantic lock guard rejection.
+                forbiddenStates.stream()
+                        .filter(state -> exception.getMessage().equals(
+                                AGGREGATE_BEING_USED_IN_OTHER_SAGA.formatted(state.getStateName())))
+                        .findFirst()
+                        .ifPresent(state -> traceSemanticLock(
+                                SemanticLockId.from(state), aggregateId, SemanticLockActivity.Outcome.REJECTED));
+            }
+            throw exception;
+        }
     }
 
     static final class TraceSession implements AutoCloseable {
