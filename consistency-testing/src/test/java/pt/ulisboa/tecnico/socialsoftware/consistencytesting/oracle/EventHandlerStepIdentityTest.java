@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -157,6 +158,26 @@ class EventHandlerStepIdentityTest {
                 .findFirst().orElseThrow().getId().toString();
 
         assertTrue(firstId.compareTo(secondId) < 0);
+    }
+
+    @Test
+    void nestedEventDeliveryIdentitiesRemainDistinctStableAndBounded() {
+        CountingHandler handler = new CountingHandler();
+        StepId first = CAPTURE_STEP;
+        StepId recreated = CAPTURE_STEP;
+        Set<String> concreteIdentities = new HashSet<>();
+
+        for (int depth = 0; depth < 100; depth++) {
+            first = eventStepId(event(10 + depth), handler, first, 30);
+            recreated = eventStepId(event(1_010 + depth), handler, recreated, 1_030);
+
+            assertTrue(concreteIdentities.add(first.toString()));
+            assertTrue(concreteIdentities.add(recreated.toString()));
+            assertNotEquals(first, recreated);
+            assertEquals(first.behavioralIdentity(), recreated.behavioralIdentity());
+            assertTrue(first.toString().length() < 1_024);
+            assertTrue(first.behavioralIdentity().length() < 1_024);
+        }
     }
 
     private static List<EventHandlerStep> captureSteps(

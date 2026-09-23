@@ -30,7 +30,7 @@ class TestReportWriterTest {
 
         TestReport report = new TestReport(
                 List.of("update-1::getOriginalTournamentStep", "update-1::commitStep"),
-                new BehavioralFingerprintView("normalized-behavior-v2", "abc123", List.of("step|update-1")),
+                new BehavioralFingerprintView("normalized-behavior-v3", "abc123", List.of("step|update-1")),
                 new ScheduleExplorationView("random-constraints", null, 0, true, false, 0, false, 0, List.of()),
                 List.of("INTER_INVARIANT_VIOLATION"),
                 List.of(new AnomalyView("DIRTY_READ",

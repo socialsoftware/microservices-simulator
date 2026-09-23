@@ -24,8 +24,9 @@ final class GroupBudgetEvidence {
         int newFindingFamilies = 0;
 
         for (TestResult result : results) {
-            if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)) {
-                continue; // not eligible for feedback
+            if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)
+                    || result.statuses().contains(TestStatus.EXECUTION_LIMIT_EXCEEDED)) {
+                continue; // incomplete or unresolvable schedules do not provide useful budget feedback
             }
             BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
             if (behaviors.add(fingerprint.hash())) {

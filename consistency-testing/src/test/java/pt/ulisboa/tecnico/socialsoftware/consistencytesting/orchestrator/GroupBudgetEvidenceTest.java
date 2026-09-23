@@ -52,6 +52,19 @@ class GroupBudgetEvidenceTest {
         assertEquals(0.0, feedback.reward());
     }
 
+    @Test
+    void doesNotRewardExecutionLimitFailures() {
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        TestResult failed = result("failed", null, TestStatus.EXECUTION_LIMIT_EXCEEDED);
+
+        AdaptiveGroupBudgetAllocator.BatchFeedback feedback = evidence.observe(List.of(failed));
+
+        assertEquals(0, feedback.newBehaviors());
+        assertEquals(0, feedback.runsAddingFeatures());
+        assertEquals(0, feedback.newFindingFamilies());
+        assertEquals(0.0, feedback.reward());
+    }
+
     private static TestResult result(String stepName, String violatedInvariant) {
         return result(stepName, violatedInvariant, null);
     }

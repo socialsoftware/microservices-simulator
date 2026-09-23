@@ -1,5 +1,9 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
+import java.util.HexFormat;
 import java.util.Locale;
 import java.util.Objects;
 
@@ -70,7 +74,8 @@ public final class FunctionalityId {
                 "eventId", encodeEventId(eventId),
                 "fromAggregate", publisherAggregateId.toString(),
                 "toAggregate", subscriberAggregateId.toString(),
-                "capturedAfter", capturedAfterStepId.toString(),
+                "capturedAfter", boundedCapturedAfterIdentity(
+                        capturedAfterStepId, capturedAfterStepId.toString()),
                 "withHandler", eventHandlerClazz.getName());
 
         /*
@@ -82,7 +87,8 @@ public final class FunctionalityId {
          */
         String behavioralIdentity = String.join(ID_CONNECTOR,
                 "event", eventClazz.getName(),
-                "capturedAfter", capturedAfterStepId.behavioralIdentity(),
+                "capturedAfter", boundedCapturedAfterIdentity(
+                        capturedAfterStepId, capturedAfterStepId.behavioralIdentity()),
                 "withHandler", eventHandlerClazz.getName());
 
         return new FunctionalityId(concreteIdentity, behavioralIdentity);
@@ -102,6 +108,28 @@ public final class FunctionalityId {
      */
     private static String encodeEventId(Integer eventId) {
         return String.format(Locale.ROOT, "%010d", eventId);
+    }
+
+    /**
+     * Direct source steps stay readable. For an event caused or retried after another
+     * event delivery, retain collision-resistant ancestry without recursively
+     * embedding the complete parent identity. This bounds IDs even for long event
+     * chains while preserving distinct concrete retry attempts.
+     */
+    private static String boundedCapturedAfterIdentity(StepId capturedAfterStepId, String identity) {
+        if (capturedAfterStepId.stepKind() != StepKind.EVENT_HANDLER) {
+            return identity;
+        }
+        return "eventHandlerStepHash-" + sha256(identity);
+    }
+
+    private static String sha256(String value) {
+        try {
+            return HexFormat.of().formatHex(MessageDigest.getInstance("SHA-256")
+                    .digest(value.getBytes(StandardCharsets.UTF_8)));
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("SHA-256 is required to bound event-handler identities", e);
+        }
     }
 
     @Override

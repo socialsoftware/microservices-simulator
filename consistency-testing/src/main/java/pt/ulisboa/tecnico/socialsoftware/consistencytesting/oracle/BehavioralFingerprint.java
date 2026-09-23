@@ -4,6 +4,7 @@ import java.nio.charset.StandardCharsets;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +24,7 @@ import java.util.TreeSet;
  */
 public record BehavioralFingerprint(String schema, String hash, List<String> features) {
 
-    public static final String SCHEMA = "normalized-behavior-v2";
+    public static final String SCHEMA = "normalized-behavior-v3";
 
     public BehavioralFingerprint {
         Objects.requireNonNull(schema);
@@ -148,10 +149,17 @@ public record BehavioralFingerprint(String schema, String hash, List<String> fea
     }
 
     private static String sha256(List<String> features) {
-        String canonical = SCHEMA + "\n" + String.join("\n", features);
         try {
-            return java.util.HexFormat.of().formatHex(
-                    MessageDigest.getInstance("SHA-256").digest(canonical.getBytes(StandardCharsets.UTF_8)));
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            digest.update(SCHEMA.getBytes(StandardCharsets.UTF_8));
+            digest.update((byte) '\n');
+            for (int index = 0; index < features.size(); index++) {
+                if (index > 0) {
+                    digest.update((byte) '\n'); // prepend newline to all but first feature
+                }
+                digest.update(features.get(index).getBytes(StandardCharsets.UTF_8));
+            }
+            return HexFormat.of().formatHex(digest.digest());
         } catch (NoSuchAlgorithmException e) {
             throw new IllegalStateException("SHA-256 is required to fingerprint oracle behavior", e);
         }

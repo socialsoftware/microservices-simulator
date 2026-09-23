@@ -70,7 +70,8 @@ final class FeedbackScheduleCorpus {
     }
 
     Observation observe(TestResult result) {
-        if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)) {
+        if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)
+                || result.statuses().contains(TestStatus.EXECUTION_LIMIT_EXCEEDED)) {
             return new Observation(false, false, 0, false, entries.size());
         }
 

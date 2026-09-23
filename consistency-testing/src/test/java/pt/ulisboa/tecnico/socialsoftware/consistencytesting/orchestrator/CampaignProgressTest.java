@@ -37,7 +37,7 @@ class CampaignProgressTest {
         OrchestrationReport.GroupSummary completedGroup = new OrchestrationReport.GroupSummary(
                 "first__second", "first", "second", false, List.of("Course"), 20, 1,
                 Map.of("DIRTY_READ", 2),
-                new BehavioralCoverage("normalized-behavior-v2", 20, 4, 16, 0.2,
+                new BehavioralCoverage("normalized-behavior-v3", 20, 4, 16, 0.2,
                         7, 3, 0.15,
                         IntStream.rangeClosed(1, 20).map(i -> Math.min(i, 4)).boxed().toList(),
                         IntStream.rangeClosed(1, 20).map(i -> i == 1 ? 3 : i == 2 ? 5 : 7).boxed().toList(),
@@ -102,7 +102,7 @@ class CampaignProgressTest {
                 "first__second", "first", "second", false, List.of("Course"),
                 runs, findings, Map.of(),
                 new BehavioralCoverage(
-                        "normalized-behavior-v2", runs, runs, 0, 1.0,
+                        "normalized-behavior-v3", runs, runs, 0, 1.0,
                         runs, runs, 1.0,
                         IntStream.rangeClosed(1, runs).boxed().toList(),
                         IntStream.rangeClosed(1, runs).boxed().toList(),

@@ -59,6 +59,23 @@ class FeedbackScheduleCorpusTest {
     }
 
     @Test
+    void executionLimitFailuresNeitherRewardNorPoisonFutureNovelty() {
+        FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
+
+        FeedbackScheduleCorpus.Observation limited = corpus.observe(result(Set.of(
+                TestStatus.EXECUTION_LIMIT_EXCEEDED,
+                TestStatus.INTERNAL_SYSTEM_EXCEPTION)));
+        FeedbackScheduleCorpus.Observation laterValid = corpus.observe(
+                result(Set.of(TestStatus.INTERNAL_SYSTEM_EXCEPTION)));
+
+        assertFalse(limited.rewardEligible());
+        assertFalse(limited.admittedToCorpus());
+        assertTrue(laterValid.rewardEligible());
+        assertTrue(laterValid.newBehavior());
+        assertEquals(1, laterValid.newFeatures());
+    }
+
+    @Test
     void guidedPlanMutatesAtLeastOneRunnableChoice() {
         FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
         corpus.observe(result(Set.of(TestStatus.INTERNAL_SYSTEM_EXCEPTION)));

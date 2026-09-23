@@ -5,9 +5,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
@@ -136,18 +138,45 @@ class BehavioralFingerprintTest {
         assertEquals(BehavioralFingerprint.from(first), BehavioralFingerprint.from(second));
     }
 
+    @Test
+    void longNestedEventChainsProduceBoundedFingerprintFeatures() {
+        List<StepId> chain = new ArrayList<>();
+        StepId capturedAfter = PUBLISH;
+        for (int depth = 0; depth < 100; depth++) {
+            capturedAfter = eventStep(17 + depth, 20, 30, capturedAfter);
+            chain.add(capturedAfter);
+        }
+        List<StepEffect> effects = IntStream.range(0, chain.size())
+                .mapToObj(index -> new StepEffect(
+                        index, chain.get(index), StepKind.EVENT_HANDLER,
+                        StepEffect.EffectKind.WRITE, 30, "Quiz"))
+                .toList();
+
+        BehavioralFingerprint fingerprint = BehavioralFingerprint.from(
+                result(chain, effects, Set.of(), List.of(), Map.of()));
+
+        assertTrue(fingerprint.features().stream().mapToInt(String::length).max().orElseThrow() < 1_024);
+        assertTrue(fingerprint.features().stream().mapToLong(String::length).sum() < 5_000_000L);
+    }
+
     private static StepId step(String functionality, String name) {
         return StepId.forFunctionalityStep(FunctionalityId.forSagaFunctionality(functionality), name);
     }
 
     private static StepId eventStep(int eventId, int publisherId, int subscriberId) {
+        return eventStep(eventId, publisherId, subscriberId, PUBLISH);
+    }
+
+    private static StepId eventStep(
+            int eventId, int publisherId, int subscriberId, StepId capturedAfter) {
         TestEvent event = new TestEvent();
         event.setId(eventId);
         event.setPublisherAggregateId(publisherId);
         DeferredEventInvocation invocation = new DeferredEventInvocation(
                 event, new TestEventHandler(), subscriberId, () -> {
                 });
-        return StepId.forEventHandlerStep(FunctionalityId.forEventHandlerFunctionality(invocation, PUBLISH));
+        return StepId.forEventHandlerStep(
+                FunctionalityId.forEventHandlerFunctionality(invocation, capturedAfter));
     }
 
     private static TestResult result(
