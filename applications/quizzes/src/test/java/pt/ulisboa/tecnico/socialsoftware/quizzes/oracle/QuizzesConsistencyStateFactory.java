@@ -61,7 +61,8 @@ final class QuizzesConsistencyStateFactory {
         UserDto participant = createActiveUser("Participant", "participant");
         UserDto startStudent = createActiveUser("Starter", "starter");
         UserDto addStudent = createActiveUser("New Student", "new-student");
-        UserDto deleteUser = createActiveUser("Disposable User", "disposable-user");
+        UserDto deactivateUser = createActiveUser("Deactivation User", "deactivation-user");
+        UserDto deleteUser = createUser("Disposable User", "disposable-user");
         UserDto inactiveUser = createUser("Inactive User", "inactive-user");
 
         executions.addStudent(mainExecution.getAggregateId(), creator.getAggregateId());
@@ -71,6 +72,7 @@ final class QuizzesConsistencyStateFactory {
         TopicDto primaryTopic = createTopic(mainExecution, "Primary Topic");
         TopicDto secondaryTopic = createTopic(mainExecution, "Secondary Topic");
         TopicDto disposableTopic = createTopic(mainExecution, "Disposable Topic");
+        TopicDto standaloneTopic = createTopic(mainExecution, "Standalone Topic");
 
         QuestionDto primaryQuestion = createQuestion(mainExecution, List.of(primaryTopic), "Primary question");
         QuestionDto secondaryQuestion = createQuestion(mainExecution, List.of(secondaryTopic), "Secondary question");
@@ -98,11 +100,13 @@ final class QuizzesConsistencyStateFactory {
                 .register("participant", participant.getAggregateId())
                 .register("startStudent", startStudent.getAggregateId())
                 .register("addStudent", addStudent.getAggregateId())
+                .register("deactivateUser", deactivateUser.getAggregateId())
                 .register("deleteUser", deleteUser.getAggregateId())
                 .register("inactiveUser", inactiveUser.getAggregateId())
                 .register("primaryTopic", primaryTopic.getAggregateId())
                 .register("secondaryTopic", secondaryTopic.getAggregateId())
                 .register("disposableTopic", disposableTopic.getAggregateId())
+                .register("standaloneTopic", standaloneTopic.getAggregateId())
                 .register("primaryQuestion", primaryQuestion.getAggregateId())
                 .register("secondaryQuestion", secondaryQuestion.getAggregateId())
                 .register("disposableQuestion", disposableQuestion.getAggregateId())

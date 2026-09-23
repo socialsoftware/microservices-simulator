@@ -25,7 +25,7 @@ saga_aggregates:
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic
     source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/topic/aggregate/sagas/SagaTopic.java
     catalogs: [neutral-shared-state]
-    handles: [primaryTopic, secondaryTopic, disposableTopic]
+    handles: [primaryTopic, secondaryTopic, disposableTopic, standaloneTopic]
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament
     source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/aggregate/sagas/SagaTournament.java
     catalogs: [neutral-shared-state]
@@ -33,7 +33,7 @@ saga_aggregates:
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser
     source: applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/user/aggregate/sagas/SagaUser.java
     catalogs: [neutral-shared-state]
-    handles: [creator, participant, startStudent, addStudent, deleteUser, inactiveUser]
+    handles: [creator, participant, startStudent, addStudent, deactivateUser, deleteUser, inactiveUser]
 aggregate_relationships:
   - from: Course
     to: Topic
@@ -613,22 +613,22 @@ functionalities:
     exclusion_reason: "Internal event-propagation functionality invoked by an event-processing facade; direct inclusion would duplicate handler work already captured from emitted events."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [neutral-shared-state]
-    functionality_ids: [solveQuizAsync]
+    included: false
+    catalogs: []
+    functionality_ids: []
     evidence:
       - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/SolveQuizAsyncFunctionalitySagas.java
       - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
-    exclusion_reason: null
+    exclusion_reason: "Fails neutral solo profiling at startQuizAnswerStep even with an enrolled user that has no answer for the tournament quiz; excluded because a sequential-baseline failure cannot be attributed to concurrent scheduling."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [neutral-shared-state]
-    functionality_ids: [solveQuiz]
+    included: false
+    catalogs: []
+    functionality_ids: []
     evidence:
       - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/SolveQuizFunctionalitySagas.java
       - applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
-    exclusion_reason: null
+    exclusion_reason: "Fails neutral solo profiling at startQuizAnswerStep even with an enrolled user that has no answer for the tournament quiz; excluded because a sequential-baseline failure cannot be attributed to concurrent scheduling."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateParticipantAnswerFunctionalitySagas
     kind: write
     included: false

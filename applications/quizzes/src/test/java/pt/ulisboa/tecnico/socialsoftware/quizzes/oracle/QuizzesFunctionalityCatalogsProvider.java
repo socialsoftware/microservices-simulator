@@ -129,7 +129,7 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
         add(factories, "removeQuestion", h -> new RemoveQuestionFunctionalitySagas(
                 unitOfWorkService, h.idOf("disposableQuestion"), uow("removeQuestion"), commandGateway));
         add(factories, "updateQuestion", h -> new UpdateQuestionFunctionalitySagas(
-                unitOfWorkService, questionUpdate(h.idOf("primaryQuestion")), uow("updateQuestion"), commandGateway));
+                unitOfWorkService, questionUpdate(h), uow("updateQuestion"), commandGateway));
         add(factories, "updateQuestionTopics", h -> new UpdateQuestionTopicsFunctionalitySagas(
                 unitOfWorkService, h.idOf("primaryQuestion"), List.of(h.idOf("secondaryTopic")),
                 uow("updateQuestionTopics"), commandGateway));
@@ -152,7 +152,7 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
                 unitOfWorkService, h.idOf("mainCourse"), topicInput(null, "Created topic"),
                 uow("createTopic"), commandGateway));
         add(factories, "deleteTopic", h -> new pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas(
-                unitOfWorkService, h.idOf("disposableTopic"), uow("deleteTopic"), commandGateway));
+                unitOfWorkService, h.idOf("standaloneTopic"), uow("deleteTopic"), commandGateway));
         add(factories, "findTopicsByCourse", h -> new FindTopicsByCourseFunctionalitySagas(
                 unitOfWorkService, h.idOf("mainCourse"), uow("findTopicsByCourse"), commandGateway));
         add(factories, "getTopicById", h -> new GetTopicByIdFunctionalitySagas(
@@ -191,11 +191,6 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
                 uow("leaveTournament"), commandGateway));
         add(factories, "removeTournament", h -> new pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas(
                 unitOfWorkService, h.idOf("removableTournament"), uow("removeTournament"), commandGateway));
-        add(factories, "solveQuiz", h -> new SolveQuizFunctionalitySagas(
-                unitOfWorkService, h.idOf("openTournament"), h.idOf("participant"), uow("solveQuiz"), commandGateway));
-        add(factories, "solveQuizAsync", h -> new SolveQuizAsyncFunctionalitySagas(
-                unitOfWorkService, h.idOf("openTournament"), h.idOf("participant"),
-                uow("solveQuizAsync"), commandGateway));
         add(factories, "updateTournament", h -> new UpdateTournamentFunctionalitySagas(
                 unitOfWorkService, tournamentUpdate(h.idOf("openTournament")), Set.of(h.idOf("primaryTopic")),
                 uow("updateTournament"), commandGateway));
@@ -205,7 +200,7 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
         add(factories, "createUser", h -> new CreateUserFunctionalitySagas(
                 unitOfWorkService, userInput("Created User", "created-user"), uow("createUser"), commandGateway));
         add(factories, "deactivateUser", h -> new DeactivateUserFunctionalitySagas(
-                unitOfWorkService, h.idOf("deleteUser"), uow("deactivateUser"), commandGateway));
+                unitOfWorkService, h.idOf("deactivateUser"), uow("deactivateUser"), commandGateway));
         add(factories, "deleteUser", h -> new DeleteUserFunctionalitySagas(
                 userService, unitOfWorkService, h.idOf("deleteUser"), uow("deleteUser"), commandGateway));
         add(factories, "findUserById", h -> new FindUserByIdFunctionalitySagas(
@@ -245,11 +240,10 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
         return QuizzesConsistencyStateFactory.questionInput(title, List.of(topic));
     }
 
-    private static QuestionDto questionUpdate(Integer aggregateId) {
-        QuestionDto dto = new QuestionDto();
-        dto.setAggregateId(aggregateId);
-        dto.setTitle("Updated question");
-        dto.setContent("Updated content");
+    private static QuestionDto questionUpdate(AggregateHandlesRegistry handles) {
+        TopicDto topic = topicInput(handles.idOf("primaryTopic"), "Primary Topic");
+        QuestionDto dto = QuizzesConsistencyStateFactory.questionInput("Updated question", List.of(topic));
+        dto.setAggregateId(handles.idOf("primaryQuestion"));
         return dto;
     }
 
