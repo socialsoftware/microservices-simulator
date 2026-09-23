@@ -16,6 +16,7 @@ class CampaignCheckpointTest {
     void cancellationCannotBeOverwrittenByALaterRunningOrFailureCheckpoint(@TempDir Path tempDir) throws Exception {
         CampaignProgress progress = new CampaignProgress(
                 "example.Application", 42L, List.of(), 20, "random-constraints",
+                GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue(),
                 "target/reports", List.of(), List.of(), 1_000L);
         CampaignSummaryWriter writer = new CampaignSummaryWriter(tempDir);
         CampaignCheckpoint checkpoint = new CampaignCheckpoint(progress, writer);

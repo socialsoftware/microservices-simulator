@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.TreeMap;
 import java.util.function.Predicate;
 import java.util.stream.Collectors;
@@ -21,7 +22,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  *                                     replaying it reproduces every schedule
  * @param springAppArgs                application arguments used for this
  *                                     campaign
- * @param iterationsPerGroup           oracle runs performed per planned group
+ * @param iterationsPerGroup           oracle runs per group under fixed budgeting
  * @param scheduleExplorationStrategy  within-group scheduling policy
  * @param reportsDirectory             where the per-run reports were written
  * @param reportSchemaVersion          version of the campaign/report metadata
@@ -52,6 +53,8 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
  *                                     were explored
  * @param findings                     every run worth attention, in the order
  *                                     found
+ * @param groupBudget                  campaign-level run allocation policy and
+ *                                     auditable batch decisions
  */
 public record OrchestrationReport(
         String application,
@@ -72,7 +75,8 @@ public record OrchestrationReport(
         long durationMillis,
         OutcomeMetrics outcomeMetrics,
         List<CatalogSummary> catalogs,
-        List<Finding> findings) {
+        List<Finding> findings,
+        @Nullable GroupBudgetReport groupBudget) {
 
     public OrchestrationReport {
         springAppArgs = List.copyOf(springAppArgs);
@@ -81,6 +85,9 @@ public record OrchestrationReport(
                 : scheduleExplorationStrategy;
         ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
         groupSelectors = groupSelectors == null ? List.of() : List.copyOf(groupSelectors);
+        groupBudget = groupBudget == null
+                ? GroupBudgetReport.fixed(outcomeMetrics.runsPlanned(), iterationsPerGroup)
+                : groupBudget;
     }
 
     public enum CampaignStatus {
@@ -203,6 +210,74 @@ public record OrchestrationReport(
             String reportFile) {
     }
 
+    /** Campaign-level budget configuration and completed allocation history. */
+    public record GroupBudgetReport(
+            String strategy,
+            /** Campaign-wide planned run count (fixed: groups × iterations; adaptive: configured total). */
+            int plannedRunBudget,
+            int minimumRunsPerGroup,
+            int maximumRunsPerGroup,
+            int batchSize,
+            List<BudgetAllocation> allocations) {
+
+        public GroupBudgetReport {
+            Objects.requireNonNull(strategy);
+            allocations = List.copyOf(allocations);
+            if (plannedRunBudget < 0 || minimumRunsPerGroup < 1
+                    || maximumRunsPerGroup < minimumRunsPerGroup || batchSize < 1) {
+                throw new IllegalArgumentException("Invalid group budget report configuration");
+            }
+            for (int index = 0; index < allocations.size(); index++) {
+                if (allocations.get(index).sequence() != index) {
+                    throw new IllegalArgumentException("Budget allocation sequence must be contiguous from zero");
+                }
+            }
+            int completedRuns = allocations.stream()
+                    .mapToInt(BudgetAllocation::completedRuns).sum();
+            if (completedRuns > plannedRunBudget) {
+                throw new IllegalArgumentException("Budget allocations exceed planned run budget");
+            }
+        }
+
+        static GroupBudgetReport fixed(int plannedRunBudget, int iterationsPerGroup) {
+            // Fixed mode has min=max=batch=iterations and has no adaptive allocation history.
+            return new GroupBudgetReport(
+                    GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue(),
+                    plannedRunBudget, iterationsPerGroup, iterationsPerGroup,
+                    iterationsPerGroup, List.of());
+        }
+    }
+
+    /** Evidence produced by one completed group-budget allocation. */
+    public record BudgetAllocation(
+            /** Zero-based position in this campaign's allocation history. */
+            int sequence,
+            String phase,
+            String catalog,
+            String group,
+            int requestedRuns,
+            int completedRuns,
+            long durationMillis,
+            /** Group priority calculated immediately before this batch was run. */
+            double priorityScore,
+            /** Novelty reward calculated from this batch after it completed. */
+            double reward,
+            int newBehaviors,
+            int runsAddingFeatures,
+            int newFindingFamilies) {
+
+        public BudgetAllocation {
+            if (sequence < 0 || requestedRuns < 1 || completedRuns < 1
+                    || completedRuns > requestedRuns || durationMillis < 0
+                    || !Double.isFinite(priorityScore) || !Double.isFinite(reward)
+                    || reward < 0.0 || newBehaviors < 0 || newBehaviors > completedRuns
+                    || runsAddingFeatures < 0 || runsAddingFeatures > completedRuns
+                    || newFindingFamilies < 0 || newFindingFamilies > completedRuns) {
+                throw new IllegalArgumentException("Invalid group budget allocation evidence");
+            }
+        }
+    }
+
     public boolean hasFindings() {
         return !findings.isEmpty();
     }
@@ -270,11 +345,19 @@ public record OrchestrationReport(
 
     /** A short, human-readable summary of the campaign. */
     public String summary() {
-        String header = "Consistency campaign over %s [status=%s, seed=%d, iterationsPerGroup=%d, strategy=%s, duration=%s]"
-                .formatted(application, status, masterSeed, iterationsPerGroup, scheduleExplorationStrategy,
-                        StringUtils.formatDuration(durationMillis));
+        String configuredBudget = groupBudget.strategy().equals(GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue())
+                ? "iterationsPerGroup=" + iterationsPerGroup
+                : "totalRunBudget=" + groupBudget.plannedRunBudget();
+        String header = "Consistency campaign over %s [status=%s, seed=%d, %s, strategy=%s, duration=%s]"
+                .formatted(application, status, masterSeed, configuredBudget,
+                        scheduleExplorationStrategy, StringUtils.formatDuration(durationMillis));
 
         String reports = "reports: " + reportsDirectory;
+        // Fixed mode reports min=max=batch=iterationsPerGroup; adaptive mode reports its configured range/batch.
+        String budget = "group budget: %s, %d planned run(s), range %d..%d per group, batch %d"
+                .formatted(groupBudget.strategy(), groupBudget.plannedRunBudget(),
+                        groupBudget.minimumRunsPerGroup(), groupBudget.maximumRunsPerGroup(),
+                        groupBudget.batchSize());
         String groupsSelected = groupSelectors.isEmpty()
                 ? "groups: all planned groups"
                 : "groups: " + groupSelectors;
@@ -308,8 +391,9 @@ public record OrchestrationReport(
                                 totalRuns() == 0 ? 0.0 : 100.0 * uniqueGroupLocalBehaviors() / totalRuns())
                 : "behavioral coverage: unavailable in one or more group reports";
 
-        return String.join(System.lineSeparator(),
-                header, reports, groupsSelected, perCatalog, total, outcomes, behavior, statuses);
+        return String.join(
+                System.lineSeparator(), header, reports, groupsSelected, budget,
+                perCatalog, total, outcomes, behavior, statuses);
     }
 
     private static String formatOptionalDuration(Long durationMillis) {

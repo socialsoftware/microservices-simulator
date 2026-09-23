@@ -42,6 +42,6 @@ class CampaignSummaryWriterTest {
                 100L, finishedAtEpochMillis, null, null, durationMillis,
                 new OrchestrationReport.OutcomeMetrics(
                         0, 0, 0, 0, null, 0, 0, null, List.of(), 0, 0, java.util.Map.of()),
-                List.of(), List.of());
+                List.of(), List.of(), null);
     }
 }

@@ -1,12 +1,12 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 
 /**
  * Mutable campaign state used to produce durable, immutable report snapshots.
@@ -30,6 +30,7 @@ final class CampaignProgress {
     private final List<String> springAppArgs;
     private final int iterationsPerGroup;
     private final String scheduleExplorationStrategy;
+    private final String groupBudgetStrategy;
     private final String reportsDirectory;
     private final List<String> ignoredSemanticLockSelectors;
     private final List<String> groupSelectors;
@@ -40,6 +41,12 @@ final class CampaignProgress {
     private @Nullable String lastCompletedGroupCatalog;
     private @Nullable String lastCompletedGroup;
     private @Nullable String planHash;
+    private int plannedRunBudget;
+    // Fixed iterations-per-group mode sets min=max=batch=iterationsPerGroup.
+    private int minimumRunsPerGroup;
+    private int maximumRunsPerGroup;
+    private int allocationBatchSize;
+    private final List<OrchestrationReport.BudgetAllocation> budgetAllocations = new ArrayList<>();
 
     CampaignProgress(
             String application,
@@ -47,6 +54,7 @@ final class CampaignProgress {
             List<String> springAppArgs,
             int iterationsPerGroup,
             String scheduleExplorationStrategy,
+            String groupBudgetStrategy,
             String reportsDirectory,
             List<String> ignoredSemanticLockSelectors,
             List<String> groupSelectors,
@@ -57,11 +65,15 @@ final class CampaignProgress {
         this.springAppArgs = List.copyOf(springAppArgs);
         this.iterationsPerGroup = iterationsPerGroup;
         this.scheduleExplorationStrategy = scheduleExplorationStrategy;
+        this.groupBudgetStrategy = groupBudgetStrategy;
         this.reportsDirectory = reportsDirectory;
         this.ignoredSemanticLockSelectors = List.copyOf(ignoredSemanticLockSelectors);
         this.groupSelectors = List.copyOf(groupSelectors);
         this.startedAtEpochMillis = startedAtEpochMillis;
         this.outcomeMetrics = new CampaignMetrics(startedAtEpochMillis);
+        this.minimumRunsPerGroup = iterationsPerGroup;
+        this.maximumRunsPerGroup = iterationsPerGroup;
+        this.allocationBatchSize = iterationsPerGroup;
     }
 
     void setPlanHash(String planHash) {
@@ -75,6 +87,33 @@ final class CampaignProgress {
         catalogs.add(new CatalogProgress(name, functionalitiesProfiled, possiblePairs, groupsPlanned));
     }
 
+    void configureGroupBudget(
+            int plannedRunBudget,
+            int minimumRunsPerGroup,
+            int maximumRunsPerGroup,
+            int allocationBatchSize) {
+
+        this.plannedRunBudget = plannedRunBudget;
+        this.minimumRunsPerGroup = minimumRunsPerGroup;
+        this.maximumRunsPerGroup = maximumRunsPerGroup;
+        this.allocationBatchSize = allocationBatchSize;
+    }
+
+    void recordBudgetAllocation(
+            String phase,
+            String catalog,
+            String group,
+            int requestedRuns,
+            long durationMillis,
+            double priorityScore,
+            AdaptiveGroupBudgetAllocator.BatchFeedback feedback) {
+
+        budgetAllocations.add(new OrchestrationReport.BudgetAllocation(
+                budgetAllocations.size(), phase, catalog, group,
+                requestedRuns, feedback.completedRuns(), durationMillis, priorityScore, feedback.reward(),
+                feedback.newBehaviors(), feedback.runsAddingFeatures(), feedback.newFindingFamilies()));
+    }
+
     void recordCompletedGroup(
             String catalogName,
             OrchestrationReport.GroupSummary group,
@@ -84,9 +123,11 @@ final class CampaignProgress {
                 .filter(candidate -> candidate.name.equals(catalogName))
                 .findFirst()
                 .orElseThrow(() -> new IllegalArgumentException("Unknown campaign catalog: " + catalogName));
-        catalog.groups.add(group);
-        catalog.runsExecuted += group.runsExecuted();
-        catalog.findingCount += group.findingCount();
+
+        OrchestrationReport.GroupSummary previous = catalog.groups.put(group.label(), group);
+        catalog.runsExecuted += group.runsExecuted() - (previous == null ? 0 : previous.runsExecuted());
+        catalog.findingCount += group.findingCount() - (previous == null ? 0 : previous.findingCount());
+
         findings.addAll(groupFindings);
         lastCompletedGroupCatalog = catalogName;
         lastCompletedGroup = group.label();
@@ -107,9 +148,13 @@ final class CampaignProgress {
         List<OrchestrationReport.CatalogSummary> catalogSummaries = catalogs.stream()
                 .map(CatalogProgress::snapshot)
                 .toList();
-        int runsPlanned = catalogSummaries.stream()
+
+        int fixedRunsPlanned = catalogSummaries.stream()
                 .mapToInt(OrchestrationReport.CatalogSummary::groupsPlanned)
                 .sum() * iterationsPerGroup;
+        int runsPlanned = groupBudgetStrategy.equals(GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue())
+                ? fixedRunsPlanned
+                : plannedRunBudget;
 
         return new OrchestrationReport(
                 application,
@@ -130,7 +175,11 @@ final class CampaignProgress {
                 endedAt - startedAtEpochMillis,
                 outcomeMetrics.snapshot(runsPlanned),
                 catalogSummaries,
-                List.copyOf(findings));
+                List.copyOf(findings),
+                new OrchestrationReport.GroupBudgetReport(
+                        groupBudgetStrategy, runsPlanned, minimumRunsPerGroup,
+                        maximumRunsPerGroup, allocationBatchSize,
+                        List.copyOf(budgetAllocations)));
     }
 
     private static final class CatalogProgress {
@@ -138,7 +187,8 @@ final class CampaignProgress {
         private final int functionalitiesProfiled;
         private final int possiblePairs;
         private final int groupsPlanned;
-        private final List<OrchestrationReport.GroupSummary> groups = new ArrayList<>();
+        /** Stores the latest snapshot per group label; insertion order keeps groups in their first-seen report order. */
+        private final LinkedHashMap<String, OrchestrationReport.GroupSummary> groups = new LinkedHashMap<>();
         private int runsExecuted;
         private int findingCount;
 
@@ -158,7 +208,7 @@ final class CampaignProgress {
                     groupsPlanned - groups.size(),
                     runsExecuted,
                     findingCount,
-                    List.copyOf(groups));
+                    List.copyOf(groups.values()));
         }
     }
 }

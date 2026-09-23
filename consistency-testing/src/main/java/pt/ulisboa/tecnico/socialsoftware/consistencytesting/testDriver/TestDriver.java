@@ -200,57 +200,75 @@ public final class TestDriver {
             Consumer<TestResult> beforeCleanupHook,
             @Nullable Path reportSubdirectory) {
 
-        Random rng = new Random(masterSeed);
-        // XOR mixes the fixed salt into the seed, producing a different but still
-        // reproducible stream for choosing corpus parents and mutations.
-        Random guidanceRng = new Random(masterSeed ^ GUIDANCE_SEED_SALT);
+        return runExplorationBatch(
+                initialStateSetup, beforeCleanupHook, reportSubdirectory,
+                new ExplorationState(), iterations);
+    }
+
+    /** Runs a requested number of iterations, updating the supplied state for later batches. */
+    private List<TestResult> runExplorationBatch(
+            Supplier<TestCase.Builder> initialStateSetup,
+            Consumer<TestResult> beforeCleanupHook,
+            @Nullable Path reportSubdirectory,
+            ExplorationState state,
+            int batchIterations) {
+
         List<TestResult> results = new ArrayList<>();
-        FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
-
-        Set<StepId> observedSteps = new HashSet<>();
-        StepDependencies observedIntraDependencies = new StepDependencies();
-        StepDependencies observedInterDependencies = new StepDependencies();
-
-        // int runsWithFindings = 0; // TODO could make sense to track
-
-        for (int iteration = 0; iteration < iterations; iteration++) {
+        for (int batchIteration = 0; batchIteration < batchIterations; batchIteration++) {
+            int iteration = state.completedRuns;
             // Each run gets a fresh scheduler seed so the same constraints can still
             // realize different concrete interleavings.
-            oracle.setSchedulerSeed(rng.nextLong());
+            oracle.setSchedulerSeed(state.scheduleRng.nextLong());
 
             Plan schedulePlan = scheduleExplorationStrategy == ScheduleExplorationStrategy.FEEDBACK_GUIDED
-                    ? corpus.nextPlan(guidanceRng)
-                    : Plan.randomSchedule();
-
+                            ? state.nextCorpusPlan()
+                            : Plan.randomSchedule();
             oracle.setSchedulerChoicePrefix(schedulePlan.choicePrefix());
 
             Set<InterDependency> chosen = scheduleExplorationStrategy
                     == ScheduleExplorationStrategy.RANDOM_CONSTRAINTS
                             ? chooseInterDependencies(
-                                    observedSteps, observedIntraDependencies, observedInterDependencies, rng)
+                                    state.observedSteps, state.observedIntraDependencies,
+                                    state.observedInterDependencies, state.scheduleRng)
                             : Set.of();
 
             TestResult result = oracle.runTest(
                     () -> buildTestCase(initialStateSetup, chosen), beforeCleanupHook);
 
             results.add(result);
-            FeedbackScheduleCorpus.Observation observation = corpus.observe(result);
-            TestReport report = TestReport.from(result, scheduleExplorationStrategy, schedulePlan, observation);
-            reportWriter.write(report, reportSubdirectory);
+            FeedbackScheduleCorpus.Observation observation = state.corpus.observe(result);
+            reportWriter.write(TestReport.from(
+                    result, scheduleExplorationStrategy, schedulePlan, observation), reportSubdirectory);
 
-            observedSteps.addAll(result.schedule());
-            observedSteps.addAll(result.intraDependencies().getSteps());
-            observedIntraDependencies.merge(result.intraDependencies());
-            observedInterDependencies.merge(result.interDependencies());
+            // Accumulate observed steps/dependencies so later random-constraint runs can propose valid cross-run edges.
+            state.observedSteps.addAll(result.schedule());
+            state.observedSteps.addAll(result.intraDependencies().getSteps());
+            state.observedIntraDependencies.merge(result.intraDependencies());
+            state.observedInterDependencies.merge(result.interDependencies());
+            state.completedRuns++;
 
             if (isFinding(result)) {
-                // runsWithFindings++; // TODO could make sense to track
                 log.warn("Run {}: potential issue found, statuses={}, exceptions={}",
                         iteration, result.statuses(), result.exceptions().keySet());
             }
         }
 
         return results;
+    }
+
+    private final class ExplorationState {
+        private final Random scheduleRng = new Random(masterSeed);
+        // Independent seeded stream so feedback selection does not consume randomness used for other schedule choices.
+        private final Random guidanceRng = new Random(masterSeed ^ GUIDANCE_SEED_SALT);
+        private final FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
+        private final Set<StepId> observedSteps = new HashSet<>();
+        private final StepDependencies observedIntraDependencies = new StepDependencies();
+        private final StepDependencies observedInterDependencies = new StepDependencies();
+        private int completedRuns;
+
+        private Plan nextCorpusPlan() {
+            return corpus.nextPlan(guidanceRng);
+        }
     }
 
     /**
@@ -467,19 +485,18 @@ public final class TestDriver {
     }
 
     /**
-     * Utility method, same as {@link #exploreGroup(FunctionalityCatalog,
-     * FunctionalityGroup, Consumer)}, but does not invoke any
-     * {@code beforeCleanupHook} with the run's result and data still in the
-     * database.
+     * Runs the driver's configured number of iterations for this group without
+     * invoking a {@code beforeCleanupHook}.
      */
     public List<TestResult> exploreGroup(FunctionalityCatalog catalog, FunctionalityGroup group) {
         return exploreGroup(catalog, group, NO_BEFORE_CLEANUP_HOOK);
     }
 
     /**
-     * Explores one {@link FunctionalityGroup}: builds the group's functionalities
-     * from the catalog on a fresh initial state per run, writing the reports into
-     * the group's own {@link #reportsSubdirectoryOf subdirectory}.
+     * Explores one {@link FunctionalityGroup} for the driver's configured
+     * {@code iterations}. It builds the group's functionalities from the catalog
+     * on a fresh initial state per run and writes reports into the group's own
+     * {@link #reportsSubdirectoryOf subdirectory}.
      * <p>
      * A self-pair instantiates its functionality's factory twice — two
      * independent instances with the same arguments — with the second instance
@@ -488,9 +505,23 @@ public final class TestDriver {
      * {@code beforeCleanupHook} runs on each run's final state, receiving its
      * result and being able to observe that run's data while it's still in the
      * database.
+     * <p>
+     * Use {@link #startGroupExploration(FunctionalityCatalog, FunctionalityGroup)}
+     * and {@link GroupExplorationSession#runBatch(int, Consumer)} when a caller
+     * needs to choose iteration counts in successive batches.
      */
     public List<TestResult> exploreGroup(
             FunctionalityCatalog catalog, FunctionalityGroup group, Consumer<TestResult> beforeCleanupHook) {
+
+        return startGroupExploration(catalog, group).runBatch(iterations, beforeCleanupHook);
+    }
+
+    /**
+     * Starts a resumable group exploration. Successive batches preserve scheduler
+     * RNG state, learned random-constraint dependencies, and the feedback-guided corpus.
+     */
+    public GroupExplorationSession startGroupExploration(
+            FunctionalityCatalog catalog, FunctionalityGroup group) {
 
         for (FunctionalityId member : group.members()) {
             if (!catalog.funcFactories().containsKey(member)) {
@@ -514,8 +545,41 @@ public final class TestDriver {
             return builder;
         };
 
-        return exploreTestCase(
-                initialStateSetup, beforeCleanupHook, reportsSubdirectoryOf(catalog, group));
+        return new GroupExplorationSession(initialStateSetup, reportsSubdirectoryOf(catalog, group));
+    }
+
+    /** One group's stateful exploration. */
+    public final class GroupExplorationSession {
+        private final Supplier<TestCase.Builder> initialStateSetup;
+        private final Path reportSubdirectory;
+        private final ExplorationState state = new ExplorationState();
+
+        private GroupExplorationSession(
+                Supplier<TestCase.Builder> initialStateSetup,
+                Path reportSubdirectory) {
+
+            this.initialStateSetup = initialStateSetup;
+            this.reportSubdirectory = reportSubdirectory;
+        }
+
+        public List<TestResult> runBatch(int batchIterations) {
+            return runBatch(batchIterations, NO_BEFORE_CLEANUP_HOOK);
+        }
+
+        public List<TestResult> runBatch(
+                int batchIterations, Consumer<TestResult> beforeCleanupHook) {
+
+            if (batchIterations < 1) {
+                throw new IllegalArgumentException("batchIterations must be >= 1, got " + batchIterations);
+            }
+            return runExplorationBatch(
+                    initialStateSetup, beforeCleanupHook, reportSubdirectory,
+                    state, batchIterations);
+        }
+
+        public int completedRuns() {
+            return state.completedRuns;
+        }
     }
 
     Oracle getOracle() {
