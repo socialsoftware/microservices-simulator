@@ -48,6 +48,9 @@ public final class Oracle {
      */
     private static final long DEFAULT_SCHEDULER_SEED = 42L;
 
+    /** Bean name for the simulator's base aggregate repository. */
+    private static final String AGGREGATE_REPOSITORY_BEAN_NAME = "aggregateRepository";
+
     private static final String DB_IMAGE = "postgres:15-alpine";
     private static final String DB_NAME = "oracledb";
     private static final String DB_USERNAME = "oracle";
@@ -201,7 +204,11 @@ public final class Oracle {
 
     private void clearDatabase() {
         AggregateIdRepository aggregateIdRepository = getBean(AggregateIdRepository.class);
-        AggregateRepository aggrRepository = getBean(AggregateRepository.class);
+
+        // Select the simulator repository by name to avoid ambiguity,
+        // since application repositories may also extend AggregateRepository.
+        AggregateRepository aggrRepository = getBean(AGGREGATE_REPOSITORY_BEAN_NAME, AggregateRepository.class);
+
         EventRepository eventRepository = getBean(EventRepository.class);
 
         SagaAggregateRepository sagaAggregateRepository = getBean(SagaAggregateRepository.class);
@@ -222,6 +229,19 @@ public final class Oracle {
                     "Cannot fetch bean [%s] : Context is inactive.".formatted(beanClass.getName()));
         }
         return context.getBean(beanClass);
+    }
+
+    /**
+     * Use a name to be unambiguous when multiple application beans share the
+     * requested type.
+     */
+    private <T> T getBean(String beanName, Class<T> beanClass) {
+        ConfigurableApplicationContext context = springContext;
+        if (context == null || !context.isActive()) {
+            throw new IllegalStateException(
+                    "Cannot fetch bean [%s] : Context is inactive.".formatted(beanName));
+        }
+        return context.getBean(beanName, beanClass);
     }
 
     public <T> Map<String, T> getBeansOfType(Class<T> beansClass) {
