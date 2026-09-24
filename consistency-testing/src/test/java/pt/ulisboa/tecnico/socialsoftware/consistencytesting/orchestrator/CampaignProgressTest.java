@@ -100,7 +100,9 @@ class CampaignProgressTest {
     @Test
     void unrestrictedAllGroupsTotalsAndEmptyConflictClassificationSurviveSnapshots() {
         CampaignProgress progress = new CampaignProgress(
-                "example.Application", 42L, List.of(), 20, "target/reports", List.of(), List.of(), 1_000L);
+                "example.Application", 42L, List.of(), 20, "random-constraints",
+                GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue(), "target/reports",
+                List.of(), List.of(), 1_000L);
         progress.registerCatalog("catalog", 2, 3, 3);
         progress.recordCompletedGroup("catalog", new OrchestrationReport.GroupSummary(
                 "first__first", "first", "first", true, List.of(), 20, 0, Map.of(), null), List.of());
