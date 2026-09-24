@@ -34,6 +34,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventHandling;
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregateRepository;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.workflow.SagaWorkflow;
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionRepository;
 
 public final class Oracle {
@@ -489,6 +490,7 @@ public final class Oracle {
     public TestResult runTest(Supplier<TestCase> setupInitialState, Consumer<TestResult> beforeCleanupHook) {
         try {
             TestCase testCase = setupInitialState.get();
+            configureDeterministicWorkflowPlans(testCase.getFunctionalities());
 
             TestResult result = executeSchedule(
                     testCase.getFunctionalities(),
@@ -498,6 +500,17 @@ public final class Oracle {
             return result;
         } finally {
             clearDatabase();
+        }
+    }
+
+    /** Oracle schedules workflow steps itself; keep dependency-equivalent plan ties stable. */
+    private static void configureDeterministicWorkflowPlans(
+            Map<FunctionalityId, WorkflowFunctionality> functionalities) {
+
+        for (WorkflowFunctionality functionality : functionalities.values()) {
+            if (functionality.getWorkflow() instanceof SagaWorkflow sagaWorkflow) {
+                sagaWorkflow.setDeterministicPlanOrder(true);
+            }
         }
     }
 

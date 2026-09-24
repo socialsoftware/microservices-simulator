@@ -218,7 +218,8 @@ public final class TestDriver {
             int iteration = state.completedRuns;
             // Each run gets a fresh scheduler seed so the same constraints can still
             // realize different concrete interleavings.
-            oracle.setSchedulerSeed(state.scheduleRng.nextLong());
+            long schedulerSeed = state.scheduleRng.nextLong();
+            oracle.setSchedulerSeed(schedulerSeed);
 
             Plan schedulePlan = scheduleExplorationStrategy == ScheduleExplorationStrategy.FEEDBACK_GUIDED
                             ? state.nextCorpusPlan()
@@ -238,7 +239,7 @@ public final class TestDriver {
             results.add(result);
             FeedbackScheduleCorpus.Observation observation = state.corpus.observe(result);
             reportWriter.write(TestReport.from(
-                    result, scheduleExplorationStrategy, schedulePlan, observation), reportSubdirectory);
+                    result, scheduleExplorationStrategy, schedulePlan, observation, schedulerSeed), reportSubdirectory);
 
             // Accumulate observed steps/dependencies so later random-constraint runs can propose valid cross-run edges.
             state.observedSteps.addAll(result.schedule());

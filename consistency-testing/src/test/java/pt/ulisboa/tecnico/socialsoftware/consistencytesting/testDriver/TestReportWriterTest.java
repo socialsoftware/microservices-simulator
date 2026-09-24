@@ -45,7 +45,8 @@ class TestReportWriterTest {
                         "update-1::getTopicsStep", "example.LockState#UPDATE", 7, "ACQUIRED")),
                 Map.of("update-1::getOriginalTournamentStep", "SimulatorException: boom!"),
                 false,
-                1);
+                1,
+                42L);
 
         Path written = writer.write(report);
 

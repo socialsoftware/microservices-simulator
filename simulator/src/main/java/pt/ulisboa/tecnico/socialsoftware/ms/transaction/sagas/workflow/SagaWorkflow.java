@@ -12,15 +12,38 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkSer
 import java.util.*;
 
 public class SagaWorkflow extends Workflow {
+    private boolean deterministicPlanOrder;
+
     public SagaWorkflow(WorkflowFunctionality functionality, UnitOfWorkService unitOfWorkService, SagaUnitOfWork unitOfWork) {
+        this(functionality, unitOfWorkService, unitOfWork, false);
+    }
+
+    public SagaWorkflow(
+            WorkflowFunctionality functionality,
+            UnitOfWorkService unitOfWorkService,
+            SagaUnitOfWork unitOfWork,
+            boolean deterministicPlanOrder) {
+
         super(functionality, unitOfWorkService, unitOfWork);
+        this.deterministicPlanOrder = deterministicPlanOrder;
+    }
+
+    /**
+     * Sets this workflow's plan ordering policy. Call before executing any step
+     * to avoid re-planning an order that is already in progress.
+     */
+    public void setDeterministicPlanOrder(boolean deterministicPlanOrder) {
+        this.deterministicPlanOrder = deterministicPlanOrder;
+        invalidateExecutionPlan();
     }
 
     @Override
     public ExecutionPlan planOrder(HashMap<FlowStep, ArrayList<FlowStep>> stepsWithDependencies) {
         ArrayList<FlowStep> orderedSteps = new ArrayList<>();
         HashMap<FlowStep, Integer> inDegree = new HashMap<>();
-        Queue<FlowStep> readySteps = new LinkedList<>();
+        Queue<FlowStep> readySteps = deterministicPlanOrder
+                ? new PriorityQueue<>(Comparator.comparing(FlowStep::getName))
+                : new LinkedList<>();
 
         // calcular quantas dependencias tem cada step
         for (HashMap.Entry<FlowStep, ArrayList<FlowStep>> entry: stepsWithDependencies.entrySet()) {

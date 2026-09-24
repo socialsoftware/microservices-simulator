@@ -68,6 +68,44 @@ class PlanOrderTest extends SpockTest {
         executionPlan.getPlan() == [step1, step2, step3, step4] || executionPlan.getPlan() == [step1, step3, step2, step4]
     }
 
+    def "deterministic plan order ignores independent step registration order"() {
+        given:
+        def first = new HashMap<FlowStep, ArrayList<FlowStep>>()
+        first.put(step3, new ArrayList<>([step1]))
+        first.put(step2, new ArrayList<>([step1]))
+        first.put(step4, new ArrayList<>([step2, step3]))
+        first.put(step1, new ArrayList<>())
+        def second = new HashMap<FlowStep, ArrayList<FlowStep>>()
+        second.put(step1, new ArrayList<>())
+        second.put(step2, new ArrayList<>([step1]))
+        second.put(step3, new ArrayList<>([step1]))
+        second.put(step4, new ArrayList<>([step2, step3]))
+
+        when:
+        def deterministic = new SagaWorkflow(
+                workflowFunctionality, unitOfWorkService, unitOfWork, true)
+
+        then:
+        deterministic.planOrder(first).getPlan() == [step1, step2, step3, step4]
+        deterministic.planOrder(second).getPlan() == [step1, step2, step3, step4]
+    }
+
+    def "switching one workflow to deterministic mode invalidates its cached plan"() {
+        given:
+        workflow.addStep(step3)
+        workflow.addStep(step2)
+        workflow.addStep(step1)
+
+        when:
+        def oldPlan = workflow.getOrCreateExecutionPlan()
+        workflow.setDeterministicPlanOrder(true)
+        def newPlan = workflow.getOrCreateExecutionPlan()
+
+        then:
+        !oldPlan.is(newPlan)
+        newPlan.getPlan() == [step1, step2, step3]
+    }
+
     def "test planOrder with cyclic dependencies"() {
         given:
         def stepsWithCyclicDependencies = new HashMap<FlowStep, ArrayList<FlowStep>>()

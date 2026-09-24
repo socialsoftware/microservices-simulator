@@ -55,6 +55,13 @@ public abstract class Workflow {
         return this.executionPlan;
     }
 
+    /** 
+     * Clears the current execution plan, allowing for a new plan to be generated.
+     */
+    protected synchronized void invalidateExecutionPlan() {
+        this.executionPlan = null;
+    }
+
     public int getWorkflowTotalDelay() {
         return this.executionPlan.getTotalDelay();
     }

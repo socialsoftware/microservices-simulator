@@ -30,7 +30,8 @@ public record TestReport(
         List<SemanticLockActivityView> semanticLockTrace,
         Map<String, String> stepExceptions,
         boolean semanticLockGuardRejected,
-        int functionalityCount) {
+        int functionalityCount,
+        @Nullable Long schedulerSeed) {
 
     public record InterInvariantViolationView(String description) {
     }
@@ -82,17 +83,11 @@ public record TestReport(
             TestResult result,
             ScheduleExplorationStrategy strategy,
             FeedbackScheduleCorpus.Plan plan,
-            FeedbackScheduleCorpus.Observation observation) {
-
-        return from(result, strategy, plan, observation, BehavioralFingerprint.from(result));
-    }
-
-    private static TestReport from(
-            TestResult result,
-            ScheduleExplorationStrategy strategy,
-            FeedbackScheduleCorpus.Plan plan,
             FeedbackScheduleCorpus.Observation observation,
-            BehavioralFingerprint fingerprint) {
+            long schedulerSeed) {
+
+        BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
+
         List<String> schedule = result.schedule().stream()
                 .map(Object::toString)
                 .toList();
@@ -149,7 +144,8 @@ public record TestReport(
         return new TestReport(
                 schedule, behavioralFingerprintView, scheduleExplorationView,
                 statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
-                semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(), functionalityCount);
+                semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(),
+                functionalityCount, schedulerSeed);
     }
 
     private static ScheduleDecisionView toView(ScheduleDecision decision) {
