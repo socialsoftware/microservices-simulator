@@ -488,19 +488,48 @@ public final class Oracle {
     }
 
     public TestResult runTest(Supplier<TestCase> setupInitialState, Consumer<TestResult> beforeCleanupHook) {
+        return runTestTimed(setupInitialState, beforeCleanupHook).result();
+    }
+
+    /**
+     * Setup includes initial-state creation; schedule includes oracle evaluation;
+     * cleanup covers database clearing. The before-cleanup hook is not a phase.
+     */
+    public record TimedRun(
+            TestResult result,
+            long setupDurationNanos,
+            long scheduleDurationNanos,
+            long cleanupDurationNanos) {
+    }
+
+    /** Runs the same test as {@link #runTest(Supplier, Consumer)}, recording phase durations. */
+    public TimedRun runTestTimed(Supplier<TestCase> setupInitialState, Consumer<TestResult> beforeCleanupHook) {
+        long setupStartedAtNanos = System.nanoTime();
+        long setupDurationNanos;
+        long scheduleDurationNanos;
+        long cleanupDurationNanos;
+        TestResult result;
         try {
             TestCase testCase = setupInitialState.get();
             configureDeterministicWorkflowPlans(testCase.getFunctionalities());
+            setupDurationNanos = System.nanoTime() - setupStartedAtNanos;
 
-            TestResult result = executeSchedule(
+            long scheduleStartedAtNanos = System.nanoTime();
+            result = executeSchedule(
                     testCase.getFunctionalities(),
                     testCase.getInterDependencies());
+            scheduleDurationNanos = System.nanoTime() - scheduleStartedAtNanos;
 
             beforeCleanupHook.accept(result);
-            return result;
         } finally {
-            clearDatabase();
+            long cleanupStartedAtNanos = System.nanoTime();
+            try {
+                clearDatabase();
+            } finally {
+                cleanupDurationNanos = System.nanoTime() - cleanupStartedAtNanos;
+            }
         }
+        return new TimedRun(result, setupDurationNanos, scheduleDurationNanos, cleanupDurationNanos);
     }
 
     /** Oracle schedules workflow steps itself; keep dependency-equivalent plan ties stable. */

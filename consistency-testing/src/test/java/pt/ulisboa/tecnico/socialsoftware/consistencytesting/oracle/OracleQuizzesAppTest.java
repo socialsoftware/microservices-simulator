@@ -116,12 +116,17 @@ class OracleQuizzesAppTest {
                     .build();
         };
 
-        TestResult result = oracle.runTest(testFuncScenario);
+        Oracle.TimedRun timedRun = oracle.runTestTimed(testFuncScenario, ignored -> {
+        });
+        TestResult result = timedRun.result();
 
         assertEquals(1, result.functionalities().size());
         assertTrue(result.schedule().size() < tooManySteps.size());
         assertEquals(maxSteps, result.schedule().size());
         assertEquals(Set.of(TestStatus.EXECUTION_LIMIT_EXCEEDED), result.statuses());
+        assertTrue(timedRun.setupDurationNanos() > 0);
+        assertTrue(timedRun.scheduleDurationNanos() > 0);
+        assertTrue(timedRun.cleanupDurationNanos() > 0);
     }
 
     @Test

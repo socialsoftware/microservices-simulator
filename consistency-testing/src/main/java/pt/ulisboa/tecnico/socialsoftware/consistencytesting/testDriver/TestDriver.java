@@ -234,15 +234,16 @@ public final class TestDriver {
                                     state.observedInterDependencies, state.scheduleRng)
                             : Set.of();
 
-            TestResult result = oracle.runTest(
+            Oracle.TimedRun timedRun = oracle.runTestTimed(
                     () -> buildTestCase(initialStateSetup, chosen), beforeCleanupHook);
+            TestResult result = timedRun.result();
 
             results.add(result);
             FeedbackScheduleCorpus.Observation observation = state.corpus.observe(result);
-            long iterationDurationNanos = System.nanoTime() - iterationStartedAtNanos;
+            long runDurationNanos = System.nanoTime() - iterationStartedAtNanos;
             reportWriter.write(TestReport.from(
-                    result, scheduleExplorationStrategy, schedulePlan, observation,
-                    schedulerSeed, iterationDurationNanos), reportSubdirectory);
+                    timedRun, scheduleExplorationStrategy, schedulePlan, observation,
+                    schedulerSeed, runDurationNanos), reportSubdirectory);
 
             // Accumulate observed steps/dependencies so later random-constraint runs can propose valid cross-run edges.
             state.observedSteps.addAll(result.schedule());

@@ -11,6 +11,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleDecision;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
@@ -32,11 +33,15 @@ public record TestReport(
         boolean semanticLockGuardRejected,
         int functionalityCount,
         @Nullable Long schedulerSeed,
-        long runDurationNanos) {
+        long runDurationNanos,
+        long setupDurationNanos,
+        long scheduleDurationNanos,
+        long cleanupDurationNanos) {
 
     public TestReport {
-        if (runDurationNanos < 0) {
-            throw new IllegalArgumentException("runDurationNanos must be >= 0");
+        if (runDurationNanos < 0 || setupDurationNanos < 0
+                || scheduleDurationNanos < 0 || cleanupDurationNanos < 0) {
+            throw new IllegalArgumentException("Run durations must be >= 0");
         }
     }
 
@@ -87,13 +92,14 @@ public record TestReport(
     }
 
     static TestReport from(
-            TestResult result,
+            Oracle.TimedRun timedRun,
             ScheduleExplorationStrategy strategy,
             FeedbackScheduleCorpus.Plan plan,
             FeedbackScheduleCorpus.Observation observation,
             long schedulerSeed,
             long runDurationNanos) {
 
+        TestResult result = timedRun.result();
         BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
 
         List<String> schedule = result.schedule().stream()
@@ -153,7 +159,8 @@ public record TestReport(
                 schedule, behavioralFingerprintView, scheduleExplorationView,
                 statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
                 semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(),
-                functionalityCount, schedulerSeed, runDurationNanos);
+                functionalityCount, schedulerSeed, runDurationNanos,
+                timedRun.setupDurationNanos(), timedRun.scheduleDurationNanos(), timedRun.cleanupDurationNanos());
     }
 
     private static ScheduleDecisionView toView(ScheduleDecision decision) {

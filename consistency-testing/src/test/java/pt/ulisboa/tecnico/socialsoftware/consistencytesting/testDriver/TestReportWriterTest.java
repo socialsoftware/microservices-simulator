@@ -47,7 +47,10 @@ class TestReportWriterTest {
                 false,
                 1,
                 42L,
-                123_456_789L);
+                123_456_789L,
+                10_000_000L,
+                100_000_000L,
+                5_000_000L);
 
         Path written = writer.write(report);
 
@@ -58,5 +61,8 @@ class TestReportWriterTest {
         TestReport roundTrip = new ObjectMapper().readValue(written.toFile(), TestReport.class);
         assertEquals(report, roundTrip);
         assertEquals(123_456_789L, roundTrip.runDurationNanos());
+        assertEquals(10_000_000L, roundTrip.setupDurationNanos());
+        assertEquals(100_000_000L, roundTrip.scheduleDurationNanos());
+        assertEquals(5_000_000L, roundTrip.cleanupDurationNanos());
     }
 }
