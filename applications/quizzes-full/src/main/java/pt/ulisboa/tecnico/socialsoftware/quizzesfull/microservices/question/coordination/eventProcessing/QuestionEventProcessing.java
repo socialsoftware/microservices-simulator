@@ -13,7 +13,8 @@ public class QuestionEventProcessing {
     private QuestionFunctionalities questionFunctionalities;
 
     public void processUpdateTopicEvent(Integer aggregateId, UpdateTopicEvent event) {
-        questionFunctionalities.updateTopicNameInQuestionByEvent(aggregateId, event.getPublisherAggregateId(), event.getTopicName());
+        questionFunctionalities.updateTopicNameInQuestionByEvent(aggregateId, event.getPublisherAggregateId(),
+                event.getTopicName(), event.getPublisherAggregateVersion());
     }
 
     public void processDeleteTopicEvent(Integer aggregateId, DeleteTopicEvent event) {

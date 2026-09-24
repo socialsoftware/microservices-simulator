@@ -116,30 +116,59 @@ public class ExecutionService {
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStudentNameInExecution(Integer executionAggregateId, Integer userId, String name,
                                              UnitOfWork unitOfWork) {
+        updateStudentNameInExecution(executionAggregateId, userId, name, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateStudentNameInExecution(Integer executionAggregateId, Integer userId, String name,
+                                             Long userVersion, UnitOfWork unitOfWork) {
         Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
                 executionAggregateId, unitOfWork);
         Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
-        newExecution.getStudents().stream()
+        ExecutionStudent student = newExecution.getStudents().stream()
                 .filter(s -> s.getUserAggregateId().equals(userId))
                 .findFirst()
-                .ifPresent(s -> s.setUserName(name));
+                .orElse(null);
+        if (student == null || hasAppliedUserVersion(student, userVersion)) {
+            return;
+        }
+        student.setUserName(name);
+        if (userVersion != null) {
+            student.setUserVersion(userVersion);
+        }
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudentInExecution(Integer executionAggregateId, Integer userId, UnitOfWork unitOfWork) {
+        anonymizeStudentInExecution(executionAggregateId, userId, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudentInExecution(Integer executionAggregateId, Integer userId, Long userVersion,
+                                            UnitOfWork unitOfWork) {
         Execution oldExecution = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(
                 executionAggregateId, unitOfWork);
         Execution newExecution = executionFactory.createExecutionCopy(oldExecution);
-        newExecution.getStudents().stream()
+        ExecutionStudent student = newExecution.getStudents().stream()
                 .filter(s -> s.getUserAggregateId().equals(userId))
                 .findFirst()
-                .ifPresent(s -> {
-                    s.setUserName("ANONYMOUS");
-                    s.setUserUsername("ANONYMOUS");
-                    s.setActive(false);
-                });
+                .orElse(null);
+        if (student == null || hasAppliedUserVersion(student, userVersion)) {
+            return;
+        }
+        student.setUserName("ANONYMOUS");
+        student.setUserUsername("ANONYMOUS");
+        student.setActive(false);
+        if (userVersion != null) {
+            student.setUserVersion(userVersion);
+        }
         unitOfWorkService.registerChanged(newExecution, unitOfWork);
+    }
+
+    private boolean hasAppliedUserVersion(ExecutionStudent student, Long userVersion) {
+        return userVersion != null && student.getUserVersion() != null
+                && student.getUserVersion() >= userVersion;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

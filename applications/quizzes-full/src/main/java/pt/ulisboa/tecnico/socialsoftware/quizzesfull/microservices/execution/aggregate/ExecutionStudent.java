@@ -11,6 +11,7 @@ public class ExecutionStudent {
     @GeneratedValue
     private Integer id;
     private Integer userAggregateId;
+    private Long userVersion;
     private String userName;
     private String userUsername;
     private Boolean active;
@@ -19,6 +20,7 @@ public class ExecutionStudent {
 
     public ExecutionStudent(UserDto userDto) {
         this.userAggregateId = userDto.getAggregateId();
+        this.userVersion = userDto.getVersion();
         this.userName = userDto.getName();
         this.userUsername = userDto.getUsername();
         this.active = userDto.isActive();
@@ -26,6 +28,7 @@ public class ExecutionStudent {
 
     public ExecutionStudent(ExecutionStudent other) {
         this.userAggregateId = other.getUserAggregateId();
+        this.userVersion = other.getUserVersion();
         this.userName = other.getUserName();
         this.userUsername = other.getUserUsername();
         this.active = other.isActive();
@@ -36,6 +39,9 @@ public class ExecutionStudent {
 
     public Integer getUserAggregateId() { return userAggregateId; }
     public void setUserAggregateId(Integer userAggregateId) { this.userAggregateId = userAggregateId; }
+
+    public Long getUserVersion() { return userVersion; }
+    public void setUserVersion(Long userVersion) { this.userVersion = userVersion; }
 
     public String getUserName() { return userName; }
     public void setUserName(String userName) { this.userName = userName; }

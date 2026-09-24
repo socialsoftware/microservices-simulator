@@ -187,52 +187,115 @@ public class TournamentService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStudentNameByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, UnitOfWork unitOfWork) {
+        updateStudentNameByEvent(tournamentAggregateId, userAggregateId, name, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateStudentNameByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name,
+                                         Long userVersion, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
             return;
         }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
-        if (copy.getCreatorAggregateId().equals(userAggregateId)) {
+        boolean applied = false;
+        if (copy.getCreatorAggregateId().equals(userAggregateId)
+                && advancesCachedVersion(copy.getCreatorVersion(), userVersion)) {
             copy.setCreatorName(name);
+            if (userVersion != null) {
+                copy.setCreatorVersion(userVersion);
+            }
+            applied = true;
         }
-        copy.getParticipants().stream()
-                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
-                .forEach(p -> p.setParticipantName(name));
+        for (TournamentParticipant participant : copy.getParticipants()) {
+            if (participant.getParticipantAggregateId().equals(userAggregateId)
+                    && advancesCachedVersion(participant.getParticipantVersion(), userVersion)) {
+                participant.setParticipantName(name);
+                if (userVersion != null) {
+                    participant.setParticipantVersion(userVersion);
+                }
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
         unitOfWorkService.registerChanged(copy, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudentByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name, String username, UnitOfWork unitOfWork) {
+        anonymizeStudentByEvent(tournamentAggregateId, userAggregateId, name, username, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudentByEvent(Integer tournamentAggregateId, Integer userAggregateId, String name,
+                                        String username, Long userVersion, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
             return;
         }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
-        if (copy.getCreatorAggregateId().equals(userAggregateId)) {
+        boolean applied = false;
+        if (copy.getCreatorAggregateId().equals(userAggregateId)
+                && advancesCachedVersion(copy.getCreatorVersion(), userVersion)) {
             copy.setCreatorName(name);
             copy.setCreatorUsername(username);
             copy.setState(Aggregate.AggregateState.INACTIVE);
+            if (userVersion != null) {
+                copy.setCreatorVersion(userVersion);
+            }
+            applied = true;
         }
-        copy.getParticipants().stream()
-                .filter(p -> p.getParticipantAggregateId().equals(userAggregateId))
-                .forEach(p -> {
-                    p.setParticipantName(name);
-                    p.setParticipantUsername(username);
-                });
+        for (TournamentParticipant participant : copy.getParticipants()) {
+            if (participant.getParticipantAggregateId().equals(userAggregateId)
+                    && advancesCachedVersion(participant.getParticipantVersion(), userVersion)) {
+                participant.setParticipantName(name);
+                participant.setParticipantUsername(username);
+                if (userVersion != null) {
+                    participant.setParticipantVersion(userVersion);
+                }
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
         unitOfWorkService.registerChanged(copy, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateTopicNameByEvent(Integer tournamentAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
+        updateTopicNameByEvent(tournamentAggregateId, topicAggregateId, topicName, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTopicNameByEvent(Integer tournamentAggregateId, Integer topicAggregateId, String topicName,
+                                       Long topicVersion, UnitOfWork unitOfWork) {
         Tournament old = (Tournament) unitOfWorkService.aggregateLoadAndRegisterRead(tournamentAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
             return;
         }
         Tournament copy = tournamentFactory.createTournamentCopy(old);
-        copy.getTopics().stream()
-                .filter(t -> t.getTopicAggregateId().equals(topicAggregateId))
-                .forEach(t -> t.setTopicName(topicName));
+        boolean applied = false;
+        for (TournamentTopic topic : copy.getTopics()) {
+            if (topic.getTopicAggregateId().equals(topicAggregateId)
+                    && advancesCachedVersion(topic.getTopicVersion(), topicVersion)) {
+                topic.setTopicName(topicName);
+                if (topicVersion != null) {
+                    topic.setTopicVersion(topicVersion);
+                }
+                applied = true;
+            }
+        }
+        if (!applied) {
+            return;
+        }
         unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    private boolean advancesCachedVersion(Long cachedVersion, Long publisherVersion) {
+        return publisherVersion == null || cachedVersion == null || cachedVersion < publisherVersion;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

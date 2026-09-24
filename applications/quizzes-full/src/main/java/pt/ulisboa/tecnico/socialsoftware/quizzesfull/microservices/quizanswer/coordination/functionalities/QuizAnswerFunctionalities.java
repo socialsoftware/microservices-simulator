@@ -62,14 +62,22 @@ public class QuizAnswerFunctionalities {
     }
 
     public void updateStudentNameByEvent(Integer quizAnswerId, String name) {
+        updateStudentNameByEvent(quizAnswerId, name, null);
+    }
+
+    public void updateStudentNameByEvent(Integer quizAnswerId, String name, Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
-        quizAnswerService.updateStudentName(quizAnswerId, name, unitOfWork);
+        quizAnswerService.updateStudentName(quizAnswerId, name, userVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void anonymizeStudentByEvent(Integer quizAnswerId, String name, String username) {
+        anonymizeStudentByEvent(quizAnswerId, name, username, null);
+    }
+
+    public void anonymizeStudentByEvent(Integer quizAnswerId, String name, String username, Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
-        quizAnswerService.anonymizeStudent(quizAnswerId, name, username, unitOfWork);
+        quizAnswerService.anonymizeStudent(quizAnswerId, name, username, userVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 

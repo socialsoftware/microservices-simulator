@@ -18,10 +18,12 @@ public class ExecutionEventProcessing {
     }
 
     public void processUpdateStudentNameEvent(Integer aggregateId, UpdateStudentNameEvent event) {
-        executionFunctionalities.updateStudentNameByEvent(aggregateId, event.getStudentAggregateId(), event.getUpdatedName());
+        executionFunctionalities.updateStudentNameByEvent(aggregateId, event.getStudentAggregateId(),
+                event.getUpdatedName(), event.getPublisherAggregateVersion());
     }
 
     public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent event) {
-        executionFunctionalities.anonymizeStudentByEvent(aggregateId, event.getStudentAggregateId());
+        executionFunctionalities.anonymizeStudentByEvent(aggregateId, event.getStudentAggregateId(),
+                event.getPublisherAggregateVersion());
     }
 }

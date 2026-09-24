@@ -80,19 +80,40 @@ public class QuestionService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateTopicNameInQuestion(Integer questionAggregateId, Integer topicAggregateId, String topicName, UnitOfWork unitOfWork) {
+        updateTopicNameInQuestion(questionAggregateId, topicAggregateId, topicName, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateTopicNameInQuestion(Integer questionAggregateId, Integer topicAggregateId, String topicName,
+                                          Long topicVersion, UnitOfWork unitOfWork) {
         Question oldQuestion = (Question) unitOfWorkService.aggregateLoadAndRegisterRead(
                 questionAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) oldQuestion).getSagaState())) {
             return;
         }
         Question newQuestion = questionFactory.createQuestionCopy(oldQuestion);
+        boolean applied = false;
         for (QuestionTopic topic : newQuestion.getTopics()) {
             if (topic.getTopicAggregateId().equals(topicAggregateId)) {
+                if (doesNotAdvance(topic.getTopicVersion(), topicVersion)) {
+                    return;
+                }
                 topic.setTopicName(topicName);
+                if (topicVersion != null) {
+                    topic.setTopicVersion(topicVersion);
+                }
+                applied = true;
                 break;
             }
         }
+        if (!applied) {
+            return;
+        }
         unitOfWorkService.registerChanged(newQuestion, unitOfWork);
+    }
+
+    private boolean doesNotAdvance(Long cachedVersion, Long publisherVersion) {
+        return publisherVersion != null && cachedVersion != null && cachedVersion >= publisherVersion;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

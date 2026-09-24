@@ -23,15 +23,18 @@ public class TournamentEventProcessing {
     }
 
     public void processUpdateStudentNameEvent(Integer aggregateId, UpdateStudentNameEvent event) {
-        tournamentFunctionalities.updateStudentNameByEvent(aggregateId, event.getStudentAggregateId(), event.getUpdatedName());
+        tournamentFunctionalities.updateStudentNameByEvent(aggregateId, event.getStudentAggregateId(),
+                event.getUpdatedName(), event.getPublisherAggregateVersion());
     }
 
     public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent event) {
-        tournamentFunctionalities.anonymizeStudentByEvent(aggregateId, event.getStudentAggregateId(), event.getName(), event.getUsername());
+        tournamentFunctionalities.anonymizeStudentByEvent(aggregateId, event.getStudentAggregateId(),
+                event.getName(), event.getUsername(), event.getPublisherAggregateVersion());
     }
 
     public void processUpdateTopicEvent(Integer aggregateId, UpdateTopicEvent event) {
-        tournamentFunctionalities.updateTopicNameByEvent(aggregateId, event.getPublisherAggregateId(), event.getTopicName());
+        tournamentFunctionalities.updateTopicNameByEvent(aggregateId, event.getPublisherAggregateId(),
+                event.getTopicName(), event.getPublisherAggregateVersion());
     }
 
     public void processDeleteTopicEvent(Integer aggregateId, DeleteTopicEvent event) {

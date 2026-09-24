@@ -110,25 +110,54 @@ public class QuizAnswerService {
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void updateStudentName(Integer quizAnswerAggregateId, String name, UnitOfWork unitOfWork) {
+        updateStudentName(quizAnswerAggregateId, name, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void updateStudentName(Integer quizAnswerAggregateId, String name, Long userVersion,
+                                  UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
             return;
         }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        if (hasAppliedUserVersion(copy, userVersion)) {
+            return;
+        }
         copy.setUserName(name);
+        if (userVersion != null) {
+            copy.setUserVersion(userVersion);
+        }
         unitOfWorkService.registerChanged(copy, unitOfWork);
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
     public void anonymizeStudent(Integer quizAnswerAggregateId, String name, String username, UnitOfWork unitOfWork) {
+        anonymizeStudent(quizAnswerAggregateId, name, username, null, unitOfWork);
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
+    public void anonymizeStudent(Integer quizAnswerAggregateId, String name, String username, Long userVersion,
+                                 UnitOfWork unitOfWork) {
         QuizAnswer old = (QuizAnswer) unitOfWorkService.aggregateLoadAndRegisterRead(quizAnswerAggregateId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) old).getSagaState())) {
             return;
         }
         QuizAnswer copy = quizAnswerFactory.createQuizAnswerCopy(old);
+        if (hasAppliedUserVersion(copy, userVersion)) {
+            return;
+        }
         copy.setUserName(name);
         copy.setUserUsername(username);
+        if (userVersion != null) {
+            copy.setUserVersion(userVersion);
+        }
         unitOfWorkService.registerChanged(copy, unitOfWork);
+    }
+
+    private boolean hasAppliedUserVersion(QuizAnswer quizAnswer, Long userVersion) {
+        return userVersion != null && quizAnswer.getUserVersion() != null
+                && quizAnswer.getUserVersion() >= userVersion;
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)

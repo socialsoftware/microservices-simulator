@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.agg
 
 public class ExecutionSubscribesUpdateStudentName extends EventSubscription {
     public ExecutionSubscribesUpdateStudentName(ExecutionStudent student) {
-        super(student.getUserAggregateId(), 0L, UpdateStudentNameEvent.class.getSimpleName());
+        super(student.getUserAggregateId(), student.getUserVersion(), UpdateStudentNameEvent.class.getSimpleName());
     }
 
     public ExecutionSubscribesUpdateStudentName() {}

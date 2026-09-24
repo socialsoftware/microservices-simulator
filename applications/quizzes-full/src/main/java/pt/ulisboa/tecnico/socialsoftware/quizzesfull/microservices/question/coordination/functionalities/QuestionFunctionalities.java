@@ -74,8 +74,13 @@ public class QuestionFunctionalities {
     }
 
     public void updateTopicNameInQuestionByEvent(Integer questionId, Integer topicId, String topicName) {
+        updateTopicNameInQuestionByEvent(questionId, topicId, topicName, null);
+    }
+
+    public void updateTopicNameInQuestionByEvent(Integer questionId, Integer topicId, String topicName,
+                                                 Long topicVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateTopicNameInQuestionByEvent");
-        questionService.updateTopicNameInQuestion(questionId, topicId, topicName, unitOfWork);
+        questionService.updateTopicNameInQuestion(questionId, topicId, topicName, topicVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 

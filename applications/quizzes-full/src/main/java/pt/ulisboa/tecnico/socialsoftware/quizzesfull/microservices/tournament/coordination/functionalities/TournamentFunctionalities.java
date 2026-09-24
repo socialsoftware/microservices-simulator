@@ -109,20 +109,36 @@ public class TournamentFunctionalities {
     }
 
     public void updateStudentNameByEvent(Integer tournamentId, Integer userAggregateId, String name) {
+        updateStudentNameByEvent(tournamentId, userAggregateId, name, null);
+    }
+
+    public void updateStudentNameByEvent(Integer tournamentId, Integer userAggregateId, String name,
+                                         Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
-        tournamentService.updateStudentNameByEvent(tournamentId, userAggregateId, name, unitOfWork);
+        tournamentService.updateStudentNameByEvent(tournamentId, userAggregateId, name, userVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void anonymizeStudentByEvent(Integer tournamentId, Integer userAggregateId, String name, String username) {
+        anonymizeStudentByEvent(tournamentId, userAggregateId, name, username, null);
+    }
+
+    public void anonymizeStudentByEvent(Integer tournamentId, Integer userAggregateId, String name, String username,
+                                        Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
-        tournamentService.anonymizeStudentByEvent(tournamentId, userAggregateId, name, username, unitOfWork);
+        tournamentService.anonymizeStudentByEvent(tournamentId, userAggregateId, name, username, userVersion,
+                unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void updateTopicNameByEvent(Integer tournamentId, Integer topicAggregateId, String topicName) {
+        updateTopicNameByEvent(tournamentId, topicAggregateId, topicName, null);
+    }
+
+    public void updateTopicNameByEvent(Integer tournamentId, Integer topicAggregateId, String topicName,
+                                       Long topicVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateTopicNameByEvent");
-        tournamentService.updateTopicNameByEvent(tournamentId, topicAggregateId, topicName, unitOfWork);
+        tournamentService.updateTopicNameByEvent(tournamentId, topicAggregateId, topicName, topicVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 

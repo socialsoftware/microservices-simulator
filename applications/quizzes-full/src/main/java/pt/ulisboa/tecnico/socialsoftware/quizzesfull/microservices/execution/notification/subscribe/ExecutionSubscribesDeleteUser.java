@@ -6,7 +6,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzesfull.microservices.execution.agg
 
 public class ExecutionSubscribesDeleteUser extends EventSubscription {
     public ExecutionSubscribesDeleteUser(ExecutionStudent student) {
-        super(student.getUserAggregateId(), 0L, DeleteUserEvent.class.getSimpleName());
+        super(student.getUserAggregateId(), student.getUserVersion(), DeleteUserEvent.class.getSimpleName());
     }
 
     public ExecutionSubscribesDeleteUser() {}

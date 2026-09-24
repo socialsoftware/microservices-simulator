@@ -22,11 +22,13 @@ public class QuizAnswerEventProcessing {
     }
 
     public void processUpdateStudentNameEvent(Integer aggregateId, UpdateStudentNameEvent event) {
-        quizAnswerFunctionalities.updateStudentNameByEvent(aggregateId, event.getUpdatedName());
+        quizAnswerFunctionalities.updateStudentNameByEvent(aggregateId, event.getUpdatedName(),
+                event.getPublisherAggregateVersion());
     }
 
     public void processAnonymizeStudentEvent(Integer aggregateId, AnonymizeStudentEvent event) {
-        quizAnswerFunctionalities.anonymizeStudentByEvent(aggregateId, event.getName(), event.getUsername());
+        quizAnswerFunctionalities.anonymizeStudentByEvent(aggregateId, event.getName(), event.getUsername(),
+                event.getPublisherAggregateVersion());
     }
 
     public void processDisenrollStudentFromCourseExecutionEvent(Integer aggregateId, DisenrollStudentFromCourseExecutionEvent event) {

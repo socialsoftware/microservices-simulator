@@ -106,22 +106,30 @@ public class ExecutionFunctionalities {
     }
 
     public void updateStudentNameByEvent(Integer executionId, Integer userId, String name) {
+        updateStudentNameByEvent(executionId, userId, name, null);
+    }
+
+    public void updateStudentNameByEvent(Integer executionId, Integer userId, String name, Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("updateStudentNameByEvent");
         Execution aggregate = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
             return;
         }
-        executionService.updateStudentNameInExecution(executionId, userId, name, unitOfWork);
+        executionService.updateStudentNameInExecution(executionId, userId, name, userVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
     public void anonymizeStudentByEvent(Integer executionId, Integer userId) {
+        anonymizeStudentByEvent(executionId, userId, null);
+    }
+
+    public void anonymizeStudentByEvent(Integer executionId, Integer userId, Long userVersion) {
         SagaUnitOfWork unitOfWork = unitOfWorkService.createUnitOfWork("anonymizeStudentByEvent");
         Execution aggregate = (Execution) unitOfWorkService.aggregateLoadAndRegisterRead(executionId, unitOfWork);
         if (!GenericSagaState.NOT_IN_SAGA.equals(((SagaAggregate) aggregate).getSagaState())) {
             return;
         }
-        executionService.anonymizeStudentInExecution(executionId, userId, unitOfWork);
+        executionService.anonymizeStudentInExecution(executionId, userId, userVersion, unitOfWork);
         unitOfWorkService.commit(unitOfWork);
     }
 
