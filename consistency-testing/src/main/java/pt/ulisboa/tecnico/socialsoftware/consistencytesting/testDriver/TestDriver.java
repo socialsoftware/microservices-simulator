@@ -215,6 +215,7 @@ public final class TestDriver {
 
         List<TestResult> results = new ArrayList<>();
         for (int batchIteration = 0; batchIteration < batchIterations; batchIteration++) {
+            long iterationStartedAtNanos = System.nanoTime();
             int iteration = state.completedRuns;
             // Each run gets a fresh scheduler seed so the same constraints can still
             // realize different concrete interleavings.
@@ -238,8 +239,10 @@ public final class TestDriver {
 
             results.add(result);
             FeedbackScheduleCorpus.Observation observation = state.corpus.observe(result);
+            long iterationDurationNanos = System.nanoTime() - iterationStartedAtNanos;
             reportWriter.write(TestReport.from(
-                    result, scheduleExplorationStrategy, schedulePlan, observation, schedulerSeed), reportSubdirectory);
+                    result, scheduleExplorationStrategy, schedulePlan, observation,
+                    schedulerSeed, iterationDurationNanos), reportSubdirectory);
 
             // Accumulate observed steps/dependencies so later random-constraint runs can propose valid cross-run edges.
             state.observedSteps.addAll(result.schedule());

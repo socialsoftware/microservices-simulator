@@ -46,7 +46,8 @@ class TestReportWriterTest {
                 Map.of("update-1::getOriginalTournamentStep", "SimulatorException: boom!"),
                 false,
                 1,
-                42L);
+                42L,
+                123_456_789L);
 
         Path written = writer.write(report);
 
@@ -56,5 +57,6 @@ class TestReportWriterTest {
         // round-trips back to an equal report (records serialize/deserialize cleanly)
         TestReport roundTrip = new ObjectMapper().readValue(written.toFile(), TestReport.class);
         assertEquals(report, roundTrip);
+        assertEquals(123_456_789L, roundTrip.runDurationNanos());
     }
 }

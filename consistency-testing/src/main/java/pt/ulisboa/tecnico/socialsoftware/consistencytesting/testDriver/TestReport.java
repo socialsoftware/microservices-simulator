@@ -31,7 +31,14 @@ public record TestReport(
         Map<String, String> stepExceptions,
         boolean semanticLockGuardRejected,
         int functionalityCount,
-        @Nullable Long schedulerSeed) {
+        @Nullable Long schedulerSeed,
+        long runDurationNanos) {
+
+    public TestReport {
+        if (runDurationNanos < 0) {
+            throw new IllegalArgumentException("runDurationNanos must be >= 0");
+        }
+    }
 
     public record InterInvariantViolationView(String description) {
     }
@@ -84,7 +91,8 @@ public record TestReport(
             ScheduleExplorationStrategy strategy,
             FeedbackScheduleCorpus.Plan plan,
             FeedbackScheduleCorpus.Observation observation,
-            long schedulerSeed) {
+            long schedulerSeed,
+            long runDurationNanos) {
 
         BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
 
@@ -145,7 +153,7 @@ public record TestReport(
                 schedule, behavioralFingerprintView, scheduleExplorationView,
                 statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
                 semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(),
-                functionalityCount, schedulerSeed);
+                functionalityCount, schedulerSeed, runDurationNanos);
     }
 
     private static ScheduleDecisionView toView(ScheduleDecision decision) {
