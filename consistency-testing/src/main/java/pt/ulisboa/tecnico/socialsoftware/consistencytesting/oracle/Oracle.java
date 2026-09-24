@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.UUID;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -51,40 +52,50 @@ public final class Oracle {
     /** Bean name for the simulator's base aggregate repository. */
     private static final String AGGREGATE_REPOSITORY_BEAN_NAME = "aggregateRepository";
 
+    private static final String DB_NAME_PREFIX = "oracledb_";
     private static final String DB_IMAGE = "postgres:15-alpine";
-    private static final String DB_NAME = "oracledb";
     private static final String DB_USERNAME = "oracle";
     private static final String DB_PASSWORD = "postgres";
+    private static final String ORACLE_DB_PROPERTY = "oracle.db";
+
+    /** Exact Spring property names checked to enforce isolation. */
+    private static final Set<String> ISOLATION_CONTROLLED_PROPERTIES = Set.of(
+            "spring.main.web-application-type",
+            "spring.profiles.active",
+            "spring.jpa.hibernate.ddl-auto",
+            "spring.datasource.url",
+            "spring.datasource.username",
+            "spring.datasource.password",
+            "spring.datasource.driver-class-name",
+            "spring.jpa.properties.hibernate.dialect",
+            "server.port",
+            "server.address",
+            "grpc.server.port");
+
+    /** Property-name prefixes checked to enforce isolation for external services and server settings with varying suffixes. */
+    private static final List<String> ISOLATION_CONTROLLED_PROPERTY_PREFIXES = List.of(
+            "spring.cloud.", "spring.rabbitmq.", "eureka.", "grpc.", "server.");
 
     /**
-     * Persistence backend for the app-under-test. Defaults to in-memory
-     * {@link DbBackend#H2}.
+     * Isolated campaigns always use an in-memory H2 database owned by their
+     * Oracle instance. A non-isolated fidelity pass may opt into a tool-owned
+     * PostgreSQL container with {@code -Doracle.db=postgres}.
      * <p>
      * The oracle executes each schedule strictly sequentially on a single thread
      * ({@code ScheduleExecutor}), with the background event scheduler stopped.
      * Transactions
-     * therefore never overlap in wall-clock time, so PostgreSQL's
-     * {@code SERIALIZABLE}
-     * conflict-detection is never actually exercised — the consistency guarantees
+     * therefore never overlap in wall-clock time. The consistency guarantees
      * under test are
      * enforced at the application layer (semantic locks +
      * {@code CentralizedVersionService}
      * version checks), not by the database isolation level. H2 is thus
-     * accuracy-equivalent here
-     * while avoiding per-query Postgres-over-Docker round-trips (~tens of ms each)
-     * and container
-     * startup.
-     * <p>
-     * Set {@code -Doracle.db=postgres} to run against the production dialect for a
-     * fidelity pass.
+     * accuracy-equivalent here while avoiding external resource dependencies.
      */
-    private static final DbBackend DB_BACKEND = "postgres".equalsIgnoreCase(System.getProperty("oracle.db", "h2"))
-            ? DbBackend.POSTGRES
-            : DbBackend.H2;
-
-    private final @Nullable PostgreSQLContainer<?> postgres; // null unless DB_BACKEND == POSTGRES
+    private final @Nullable PostgreSQLContainer<?> postgres;
     private final Class<?> springAppClass;
     private final List<String> springAppBaseArgs;
+    private final IsolationMode isolationMode;
+    private final String databaseName;
 
     private @Nullable String[] springAppArgs;
     private @Nullable ConfigurableApplicationContext springContext;
@@ -98,9 +109,14 @@ public final class Oracle {
     private @Nullable InterInvariantsProvider interInvariantProvider;
 
     public Oracle(Class<?> springAppClass, List<String> springAppBaseArgs) {
-        postgres = DB_BACKEND == DbBackend.POSTGRES
+        this.isolationMode = IsolationMode.fromSystemProperty();
+        validateIsolationArguments(isolationMode, springAppBaseArgs);
+
+        DbBackend backend = databaseBackend(isolationMode);
+        this.databaseName = DB_NAME_PREFIX + UUID.randomUUID().toString().replace("-", "");
+        this.postgres = backend == DbBackend.POSTGRES
                 ? new PostgreSQLContainer<>(DB_IMAGE)
-                        .withDatabaseName(DB_NAME)
+                        .withDatabaseName(databaseName)
                         .withUsername(DB_USERNAME)
                         .withPassword(DB_PASSWORD)
                 : null;
@@ -109,22 +125,115 @@ public final class Oracle {
         this.springAppBaseArgs = List.copyOf(springAppBaseArgs);
     }
 
-    private static String[] generateFinalSpringArgs(
-            @Nullable PostgreSQLContainer<?> postgres,
-            List<String> springAppBaseArgs) {
+    private static DbBackend databaseBackend(IsolationMode isolationMode) {
+        String configuredBackend = System.getProperty(ORACLE_DB_PROPERTY, "h2");
+        if (isolationMode == IsolationMode.REQUIRED) {
+            if (!"h2".equalsIgnoreCase(configuredBackend)) {
+                throw incompatibleWithIsolation("system property '" + ORACLE_DB_PROPERTY + "="
+                        + configuredBackend + "'");
+            }
+            return DbBackend.H2;
+        }
+        return "postgres".equalsIgnoreCase(configuredBackend) ? DbBackend.POSTGRES : DbBackend.H2;
+    }
+
+    private static void validateIsolationArguments(IsolationMode isolationMode, List<String> springAppBaseArgs) {
+        if (isolationMode == IsolationMode.UNSUPPORTED) {
+            return;
+        }
+
+        // Check explicit JVM properties and Spring arguments against the exact names and prefixes below; reject settings that select shared services or listening servers.
+        for (String property : ISOLATION_CONTROLLED_PROPERTIES) {
+            String configuredValue = System.getProperty(property);
+            if (configuredValue != null && !isRequiredIsolationValue(property, configuredValue)) {
+                throw incompatibleWithIsolation("system property '" + property + "=" + configuredValue + "'");
+            }
+        }
+        // Check JVM properties whose names begin with one of the controlled prefixes.
+        for (String prefix : ISOLATION_CONTROLLED_PROPERTY_PREFIXES) {
+            System.getProperties().stringPropertyNames().stream()
+                    .filter(property -> property.startsWith(prefix))
+                    .filter(property -> !isRequiredIsolationValue(property, System.getProperty(property)))
+                    .findFirst()
+                    .ifPresent(property -> {
+                        throw incompatibleWithIsolation(
+                                "system property '" + property + "=" + System.getProperty(property) + "'");
+                    });
+        }
+
+        // Apply the same checks to command-line arguments, which can override defaults.
+        for (String argument : springAppBaseArgs) {
+            String property = argumentProperty(argument);
+            if (property != null && isIsolationControlledProperty(property)
+                    && !isRequiredIsolationValue(property, argumentValue(argument))) {
+                throw incompatibleWithIsolation("Spring argument '" + argument + "'");
+            }
+        }
+        
+        // TODO Could also be relevant to check environment variables and application config files.
+    }
+
+    private static boolean isIsolationControlledProperty(String property) {
+        return ISOLATION_CONTROLLED_PROPERTIES.contains(property)
+                || ISOLATION_CONTROLLED_PROPERTY_PREFIXES.stream().anyMatch(property::startsWith);
+    }
+
+    /** Returns true only for explicitly allowed values; all other values are rejected. */
+    private static boolean isRequiredIsolationValue(String property, @Nullable String value) {
+        return switch (property) {
+            case "spring.main.web-application-type" -> "none".equalsIgnoreCase(value);
+            case "spring.profiles.active" -> "sagas,local,test,oracle".equals(value);
+            case "spring.jpa.hibernate.ddl-auto" -> "create-drop".equalsIgnoreCase(value);
+            // Disables an optional RSocket endpoint; it cannot make the Oracle
+            // reachable and is required by the existing test JVM configuration.
+            case "spring.cloud.function.rsocket.enabled" -> "false".equalsIgnoreCase(value);
+            default -> false;
+        };
+    }
+
+    private static IllegalArgumentException incompatibleWithIsolation(String conflictingSetting) {
+        return new IllegalArgumentException(
+                "Consistency isolation requires tool-owned H2, local Oracle profiles, and no listening server; "
+                        + conflictingSetting + " is incompatible. Remove it or rerun with -D"
+                        + IsolationMode.PROPERTY + "=unsupported.");
+    }
+
+    /** Extracts the property name from {@code --name=value}; returns null for non-option arguments. */
+    private static @Nullable String argumentProperty(String argument) {
+        if (!argument.startsWith("--")) {
+            return null;
+        }
+        int assignment = argument.indexOf('=');
+        return assignment < 0 ? argument.substring(2) : argument.substring(2, assignment);
+    }
+
+    /** Extracts the value from a Spring {@code --name=value} argument, returns null when absent. */
+    private static @Nullable String argumentValue(String argument) {
+        int assignment = argument.indexOf('=');
+        return assignment < 0 ? null : argument.substring(assignment + 1);
+    }
+
+    private String[] generateFinalSpringArgs() {
+        if (isolationMode == IsolationMode.UNSUPPORTED) {
+            if (postgres != null) {
+                return mergeArgsWithPriority(datasourceArgs(), springAppBaseArgs).toArray(new String[0]);
+            }
+            return springAppBaseArgs.toArray(new String[0]);
+        }
 
         List<String> springPriorityArgs = new ArrayList<>(List.of(
                 "--spring.main.allow-bean-definition-overriding=true",
                 "--spring.profiles.active=sagas,local,test,oracle",
-                "--spring.jpa.hibernate.ddl-auto=create-drop"));
+                "--spring.jpa.hibernate.ddl-auto=create-drop",
+                "--spring.main.web-application-type=none"));
 
-        springPriorityArgs.addAll(datasourceArgs(postgres));
+        springPriorityArgs.addAll(datasourceArgs());
 
         List<String> finalArgsList = mergeArgsWithPriority(springPriorityArgs, springAppBaseArgs);
         return finalArgsList.toArray(new String[0]);
     }
 
-    private static List<String> datasourceArgs(@Nullable PostgreSQLContainer<?> postgres) {
+    private List<String> datasourceArgs() {
         if (postgres != null) {
             // PostgreSQL testcontainer
             return List.of(
@@ -136,7 +245,7 @@ public final class Oracle {
         } else {
             // In-memory H2
             return List.of(
-                    "--spring.datasource.url=jdbc:h2:mem:" + DB_NAME + ";DB_CLOSE_DELAY=-1",
+                    "--spring.datasource.url=jdbc:h2:mem:" + databaseName + ";DB_CLOSE_DELAY=-1",
                     "--spring.datasource.username=sa",
                     "--spring.datasource.password=sa",
                     "--spring.datasource.driver-class-name=org.h2.Driver",
@@ -166,7 +275,7 @@ public final class Oracle {
         }
 
         SpringApplication app = new SpringApplication(springAppClass);
-        springAppArgs = generateFinalSpringArgs(postgres, springAppBaseArgs);
+        springAppArgs = generateFinalSpringArgs();
 
         app.addInitializers(ctx -> {
             overrideSpringBean(EventApplicationService.class, DeferredEventApplicationService.class, ctx);
@@ -195,6 +304,15 @@ public final class Oracle {
         if (postgres != null) {
             postgres.stop();
         }
+
+    }
+
+    List<String> effectiveSpringAppArgs() {
+        if (springAppArgs == null) {
+            // Effective arguments exist only after init has constructed them.
+            throw new IllegalStateException("Oracle has not started.");
+        }
+        return List.of(springAppArgs);
     }
 
     public void restart() {

@@ -22,7 +22,7 @@ class QuizzesFullConsistencySweep {
         int iterations = Integer.getInteger("consistency.iterations", DEFAULT_ITERATIONS);
         Orchestrator orchestrator = Orchestrator.of(QuizzesFullSimulator.class)
                 .withIterationsPerGroup(iterations)
-                .withReportsDirectory(Path.of("target", "consistency-reports"));
+                .withReportsRoot(Path.of("target", "consistency-reports"));
 
         String configuredSeed = System.getProperty("consistency.masterSeed");
         if (configuredSeed != null && !configuredSeed.isBlank()) {

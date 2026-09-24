@@ -25,6 +25,7 @@ import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.IsolationMode;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.FunctionalityCatalog;
@@ -60,7 +61,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
  * <pre>{@code
  * OrchestrationReport report = Orchestrator.of(MyAppSimulator.class)
  *         .withIterationsPerGroup(20)
- *         .withReportsDirectory(Path.of("target/consistency-reports"))
+ *         .withReportsRoot(Path.of("target/consistency-reports"))
  *         .run();
  * }</pre>
  *
@@ -75,10 +76,11 @@ public final class Orchestrator {
     private static final int DEFAULT_ITERATIONS_PER_GROUP = 20;
     private static final long DEFAULT_MASTER_SEED = 42L;
     private static final long ADAPTIVE_BUDGET_SEED_SALT = 0xD1B54A32D192ED03L;
-    private static final Path DEFAULT_REPORTS_DIRECTORY = Path.of("target", "consistency-reports");
+    private static final Path DEFAULT_REPORTS_ROOT = Path.of("target", "consistency-reports");
     private static final String IGNORED_SEMANTIC_LOCKS_PROPERTY = "consistency.ignoredSemanticLocks";
     private static final String GROUP_SELECTORS_PROPERTY = "consistency.groupSelectors";
     private static final String REPORTS_DIRECTORY_PROPERTY = "consistency.reportsDirectory";
+    private static final String REPORTS_ROOT_PROPERTY = "consistency.reportsRoot";
     private static final String SCHEDULE_EXPLORATION_PROPERTY = "consistency.scheduleExploration";
     private static final String GROUP_BUDGET_STRATEGY_PROPERTY = "consistency.groupBudgetStrategy";
     private static final String TOTAL_RUN_BUDGET_PROPERTY = "consistency.totalRunBudget";
@@ -103,7 +105,8 @@ public final class Orchestrator {
     private List<String> springAppArgs = List.of();
     private int iterationsPerGroup = DEFAULT_ITERATIONS_PER_GROUP;
     private long masterSeed = DEFAULT_MASTER_SEED;
-    private Path reportsDirectory = DEFAULT_REPORTS_DIRECTORY;
+    private Path reportsRoot = DEFAULT_REPORTS_ROOT;
+    private Path reportsDirectory = null;
     private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
     private Set<GroupSelector> groupSelectors = Set.of();
     private ScheduleExplorationStrategy scheduleExplorationStrategy = ScheduleExplorationStrategy.RANDOM_CONSTRAINTS;
@@ -182,11 +185,21 @@ public final class Orchestrator {
     }
 
     /**
-     * Where per-run reports and the campaign summary are written. The
-     * {@value #REPORTS_DIRECTORY_PROPERTY} system property overrides this value.
+     * Exact directory for campaign reports. This API is available only
+     * when isolation is explicitly disabled because concurrent campaigns could
+     * otherwise overwrite one another.
      */
     public Orchestrator withReportsDirectory(Path reportsDirectory) {
         this.reportsDirectory = reportsDirectory;
+        return this;
+    }
+
+    /**
+     * Parent directory for isolated campaign reports. Each campaign receives a
+     * unique child directory containing its summary and per-run reports.
+     */
+    public Orchestrator withReportsRoot(Path reportsRoot) {
+        this.reportsRoot = reportsRoot;
         return this;
     }
 
@@ -572,16 +585,41 @@ public final class Orchestrator {
     }
 
     private Path effectiveReportsDirectory(long startedAtEpochMillis) {
+        Instant startedAt = Instant.ofEpochMilli(startedAtEpochMillis);
+        UUID campaignId = UUID.randomUUID();
+
+        if (IsolationMode.fromSystemProperty() == IsolationMode.REQUIRED) {
+            if (reportsDirectory != null) {
+                throw new IllegalArgumentException(
+                        "withReportsDirectory is incompatible with required consistency isolation; "
+                                + "use withReportsRoot instead, or rerun with -D"
+                                + IsolationMode.PROPERTY + "=unsupported.");
+            }
+            String configuredReportsDirectory = System.getProperty(REPORTS_DIRECTORY_PROPERTY);
+            if (configuredReportsDirectory != null && !configuredReportsDirectory.isBlank()) {
+                throw new IllegalArgumentException(
+                        "System property '" + REPORTS_DIRECTORY_PROPERTY
+                                + "' is incompatible with required consistency isolation; use '"
+                                + REPORTS_ROOT_PROPERTY + "' instead, or rerun with -D"
+                                + IsolationMode.PROPERTY + "=unsupported.");
+            }
+            String configuredRoot = System.getProperty(REPORTS_ROOT_PROPERTY);
+            Path effectiveRoot = configuredRoot == null || configuredRoot.isBlank()
+                    ? reportsRoot
+                    : Path.of(configuredRoot);
+            return CampaignReportsDirectory.pathForCampaign(effectiveRoot, startedAt, campaignId);
+        }
+
         return resolveReportsDirectory(
-                reportsDirectory,
+                reportsDirectory == null ? reportsRoot : reportsDirectory,
                 ignoredSemanticLocks,
                 groupSelectors,
                 scheduleExplorationStrategy,
                 groupBudgetStrategy,
                 planningPolicy,
                 System.getProperty(REPORTS_DIRECTORY_PROPERTY),
-                Instant.ofEpochMilli(startedAtEpochMillis),
-                UUID.randomUUID());
+                startedAt,
+                campaignId);
     }
 
     /**
@@ -605,7 +643,7 @@ public final class Orchestrator {
             return Path.of(reportsDirectoryProperty);
         }
         if (!isExperiment(ignoredLocks, selectedGroups, strategy, groupBudgetStrategy, planningPolicy)
-                || !requestedDirectory.equals(DEFAULT_REPORTS_DIRECTORY)) {
+                || !requestedDirectory.equals(DEFAULT_REPORTS_ROOT)) {
             return requestedDirectory;
         }
         return ExperimentReportsDirectory.pathForExperiment(startedAt, runId);
