@@ -15,6 +15,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.AnomalyView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.BehavioralFingerprintView;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.BehavioralSignalsView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.EffectView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.InterInvariantViolationView;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestReport.ReadsFromView;
@@ -31,6 +32,7 @@ class TestReportWriterTest {
         TestReport report = new TestReport(
                 List.of("update-1::getOriginalTournamentStep", "update-1::commitStep"),
                 new BehavioralFingerprintView("normalized-behavior-v3", "abc123", List.of("step|update-1")),
+                new BehavioralSignalsView("behavioral-signals-v2", "def456", List.of("effect|update|READ|Quiz")),
                 new ScheduleExplorationView("random-constraints", null, 0, true, false, 0, false, 0, List.of()),
                 List.of("INTER_INVARIANT_VIOLATION"),
                 List.of(new AnomalyView("DIRTY_READ",

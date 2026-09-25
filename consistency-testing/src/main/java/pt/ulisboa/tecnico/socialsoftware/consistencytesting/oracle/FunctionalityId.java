@@ -27,14 +27,17 @@ public final class FunctionalityId {
      * Identity with database-generated delivery identifiers removed where possible.
      */
     private final String behavioralIdentity;
+    /** Actor grouping identity; event actors omit capture ancestry kept by {@link #behavioralIdentity}. */
+    private final String behavioralActorIdentity;
 
     private FunctionalityId(String id) {
-        this(id, id);
+        this(id, id, id);
     }
 
-    private FunctionalityId(String id, String behavioralIdentity) {
+    private FunctionalityId(String id, String behavioralIdentity, String behavioralActorIdentity) {
         this.id = id;
         this.behavioralIdentity = behavioralIdentity;
+        this.behavioralActorIdentity = behavioralActorIdentity;
     }
 
     public static FunctionalityId forSagaFunctionality(String functionalityId) {
@@ -91,7 +94,12 @@ public final class FunctionalityId {
                         capturedAfterStepId, capturedAfterStepId.behavioralIdentity()),
                 "withHandler", eventHandlerClazz.getName());
 
-        return new FunctionalityId(concreteIdentity, behavioralIdentity);
+        // Actor grouping merges deliveries of the same event and handler across capture locations.
+        String behavioralActorIdentity = String.join(ID_CONNECTOR,
+                "event", eventClazz.getName(),
+                "withHandler", eventHandlerClazz.getName());
+
+        return new FunctionalityId(concreteIdentity, behavioralIdentity, behavioralActorIdentity);
     }
 
     /**
@@ -100,6 +108,11 @@ public final class FunctionalityId {
      */
     String behavioralIdentity() {
         return behavioralIdentity;
+    }
+
+    /** Actor grouping identity; unlike {@link #behavioralIdentity()}, this omits event capture ancestry. */
+    String behavioralActorIdentity() {
+        return behavioralActorIdentity;
     }
 
     /**

@@ -101,6 +101,11 @@ public final class StepId {
         return behavioralIdentity;
     }
 
+    /** Actor grouping identity, coarser than {@link #behavioralIdentity()} for event deliveries. */
+    String behavioralActorIdentity() {
+        return functionalityId.behavioralActorIdentity();
+    }
+
     StepKind stepKind() {
         return stepKind;
     }

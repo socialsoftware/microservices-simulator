@@ -10,6 +10,7 @@ import org.jspecify.annotations.Nullable;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralSignals;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
@@ -22,6 +23,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 public record TestReport(
         List<String> schedule,
         BehavioralFingerprintView behavioralFingerprint,
+        BehavioralSignalsView behavioralSignals,
         ScheduleExplorationView scheduleExploration,
         List<String> statuses,
         List<AnomalyView> anomalies,
@@ -72,6 +74,12 @@ public record TestReport(
         }
     }
 
+    public record BehavioralSignalsView(String schema, String hash, List<String> signals) {
+        public BehavioralSignalsView {
+            signals = List.copyOf(signals);
+        }
+    }
+
     public record ScheduleDecisionView(int readySetSize, int selectedIndex) {
     }
 
@@ -101,6 +109,7 @@ public record TestReport(
 
         TestResult result = timedRun.result();
         BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
+        BehavioralSignals signals = BehavioralSignals.from(result);
 
         List<String> schedule = result.schedule().stream()
                 .map(Object::toString)
@@ -149,6 +158,7 @@ public record TestReport(
                 .map(TestReport::toView).toList();
 
         BehavioralFingerprintView behavioralFingerprintView = new BehavioralFingerprintView(fingerprint.schema(), fingerprint.hash(), fingerprint.features());
+        BehavioralSignalsView behavioralSignalsView = new BehavioralSignalsView(signals.schema(), signals.hash(), signals.signals());
 
         ScheduleExplorationView scheduleExplorationView = new ScheduleExplorationView(
                         strategy.propertyValue(), plan.parentFingerprintHash(), plan.mutatedChoices(),
@@ -156,7 +166,7 @@ public record TestReport(
                         observation.admittedToCorpus(), observation.corpusSize(), decisions);
 
         return new TestReport(
-                schedule, behavioralFingerprintView, scheduleExplorationView,
+                schedule, behavioralFingerprintView, behavioralSignalsView, scheduleExplorationView,
                 statuses, anomalies, interInvariantViolations, effectSequence, readsFrom,
                 semanticLockTrace, stepExceptions, result.hasOnlySemanticLockGuardRejections(),
                 functionalityCount, schedulerSeed, runDurationNanos,
