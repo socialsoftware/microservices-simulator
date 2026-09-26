@@ -45,14 +45,14 @@ class TraceServiceReceiver(trace_service_pb2_grpc.TraceServiceServicer):
 # ======================
 
 
-def start_grpc_server(port=4319, tm=None):
+def start_grpc_server(port=4319, tm=None, max_workers=2):
     """Configures and runs the gRPC server in a background thread."""
 
     if tm is None:
         tm = trace_manager
 
     # Start gRPC Server
-    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=10))
+    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
     trace_service_pb2_grpc.add_TraceServiceServicer_to_server(
         TraceServiceReceiver(tm), grpc_server
     )
