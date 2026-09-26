@@ -311,7 +311,11 @@ public class CapacityManager {
 
         try {
             acquire(unitOfWork, microserviceName, methodName, requestId);
-            return joinPoint.proceed();
+            long startExec = System.nanoTime();
+            Object result = joinPoint.proceed();
+            double usefulTimeMs = (System.nanoTime() - startExec) / 1_000_000.0;
+            TraceManager.getInstance().recordUsefulTime(usefulTimeMs);
+            return result;
         } catch (InterruptedException e) {
             Thread.currentThread().interrupt();
             throw new IllegalStateException(
