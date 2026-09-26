@@ -30,57 +30,14 @@ class RewardStrategy(ABC):
 class RewardStrategyFactory:
     @staticmethod
     def create(strategy_type: str, **kwargs) -> RewardStrategy:
-        if strategy_type == "balance_delay_queue":
-            return BalanceDelayQueueReward(**kwargs)
-        elif strategy_type == "global_average_latency":
+        if strategy_type == "global_average_latency":
             return GlobalAverageLatencyReward(**kwargs)
-        elif strategy_type == "proportional_fairness":
-            return ProportionalFairnessReward(**kwargs)
+        elif strategy_type == "logarithmic_penalty":
+            return LogarithmicPenaltyReward(**kwargs)
         elif strategy_type == "bottleneck_targeting":
             return BottleneckTargetingReward(**kwargs)
         else:
             raise ValueError(f"Unknown reward strategy: {strategy_type}")
-
-
-class BalanceDelayQueueReward(RewardStrategy):
-    """Treats every service as equally important, ensure none of them becomes a bottleneck"""
-
-    stop_reward = -0.1
-    invalid_action_reward = -1
-    time_tax = 0.05
-
-    def __init__(self, alpha=1.0, beta=1.0):
-        self.alpha = alpha  # Weight for Queue Time
-        self.beta = beta    # Weight for Network Delay
-
-    def compute(self, old_metrics, new_metrics) -> float:
-        if old_metrics is None or not old_metrics.get("microservices"):
-            return 0.0
-
-        if new_metrics is None or not new_metrics.get("microservices"):
-            return -1.0  # Failed evaluation
-
-        old_mss_metrics = old_metrics.get("microservices", {})
-        new_mss_metrics = new_metrics.get("microservices", {})
-
-        def get_avg_metric(m, key):
-            invocs = m.get("invocations", 0)
-            return m.get(key, 0) / invocs if invocs > 0 else 0.0
-
-        old_q_time = sum(get_avg_metric(m, "queue_time")
-                         for m in old_mss_metrics.values())
-        old_d_time = sum(get_avg_metric(m, "delay_time")
-                         for m in old_mss_metrics.values())
-
-        new_q_time = sum(get_avg_metric(m, "queue_time")
-                         for m in new_mss_metrics.values())
-        new_d_time = sum(get_avg_metric(m, "delay_time")
-                         for m in new_mss_metrics.values())
-
-        delta_q = old_q_time - new_q_time
-        delta_d = old_d_time - new_d_time
-
-        return (self.alpha * delta_q) + (self.beta * delta_d)
 
 
 class GlobalAverageLatencyReward(RewardStrategy):
@@ -133,7 +90,7 @@ class BottleneckTargetingReward(RewardStrategy):
     invalid_action_reward = -1
     time_tax = 0.05
     c = 1000.0
-    
+
     def __init__(self, alpha=1.0, beta=1.0):
         self.alpha = alpha
         self.beta = beta
@@ -152,22 +109,27 @@ class BottleneckTargetingReward(RewardStrategy):
         for metrics in new_mss_metrics.values():
             invocs = metrics.get("invocations", 0)
 
-            avg_q = metrics.get("queue_time", 0.0) / invocs if invocs > 0 else 0.0
-            avg_d = metrics.get("delay_time", 0.0) / invocs if invocs > 0 else 0.0
-        
-            if avg_q > max_queue: max_queue = avg_q
-            if avg_d > max_delay: max_delay = avg_d
+            avg_q = metrics.get("queue_time", 0.0) / \
+                invocs if invocs > 0 else 0.0
+            avg_d = metrics.get("delay_time", 0.0) / \
+                invocs if invocs > 0 else 0.0
+
+            if avg_q > max_queue:
+                max_queue = avg_q
+            if avg_d > max_delay:
+                max_delay = avg_d
 
             total_penalty += (self.alpha * avg_q) + (self.beta * avg_d)
 
-        bottleneck_penalty = (self.alpha * max_queue + self.beta * max_delay) * self.bottleneck_multiplier
-        
+        bottleneck_penalty = (self.alpha * max_queue +
+                              self.beta * max_delay) * self.bottleneck_multiplier
+
         total_penalty += bottleneck_penalty
 
         return -(total_penalty / self.c)
 
 
-class ProportionalFairnessReward(RewardStrategy):
+class LogarithmicPenaltyReward(RewardStrategy):
     """
     Uses a logarithmic function to evaluate the absolute quality of the architecture. 
     Penalizes starved services heavily and ignores old metrics to prevent the lagging baseline trap.

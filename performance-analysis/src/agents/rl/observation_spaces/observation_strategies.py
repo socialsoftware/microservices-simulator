@@ -23,37 +23,12 @@ class ObservationStrategy(ABC):
 class ObservationStrategyFactory:
     @staticmethod
     def create(strategy_type: str, num_services: int, num_nodes: int, **kwargs) -> ObservationStrategy:
-        if strategy_type == "basic":
-            return BasicObservation(num_services, num_nodes, **kwargs)
-        elif strategy_type == "complex":
+        if strategy_type == "complex":
             return ComplexObservation(num_services, num_nodes, **kwargs)
         elif strategy_type == "normalized_complex":
             return NormalizedComplexObservation(num_services, num_nodes, **kwargs)
         else:
             raise ValueError(f"Unknown observation strategy: {strategy_type}")
-
-
-class BasicObservation(ObservationStrategy):
-    def get_space(self):
-        return spaces.Dict({
-            "placement": spaces.MultiDiscrete([self.num_nodes] * self.num_services),
-            "capacities": spaces.Box(low=1, high=100, shape=(self.num_services,), dtype=np.float32),
-        })
-
-    def build_observation(self, active_config, metrics):
-        # This observation type ignores metrics
-        microservices = ConfigTool.get_microservices_list(active_config)
-
-        placement_map = ConfigTool.get_ms_placement_map(active_config)
-        placement_array = [placement_map.get(ms, 0) for ms in microservices]
-
-        capacity_map = ConfigTool.get_all_ms_capacities(active_config)
-        capacities_array = [capacity_map.get(ms, 1) for ms in microservices]
-
-        return {
-            "placement": np.array(placement_array, dtype=np.int64),
-            "capacities": np.array(capacities_array, dtype=np.float32),
-        }
 
 
 class ComplexObservation(ObservationStrategy):
@@ -110,7 +85,7 @@ class ComplexObservation(ObservationStrategy):
                 "queue_time": 0.0
             })
 
-            invocations = data.get("invocations")
+            invocations = data.get("invocations", 0)
 
             if total_invocations > 0:
                 load = invocations / total_invocations
