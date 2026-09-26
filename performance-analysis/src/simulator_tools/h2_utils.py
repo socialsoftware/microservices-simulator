@@ -27,26 +27,54 @@ class H2DBManager:
         return cls._base_url
 
     @classmethod
-    def _execute(cls, query):
+    def _execute(cls, query, retries=3, timeout=15):
         url = f"{cls._get_base_url()}/execute"
-        resp = requests.post(url, data=query.encode(
-            'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=10)
-        resp.raise_for_status()
+        last_err = None
+        for attempt in range(retries):
+            try:
+                resp = requests.post(url, data=query.encode(
+                    'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=timeout)
+                resp.raise_for_status()
+                return
+            except Exception as e:
+                last_err = e
+                if attempt < retries - 1:
+                    time.sleep(0.5 * (attempt + 1))
+        logging.error(f"H2 _execute failed after {retries} attempts: {last_err}")
+        raise last_err
 
     @classmethod
-    def _query_tables(cls):
+    def _query_tables(cls, retries=3, timeout=15):
         url = f"{cls._get_base_url()}/tables"
-        resp = requests.get(url, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
+        last_err = None
+        for attempt in range(retries):
+            try:
+                resp = requests.get(url, timeout=timeout)
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as e:
+                last_err = e
+                if attempt < retries - 1:
+                    time.sleep(0.5 * (attempt + 1))
+        logging.error(f"H2 _query_tables failed after {retries} attempts: {last_err}")
+        raise last_err
 
     @classmethod
-    def _query_single(cls, query):
+    def _query_single(cls, query, retries=3, timeout=15):
         url = f"{cls._get_base_url()}/query-single"
-        resp = requests.post(url, data=query.encode(
-            'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=10)
-        resp.raise_for_status()
-        return resp.json()
+        last_err = None
+        for attempt in range(retries):
+            try:
+                resp = requests.post(url, data=query.encode(
+                    'utf-8'), headers={'Content-Type': 'text/plain'}, timeout=timeout)
+                resp.raise_for_status()
+                return resp.json()
+            except Exception as e:
+                last_err = e
+                if attempt < retries - 1:
+                    time.sleep(0.5 * (attempt + 1))
+        logging.error(f"H2 _query_single failed after {retries} attempts: {last_err}")
+        raise last_err
 
     @classmethod
     def _parse_sql(cls, lines: list[str]) -> str:
@@ -168,8 +196,8 @@ class H2DBManager:
         logging.info("Database Setup Finished!")
 
     @classmethod
-    def reset_db_state(cls):
-        """Trucantes the entire public scheme and copies the state from the backup."""
+    def reset_db_state(cls, retries=3):
+        """Truncates the entire public schema and copies the state from the backup."""
 
         if not cls._cached_tables:
             logging.warning(
@@ -177,9 +205,20 @@ class H2DBManager:
             cls.setup_db_state()
             return
 
-        cls._execute("SET REFERENTIAL_INTEGRITY FALSE;")
-        for table in cls._cached_tables:
-            cls._execute(f'TRUNCATE TABLE public."{table}";')
-            cls._execute(
-                f'INSERT INTO public."{table}" SELECT * FROM backup."{table}";')
-        cls._execute("SET REFERENTIAL_INTEGRITY TRUE;")
+        for attempt in range(retries):
+            try:
+                cls._execute("SET REFERENTIAL_INTEGRITY FALSE;", timeout=10)
+                for table in cls._cached_tables:
+                    cls._execute(f'TRUNCATE TABLE public."{table}";', timeout=10)
+                    cls._execute(
+                        f'INSERT INTO public."{table}" SELECT * FROM backup."{table}";', timeout=10)
+                cls._execute("SET REFERENTIAL_INTEGRITY TRUE;", timeout=10)
+                return
+            except Exception as e:
+                logging.warning(
+                    f"Failed to reset DB state (attempt {attempt + 1}/{retries}): {e}")
+                if attempt < retries - 1:
+                    time.sleep(1.0 * (attempt + 1))
+                else:
+                    logging.error(f"All {retries} attempts to reset DB state failed!")
+                    raise

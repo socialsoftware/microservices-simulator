@@ -88,22 +88,28 @@ class MicroserviceOptimizerEnv(gym.Env):
         super().reset(seed=seed)
         self.current_step = 0
 
-        self.wl_config = self._randomize_workload()
+        try:
+            self.wl_config = self._randomize_workload()
 
-        if options is not None and options.get("deterministic"):
-            new_config = self.sim_runner.base_config
-        else:
-            new_config = ConfigTool.randomize_config(
-                self.sim_runner.base_config, self.microservices, self.num_nodes)
+            if options is not None and options.get("deterministic"):
+                new_config = self.sim_runner.base_config
+            else:
+                new_config = ConfigTool.randomize_config(
+                    self.sim_runner.base_config, self.microservices, self.num_nodes)
 
-        metrics = self.sim_runner.evaluate_configuration(
-            new_config, self.wl_config)
-        self.last_metrics = metrics
+            metrics = self.sim_runner.evaluate_configuration(
+                new_config, self.wl_config)
+            self.last_metrics = metrics
 
-        initial_observation = self.obs_strategy.build_observation(
-            new_config, metrics)
+            initial_observation = self.obs_strategy.build_observation(
+                new_config, metrics)
 
-        return initial_observation, {}
+            return initial_observation, {}
+        except Exception as e:
+            logging.exception(f"Unhandled exception in reset(): {e}")
+            fallback_obs = self.obs_strategy.build_observation(
+                self.sim_runner.base_config, {"microservices": {}})
+            return fallback_obs, {}
 
     def step(self, action):
         """
@@ -111,21 +117,29 @@ class MicroserviceOptimizerEnv(gym.Env):
         Takes a valid step in the environment generating a new observation and reward.
         """
 
-        new_config, is_illegal_action, is_stop_action = self._act(
-            action, self.sim_runner.current_config)
+        try:
+            new_config, is_illegal_action, is_stop_action = self._act(
+                action, self.sim_runner.current_config)
 
-        obs, reward = self._observe(
-            new_config, is_illegal_action, is_stop_action)
+            obs, reward = self._observe(
+                new_config, is_illegal_action, is_stop_action)
 
-        self.current_step += 1
-        self.global_step += 1
-        terminated = is_stop_action
-        truncated = self.current_step >= self.max_steps
+            self.current_step += 1
+            self.global_step += 1
+            terminated = is_stop_action
+            truncated = self.current_step >= self.max_steps
 
-        logging.info(
-            f"Step [{self.current_step}/{self.max_steps}] (Global: {self.global_step}) ended with reward: {reward:.4f}")
-        print_complex_observation(obs)
-        return obs, reward, terminated, truncated, {}
+            logging.info(
+                f"Step [{self.current_step}/{self.max_steps}] (Global: {self.global_step}) ended with reward: {reward:.4f}")
+            print_complex_observation(obs)
+            return obs, reward, terminated, truncated, {}
+        except Exception as e:
+            logging.exception(f"Unhandled exception in step(): {e}")
+            self.current_step += 1
+            self.global_step += 1
+            fallback_obs = self.obs_strategy.build_observation(
+                self.sim_runner.current_config, self.last_metrics or {"microservices": {}})
+            return fallback_obs, -1.0, False, self.current_step >= self.max_steps, {"error": str(e)}
 
     def _act(self, action_idx: int, current_config: dict) -> tuple[dict, bool, bool]:
         """

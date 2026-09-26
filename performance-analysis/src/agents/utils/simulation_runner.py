@@ -102,14 +102,29 @@ class SimRunner:
         """Injects a new configuration, runs the workload and returns the resulting metrics."""
 
         # Reset metrics and DB so every config starts from the same point
-        self.trace_collector.reset()
-        H2DBManager.reset_db_state()
+        try:
+            self.trace_collector.reset()
+            H2DBManager.reset_db_state()
+        except Exception as e:
+            logging.error(f"Error resetting environment in evaluate_configuration: {e}")
 
-        SimInterface.inject_configuration(config)
-        self.current_config = config
+        try:
+            SimInterface.inject_configuration(config)
+            self.current_config = config
+        except Exception as e:
+            logging.error(f"Error injecting configuration: {e}")
 
-        # TODO: run warmup?
-        self._run_workload(workload)
+        try:
+            self._run_workload(workload)
+        except Exception as e:
+            logging.error(f"Error running workload: {e}")
 
-        self.trace_collector.wait_for_data()
-        return self.trace_collector.get_metrics()
+        try:
+            self.trace_collector.wait_for_data()
+            metrics = self.trace_collector.get_metrics()
+            if not metrics or not isinstance(metrics, dict):
+                return {"functionalities": {}, "microservices": {}}
+            return metrics
+        except Exception as e:
+            logging.error(f"Error collecting trace metrics: {e}")
+            return {"functionalities": {}, "microservices": {}}
