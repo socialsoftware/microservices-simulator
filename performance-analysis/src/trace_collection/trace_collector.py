@@ -135,9 +135,9 @@ class TraceManager:
             spans_view = self._spans.copy()
 
         func_metrics = defaultdict(lambda: {
-                                   "execution_time": 0.0, "queue_time": 0.0, "delay_time": 0.0, "invocations": 0})
+                                   "execution_time": 0.0, "queue_time": 0.0, "delay_time": 0.0, "useful_time": 0.0, "invocations": 0})
         ms_metrics = defaultdict(lambda: {
-                                 "execution_time": 0.0, "queue_time": 0.0, "delay_time": 0.0, "invocations": 0})
+                                 "execution_time": 0.0, "queue_time": 0.0, "delay_time": 0.0, "useful_time": 0.0, "invocations": 0})
         func_invocation_ids = defaultdict(set)
         executions = defaultdict(list)
 
@@ -164,11 +164,15 @@ class TraceManager:
                 if is_func:
                     func_metrics[func_name]["execution_time"] += duration
                 elif is_delay:
-                    func_metrics[func_name]["delay_time"] += duration
+                    delay_ms = self._to_float(attrs.get("value"))
+                    delay_val = delay_ms if delay_ms is not None else duration
+                    func_metrics[func_name]["delay_time"] += delay_val
 
                 if queue_time_ms := self._to_float(attrs.get("queue time (ms)")):
                     if is_command:
                         func_metrics[func_name]["queue_time"] += queue_time_ms
+
+                useful_time_ms = self._to_float(attrs.get("useful time (ms)"))
 
                 ms_name = attrs.get("microservice", "Unknown")
                 if is_command:
@@ -176,23 +180,31 @@ class TraceManager:
                     ms_metrics[ms_name]["invocations"] += 1
                     if queue_time_ms:
                         ms_metrics[ms_name]["queue_time"] += queue_time_ms
+                    if useful_time_ms:
+                        ms_metrics[ms_name]["useful_time"] += useful_time_ms
+                        func_metrics[func_name]["useful_time"] += useful_time_ms
                 elif is_delay:
+                    delay_ms = self._to_float(attrs.get("value"))
+                    delay_val = delay_ms if delay_ms is not None else duration
                     if parent := spans_view.get(s["parent_id"]):
                         ms_name = parent["attributes"].get(
                             "microservice", "Unknown")
-                    ms_metrics[ms_name]["delay_time"] += duration
+                    ms_metrics[ms_name]["delay_time"] += delay_val
 
         for name, metrics in func_metrics.items():
-            metrics["useful_time"] = round(max(
-                0, metrics["execution_time"] - metrics["queue_time"] - metrics["delay_time"]), 3)
+            if metrics["useful_time"] == 0.0:
+                metrics["useful_time"] = round(max(
+                    0, metrics["execution_time"] - metrics["queue_time"] - metrics["delay_time"]), 3)
+            else:
+                metrics["useful_time"] = round(metrics["useful_time"], 3)
             metrics["execution_time"] = round(metrics["execution_time"], 3)
             metrics["queue_time"] = round(metrics["queue_time"], 3)
             metrics["delay_time"] = round(metrics["delay_time"], 3)
             metrics["invocations"] = len(func_invocation_ids[name])
 
         for metrics in ms_metrics.values():
-            metrics["useful_time"] = round(max(
-                0, metrics["execution_time"] - metrics["queue_time"] - metrics["delay_time"]), 3)
+            
+            metrics["useful_time"] = round(metrics["useful_time"], 3)
             metrics["execution_time"] = round(metrics["execution_time"], 3)
             metrics["queue_time"] = round(metrics["queue_time"], 3)
             metrics["delay_time"] = round(metrics["delay_time"], 3)
