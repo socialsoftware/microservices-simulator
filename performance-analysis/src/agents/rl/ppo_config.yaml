@@ -1,7 +1,7 @@
 environment:
   microservices_num: 8
   nodes_num: 3
-  reward_type: "proportional_fairness"
+  reward_type: "logarithmic_penalty"
   observation_type: "normalized_complex"
   alpha: 0.5
   beta: 0.5
