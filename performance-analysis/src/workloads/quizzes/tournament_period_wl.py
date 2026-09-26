@@ -49,16 +49,13 @@ class TournamentPeriodWorkload(Workload):
 
         t_id, e_id = random.choice(available)
 
+        if not SimInterface.enroll_student(self.user_id, e_id, client=self.client):
+            return
+
         TournamentPeriodWorkload.global_joined.add((t_id, self.user_id))
 
-        SimInterface.enroll_student(
-            self.user_id, e_id, client=self.client)
-
-        SimInterface.join_tournament(
-            t_id, e_id, self.user_id, client=self.client)
-
-        SimInterface.solve_quiz(
-            t_id, self.user_id, client=self.client)
+        if SimInterface.join_tournament(t_id, e_id, self.user_id, client=self.client):
+            SimInterface.solve_quiz(t_id, self.user_id, client=self.client)
 
     @task
     def dynamic_router(self):

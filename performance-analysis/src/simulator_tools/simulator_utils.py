@@ -189,6 +189,18 @@ class SimInterface:
         return None
 
     @staticmethod
+    def update_topic(topic_id, name=None, client=requests):
+        name = name or f"T_{uuid.uuid4().hex[:6]}"
+        payload = {"aggregateId": topic_id, "name": name}
+        r = SimInterface._post("/topics/update", json=payload, client=client)
+        if r is not None and r.status_code in [200, 201, 204]:
+            return True
+
+        logging.error(
+            f"Failed to update topic {topic_id}: {r.text if r else 'No response'}")
+        return False
+
+    @staticmethod
     def create_questions(course_id, topic_data, count=3, client=requests):
         """Creates questions and returns a list of created question data."""
         created_questions = []
