@@ -52,7 +52,9 @@ def get_valid_action_mask(action_mapping: list[tuple], config: dict,
 
     num_of_actions = len(action_mapping)
     mask = np.zeros(num_of_actions, dtype=bool)
-    mask[0] = True  # Stop action is always legal
+    # For simplicity reasons, we decide to deactivate the stop action.
+    # The action is still implemented so changing this value to True will enable it for the agent.
+    mask[0] = False  # Stop action is always invalid
 
     placement_map = ConfigTool.get_ms_placement_map(config)
     node_caps = ConfigTool.get_node_capacities(config)
