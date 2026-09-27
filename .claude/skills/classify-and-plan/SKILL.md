@@ -157,7 +157,7 @@ halt with `"Functionality '{functionality_name}' has no valid Kind (expected 'Wr
 
 ### Step 3: Parse Aggregate-Grouping.md
 
-Extract three distinct datasets:
+Extract these datasets:
 
 #### 3.a: Parse §1 — Aggregates
 
@@ -219,7 +219,9 @@ Extract from the §4 table (columns: Event, Publisher, Trigger, Payload fields, 
 
 From the §2 table (columns: Aggregate, Snapshots of, Fields cached, Updated on event):
 - `aggregate_name` = the aggregate that caches the snapshot
-- `snapshots_of` = the source entity name being cached (string, may contain `× N`)
+- `snapshots_of` = the source entity name being cached (string, may contain `× N`, and may carry a
+  parenthetical such as `Trip (contract terms)` when one aggregate caches the same source twice)
+- `fields_cached` = the cached field names
 - `updated_on_event` = the events that refresh the cached copy, or `n/a` / `—` for none
 
 **Collection snapshots** — `× N` appears on the row, in **either** the "Aggregate" column or the
@@ -266,6 +268,25 @@ Single snapshots never need a separate Dto in either case.
   non-empty "Updated on event"; each needs an entity class, no Dto
 - `inline_single_snapshots[agg]` → single snapshots with no "Updated on event"; **no files at all**,
   they become fields on the aggregate
+
+Keep every row as well, as `snapshot_rows[agg] = [{snapshots_of, fields_cached, updated_on_event}]`.
+Step 4 reads it.
+
+#### 3.e: Parse §3.a — Consistency policy
+
+Read the policy from the `### 3.a — Consistency policy: {policy}` heading
+(`docs/templates/aggregate-grouping-template.md` § 3.a):
+
+- the words after the colon start with `no cascade` → `cascades = false`
+- they start with `cascade` → `cascades = true`
+
+A missing §3.a, or a heading that names neither, is not a halt. Flag
+`"Needs review — §3.a names no consistency policy"` and set `cascades = true`: the only thing the
+value decides is whether Step 4 flags an unrepaired split rule, and flagging too much is the safe
+error.
+
+The prose under the heading is for the human and is not parsed. It names the rules the policy
+deliberately leaves unrepaired; Step 4's flag points the human back to it.
 
 ---
 
@@ -328,9 +349,13 @@ contained entity.
 ### Step 4: Classify §3.2 Rules Using Decision-Guide
 
 Apply the flowchart in `docs/concepts/rule-enforcement-patterns.md` § Decision Guide to each §3.2
-rule, in the order that doc specifies (same-aggregate → P4a/P4b saga-structural guarantees →
-synchronous P3 → eventual P2). That section is authoritative for what each pattern means and when
-it applies — do not re-derive the classification logic here.
+rule. That section is authoritative for what each pattern means; this step says which part of the
+spec pair answers each of its questions, so the classification is derived from structure and runs
+without a human in the loop. Nothing here reads keywords in the predicate: a §3.2 predicate is a
+timeless invariant and says nothing about when it is checked.
+
+The grouping states no per-rule pattern and no per-rule label. Every answer below comes from grouping
+§1 (Step 3.a / 3.5), §2 (Step 3.d), §3.a (Step 3.e) and §4 (Step 3.c), and from domain §4 (Step 2.c).
 
 **Deferred rules.** A §3.2 block marked *(deferred)* carries prose instead of an Entities/Predicate
 table. This is not a parse failure and must not be flagged "needs review" — the domain model is
@@ -345,54 +370,104 @@ code for it. Revisit only if a future revision of §3.2 gives it an Entities/Pre
 Deferred rules are excluded from Step 6.c cross-aggregate prerequisites and from every session's
 file list.
 
-**Parser heuristic** (mechanical only — this keyword matching exists to drive unattended parsing;
-it is not part of the doc's decision criteria).
+#### 4.a: Home aggregate and reads
 
-The two P4 branches read a proxy each, so the block is runnable without a human in the loop:
+- **Home aggregate `H`** — the aggregate holding the entity named by the heading's parenthetical
+  qualifier, or, with no qualifier, the aggregate of the first entity in the rule's `Entities` list.
+  This is the aggregate whose section in plan.md the rule lands in.
+- **Reads** — for every entity `E` in `Entities` placed outside `H` (`rule_aggregates` from Step 3.5),
+  the attributes of `E` the predicate reads. Count three kinds of read, and nothing else:
+  - an **attribute** of `E` (`E.name`, a seat count, a quantity over `E`'s rows);
+  - the **existence** of `E` ("`E` has not been removed", "has not been deleted", or a condition the
+    predicate says counts as deletion);
+  - **membership** in a collection `E` holds (`x ∈ E.students`).
 
-- `rule_is_implicitly_enforced_by_fetch(rule)` — the rule's predicate names a lookup that §4 of the
-  domain model already describes the saga performing, keyed so the command throws when the
-  precondition is unmet (typically a compound-key `Get…By…And…Command`).
-- `rule_holds_by_shared_value_in_same_saga(rule)` — the rule equates a field across two aggregates
-  that a single §4 saga creates or updates in the same run, passing that value to both.
+  Comparing references for identity (`o.trip == trip`, "no two entries reference the same `E`")
+  reads no attribute of `E`: the reference is the id `H` already holds.
+- **Across instances** — the predicate ranges over two or more instances of `H`'s own root entity
+  ("no two `X` share ...", a count over `X` rows). A predicate over the entries of one instance's own
+  collection does not.
 
-Both are parse proxies, not the criteria. A rule either proxy catches is still classified by
-`docs/concepts/rule-enforcement-patterns.md` § Decision Guide, and where proxy and guide disagree the
-guide wins.
+#### 4.b: Where each read is answered
+
+Classify each read of each foreign entity `E` against `snapshot_rows[H]` (Step 3.d) and the event
+table (Step 3.c):
+
+- **local** — the read is an attribute cached in a §2 row of `H` whose `Snapshots of` is `E` (or an
+  entity the predicate reaches `E` through), whether or not an event refreshes that row. This is the
+  Decision Guide's "including its cached snapshot fields". Existence is never local: the removed
+  state belongs to `E`'s own aggregate (grouping §2.b), not to any copy of it.
+- **repaired** — the read is not local, and some event `V` in grouping §4 has `H` among its
+  Consumers and changes it: `V`'s payload carries the attribute (by name, or under the name `H`'s §2
+  row caches it), or `V`'s Trigger removes `E`, removes the membership, or produces a condition the
+  predicate counts as deletion. `V` need not be published by `E`'s aggregate: a relay that republishes
+  on its own anchor counts.
+- **live** — neither. `H` cannot see a later change to this read.
+
+#### 4.c: The operation-time check
+
+A rule with a live or repaired read may also be checked when an operation runs. It is, when some
+domain §4 **Write** functionality `W` has `primary_aggregate == H` and the aggregate of the entity
+behind that read in its `other_aggregates` (Step 3.5): `W`'s saga fetches that data. The kind of
+check is decided by two proxies, which are read aids, not the criteria; where a proxy and
+`docs/concepts/rule-enforcement-patterns.md` § Decision Guide disagree, the guide wins:
+
+- `rule_is_implicitly_enforced_by_fetch(rule, W)` — every non-local read is the existence of an
+  entity `W`'s saga fetches, by id or by the compound key the predicate names, so the fetch throws
+  when the rule is unmet → **P4a**.
+- `rule_holds_by_shared_value_in_same_saga(rule, W)` — the rule equates values across aggregates
+  that `W`'s saga computes or fetches once and passes to both, or into a field of `H` that nothing
+  else writes → **P4b**.
+- otherwise the service validates the DTO the saga fetched → **P3**.
+
+#### 4.d: The pattern
+
+One pattern per rule, in this order:
 
 ```
-FOR each rule in §3.2:
-  IF rule block is marked (deferred):
-    classification = "— (deferred)"
-    CONTINUE
+FOR each rule R in §3.2:
+  IF R is marked (deferred):
+    pattern = "— (deferred)"; CONTINUE
 
-  entities = parse(rule.entities)
-  predicate = rule.predicate
+  H, reads = 4.a(R)
+  op_check = 4.c(R)                    # P4a | P4b | P3 | none
 
-  IF all entities in predicate refer to same aggregate (check aggregates map):
-    classification = P1
-  ELSE IF rule_is_implicitly_enforced_by_fetch(rule):
-    classification = "P4a"
-  ELSE IF rule_holds_by_shared_value_in_same_saga(rule):
-    classification = "P4b"
-  ELSE IF predicate contains sync keywords ("immediately", "synchronous", "before", "prevents", "blocks", "forbids"):
-    classification = P3
-  ELSE IF predicate contains eventual-consistency keywords ("eventually", "async", "eventually consistent") OR rule is about caching:
-    classification = P2
+  IF R ranges across instances of H and every foreign read is local:
+    pattern = "P3"                     # own-table guard
+  ELSE IF every foreign read is local:
+    pattern = "P1"
+  ELSE IF some non-local read is repaired:
+    pattern = "P2"                     # P2 wins; op_check is recorded beside it
+  ELSE IF op_check != none:
+    pattern = op_check
+    IF cascades:                       # Step 3.e
+      flag "needs review - no repair event"
   ELSE:
-    classification = "P3 (NEEDS_REVIEW)"  # ambiguous: mark for review
+    pattern = "P3 (NEEDS_REVIEW)"      # nothing establishes or repairs a live read
 
-  rules_classified[rule.name] = {
-    pattern: classification,
-    entities: entities,
-    predicate: predicate
-  }
+  rules_classified[R.name] = { pattern, op_check, H, entities, predicate, flags }
 ```
+
+**P2 wins, and the operation-time check survives it.** A rule that is repaired by an event is P2,
+even when `W`'s saga also establishes it when the operation runs (a cascade usually does both). The
+pattern column records P2 alone, and `op_check` carries the check to Step 6.c, so session `c` still
+builds the fetch or guard. The guard validates the DTO the saga fetched, never the cached copy,
+which is what the Decision Guide's Step 3 requires of a P2 rule.
+
+**`needs review - no repair event`.** Under a cascading policy, a rule that reads live data and that
+no event repairs is either a deliberate skip (a frozen contract value, an immutable reference) or a
+missing event, and structure cannot tell which. The flag puts it in front of the human at plan review.
+The grouping's §3.a prose is where a deliberate skip is justified; the implementation note names
+that and nothing more. Under a non-cascading policy the same outcome is the policy working, and is
+not flagged.
 
 The Rule Classification table's "Implementation note" column (Step 8) uses the pattern's
 authoritative description from `docs/concepts/rule-enforcement-patterns.md` § Quick Reference,
-substituting this rule's specific aggregate/event/field names. For `P3 (NEEDS_REVIEW)`, write
-`P3 — needs review` and flag for manual resolution.
+substituting this rule's specific aggregate/event/field names. For P2 it names the repairing events,
+and then the operation-time check when `op_check` is not `none` (`Also checked at operation time:
+P4a, the Trip fetch in PreserveTicket`). For a flagged rule it ends with
+`needs review - no repair event`. For `P3 (NEEDS_REVIEW)`, write `P3 — needs review` and flag for
+manual resolution.
 
 ---
 
@@ -444,8 +519,8 @@ neither affects ordering, but both create a runtime dependency that must be trac
 
 ```
 FOR each aggregate A at position i in sorted_aggregates:
-  FOR each P3 rule R that requires a saga data-assembly fetch from aggregate B
-      (i.e. R is classified P3 DTO-check variant and R.data_source_aggregate == B):
+  FOR each rule R that requires a saga data-assembly fetch from aggregate B
+      (i.e. R.op_check is the P3 DTO-check variant and R.data_source_aggregate == B):
     IF position(B) > position(A):
       // B is ordered after A, but A's service guard reads B's DTO
       // This is a reverse P3 dependency — cannot be implemented in session 2.i.b
@@ -509,15 +584,20 @@ subscribed_events = [e for e in all_events if agg in e.consumers]
 
 #### 6.c: Identify cross-aggregate data-assembly requirements for this aggregate
 
-For each write functionality, identify rules classified as P3 (DTO field check variant) or P4a (construction prerequisite) that require a saga data-assembly step:
+For each write functionality, identify rules whose **operation-time check** (Step 4.c `op_check`) is
+P3 (DTO field check variant) or P4a (construction prerequisite) and so requires a saga data-assembly
+step. Select on `op_check`, not on `pattern`: a P2 rule whose saga also establishes it at operation
+time carries its fetch here, and selecting on the pattern would silently drop it.
 ```
-cross_agg_rules = [r for r in rules_classified 
-                   if r.pattern in ('P3', 'P4a') AND 
-                      r.requires_saga_fetch AND
-                      any(entity in r.entities for entity in agg.entities)]
+cross_agg_rules = [r for r in rules_classified
+                   if r.op_check in ('P3', 'P4a') AND
+                      r.H == agg]
 ```
 
-Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation.
+Map each rule to the saga data-assembly step that provides the needed data and, for P3 DTO-check rules, to the service method that performs the explicit validation. For a P2 rule, write the line
+with its `op_check` and name the repairing event after it, e.g.
+`` `TRIP_EXISTS` → `GetTripByIdCommand` (fetch from `Trip`). P4a; also repaired by `DeleteTripEvent` (P2) ``,
+so session `c` builds the check and session `d` the subscription.
 
 #### 6.d: Compute the saga-state set for this aggregate
 
@@ -813,10 +893,19 @@ All §3.2 rules from {App}-domain-model.md classified by docs/concepts/rule-enfo
 
 Rows: one per §3.2 rule
 - Column 1: rule name (as extracted)
-- Column 2: pattern (P1, P2, P3, P4a, P4b, "P3 (NEEDS_REVIEW)" if ambiguous, or `— (deferred)` for a
-  rule the domain model marks *(deferred)*)
-- Column 3: implementation note (from Step 4 classification); for a deferred rule, the
-  do-not-implement note from Step 4
+- Column 2: pattern — exactly one of P1, P2, P3, P4a, P4b, "P3 (NEEDS_REVIEW)" if nothing
+  establishes the rule, or `— (deferred)` for a rule the domain model marks *(deferred)*. Never a
+  combination: a P2 rule that is also checked at operation time is `P2`, and column 3 names the check
+- Column 3: implementation note (from Step 4.d); for a deferred rule, the do-not-implement note from
+  Step 4
+
+Under the table, emit one totals line counting column 2, then the operation-time checks carried by
+P2 rules, then the flags:
+
+```markdown
+**Pattern totals:** P1 {n}, P2 {n}, P3 {n}, P4a {n}, P4b {n}, needs-review {n}, deferred {n}.
+P2 rules also checked at operation time: {n}. Flagged `needs review - no repair event`: {n}.
+```
 
 Note: Include §3.1 rules as a separate subsection if desired, all marked as P1.
 
@@ -878,7 +967,7 @@ every Phase 2 skill depends on the ordinal being present.
 **Events published:** list from aggregate-grouping §4
 **Events subscribed:** list from aggregate-grouping §4
 
-**Cross-aggregate prerequisites** (P4a rules and P3 DTO-check rules requiring a saga data-assembly fetch):
+**Cross-aggregate prerequisites** (rules whose operation-time check is P4a or a P3 DTO check, P2 rules included — Step 6.c):
 - `{RuleName}` → `{Operation}FunctionalitySagas` data-assembly step (fetch from `{OtherAggregate}`)
 
 **Saga states** (`{Aggregate}SagaState` — from Step 6.d; session `a` transcribes this list verbatim):
@@ -1025,8 +1114,11 @@ After writing plan.md:
 
 2. **Summary of results:**
    - Total aggregates processed: N
-   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a/b: R)
-   - Ambiguous rules flagged for review: K (marked "P3 (NEEDS_REVIEW)")
+   - Total rules classified: M (broken down by pattern: P1: X, P2: Y, P3: Z, P4a: R, P4b: S)
+   - P2 rules also checked at operation time: C
+   - Rules nothing establishes: K (marked "P3 (NEEDS_REVIEW)")
+   - Rules flagged `needs review - no repair event`: F, by name (always 0 under a non-cascading
+     §3.a)
    - Deferred rules recorded but not implemented: D
    - Total Phase 2 sessions: count (e.g., "2.1.a through 2.3.d")
    - Sessions sliced (Step 8.5): S, into T slices in total
@@ -1065,7 +1157,9 @@ After writing plan.md:
 Mark sections that need human review:
 
 - **"Needs review — Rule {name} has unusual format":** Parsing issue; content may be incomplete
-- **"P3 — needs review":** Classification ambiguity between P3 (explicit service guard) and P4a (implicit in saga fetch); user to decide
+- **"P3 — needs review":** the rule reads data its aggregate cannot see, no event repairs it and no write functionality of its aggregate fetches it (Step 4.d); user to decide
+- **"needs review - no repair event":** under a cascading §3.a, a rule checked at operation time that no event repairs; user confirms it against the §3.a prose or adds the event (Step 4.d)
+- **"Needs review — §3.a names no consistency policy":** Step 3.e defaulted to `cascades = true`
 - **"Needs review — DAG has unmapped aggregates":** Aggregate in rules but not in DAG
 - **"Needs review — unusual format detected":** Parsing used fallback heuristic
 

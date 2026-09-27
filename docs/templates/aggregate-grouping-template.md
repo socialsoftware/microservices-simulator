@@ -6,7 +6,8 @@
 > [{AppName} domain model]({domain-model-file}.md). Several grouping files may exist over that one
 > domain, and writing a second one must require **zero** edits to it. Everything that is a
 > consequence of *this* decomposition — snapshots, technical fields, the event DAG, the consistency
-> policy, how each domain rule is realised — belongs here and not there.
+> policy — belongs here and not there. No section names a per-rule pattern: `/classify-and-plan`
+> derives each rule's pattern from §1, §2, §3.a and §4 together with the domain's §4 functionalities.
 >
 > Replace every `{placeholder}` with content specific to your application.
 
@@ -49,11 +50,11 @@ For each aggregate that references an entity in a **different** aggregate, list 
 ## §2.b — Technical fields
 
 Fields that exist for implementation reasons rather than domain reasons, and are therefore a
-property of this realisation rather than of the domain. One row each, with the reason stated.
+property of this grouping rather than of the domain. One row each, with the reason stated.
 
 | Aggregate | Field | Why |
 |---|---|---|
-| {AggregateName} | `{field}: {Type}` | {Why this realisation needs it} |
+| {AggregateName} | `{field}: {Type}` | {Why this grouping needs it} |
 
 > **Soft-delete state** — do not add a `state` field to any row here either. The simulator's
 > `Aggregate` base class provides `state: AggregateState` (`ACTIVE`, `INACTIVE`, `DELETED`) and sets
@@ -75,18 +76,32 @@ List pairs where the downstream entity must subscribe to the upstream entity's e
 
 > An arrow `A ──► B` means: B must subscribe to A's events and cache the relevant A fields locally.
 
-### 3.a — Consistency policy (required)
+### 3.a — Consistency policy: {cascade | no cascade}
 
-State, in one short paragraph, whether this grouping **cascades** and what that does to the plain
-domain's §3.2 rules. This subsection is required; a grouping without it is incomplete.
+The heading names the policy, and `/classify-and-plan` reads it: the words after the colon start with
+`cascade` or `no cascade`, optionally followed by a comma and a qualifier (`cascade, via events`).
+This subsection is required; a grouping without it is incomplete.
 
 - **Cascade** — a change or removal upstream is propagated downstream by the events in §4, so the
   domain's standing invariants are maintained continuously and are eventually consistent.
-- **No cascade** — nothing is propagated, so each standing invariant is instead realised as a
-  precondition checked at operation time; a later upstream removal is tolerated and the invariant is
-  not restored.
+- **No cascade** — nothing is propagated, so each standing invariant is instead checked at operation
+  time; a later upstream removal is tolerated and the invariant is not restored.
 
-Name the policy, say which rules it applies to, and record any per-rule exception in §5.
+Then say what the policy does to each **family** of the plain domain's §3.2 rules (existence,
+uniqueness, capacity, ...), in this vocabulary:
+
+- **intra** — the family resolves inside one aggregate, because its entities are co-located in §1 or
+  because every field it reads is cached in a §2 snapshot that no event in §4 changes.
+- **precondition** — it is checked when the operation runs, against data a saga fetches, and a later
+  upstream change is not repaired.
+- **eventual** — an event in §4 repairs it after an upstream change. Under a cascade this is usually
+  *in addition to* the operation-time check, not instead of it.
+
+The vocabulary is for the reader. `/classify-and-plan` does not read these words: it derives each
+rule's pattern from §1, §2 and §4, so the prose must agree with those sections, not substitute for
+them. Where the policy deliberately leaves a split rule unrepaired under a cascade (a frozen value,
+an immutable reference), name the rule and the reason here. The planner flags every such rule
+`needs review - no repair event`, and this sentence is what the human reads to confirm it.
 
 ---
 
@@ -108,31 +123,9 @@ Name every domain event published by each upstream aggregate.
 
 ## §5 — Cross-file notes
 
-### Rule realisation (required)
-
-One row per cross-entity rule in the plain domain's §3.2. This table is what lets a second grouping
-exist without touching the plain domain: the invariant is stated there once, and each grouping says
-here how it chooses to realise it.
-
-> **Realisation** —
-> `intra`: the rule resolves inside one aggregate — either the entities are co-located in this
-> grouping, or the fields it needs are carried by a snapshot in §2 that nothing can invalidate — so
-> the invariant holds transactionally.
-> `precondition`: it is established when the operation runs, and a later change upstream neither
-> reaches this aggregate nor is repaired.
-> `eventual`: an event in §4 restores it after an upstream change.
->
-> **This is a policy, not a classification.** `/classify-and-plan` still assigns P1–P4 from it; do
-> not write pattern names in this table and do not let it pre-empt the taxonomy.
-
-| Rule (domain §3.2) | Realisation | Note |
-|---|---|---|
-| {RULE_NAME} | intra / precondition / eventual | {Optional: why, or which snapshot carries it} |
-
-### Other notes
-
-Anything else that is a consequence of this decomposition rather than of the domain: snapshot
-coherence obligations, why a guard is phrased pre-mutation, which reads a given saga declares,
-reference-by-aggregate-id conventions.
+Anything that is a consequence of this decomposition rather than of the domain: snapshot coherence
+obligations, why a guard is phrased pre-mutation, which reads a given saga declares,
+reference-by-aggregate-id conventions. Do not list the domain's §3.2 rules here with a pattern or a
+per-rule label: the pattern is derived at planning time, and a hand-written copy only drifts from it.
 
 ---

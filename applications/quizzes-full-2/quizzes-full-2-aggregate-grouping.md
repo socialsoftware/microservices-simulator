@@ -9,6 +9,11 @@
 > §3.a consistency policy, the §5 Rule realisation table and the snapshot-coherence obligations that
 > used to be stated as domain rules — moved here from the domain model unchanged in substance.
 > **Nothing the pair specifies changed**, and the application was not regenerated.
+>
+> **2026-09-27.** The §5 Rule realisation table was removed: `/classify-and-plan` now derives each
+> rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The reasons it gave for
+> the rules the cascade leaves unrepaired moved to §3.a. The last version with the table is in git
+> at `50e31d84a`.
 
 This file captures **one** aggregate partitioning of the [Quizzes domain model](quizzes-full-2-domain-model.md).
 Several such files may exist over that one domain; writing a second must require no edit to it.
@@ -179,11 +184,19 @@ Concretely, this is what the cascade does for each family of domain rule:
 - **Rules whose entities this grouping co-locates** — the five `TOURNAMENT_*` participant rules,
   `QUESTION_ALREADY_ANSWERED` — need no propagation at all and hold transactionally.
 
-A few rules are neither co-located nor propagated: they are established once by the saga that
-creates the aggregate and nothing can invalidate them afterwards. §5 records those as
-`precondition`.
+A few rules are neither co-located nor propagated. Each is **precondition**: established by the
+saga that runs the operation, with nothing afterwards that can invalidate it, so no event is needed.
+`/classify-and-plan` flags each `needs review - no repair event`, and these are the reasons the human
+confirms the flags against:
 
-The per-rule record is the Rule realisation table in §5.
+- `CREATOR_COURSE_EXECUTION (Tournament)` — checked against the Execution the `CreateTournament`
+  saga fetches; the creator reference is immutable.
+- `QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament)` — the `CreateTournament` saga creates the Quiz on
+  the same Execution, and both references are immutable.
+- `START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament)` — the saga sets both sides from
+  one pair of values, and `UpdateTournament` updates both.
+- `NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament)` — the saga generates the Quiz from the
+  Tournament's topic set and question count.
 
 ---
 
@@ -211,54 +224,6 @@ The per-rule record is the Rule realisation table in §5.
 ---
 
 ## §5 — Cross-file notes
-
-### Rule realisation
-
-One row per cross-entity rule in domain §3.2. `intra` means the rule resolves inside a single
-aggregate of this grouping — either because the entities are co-located, or because the fields it
-needs are carried by a snapshot in §2 that nothing can invalidate. `eventual` means an event in §4
-repairs it after an upstream change. `precondition` means it is established when the operation runs
-and nothing afterwards can violate it.
-
-| Rule (domain §3.2) | Realisation | Note |
-|---|---|---|
-| REMOVE_NO_STUDENTS | intra | the roster is `ExecutionStudent` inside the Execution aggregate |
-| NO_DUPLICATE_COURSE_EXECUTION | intra | own-table uniqueness inside the Execution aggregate |
-| INACTIVE_USER | eventual | `active` on the `ExecutionStudent` snapshot, refreshed by `ActivateUserEvent` |
-| STUDENT_ALREADY_ENROLLED | intra | over the local roster |
-| USER_EXISTS (Execution) | eventual | `DeleteUserEvent` removes the student from the roster |
-| CANNOT_DELETE_LAST_EXECUTION_WITH_CONTENT | — | deferred in the domain model; nothing realises it |
-| TOPIC_BELONGS_TO_QUESTION_COURSE | intra | `QuestionTopic` caches `courseAggregateId`; a Topic's Course is immutable |
-| TOPICS_EXIST (Question) | eventual | `DeleteTopicEvent` |
-| QUESTION_EXISTS (Quiz) | eventual | `DeleteQuestionEvent`, which also makes the Quiz publish `InvalidateQuizEvent` |
-| COURSE_EXECUTION_EXISTS (Quiz) | eventual | `DeleteCourseExecutionEvent` |
-| UNIQUE_QUIZ_ANSWER_PER_STUDENT | intra | own-table uniqueness over the cached `(quizAggregateId, userAggregateId)` pair |
-| QUESTION_ALREADY_ANSWERED | intra | `QuestionAnswer` is co-located with `QuizAnswer` |
-| ANSWER_MATCHES_CORRECT_OPTION | intra | `correctOptionKey` is seeded onto each `QuestionAnswer` at creation; Options never change |
-| COURSE_EXECUTION_SAME_QUIZ_COURSE_EXECUTION | intra | both execution ids are cached on QuizAnswer |
-| USER_EXISTS (QuizAnswer) | eventual | `DeleteUserEvent` and `DisenrollStudentFromCourseExecutionEvent` |
-| QUIZ_EXISTS (QuizAnswer) | eventual | `InvalidateQuizEvent` |
-| COURSE_EXECUTION_EXISTS (QuizAnswer) | eventual | `DeleteCourseExecutionEvent` |
-| CREATOR_IS_NOT_ANONYMOUS (Tournament) | eventual | `AnonymizeStudentEvent` refreshes the `TournamentCreator` snapshot |
-| CREATOR_COURSE_EXECUTION (Tournament) | precondition | checked against the Execution the `CreateTournament` saga fetches; the creator reference is immutable |
-| PARTICIPANT_COURSE_EXECUTION (Tournament) | eventual | `DisenrollStudentFromCourseExecutionEvent` drops the participant |
-| TOPIC_COURSE_EXECUTION (Tournament) | intra | Tournament caches `courseAggregateId` on both its Execution snapshot and each `TournamentTopic` |
-| QUIZ_COURSE_EXECUTION_CONSISTENCY (Tournament) | precondition | the `CreateTournament` saga creates the Quiz on the same Execution; both references are immutable |
-| START_TIME_AVAILABLE_DATE / END_TIME_CONCLUSION_DATE (Tournament) | precondition | the saga sets both sides from one pair of values, and `UpdateTournament` updates both |
-| NUMBER_OF_QUESTIONS / QUIZ_TOPICS (Tournament) | precondition | the saga generates the Quiz from the Tournament's topic set and question count |
-| CREATOR_EXISTS / PARTICIPANT_EXISTS (Tournament) | eventual | `DeleteUserEvent`, `AnonymizeStudentEvent` |
-| TOPIC_EXISTS (Tournament) | eventual | `DeleteTopicEvent` |
-| QUIZ_EXISTS (Tournament) | eventual | `InvalidateQuizEvent` |
-| COURSE_EXECUTION_EXISTS (Tournament) | eventual | `DeleteCourseExecutionEvent` |
-| QUIZ_ANSWER_EXISTS (Tournament) | eventual | `QuizAnswerQuestionAnswerEvent` refreshes `TournamentParticipantQuizAnswer` |
-| TOURNAMENT_UNIQUE_AS_PARTICIPANT | intra | `TournamentParticipant` is co-located with `Tournament` |
-| TOURNAMENT_ENROLL_UNTIL_START_TIME | intra | co-located |
-| TOURNAMENT_DELETE | intra | co-located; `DeleteTournament` clears the list in the same operation |
-| TOURNAMENT_IS_CANCELED | intra | co-located; decided against `lastModifiedTime` (§2.b) |
-| TOURNAMENT_ANSWER_BEFORE_START | intra | decided against `firstAnswerTime` on the local `TournamentParticipantQuizAnswer` |
-
-> **This table is a policy record, not a classification.** Which pattern (P1–P4) each rule gets is
-> derived from it by `/classify-and-plan`, not stated in it.
 
 ### Snapshot-coherence obligations
 
@@ -291,7 +256,8 @@ Obligations this grouping creates by copying data, which the domain model does n
 - **User publishes its own name changes.** `UpdateUserName` and `AnonymizeUser` are User-primary operations in §4 of the domain model. Execution, QuizAnswer and Tournament are consumers only — an aggregate must never subscribe to its own events.
 - **Participants are removed, never "leave".** There is no standalone leave-tournament operation. A participant disappears either through `DisenrollStudentFromCourseExecutionEvent` or when `DeleteTournament` clears the list, which is what makes `TOURNAMENT_DELETE` reachable.
 - **A no-cascade variant would be a second grouping file, not an edit to the domain.** Dropping the
-  event subscriptions would turn every `eventual` row above into `precondition` and leave the domain
-  model untouched — which is the property the plain-domain split exists to give.
+  event subscriptions would leave every rule an event repairs here checked only at operation time,
+  and leave the domain model untouched — which is the property the plain-domain split exists to
+  give.
 
 ---

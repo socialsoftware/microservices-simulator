@@ -12,13 +12,18 @@
 > **One variable.** The two files differ in exactly one decision: the sibling does not cascade, this
 > one does. The aggregate boundaries are identical, the entity placement is identical, the §3 arrows
 > are identical arrow for arrow, and the service list is identical. Everything else that differs —
-> the version fields in §2, the nine events in §4, the six `eventual` rows in §5, three writes that
-> become sagas — is a *consequence* of that one decision, and each is named as such where it
+> the version fields in §2, the nine events in §4, the rules those events now repair, three writes
+> that become sagas — is a *consequence* of that one decision, and each is named as such where it
 > appears.
 >
 > **Nothing is generated from this file.** `applications/trainticket/` holds the application
 > generated from the no-cascade grouping. Implementing this one would be a separate run from a
 > separate `plan.md` into its own application directory; it would not overwrite that one.
+>
+> **2026-09-27.** The §5 Rule realisation table was removed: `/classify-and-plan` now derives each
+> rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The per-rule reasons it
+> carried for the rules left unrepaired were already in §3.a and stay there. The last version with
+> the table is in git at `50e31d84a`.
 
 The nine entities are placed in eight aggregates whose boundaries are **TrainTicket's own service
 boundaries**, one aggregate per data-owning service in the book-a-ticket flow:
@@ -92,7 +97,7 @@ except for the `*AggregateId` and `*Version` fields, which exist only in this re
 > three creating operations become sagas — see §5.
 
 > **The cascade follows stored references; it never refreshes a frozen value.** This one sentence
-> decides every row below, and every `precondition` row that survives in §5. Where a row caches
+> decides every row below, and every rule the cascade leaves unrepaired (§3.a). Where a row caches
 > another aggregate's *identity*, that identity is a live reference and the cascade keeps it honest.
 > Where a row caches a *value* read once at purchase, the domain model has already said what it is:
 > "the terms of the purchase, agreed once and never tracking later edits to the entities they were
@@ -126,14 +131,14 @@ except for the `*AggregateId` and `*Version` fields, which exist only in this re
 > **`Order → User (account)` carries no version, because Order subscribes to no User event.** No
 > rule in domain §3.2 constrains the account's existence — `ACCOUNT_EXISTS (Order)` was dropped at
 > the §9 review of the domain model for having no benchmark site — and `CONTACTS_BELONG_TO_ACCOUNT`
-> is settled by an immutable reference (§5). The account reaches Order along the Contacts chain
+> is settled by an immutable reference (§3.a). The account reaches Order along the Contacts chain
 > instead: removing a User withdraws its Contacts, which withdraws the Orders booked on them.
 
 > **`departureTime` is derived, not copied.** It is the only entry in the "Fields cached" column that
 > is not a field of the source aggregate: it is `Order.travelDate` combined with the `Trip.startTime`
 > in force at purchase, computed by the booking saga and frozen on the Order. It is listed on the Trip
 > contract-terms row because Trip is where its non-local half comes from, and it is frozen there for
-> the reason `DEPARTURE_TIME_MATCHES_TRIP` stays a `precondition` in §5: `UpdateTrip` may move
+> the reason `DEPARTURE_TIME_MATCHES_TRIP` stays a precondition (§3.a, design decision 2): `UpdateTrip` may move
 > `Trip.startTime`, and the cascade is not permitted to move the departure moment a passenger bought.
 
 > **`RouteStation.stationName` is a real copy, and it is the only cached value the cascade does
@@ -276,11 +281,16 @@ same domain looks like when the defect is repaired by propagation instead.
   **handler obligation** they did not have: the event handlers must not break them. See §4.
 - **Frozen-contract rules** — `PRICE_MATCHES_TARIFF (Order)`, `PRICE_CONFIG_EXISTS (Order)`,
   `ENDPOINTS_ON_TRIP_ROUTE (Order)`, `DEPARTURE_TIME_MATCHES_TRIP (Order)` — stay **precondition**,
-  by decision. This is the selectivity the policy requires, and §5 names the four rows and the
-  reason for each.
+  by decision. This is the selectivity the policy requires, and design decision 2 below names the
+  four rules and the reason for each.
 - **Immutable-reference rules** — `CONTACTS_BELONG_TO_ACCOUNT (Order)` — stay **precondition**
   because there is nothing to propagate: `Contacts → User` is declared immutable in domain §2, so
   once the predicate is established no operation in §4 of the domain model can falsify it.
+
+These five are the rules this cascade deliberately leaves unrepaired. `/classify-and-plan` flags
+each of them `needs review - no repair event`, because structure alone cannot tell a deliberate skip
+from a missing event; the two bullets above and design decision 2 are what the human confirms each
+flag against.
 
 #### Design decision 1 — `SEAT_CAPACITY_NOT_EXCEEDED` under a capacity reduction
 
@@ -351,7 +361,7 @@ the tariff the fare was computed from. Neither is acceptable, and neither is pos
 
 **Decided: the cascade is selective, and the criterion is stated once rather than per rule.** The
 cascade follows stored references and never refreshes a frozen value. Four rules fall on the frozen
-side, and §5 marks all four `precondition` with this as the reason:
+side and stay `precondition`, for these reasons:
 
 | Rule | What it predicates on | Why the cascade cannot and must not restore it |
 |---|---|---|
@@ -380,7 +390,7 @@ edit would be a worse specification than the one it replaced.
 2. **This grouping reaches P2.** Six domain rules are realised by event propagation here, so the
    inter-invariant pattern is exercised; the sibling grouping states that no rule in it is P2, which
    is the acknowledged gap this variant closes. Which pattern each rule actually receives is still
-   derived by `/classify-and-plan` and is not stated in §5.
+   derived by `/classify-and-plan` from §1, §2, §3.a and §4, and no section of this file states it.
 3. **Removal is transitive, up to four hops.** `DeleteStation` can withdraw a Route, its Trips, its
    PriceConfigs, and the Orders on those Trips. `DeleteUser` can withdraw its Contacts and their
    Orders. A specification reader should expect a single administrative delete to have a wide blast
@@ -470,61 +480,36 @@ edit would be a worse specification than the one it replaced.
 
 ## §5 — Cross-file notes
 
-### Rule realisation
+### How this file's classification differs from the sibling's
 
-One row per cross-entity rule in domain §3.2. `intra` means the rule resolves inside a single
-aggregate of this grouping — either because the entities are co-located, or because the fields it
-needs are carried by a snapshot in §2 that nothing can invalidate. `precondition` means it is
-established when the operation runs and is not restored if it is later violated. `eventual` means an
-event in §4 restores it after an upstream change.
+The difference is derived, not listed here. Running `/classify-and-plan` over each grouping gives two
+classifications of the same domain rules, and the rules whose pattern differs between them are the
+measured difference. Which rules can move is fixed by structure. §1 and the §3 arrows are identical
+in both files, so a rule whose every read is local to its aggregate (co-located, or cached in §2)
+gets the same pattern under both. That is the structural check on the claim that only one variable
+changed. What differs is §2's version fields, §3.a's policy and §4's nine events, so a rule moves
+exactly when it reads data the sibling leaves out of its aggregate's reach and one of those events
+now repairs it. The five rules §3.a leaves unrepaired do not move.
 
-**Six rows differ from the sibling grouping, and no row differs in the other direction.** Every
-`intra` row is `intra` in both files; six `precondition` rows become `eventual`; four
-`precondition` rows stay `precondition` by the frozen-value decision above; one stays
-`precondition` because nothing can invalidate it. That the `intra` rows do not move is the
-structural check on the claim that only one variable changed: `intra` is a function of the
-boundaries, and the boundaries did not move.
+Measured 2026-09-27, by applying `/classify-and-plan` Step 4 to both files: **six of the 22 rules
+change pattern, all to P2, and none moves in the other direction.** `STATIONS_EXIST`,
+`ROUTE_AND_TRAIN_TYPE_EXIST`, `TRIP_EXISTS` and `CONTACTS_EXIST` go from P4a to P2;
+`SEAT_CAPACITY_NOT_EXCEEDED` and `SEAT_NUMBER_WITHIN_CAPACITY` go from P3 to P2. Every other rule
+keeps its pattern.
 
-| Rule (domain §3.2) | Realisation | Note |
-|---|---|---|
-| ROUTE_HAS_AT_LEAST_TWO_STATIONS | intra | `RouteStation` is co-located with `Route` |
-| ROUTE_SEQUENCE_CONTIGUOUS | intra | co-located |
-| ROUTE_DISTANCES_MONOTONIC | intra | co-located |
-| ROUTE_FIRST_DISTANCE_IS_ZERO | intra | co-located |
-| ROUTE_STATIONS_DISTINCT | intra | resolves on the cached `stationAggregateId` of each `RouteStation`, which a rename does not change |
-| ROUTE_ENDPOINTS_MATCH_STATION_LIST | intra | resolves on the cached `stationName` of each `RouteStation`; the `UpdateStationEvent` handler must update `Route.startStationName` / `endStationName` with it — §4, handler obligations |
-| STATIONS_EXIST (Route) | **eventual** | `DeleteStationEvent` reaches the Route, which withdraws itself and publishes `DeleteRouteEvent`; the Station fetch in `CreateRoute` / `UpdateRoute` still establishes it at operation time |
-| UNIQUE_STATION_NAME | intra | own-table uniqueness inside the Station aggregate |
-| ROUTE_AND_TRAIN_TYPE_EXIST (Trip) | **eventual** | `DeleteRouteEvent` or `DeleteTrainTypeEvent` withdraws the Trip, which publishes `DeleteTripEvent`; the fetches in `CreateTrip` still establish it |
-| UNIQUE_TRIP_NUMBER | intra | own-table uniqueness inside the Trip aggregate |
-| UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE | intra | own-table uniqueness over the cached `(routeAggregateId, trainTypeAggregateId)` pair |
-| UNIQUE_USER_NAME | intra | own-table uniqueness inside the User aggregate |
-| TRIP_EXISTS (Order) | **eventual** | `DeleteTripEvent` cancels the Order where the state machine permits and then withdraws it; the Trip fetch in `PreserveTicket` still establishes it |
-| CONTACTS_EXIST (Order) | **eventual** | `DeleteContactsEvent`, same handling; the Contacts fetch in `PreserveTicket` still establishes it |
-| CONTACTS_BELONG_TO_ACCOUNT (Order) | precondition | nothing to propagate: `Contacts → User` is immutable in domain §2, so no operation can falsify the predicate once `PreserveTicket` has compared the requested account against the fetched contact's |
-| ENDPOINTS_ON_TRIP_ROUTE (Order) | precondition | **frozen-value skip** — `Order.fromStationName` / `toStationName` are `final`; a later `UpdateRoute` is not propagated. Design decision 2 |
-| PRICE_CONFIG_EXISTS (Order) | precondition | **frozen-value skip** — Order stores no PriceConfig reference, so nothing dangles. The `GetPriceConfigByRouteAndTrainType` fetch still fails the booking when no configuration exists, which is the rule name `docs/concepts/rule-enforcement-patterns.md` § P4 requires that saga step to cite. Design decision 2 |
-| PRICE_MATCHES_TARIFF (Order) | precondition | **frozen-value skip** — `Order.price` is `final`; a later rate change reprices nothing already sold. Design decision 2 |
-| DEPARTURE_TIME_MATCHES_TRIP (Order) | precondition | **frozen-value skip** — `Order.departureTime` is `final` and `ORDER_REFUND_AMOUNT` predicates on it; a later `UpdateTrip` is not propagated. Design decision 2 |
-| SEAT_CAPACITY_NOT_EXCEEDED | **eventual** | `TripCapacityChangedEvent` bumps every Order on the trip whose `seatNumber` exceeds the new capacity for its class; the booking-time guard is unchanged and still phrased pre-mutation. Design decision 1 |
-| SEAT_NUMBER_UNIQUE_PER_DEPARTURE | intra | counted over the Order aggregate's own table; it is also what makes the bump in design decision 1 sufficient |
-| SEAT_NUMBER_WITHIN_CAPACITY (Order) | **eventual** | restored by the same bump, per order rather than per departure; still tested at booking time against the capacity scalar the saga passes in |
-
-> **This table is a policy record, not a classification.** Which pattern (P1–P4) each rule gets is
-> derived from it by `/classify-and-plan`, not stated in it.
-
-> **`eventual` does not replace the operation-time check.** Every `eventual` row above is *also*
-> established by a saga fetch when the operation runs — booking a ticket on an already-removed Trip
-> still fails immediately rather than succeeding and being withdrawn a poll later. The difference
-> between the two groupings is what happens *after* the operation, not during it.
+**A repaired rule is still checked at operation time.** Each rule an event repairs here is *also*
+established by a saga fetch when the operation runs: booking a ticket on an already-removed Trip
+still fails immediately rather than succeeding and being withdrawn a poll later. The difference
+between the two groupings is what happens *after* the operation, not during it.
 
 ### Other notes
 
 - **What this file is for.** The sibling grouping's own §5 predicted it: "A cascade variant is the
   planned follow-up... It requires **no edit to the domain model**: the invariants are already
-  stated as standing invariants there, and all that changes is this file's §3.a and the Realisation
-  column above... Writing it is the falsification test of the plain-domain split." That prediction
-  is confirmed, with one qualification and one correction, both below.
+  stated as standing invariants there, and all that changes is this file's §2, §3.a and §4, which
+  give the rules that read another aggregate's state an event that repairs them. Writing it is the
+  falsification test of the plain-domain split." That prediction is confirmed, with one
+  qualification and one correction, both below.
 - **Zero edits to the domain model.** Writing this file required no change to
   `trainticket-domain-model.md` — not a rule restatement, not a field, not a word. The
   `/review-artifacts` Check 5 contamination scan passes over it before and after, and the file is
@@ -549,8 +534,8 @@ boundaries, and the boundaries did not move.
   a version, no rule name is claimed for it, and the domain model stays as it is.
 - **Two cascades run past the end of the rule set, and that is disclosed rather than hidden.**
   `DeleteRouteEvent` / `DeleteTrainTypeEvent` withdraw the `PriceConfig`, and `DeleteUserEvent`
-  withdraws the `Contacts`, yet neither withdrawal appears as an `eventual` row in the table above —
-  because no rule in domain §3.2 requires it. They follow from the policy's first rule (removal
+  withdraws the `Contacts`, yet neither withdrawal repairs a rule of domain §3.2, because no rule
+  there requires it. They follow from the policy's first rule (removal
   propagates along stored references) applied uniformly, and uniformity is the reason they are kept:
   a tariff keyed on a route that no longer exists is unreachable through
   `GetPriceConfigByRouteAndTrainType`, and a contact record owned by no account cannot be booked

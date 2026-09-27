@@ -29,7 +29,7 @@ write without editing the "domain" model.
 | Caching, snapshots, cache coherence | Grouping §2 / §5 |
 | Events, event subscriptions, the event DAG, saga steps | Grouping §3 / §4 |
 | `state == DELETED` / `ACTIVE` / `INACTIVE`, `remove()`, `AggregateState` | Grouping (§2.b note) — say "has been removed" |
-| Pattern names P1–P4, "precondition checked at operation time", "standing invariant vs. precondition" | Grouping §3 Consistency policy and §5 Rule realisation |
+| Pattern names P1–P4, "precondition checked at operation time", "standing invariant vs. precondition" | Grouping §3.a Consistency policy |
 | Anything phrased in terms of what `/classify-and-plan` or any other skill will do | Grouping §5 |
 | "References are by aggregate id, not by natural key" | Grouping |
 
@@ -104,11 +104,11 @@ Rules that relate two or more entities.
 > `∀rs ∈ Route.stations: rs.station has not been removed`, not "the referenced station was ACTIVE
 > when the operation ran".
 >
-> Whether a grouping realises a given invariant transactionally, as an operation-time precondition,
-> or by event propagation is recorded in the grouping's §5 Rule realisation table, and the pattern
-> (P1–P4) is assigned from there by `/classify-and-plan`. None of that is written here: the same
-> rule under a cascading grouping is a standing invariant and under a non-cascading one is a
-> precondition, so stating the answer here would bind the domain to one grouping.
+> Whether a grouping enforces a given invariant transactionally, as an operation-time precondition,
+> or by event propagation follows from that grouping's partition, snapshots, consistency policy and
+> events, and `/classify-and-plan` derives the pattern (P1–P4) from them. None of that is written
+> here: the same rule under a cascading grouping is a standing invariant and under a non-cascading
+> one is a precondition, so stating the answer here would bind the domain to one grouping.
 
 One block per rule. Use the exact shape below.
 

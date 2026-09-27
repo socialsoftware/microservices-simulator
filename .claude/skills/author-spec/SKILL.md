@@ -11,7 +11,7 @@ The harness generates an application from a **spec pair**:
 | File | Owns |
 |------|------|
 | `applications/{app-name}/{app-name}-domain-model.md` — **the plain domain** | Entities (§1), relationships including composition (§2), rules as standing invariants (§3.1 single-entity, §3.2 cross-entity), functionalities with Primary Entity / Other Entities (§4) |
-| `applications/{app-name}/{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4), rule realisation and cross-file notes (§5) |
+| `applications/{app-name}/{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4), cross-file notes (§5) |
 
 **One plain domain, N aggregate groupings.** The domain model describes the domain and nothing else;
 the grouping file holds every consequence of one decomposition. Several grouping files may exist over
@@ -122,9 +122,9 @@ enforcement patterns. If the human raises one, note it for Interview B and carry
    - State every rule as a **standing invariant over the domain**: something that is true or false
      of a domain state, in domain vocabulary. `Order.trip has not been removed`, never
      "`Order.tripAggregateId` named a Trip that was ACTIVE when the operation ran".
-   - When the human answers with a *when* ("we check it at booking time"), that is the realisation
-     and it belongs to Interview B. Write down what they said, then ask again for the invariant it
-     is a realisation of.
+   - When the human answers with a *when* ("we check it at booking time"), that is a consistency
+     policy and it belongs to grouping §3.a, in Interview B. Write down what they said, then ask
+     again for the invariant the check enforces.
    - When a rule turns out to say only that two copies of one thing must agree, it is not a domain
      rule at all. It is a coherence obligation one grouping creates, and it goes to grouping §5.
 5. **Functionalities** (§4), writes and reads alike, with **Primary Entity** and **Other Entities**.
@@ -166,15 +166,19 @@ that one question, and re-run the self-audit.
 2. **Snapshots** (grouping §2) and **technical fields** (§2.b) — including every field Interview A
    set aside as non-domain, with the reason it is needed.
 3. **The consistency policy** (§3.a): does this grouping cascade or not, and what does that do to
-   each family of §3.2 rule? This subsection is required.
+   each family of §3.2 rule, in the template's `intra` / `precondition` / `eventual` vocabulary?
+   The heading names the policy, and `/classify-and-plan` reads it. This subsection is required.
+   Under a cascade, ask for every split rule that no event will repair whether that is deliberate,
+   and write the rule and the reason into §3.a: the planner flags each such rule for the human, and
+   that sentence is what the human confirms it against.
 4. **The event DAG** (§3) and the **events** (§4). These must agree with each other and with §2:
    every arrow in §3 needs its event rows in §4 unless the cached fields are immutable, every §4
    consumer needs its arrow, and every event payload needs its anchor field.
-5. **Rule realisation** (§5): one row per plain-domain §3.2 rule, valued `intra`, `precondition` or
-   `eventual`. Do not write pattern names here — `/classify-and-plan` assigns P1–P4 from this table,
-   and pre-empting it in the spec is how a classification stops being derived. Then the cross-file
-   notes: the snapshot-coherence obligations, and anything else that is a consequence of this
-   decomposition rather than of the domain.
+5. **Cross-file notes** (§5): the snapshot-coherence obligations, and anything else that is a
+   consequence of this decomposition rather than of the domain. Do not list the §3.2 rules with a
+   pattern or a per-rule label, here or anywhere in the grouping: `/classify-and-plan` derives the
+   pattern from §1, §2, §3.a and §4, and a hand-written copy is how a classification stops being
+   derived.
 
 Write `applications/{app-name}/{app-name}-aggregate-grouping.md`, then re-read both files together
 and report any section you filled by inference.

@@ -11,13 +11,16 @@
 > out of this file and into the grouping. **Nothing the pair specifies changed**: the union of the
 > two files is semantically identical to the union of their pre-rewrite versions, which git holds.
 > The application was not regenerated.
+>
+> **2026-09-27.** The grouping's per-rule realisation table was removed; how each rule is enforced
+> is now derived from the grouping's structure. This file changed only in its pointers to that table.
 <!-- plain-domain: end -->
 
 **How to use this file:**
 1. Read the preamble to understand what this application is a subset of, and which rules are the benchmark's and which are this file's.
 2. Read §1–§2 to understand the entities, their attributes, and how they relate.
 3. Read §3 to understand every consistency rule and its predicate, stated as a standing invariant over the domain.
-4. See [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) for the concrete partitioning decision, its consistency policy, and how each rule below is realised under it.
+4. See [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md) for the concrete partitioning decision and its consistency policy, from which the enforcement of each rule below follows.
 
 ---
 
@@ -336,9 +339,9 @@ These rules inspect only fields of a single entity.
 ### 3.2 — Cross-entity rules
 
 Every rule below is a **standing invariant over the domain**: a statement that is either true or
-false of a domain state, with no claim about when or how it is checked. Whether a given realisation
+false of a domain state, with no claim about when or how it is checked. Whether a given grouping
 maintains an invariant continuously, checks it once when the operation runs, or tolerates its later
-violation is recorded in §5 of
+violation follows from that grouping's partitioning and consistency policy; see
 [`trainticket-aggregate-grouping.md`](trainticket-aggregate-grouping.md).
 
 "`X` has been removed" is the domain's notion of deletion. An entity that has been removed is still

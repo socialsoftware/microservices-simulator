@@ -42,8 +42,9 @@ always a single-aggregate rule.
 > domain model states each rule once, as a standing invariant, and says nothing about how it is
 > enforced. The same rule is P1 under a grouping that co-locates its entities, P2 under one that
 > splits them and propagates, and P3 or P4 under one that splits them and checks at operation time.
-> Read the grouping's §1, §2 and §3.a — and its §5 Rule realisation table, which records the policy
-> per rule — before applying the flowchart. A second grouping over the same domain model is expected
+> The grouping names no pattern per rule: `/classify-and-plan` answers each question below from the
+> grouping's §1 partition, §2 snapshots, §3.a policy and §4 events, and from the domain's §4
+> functionalities (its Step 4 says which section answers which question). A second grouping over the same domain model is expected
 > to produce a different classification for the same rule name, and that is the mechanism working,
 > not a contradiction.
 
@@ -75,6 +76,12 @@ Eventually consistent (~1 s lag) is acceptable?
   NO  → re-classify as P3 (add a saga data-assembly step to fetch the needed data as a DTO,
         then validate it inside the service method)
 ```
+
+**A rule the grouping repairs by an event is P2, even when an earlier branch also applies.** Under a
+cascade, a split rule is usually both established by a saga fetch when the operation runs (P4a or
+P3) and repaired by an event afterwards. `plan.md` records one pattern per rule, and it is P2; the
+operation-time check is kept, and listed under the aggregate's cross-aggregate prerequisites, so
+session `c` builds it and session `d` builds the subscription.
 
 ### Step 3 — P2 rules never block operations
 

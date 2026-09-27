@@ -9,6 +9,10 @@
 > preamble that used to open domain §3.2, §2.b, the §5 Rule realisation table and several notes —
 > moved here from the domain model unchanged in substance. **Nothing the pair specifies changed**,
 > and the application was not regenerated.
+>
+> **2026-09-27.** The §5 Rule realisation table was removed: `/classify-and-plan` now derives each
+> rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The last version with it
+> is in git at `50e31d84a`.
 
 This file captures **one** aggregate partitioning of the [TrainTicket domain model](trainticket-domain-model.md).
 Several such files may exist over that one domain; writing a second must require no edit to it.
@@ -182,10 +186,9 @@ because no service publishes any.
 **What this does to the domain's §3.2 rules.** The domain model states every cross-entity rule as a
 standing invariant over live references. Under this grouping **none of them is maintained as one**:
 with nothing propagating, a rule phrased as "`Order.trip` has not been removed" would be
-unenforceable, because no mechanism informs Order when the Trip goes. Every such rule is instead
-realised as a **precondition checked at operation time** and is not restored afterwards — see the
-Rule realisation table in §5 for the per-rule record. The rules that fall entirely inside one
-aggregate are unaffected and hold transactionally.
+unenforceable, because no mechanism informs Order when the Trip goes. Every such rule is instead a
+**precondition checked at operation time** and is not restored afterwards. The rules that fall
+entirely inside one aggregate are unaffected and hold transactionally.
 
 Four consequences follow, and they are the reason this file states the policy rather than leaving it
 implicit:
@@ -222,42 +225,6 @@ implicit:
 
 ## §5 — Cross-file notes
 
-### Rule realisation
-
-One row per cross-entity rule in domain §3.2. `intra` means the rule resolves inside a single
-aggregate of this grouping — either because the entities are co-located, or because the fields it
-needs are carried by a snapshot in §2. `precondition` means it is checked when the operation runs
-and is not restored if it is later violated. `eventual` would mean event-propagated; the no-cascade
-policy of §3.a means **no rule in this grouping is `eventual`**.
-
-| Rule (domain §3.2) | Realisation | Note |
-|---|---|---|
-| ROUTE_HAS_AT_LEAST_TWO_STATIONS | intra | `RouteStation` is co-located with `Route` |
-| ROUTE_SEQUENCE_CONTIGUOUS | intra | co-located |
-| ROUTE_DISTANCES_MONOTONIC | intra | co-located |
-| ROUTE_FIRST_DISTANCE_IS_ZERO | intra | co-located |
-| ROUTE_STATIONS_DISTINCT | intra | resolves on the cached `stationAggregateId` of each `RouteStation` |
-| ROUTE_ENDPOINTS_MATCH_STATION_LIST | intra | resolves on the cached `stationName` of each `RouteStation` |
-| STATIONS_EXIST (Route) | precondition | the Station fetch in `CreateRoute` / `UpdateRoute` fails when a station is gone; a later `DeleteStation` is not propagated |
-| UNIQUE_STATION_NAME | intra | own-table uniqueness inside the Station aggregate |
-| ROUTE_AND_TRAIN_TYPE_EXIST (Trip) | precondition | the Route and TrainType fetches in `CreateTrip` |
-| UNIQUE_TRIP_NUMBER | intra | own-table uniqueness inside the Trip aggregate |
-| UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE | intra | own-table uniqueness over the cached `(routeAggregateId, trainTypeAggregateId)` pair |
-| UNIQUE_USER_NAME | intra | own-table uniqueness inside the User aggregate |
-| TRIP_EXISTS (Order) | precondition | the Trip fetch in `PreserveTicket` |
-| CONTACTS_EXIST (Order) | precondition | the Contacts fetch in `PreserveTicket` |
-| CONTACTS_BELONG_TO_ACCOUNT (Order) | precondition | compares the requested account against the one on the fetched Contacts; a later re-assignment is not propagated |
-| ENDPOINTS_ON_TRIP_ROUTE (Order) | precondition | resolves against the Route fetched by `PreserveTicket`; a later `UpdateRoute` is not propagated |
-| PRICE_CONFIG_EXISTS (Order) | precondition | the `GetPriceConfigByRouteAndTrainType` fetch, which fails when no configuration exists for the pair; the domain states it as its own rule so that this saga step has a rule name to cite, as `docs/concepts/rule-enforcement-patterns.md` § P4 requires |
-| PRICE_MATCHES_TARIFF (Order) | precondition | the fare is computed by the booking saga from the fetched Route and PriceConfig and frozen on the Order; a later rate change is not propagated |
-| DEPARTURE_TIME_MATCHES_TRIP (Order) | precondition | `departureTime` is computed by the saga from the fetched Trip and frozen |
-| SEAT_CAPACITY_NOT_EXCEEDED | precondition | counted over the Order aggregate's own table, with the capacity limit passed in from the Trip's TrainType; phrased pre-mutation — see §3.a consequence 4 |
-| SEAT_NUMBER_UNIQUE_PER_DEPARTURE | intra | counted over the Order aggregate's own table |
-| SEAT_NUMBER_WITHIN_CAPACITY (Order) | precondition | tested against the capacity scalar the booking saga passes in |
-
-> **This table is a policy record, not a classification.** Which pattern (P1–P4) each rule gets is
-> derived from it by `/classify-and-plan`, not stated in it.
-
 ### Other notes
 
 - **A cascade variant is the planned follow-up.** Several grouping files may exist over one plain
@@ -265,9 +232,9 @@ policy of §3.a means **no rule in this grouping is `eventual`**.
   change and deletion, is planned. It would give two implementations of one domain differing only in
   consistency policy — a sharper comparison than either alone, and the only way this domain
   exercises P2. It requires **no edit to the domain model**: the invariants are already stated as
-  standing invariants there, and all that changes is this file's §3.a and the Realisation column
-  above, where the `precondition` rows become `eventual`. Writing it is the falsification test of
-  the plain-domain split.
+  standing invariants there, and all that changes is this file's §2, §3.a and §4, which give the
+  rules that read another aggregate's state an event that repairs them. Writing it is the
+  falsification test of the plain-domain split.
 - **`CONTACTS_BELONG_TO_ACCOUNT` declares no User read.** Both sides of its predicate are local to
   the booking saga: the account comes from the request and the contact's account from the Contacts
   fetch that `PreserveTicket` already declares. Listing User among the rule's entities would make
