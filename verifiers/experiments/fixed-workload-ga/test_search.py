@@ -4,7 +4,7 @@ from pathlib import Path
 import tempfile
 import unittest
 
-from search import candidate_key, fault_coordinates, run, stable
+from search import SearchSession, candidate_key, fault_coordinates, run, stable
 from runtime import (Domain, IntegrityError, digest, package, save, validate_read,
                      validate_lost_copied_updates)
 
@@ -34,6 +34,22 @@ class SearchTest(unittest.TestCase):
         a, b = self.search(), self.search()
         self.assertEqual(a['proposals'], b['proposals'])
         self.assertEqual([x['key'] for x in a['attempts']], [x['key'] for x in b['attempts']])
+
+    def test_incremental_session_preserves_trajectory_across_switches(self):
+        arguments = dict(strategy='ga', seed=7, budget=12, population=4, mutation=.3)
+        expected = run(FakeDomain(), evaluate, **arguments)
+        left = SearchSession(FakeDomain(), **arguments)
+        right = SearchSession(FakeDomain(), **arguments)
+        for _ in range(12):
+            for session in (left, right):
+                candidate = session.ask()
+                session.tell(candidate, evaluate(candidate, len(session.attempts) + 1))
+        fields = ('attempts', 'proposals', 'duplicates', 'bestI', 'bestScore',
+                  'positiveScenarios', 'nullFitnessAttempts', 'stopReason')
+        for session in (left, right):
+            actual = session.result()
+            self.assertEqual({field: actual[field] for field in fields},
+                             {field: expected[field] for field in fields})
 
     def test_fitness_changes_ga_but_not_random(self):
         reverse = lambda c, n: {'I': 15 - int(c['faultVector'], 2)}

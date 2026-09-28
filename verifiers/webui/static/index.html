@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fault Lab · Experiment workbench</title>
+  <link rel="stylesheet" href="/style.css"><script src="/app.js" defer></script>
+</head>
+<body>
+  <aside class="sidebar">
+    <a class="brand" href="/" aria-label="Fault Lab home"><span class="brand-mark">ƒ</span><span>fault<span class="light">lab</span><small>MICROSERVICES SIMULATOR</small></span></a>
+    <div class="nav-label">WORKSPACE</div>
+    <nav aria-label="Main navigation">
+      <button data-view="experiments" class="nav-item active"><span>▦</span> Experiments <b id="nav-count">—</b></button>
+      <button data-view="compare" class="nav-item"><span>⌁</span> Compare runs <b id="compare-count">0</b></button>
+      <button data-view="jobs" class="nav-item"><span>◷</span> Live activity <b id="job-count">0</b></button>
+    </nav>
+    <div class="sidebar-note"><span class="tiny-dot"></span> YOUR LOCAL LAB<p>Explore what happened.<br>Understand what matters.</p></div>
+    <div class="environment"><span class="avatar">MS</span><div>Local workspace<small>Artifacts stay on this machine</small></div><span class="green-dot"></span></div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar"><div>Workspace <span>/</span> <strong id="breadcrumb">Experiments</strong></div><div class="top-actions"><span class="local-pill"><span class="green-dot"></span> Local only</span><button id="refresh" class="icon-button" title="Refresh artifact index" aria-label="Refresh artifact index">↻</button></div></header>
+    <main>
+      <div class="page-heading"><div><div class="eyebrow">OBSERVE · EXPERIMENT · UNDERSTAND</div><h1 id="page-title">Experiment workspace</h1><p id="page-subtitle">From fault injection to evidence. All your experiments in one place.</p></div><button class="primary" id="new-experiment"><span>＋</span> New experiment</button></div>
+      <div id="index-state" class="index-state" role="status">Discovering local experiments…</div>
+      <section id="content" aria-live="polite"><div class="empty"><div class="loader"></div><h2>Opening your lab</h2><p>Reading retained experiment summaries. Your evidence stays unchanged.</p></div></section>
+      <footer><span>FAULT LAB <span class="footer-dot">/</span> Microservices Simulator</span><span>Positive scenarios are observations, not distinct defects.</span></footer>
+    </main>
+  </div>
+  <dialog id="launch-dialog"><div class="dialog-heading"><div><div class="eyebrow">A REPRODUCIBLE START</div><h2>New experiment</h2></div><button class="icon-button" data-close="launch-dialog" aria-label="Close dialog">×</button></div>
+    <form id="launch-form">
+      <label>Experiment name<input id="experiment-name" maxlength="120" placeholder="e.g. Quizzes · dependency-focused search"></label>
+      <label>Prepared configuration<select id="preset" required></select></label>
+      <div id="preset-info" class="hint"></div>
+      <div class="form-grid"><label>Allocation method<select id="policy"></select></label><label>Attempt budget<input id="budget" type="number" min="1" max="1000000" value="60" required></label><label>Seed<input id="seed" type="number" min="0" max="2147483647" value="1" required></label></div>
+      <div class="field-heading">Workloads <button id="select-workloads" type="button" class="text-button">Select all</button></div><div id="workload-options" class="workload-options"></div>
+      <div class="field-heading">What should the search prioritize?</div><p class="hint">Weights stay fixed during this experiment. At least one must be positive.</p><div id="weight-options" class="weight-options"></div>
+      <div id="launch-review" class="notice">Choose a configuration to inspect its execution mode.</div>
+      <div id="launch-error" class="error hidden" role="alert"></div>
+      <div class="dialog-actions"><button type="button" id="validate" class="secondary">Check inputs</button><button type="submit" id="launch" class="primary">Launch experiment ↗</button></div>
+    </form>
+  </dialog>
+  <dialog id="detail-dialog" class="detail-dialog"><div class="dialog-heading"><h2 id="detail-title">Evidence</h2><button class="icon-button" data-close="detail-dialog" aria-label="Close evidence">×</button></div><div id="detail-content"></div></dialog>
+  <div id="toast" role="status" class="toast hidden"></div>
+</body>
+</html>

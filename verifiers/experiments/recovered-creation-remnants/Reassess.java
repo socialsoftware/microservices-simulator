@@ -52,7 +52,7 @@ public class Reassess {
             rows.add(row);
         }
         var summary = new LinkedHashMap<String, Object>();
-        summary.put("policy", "recovered-creation-remnant-exclusion-2026-09-07");
+        summary.put("policy", ImpactV2EvidenceReport.RESIDUAL_POLICY);
         summary.put("mode", "OFFLINE_REASSESSMENT_NO_NEW_APPLICATION_EXECUTIONS");
         summary.put("inputManifestSha256", hash(Path.of(args[0])));
         summary.put("rows", rows);

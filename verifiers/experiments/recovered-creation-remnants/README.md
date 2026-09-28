@@ -47,6 +47,9 @@ Compile `Reassess.java` with that build's `target/classes` and dependency classp
 then run `pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.Reassess`
 with the input manifest and new output directory as its two arguments. Do not put a
 historical verifier JAR before the freshly compiled assessor on the classpath.
+The utility records the compiled assessor's residual policy. Running it with current
+code evaluates the current rule, not necessarily the historical creation-remnant rule;
+the retained 7 September artifacts preserve that original experiment.
 
 Retained local files:
 
