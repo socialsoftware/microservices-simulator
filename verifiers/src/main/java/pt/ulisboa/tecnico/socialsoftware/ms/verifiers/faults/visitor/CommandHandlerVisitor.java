@@ -1,6 +1,11 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor;
 
 import com.github.javaparser.ast.CompilationUnit;
+import com.github.javaparser.ast.Node;
+import com.github.javaparser.ast.expr.TypePatternExpr;
+import com.github.javaparser.ast.expr.SwitchExpr;
+import com.github.javaparser.ast.stmt.SwitchStmt;
+import com.github.javaparser.ast.stmt.SwitchEntry;
 import com.github.javaparser.ast.body.ClassOrInterfaceDeclaration;
 import com.github.javaparser.ast.body.ConstructorDeclaration;
 import com.github.javaparser.ast.body.MethodDeclaration;
@@ -45,7 +50,7 @@ import java.util.Set;
  * <p>
  * Phase C: For each private handler method with a Command parameter, find the first service call
  *          and resolve it to a CommandDispatchInfo. Handles both plain scope (itemService.x())
- *          and field-access scope (this.itemService.x()).
+ *          and field-access scope (this.itemService.x()), plus unguarded direct pattern-switch dispatch.
  */
 public class CommandHandlerVisitor extends VoidVisitorAdapter<ApplicationAnalysisState> {
     private static final Logger logger = LoggerFactory.getLogger(CommandHandlerVisitor.class);
@@ -78,6 +83,7 @@ public class CommandHandlerVisitor extends VoidVisitorAdapter<ApplicationAnalysi
 
             // Phase C: Map command types to CommandDispatchInfo
             mapCommandsToDispatchInfo(decl, block, serviceFields, aggregateTypeName.orElse(null));
+            mapDirectSwitchDispatch(decl, block, serviceFields, aggregateTypeName.orElse(null));
 
             state.commandHandlers.add(block);
             logger.info("CommandHandler {}: {}", fqn, block.getCommandDispatch());
@@ -453,6 +459,62 @@ public class CommandHandlerVisitor extends VoidVisitorAdapter<ApplicationAnalysi
                                                 }));
                             });
                 });
+    }
+
+    /** Direct Java pattern-switch dispatch in the framework entry point. */
+    private void mapDirectSwitchDispatch(ClassOrInterfaceDeclaration decl, CommandHandlerBuildingBlock block,
+                                         Map<String, ServiceBuildingBlock> services, String aggregateName) {
+        decl.getMethodsByName("handleDomainCommand").stream()
+                .filter(method -> method.getParameters().size() == 1
+                        && TypeUtils.isSubtypeOf(method.getParameter(0).getType(), Command.class))
+                .forEach(method -> method.findAll(SwitchEntry.class).forEach(entry -> {
+                    Node owner = entry.getParentNode().orElse(null);
+                    Expression selector = owner instanceof SwitchExpr expr ? expr.getSelector()
+                            : owner instanceof SwitchStmt stmt ? stmt.getSelector() : null;
+                    if (selector == null || !selector.isNameExpr()
+                            || !selector.asNameExpr().getNameAsString().equals(method.getParameter(0).getNameAsString())
+                            || entry.getLabels().size() != 1 || entry.getGuard().isPresent()
+                            || entry.getType() == SwitchEntry.Type.STATEMENT_GROUP
+                            || !(entry.getLabels().get(0) instanceof TypePatternExpr pattern)
+                            || !TypeUtils.isSubtypeOf(pattern.getType(), Command.class)) return;
+                    // Only an unconditional switch in this handler; nested control flow is not a dispatch proof.
+                    Node enclosing = owner.getParentNode().orElse(null);
+                    while (enclosing != null && enclosing != method) {
+                        if (!(enclosing instanceof com.github.javaparser.ast.stmt.ReturnStmt)
+                                && !(enclosing instanceof com.github.javaparser.ast.stmt.ExpressionStmt)
+                                && !(enclosing instanceof com.github.javaparser.ast.stmt.BlockStmt)) return;
+                        enclosing = enclosing.getParentNode().orElse(null);
+                    }
+                    if (enclosing != method) return;
+                    // One target per dispatch: do not silently select among several service calls.
+                    var calls = entry.findAll(MethodCallExpr.class).stream()
+                            .filter(call -> serviceField(call, services).isPresent()).toList();
+                    if (calls.size() != 1) return;
+                    MethodCallExpr call = calls.get(0);
+                    Node parent = call.getParentNode().orElse(null);
+                    while (parent != null && parent != entry) {
+                        if (!(parent instanceof com.github.javaparser.ast.stmt.ExpressionStmt)
+                                && !(parent instanceof com.github.javaparser.ast.stmt.YieldStmt)
+                                && !(parent instanceof com.github.javaparser.ast.stmt.ReturnStmt)
+                                && !(parent instanceof com.github.javaparser.ast.stmt.BlockStmt)) return;
+                        parent = parent.getParentNode().orElse(null);
+                    }
+                    resolveCommandTypeFqn(pattern.getType()).ifPresent(commandType -> {
+                        if (block.getCommandDispatch().containsKey(commandType)) return;
+                        String field = serviceField(call, services).orElseThrow();
+                        block.addCommandDispatch(commandType, new CommandDispatchInfo(
+                                services.get(field), TypeUtils.buildCallSignature(call), aggregateName));
+                    });
+                }));
+    }
+
+    private Optional<String> serviceField(MethodCallExpr call, Map<String, ServiceBuildingBlock> services) {
+        return call.getScope().flatMap(scope -> {
+            String name = scope.isNameExpr() ? scope.asNameExpr().getNameAsString()
+                    : scope.isFieldAccessExpr() && scope.asFieldAccessExpr().getScope().isThisExpr()
+                    ? scope.asFieldAccessExpr().getNameAsString() : null;
+            return name != null && services.containsKey(name) ? Optional.of(name) : Optional.empty();
+        });
     }
 
     /**

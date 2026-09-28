@@ -16,6 +16,9 @@ verifiers:
     accounting-path: accounting.json
     generation-strategy: INTERACTION_PRUNED
     catalog-write-mode: WRITE_WORKLOADS
+    count-fault-scenarios: false
+    count-max-states: 2000000
+    count-max-input-tuples: 100000
     include-singles: true
     max-saga-set-size: 1
     max-catalog-scenarios: 100

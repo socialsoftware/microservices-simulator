@@ -205,7 +205,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         SetupPlanMapper mapper = new SetupPlanMapper();
         ScenarioExecutorReadinessEvaluator readinessEvaluator = new ScenarioExecutorReadinessEvaluator();
         List<SourceSetupPlanBinding> bindings = new ArrayList<>();
-        Map<String, Set<String>> setupOnlyCoverageByClass = new LinkedHashMap<>();
         Set<String> setupSourceClasses = state.groovyFacadeSetupActionTraces.stream()
                 .filter(trace -> "setup".equals(trace.callContextMethodName()))
                 .map(trace -> trace.sourceClassFqn())
@@ -271,7 +270,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                             eligibleParticipants.put(input.deterministicId(), participant);
                         }
                     });
-            LinkedHashSet<String> coveredInputIds = new LinkedHashSet<>();
             if (!eligibleParticipants.isEmpty()) {
                 List<SetupPlanMapper.ParticipantSource> participants = eligibleParticipants.values().stream()
                         .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))
@@ -285,7 +283,6 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                             .map(SetupPlanMapper.ParticipantSource::inputVariantId)
                             .toList();
                     bindings.add(new SourceSetupPlanBinding(inputVariantIds, plan));
-                    coveredInputIds.addAll(inputVariantIds);
                 }
             }
 
@@ -387,11 +384,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                 bindings.add(new SourceSetupPlanBinding(List.of(entry.getKey()), targetPlan,
                         sourceClassFqn, "setup", Map.of(entry.getKey(), List.of(targetOccurrence)),
                         targetOccurrence, Map.of(entry.getKey(), targetOrder), Map.of()));
-                coveredInputIds.addAll(inputVariantIds);
             });
-            if (!coveredInputIds.isEmpty()) {
-                setupOnlyCoverageByClass.put(sourceClassFqn, Set.copyOf(coveredInputIds));
-            }
         }
 
         Map<FeatureContext, List<AdaptedTrace>> featureTraces = adaptedTraces.stream()
@@ -404,9 +397,36 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         featureTraces.entrySet().stream()
                 .sorted(Map.Entry.comparingByKey())
                 .forEach(entry -> adaptFeatureSetupBindings(entry.getKey(), entry.getValue(), state,
-                        inputsById, setupOnlyCoverageByClass, mapper, readinessEvaluator,
+                        inputsById, mapper, readinessEvaluator,
                         diagnostics, bindings));
 
+        // A shared producer can supply arguments without reproducing the feature state.
+        // Such inputs must use their coherent feature prefix; barriers cannot fall back
+        // to an unrelated fixture-only plan.
+        Set<String> featurePreparationInputIds = adaptedTraces.stream()
+                .filter(trace -> requiresFeaturePreparation(trace.trace(), state))
+                .map(AdaptedTrace::inputVariantId)
+                .collect(Collectors.toUnmodifiableSet());
+        Map<String, String> sourceFeatures = inputs.stream()
+                .collect(Collectors.toMap(InputVariant::deterministicId,
+                        input -> String.valueOf(input.sourceClassFqn()) + "#" + String.valueOf(input.callContextMethodName())));
+        Map<String, Integer> sourceTargetOrders = adaptedTraces.stream()
+                .filter(trace -> trace.trace().occurrence() != null)
+                .collect(Collectors.toMap(AdaptedTrace::inputVariantId,
+                        trace -> trace.trace().occurrence().orderIndex(), Math::min));
+        List<SourceSetupPlanBinding> qualified = new ArrayList<>();
+        for (SourceSetupPlanBinding binding : bindings) {
+            if (binding.featureDerived() && isFeatureContext(binding.featureMethodName())) {
+                qualified.add(binding);
+            } else {
+                qualified.add(new SourceSetupPlanBinding(binding.inputVariantIds(), binding.setupPlan(),
+                        binding.sourceClassFqn(), binding.featureMethodName(), binding.targetOccurrencesByInputVariantId(),
+                        binding.frontierOccurrenceId(), binding.targetOrderByInputVariantId(),
+                        binding.featureActionOrderByOccurrenceId(), sourceFeatures, featurePreparationInputIds, sourceTargetOrders));
+            }
+        }
+        bindings.clear();
+        bindings.addAll(qualified);
         counts.put("sourceSetupPlanBindings", bindings.size());
         if (!setupSourceClasses.isEmpty() && bindings.isEmpty()) {
             diagnostics.add("observed setup contexts had no extractable straight-line setup plan");
@@ -414,12 +434,24 @@ public final class ApplicationAnalysisScenarioModelAdapter {
         return bindings.stream().distinct().toList();
     }
 
+    private boolean requiresFeaturePreparation(GroovyFullTraceResult trace,
+                                               ApplicationAnalysisState state) {
+        // Constructors extracted from setup describe reusable Saga arguments; later
+        // workflow execution in a concurrency test is not a facade preparation call.
+        if (trace.originKind() != GroovyTraceOriginKind.FACADE_CALL
+                || trace.occurrence() == null || !isFeatureContext(trace.callContextMethodName())) return false;
+        return state.groovyFacadeSetupActionTraces.stream()
+                .filter(action -> Objects.equals(action.sourceClassFqn(), trace.sourceClassFqn()))
+                .filter(action -> Objects.equals(action.callContextMethodName(), trace.callContextMethodName()))
+                .anyMatch(action -> action.occurrence() != null
+                        && action.occurrence().orderIndex() < trace.occurrence().orderIndex());
+    }
+
     private void adaptFeatureSetupBindings(
             FeatureContext context,
             List<AdaptedTrace> adaptedTraces,
             ApplicationAnalysisState state,
             Map<String, InputVariant> inputsById,
-            Map<String, Set<String>> setupOnlyCoverageByClass,
             SetupPlanMapper mapper,
             ScenarioExecutorReadinessEvaluator readinessEvaluator,
             LinkedHashSet<String> diagnostics,
@@ -489,11 +521,7 @@ public final class ApplicationAnalysisScenarioModelAdapter {
                                     eligible.put(input.deterministicId(), participant);
                                 }
                             });
-                    if (eligible.isEmpty()
-                            || setupOnlyCoverageByClass.getOrDefault(context.sourceClassFqn(), Set.of())
-                            .containsAll(eligible.keySet())) {
-                        return;
-                    }
+                    if (eligible.isEmpty()) return;
 
                     List<SetupPlanMapper.ParticipantSource> participants = eligible.values().stream()
                             .sorted(Comparator.comparing(SetupPlanMapper.ParticipantSource::inputVariantId))

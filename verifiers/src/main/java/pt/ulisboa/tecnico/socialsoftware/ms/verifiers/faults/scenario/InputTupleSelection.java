@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder.ConflictCandidate;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ConflictGraphBuilder.ConflictOrigin;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
@@ -134,6 +135,45 @@ public final class InputTupleSelection {
         if (sagas.size() != (inputs == null ? 0 : inputs.size())) {
             return List.of();
         }
+        List<ConflictCandidate> selected = selectedAnchorCandidates(sagas, inputs, candidates,
+                sourceEvidence, mode);
+        List<ConflictCandidate> forward = selected.stream()
+                .filter(candidate -> candidate.origin() == ConflictOrigin.FORWARD).toList();
+        if (connectedByCandidates(sagas, forward)) {
+            return forward;
+        }
+        List<ConflictCandidate> result = new ArrayList<>(forward);
+        selected.stream()
+                .filter(candidate -> candidate.origin() != ConflictOrigin.FORWARD)
+                .sorted(Comparator.comparing(ConflictCandidate::origin)
+                        .thenComparing(ConflictCandidate::deterministicId,
+                                Comparator.nullsFirst(String::compareTo)))
+                .forEach(candidate -> {
+                    if (!connectedPair(candidate.leftSagaFqn(), candidate.rightSagaFqn(), result)) {
+                        result.add(candidate);
+                    }
+                });
+        if (mode == Mode.ALL) {
+            return List.copyOf(result);
+        }
+        return connectedByCandidates(sagas, result) ? List.copyOf(result) : List.of();
+    }
+
+    /**
+     * Returns every applicable conflict for the concrete tuple. Unlike
+     * {@link #selectedCandidates(List, List, List, List, Mode)}, this method
+     * does not reduce the result to connectivity evidence: callers use the
+     * complete set to derive conflict-anchor schedules.
+     */
+    public static List<ConflictCandidate> selectedAnchorCandidates(List<String> sagaOrder,
+                                                                    List<InputVariant> inputs,
+                                                                    List<ConflictCandidate> candidates,
+                                                                    List<SourceAggregateKeyInputEvidence> sourceEvidence,
+                                                                    Mode mode) {
+        List<String> sagas = orderedSagas(sagaOrder);
+        if (sagas.size() != (inputs == null ? 0 : inputs.size())) {
+            return List.of();
+        }
         EvidenceIndex evidenceIndex = new EvidenceIndex(sourceEvidence);
         LinkedHashMap<String, EvidenceProfile> profiles = new LinkedHashMap<>();
         for (int index = 0; index < sagas.size(); index++) {
@@ -144,13 +184,51 @@ public final class InputTupleSelection {
             profiles.put(sagas.get(index), evidenceIndex.profile(input));
         }
         Set<String> sagaSet = new LinkedHashSet<>(sagas);
-        return (candidates == null ? List.<ConflictCandidate>of() : candidates).stream()
+        List<ConflictCandidate> selected = (candidates == null ? List.<ConflictCandidate>of() : candidates).stream()
                 .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn())
                         && sagaSet.contains(candidate.rightSagaFqn()))
+                .filter(candidate -> candidateApplicable(candidate, sagaSet))
                 .filter(candidate -> mode == Mode.ALL
                         || candidateSelected(candidate, profiles.get(candidate.leftSagaFqn()),
                         profiles.get(candidate.rightSagaFqn()), mode))
                 .toList();
+        return List.copyOf(selected);
+    }
+
+    private static boolean connectedPair(String left, String right, List<ConflictCandidate> candidates) {
+        if (Objects.equals(left, right)) return true;
+        LinkedHashMap<String, LinkedHashSet<String>> adjacency = candidateAdjacency(candidates);
+        return reached(left, adjacency).contains(right);
+    }
+
+    private static boolean connectedByCandidates(List<String> sagas, List<ConflictCandidate> candidates) {
+        return connected(sagas, candidateAdjacency(candidates));
+    }
+
+    private static LinkedHashMap<String, LinkedHashSet<String>> candidateAdjacency(List<ConflictCandidate> candidates) {
+        LinkedHashMap<String, LinkedHashSet<String>> adjacency = new LinkedHashMap<>();
+        for (ConflictCandidate candidate : candidates == null ? List.<ConflictCandidate>of() : candidates) {
+            adjacency.computeIfAbsent(candidate.leftSagaFqn(), ignored -> new LinkedHashSet<>())
+                    .add(candidate.rightSagaFqn());
+            adjacency.computeIfAbsent(candidate.rightSagaFqn(), ignored -> new LinkedHashSet<>())
+                    .add(candidate.leftSagaFqn());
+        }
+        return adjacency;
+    }
+
+    private static Set<String> reached(String start, Map<String, ? extends Set<String>> adjacency) {
+        ArrayDeque<String> pending = new ArrayDeque<>();
+        LinkedHashSet<String> reached = new LinkedHashSet<>();
+        pending.add(start);
+        while (!pending.isEmpty()) {
+            String current = pending.removeFirst();
+            if (!reached.add(current)) continue;
+            Set<String> neighbors = adjacency.containsKey(current) ? adjacency.get(current) : Set.of();
+            for (String next : neighbors) {
+                if (!reached.contains(next)) pending.addLast(next);
+            }
+        }
+        return reached;
     }
 
     /**
@@ -199,10 +277,11 @@ public final class InputTupleSelection {
             sagaIndexes.put(sagas.get(index), index);
         }
         LinkedHashMap<String, LinkedHashSet<String>> adjacency = new LinkedHashMap<>();
+        Set<String> sagaSet = new LinkedHashSet<>(sagas);
         for (ConflictCandidate candidate : conflictCandidates == null ? List.<ConflictCandidate>of() : conflictCandidates) {
             Integer leftIndex = sagaIndexes.get(candidate.leftSagaFqn());
             Integer rightIndex = sagaIndexes.get(candidate.rightSagaFqn());
-            if (leftIndex == null || rightIndex == null) {
+            if (leftIndex == null || rightIndex == null || !candidateApplicable(candidate, sagaSet)) {
                 continue;
             }
             boolean possible = profilesBySaga.get(leftIndex).stream().anyMatch(left ->
@@ -252,6 +331,9 @@ public final class InputTupleSelection {
             if (!sagaSet.contains(candidate.leftSagaFqn()) || !sagaSet.contains(candidate.rightSagaFqn())) {
                 continue;
             }
+            if (!candidateApplicable(candidate, sagaSet)) {
+                continue;
+            }
             EvidenceProfile left = profiles.get(candidate.leftSagaFqn());
             EvidenceProfile right = profiles.get(candidate.rightSagaFqn());
             if (left == null || right == null || !candidateSelected(candidate, left, right, mode)) {
@@ -287,6 +369,9 @@ public final class InputTupleSelection {
             if (!sagaSet.contains(candidate.leftSagaFqn()) || !sagaSet.contains(candidate.rightSagaFqn())) {
                 continue;
             }
+            if (!candidateApplicable(candidate, sagaSet)) {
+                continue;
+            }
             adjacency.computeIfAbsent(candidate.leftSagaFqn(), ignored -> new LinkedHashSet<>())
                     .add(candidate.rightSagaFqn());
             adjacency.computeIfAbsent(candidate.rightSagaFqn(), ignored -> new LinkedHashSet<>())
@@ -316,9 +401,16 @@ public final class InputTupleSelection {
                                              EvidenceProfile leftProfile,
                                              EvidenceProfile rightProfile,
                                              Mode mode) {
-        KeyRelation relation = relation(candidate.leftFootprint(), leftProfile,
-                candidate.rightFootprint(), rightProfile);
+        EvidenceProfile effectiveLeft = candidate.leftInputBound() ? leftProfile : EvidenceProfile.empty();
+        EvidenceProfile effectiveRight = candidate.rightInputBound() ? rightProfile : EvidenceProfile.empty();
+        KeyRelation relation = relation(candidate.leftFootprint(), effectiveLeft,
+                candidate.rightFootprint(), effectiveRight);
         return mode == Mode.STRICT ? relation == KeyRelation.POSITIVE : relation != KeyRelation.UNEQUAL;
+    }
+
+    private static boolean candidateApplicable(ConflictCandidate candidate, Set<String> selectedSagas) {
+        return candidate != null && (normalize(candidate.excludedSagaFqn()) == null
+                || selectedSagas == null || !selectedSagas.contains(candidate.excludedSagaFqn()));
     }
 
     private static KeyRelation relation(StepFootprint leftFootprint,
@@ -446,6 +538,10 @@ public final class InputTupleSelection {
         Set<String> sources(AggregateKey key) {
             KeyEvidenceIdentity identity = KeyEvidenceIdentity.of(key);
             return identity == null ? Set.of() : sourcesByKey.getOrDefault(identity, Set.of());
+        }
+
+        static EvidenceProfile empty() {
+            return new EvidenceProfile(Map.of(), Map.of());
         }
     }
 

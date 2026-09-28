@@ -5,6 +5,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGe
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.CompensationEvidenceClass
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventEmissionSite
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence
@@ -208,6 +209,223 @@ class ScenarioGeneratorSpec extends Specification {
         result.workloadPlans().size() == 1
         result.workloadPlans()[0].participants()*.sagaFqn().toSet() == ['com.example.A', 'com.example.B'] as Set
         result.workloadPlans()[0].conflictEvidence().size() == 1
+    }
+
+    def 'broad pruning retains an event-only pair without attributing the consumer key to the producer input'() {
+        given:
+        def producer = saga('dummyapp.Producer',
+                aggregateStep('dummyapp.Producer', 'emit', 0, 'Producer', AccessMode.WRITE,
+                        'producerId', FootprintConfidence.SYMBOLIC))
+        def consumer = saga('dummyapp.EventConsumer',
+                aggregateStep('dummyapp.EventConsumer', 'update', 0, 'Order', AccessMode.WRITE,
+                        'orderId', FootprintConfidence.SYMBOLIC))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'read', 0, 'Order', AccessMode.READ,
+                        'orderId', FootprintConfidence.SYMBOLIC))
+        def unrelated = saga('dummyapp.Unrelated',
+                aggregateStep('dummyapp.Unrelated', 'read', 0, 'Other', AccessMode.READ,
+                        'otherId', FootprintConfidence.SYMBOLIC))
+        def route = eventRoute(producer, consumer)
+        def inputs = [
+                input('producer-input', producer.sagaFqn(), [producerId: '10']),
+                input('reader-input', reader.sagaFqn(), [orderId: '20']),
+                input('unrelated-input', unrelated.sagaFqn(), [otherId: '30'])
+        ]
+
+        when:
+        def broad = ScenarioGenerator.generate([producer, consumer, reader, unrelated], inputs, [route], config(
+                includeSingles: false, maxSagaSetSize: 2, allowTypeOnlyFallback: true))
+        def strict = ScenarioGenerator.generate([producer, consumer, reader, unrelated], inputs, [route], config(
+                includeSingles: false, maxSagaSetSize: 2, allowTypeOnlyFallback: false))
+
+        then:
+        broad.workloadPlans().any { it.participants()*.sagaFqn().toSet() ==
+                [producer.sagaFqn(), reader.sagaFqn()] as Set }
+        broad.workloadPlans().findAll { it.participants()*.sagaFqn().contains(unrelated.sagaFqn()) }.isEmpty()
+        broad.workloadPlans().findAll { it.participants()*.sagaFqn().toSet() ==
+                [producer.sagaFqn(), reader.sagaFqn()] as Set }.any { it.eventConsequences() }
+        broad.workloadPlans().find { it.kind() == ScenarioKind.MULTI_SAGA }.conflictEvidence().every {
+            it.warnings().any { warning -> warning.contains('receiver identity is not attributed') }
+        }
+        strict.workloadPlans().isEmpty()
+    }
+
+    def 'event selection accepts proven exact identity but rejects contradictory identity and selected downstream routes'() {
+        given:
+        def producer = saga('dummyapp.Producer',
+                aggregateStep('dummyapp.Producer', 'emit', 0, 'Producer', AccessMode.WRITE, 'producer'))
+        def consumer = saga('dummyapp.EventConsumer',
+                aggregateStep('dummyapp.EventConsumer', 'update', 0, 'Order', AccessMode.WRITE, consumerKey))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'read', 0, 'Order', AccessMode.READ, readerKey))
+        def route = eventRoute(producer, consumer)
+        def inputs = [input('producer-input', producer.sagaFqn(), [:]), input('reader-input', reader.sagaFqn(), [:]),
+                      input('consumer-input', consumer.sagaFqn(), [:])]
+
+        when:
+        def generated = ScenarioGenerator.generate([producer, consumer, reader], inputs, [route], config(
+                includeSingles: false, maxSagaSetSize: 2, allowTypeOnlyFallback: fallback))
+        def producerReader = generated.workloadPlans().findAll { it.participants()*.sagaFqn().toSet() ==
+                [producer.sagaFqn(), reader.sagaFqn()] as Set }
+        def producerConsumer = generated.workloadPlans().findAll { it.participants()*.sagaFqn().toSet() ==
+                [producer.sagaFqn(), consumer.sagaFqn()] as Set }
+
+        then:
+        !producerReader.isEmpty() == retained
+        producerConsumer.isEmpty()
+
+        where:
+        consumerKey | readerKey | fallback || retained
+        'same'      | 'same'    | false    || true
+        'left'      | 'right'   | true     || false
+    }
+
+    def 'indirect surfaces do not change base identities when forward evidence already retains the pair'() {
+        given:
+        def producer = saga('dummyapp.Producer',
+                aggregateStep('dummyapp.Producer', 'emit', 0, 'Order', AccessMode.WRITE, 'shared'))
+        def consumer = saga('dummyapp.EventConsumer',
+                aggregateStep('dummyapp.EventConsumer', 'update', 0, 'Order', AccessMode.WRITE, 'shared'))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'read', 0, 'Order', AccessMode.READ, 'shared'))
+        def inputs = [input('producer-input', producer.sagaFqn(), [:]),
+                      input('reader-input', reader.sagaFqn(), [:])]
+        def directConfig = config(includeSingles: false, maxSagaSetSize: 2,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED)
+
+        when:
+        def withoutRoute = ScenarioGenerator.generate([producer, consumer, reader], inputs, [], directConfig)
+        def withRoute = ScenarioGenerator.generate([producer, consumer, reader], inputs,
+                [eventRoute(producer, consumer)], directConfig)
+
+        then:
+        withRoute.workloadPlans().findAll { !it.eventConsequences() }*.deterministicId() ==
+                withoutRoute.workloadPlans()*.deterministicId()
+        withRoute.workloadPlans().findAll { !it.eventConsequences() }.every { plan ->
+            plan.conflictEvidence().every { !it.warnings().any { warning -> warning.contains('mediated selection edge') } }
+        }
+    }
+
+    def 'recovery-only access retains its pair and supplies segment-compression anchors'() {
+        given:
+        def recovering = saga('dummyapp.Recovering',
+                aggregateStep('dummyapp.Recovering', 'prepare', 0, 'Producer', AccessMode.READ, 'producer'),
+                recoveryStep('dummyapp.Recovering', 'checkpoint', 1, 'Producer', 'Order', 'shared'))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'read', 0, 'Order', AccessMode.READ, 'shared'))
+        def inputs = [input('reader-input', reader.sagaFqn(), [:]),
+                      input('recovering-input', recovering.sagaFqn(), [:])]
+
+        when:
+        def generated = ScenarioGenerator.generate([recovering, reader], inputs, config(
+                includeSingles: false, maxSagaSetSize: 2,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED))
+
+        then:
+        generated.workloadPlans().size() == 2
+        generated.workloadPlans().every { plan ->
+            plan.conflictEvidence().any { it.warnings().contains('recovery-mediated selection edge') }
+        }
+        generated.workloadPlans().collect { it.forwardSchedule()*.stepId() }.toSet() == [
+                ['dummyapp.Recovering::prepare', 'dummyapp.Recovering::checkpoint', 'dummyapp.Reader::read'],
+                ['dummyapp.Reader::read', 'dummyapp.Recovering::prepare', 'dummyapp.Recovering::checkpoint']
+        ] as Set
+    }
+
+    def 'all recovery conflict steps anchor compression while workload evidence stays minimal'() {
+        given:
+        def recovering = saga('dummyapp.Recovering',
+                recoveryStep('dummyapp.Recovering', 'first', 0, 'Producer', 'Order', 'shared'),
+                recoveryStep('dummyapp.Recovering', 'second', 1, 'Producer', 'Order', 'shared'))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'first', 0, 'Order', AccessMode.READ, 'shared'),
+                aggregateStep('dummyapp.Reader', 'second', 1, 'Order', AccessMode.READ, 'shared'))
+        def inputs = [input('reader-input', reader.sagaFqn(), [:]),
+                      input('recovering-input', recovering.sagaFqn(), [:])]
+        def generationConfig = config(includeSingles: false, maxSagaSetSize: 2,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED)
+        def graph = ConflictGraphBuilder.buildSelectionGraph([recovering, reader], [], generationConfig)
+
+        when:
+        def evidence = InputTupleSelection.selectedCandidates(
+                [recovering.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def anchors = InputTupleSelection.selectedAnchorCandidates(
+                [recovering.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def generated = ScenarioGenerator.generate([recovering, reader], inputs, generationConfig)
+
+        then:
+        evidence.size() == 1
+        anchors.size() == 4
+        generated.workloadPlans().size() == 6
+        generated.workloadPlans().every { it.conflictEvidence().size() == 1 }
+    }
+
+    def 'all event-mediated participant steps anchor compression'() {
+        given:
+        def producer = saga('dummyapp.Producer',
+                aggregateStep('dummyapp.Producer', 'emit', 0, 'Producer', AccessMode.WRITE, 'producer'))
+        def consumer = saga('dummyapp.EventConsumer',
+                aggregateStep('dummyapp.EventConsumer', 'first', 0, 'Order', AccessMode.WRITE, 'shared'),
+                aggregateStep('dummyapp.EventConsumer', 'second', 1, 'Order', AccessMode.WRITE, 'shared'))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'first', 0, 'Order', AccessMode.READ, 'shared'),
+                aggregateStep('dummyapp.Reader', 'second', 1, 'Order', AccessMode.READ, 'shared'))
+        def inputs = [input('producer-input', producer.sagaFqn(), [:]),
+                      input('reader-input', reader.sagaFqn(), [:])]
+        def generationConfig = config(includeSingles: false, maxSagaSetSize: 2,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED)
+        def graph = ConflictGraphBuilder.buildSelectionGraph(
+                [producer, consumer, reader], [eventRoute(producer, consumer)], generationConfig)
+
+        when:
+        def evidence = InputTupleSelection.selectedCandidates(
+                [producer.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def anchors = InputTupleSelection.selectedAnchorCandidates(
+                [producer.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def generated = ScenarioGenerator.generate([producer, consumer, reader], inputs,
+                [eventRoute(producer, consumer)], generationConfig)
+
+        then:
+        evidence.size() == 1
+        anchors.size() == 2
+        generated.workloadPlans().findAll { !it.eventConsequences() }.size() == 3
+        generated.workloadPlans().findAll { !it.eventConsequences() }.collect {
+            it.forwardSchedule()*.stepId()
+        }.toSet().size() == 3
+    }
+
+    def 'indirect anchors remain active when direct evidence already connects the pair'() {
+        given:
+        def mixed = saga('dummyapp.Mixed',
+                aggregateStep('dummyapp.Mixed', 'direct', 0, 'Order', AccessMode.WRITE, 'order'),
+                recoveryStep('dummyapp.Mixed', 'recovering', 1, 'Producer', 'Product', 'product'))
+        def reader = saga('dummyapp.Reader',
+                aggregateStep('dummyapp.Reader', 'direct', 0, 'Order', AccessMode.READ, 'order'),
+                aggregateStep('dummyapp.Reader', 'recoveryTarget', 1, 'Product', AccessMode.READ, 'product'))
+        def inputs = [input('mixed-input', mixed.sagaFqn(), [:]),
+                      input('reader-input', reader.sagaFqn(), [:])]
+        def generationConfig = config(includeSingles: false, maxSagaSetSize: 2,
+                scheduleStrategy: ScheduleStrategy.SEGMENT_COMPRESSED)
+        def graph = ConflictGraphBuilder.buildSelectionGraph([mixed, reader], [], generationConfig)
+
+        when:
+        def evidence = InputTupleSelection.selectedCandidates(
+                [mixed.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def anchors = InputTupleSelection.selectedAnchorCandidates(
+                [mixed.sagaFqn(), reader.sagaFqn()], inputs, graph.conflictCandidates(), [],
+                InputTupleSelection.Mode.WITH_TYPE_ONLY_FALLBACK)
+        def generated = ScenarioGenerator.generate([mixed, reader], inputs, generationConfig)
+
+        then:
+        evidence*.origin().unique() == [ConflictGraphBuilder.ConflictOrigin.FORWARD]
+        anchors*.origin().toSet() == [ConflictGraphBuilder.ConflictOrigin.FORWARD,
+                                     ConflictGraphBuilder.ConflictOrigin.RECOVERY] as Set
+        generated.workloadPlans().size() == 6
     }
 
     def 'count only mode does not materialize scenario plans but keeps rejected inputs'() {
@@ -738,6 +956,47 @@ class ScenarioGeneratorSpec extends Specification {
                         accessMode,
                         [])],
                 [])
+    }
+
+    private static StepDefinition aggregateStep(String sagaFqn,
+                                                String stepName,
+                                                int orderIndex,
+                                                String aggregateName,
+                                                AccessMode accessMode,
+                                                String keyText,
+                                                FootprintConfidence confidence = FootprintConfidence.EXACT) {
+        new StepDefinition(
+                "${sagaFqn}::${stepName}", "${sagaFqn}::${stepName}", stepName, orderIndex, [],
+                [new StepFootprint(new AggregateKey("dummyapp.${aggregateName}", aggregateName,
+                        keyText, confidence), accessMode, [])], [])
+    }
+
+    private static StepDefinition recoveryStep(String sagaFqn,
+                                               String stepName,
+                                               int orderIndex,
+                                               String forwardAggregate,
+                                               String recoveryAggregate,
+                                               String recoveryKey) {
+        new StepDefinition(
+                "${sagaFqn}::${stepName}", "${sagaFqn}::${stepName}", stepName, orderIndex, [],
+                [new StepFootprint(new AggregateKey("dummyapp.${forwardAggregate}", forwardAggregate,
+                        'producer', FootprintConfidence.EXACT), AccessMode.READ, [])],
+                [new StepFootprint(new AggregateKey("dummyapp.${recoveryAggregate}", recoveryAggregate,
+                        recoveryKey, FootprintConfidence.EXACT), AccessMode.WRITE, [])],
+                true, true, true, CompensationEvidenceClass.EXPLICIT_COMPENSATION,
+                [], [])
+    }
+
+    private static EventConsequenceDefinition eventRoute(SagaDefinition producer, SagaDefinition consumer) {
+        def trigger = producer.steps().first()
+        def eventType = 'dummyapp.Event'
+        def site = new EventEmissionSite(
+                ScenarioIdGenerator.eventEmissionSiteId('dummyapp.Service', 'emit()', 0, eventType),
+                'dummyapp.Service', 'emit()', 0, eventType, [])
+        new EventConsequenceDefinition(producer.sagaFqn(), trigger.stepKey(), site,
+                'dummyapp.EventHandling', 'handle', 'dummyapp.EventHandler', 'dummyapp.EventProcessing',
+                'process', 'dummyapp.Facade', 'invoke', consumer.sagaFqn(),
+                EventConsequenceDefinition.UNIQUE_MATCHING_SUBSCRIBER, [])
     }
 
     private static InputVariant input(String deterministicId, String sagaFqn, String keyValue) {

@@ -15,7 +15,10 @@ public record SourceSetupPlanBinding(
         Map<String, List<String>> targetOccurrencesByInputVariantId,
         String frontierOccurrenceId,
         Map<String, Integer> targetOrderByInputVariantId,
-        Map<String, Integer> featureActionOrderByOccurrenceId) {
+        Map<String, Integer> featureActionOrderByOccurrenceId,
+        Map<String, String> sourceFeatureByInputVariantId,
+        Set<String> featurePreparationInputVariantIds,
+        Map<String, Integer> sourceFeatureTargetOrderByInputVariantId) {
 
     public SourceSetupPlanBinding {
         inputVariantIds = inputVariantIds == null ? List.of() : inputVariantIds.stream()
@@ -41,6 +44,34 @@ public record SourceSetupPlanBinding(
                 ? Map.of() : Map.copyOf(targetOrderByInputVariantId);
         featureActionOrderByOccurrenceId = featureActionOrderByOccurrenceId == null
                 ? Map.of() : Map.copyOf(featureActionOrderByOccurrenceId);
+        sourceFeatureByInputVariantId = sourceFeatureByInputVariantId == null
+                ? Map.of() : Map.copyOf(sourceFeatureByInputVariantId);
+        featurePreparationInputVariantIds = featurePreparationInputVariantIds == null
+                ? Set.of() : Set.copyOf(featurePreparationInputVariantIds);
+        sourceFeatureTargetOrderByInputVariantId = sourceFeatureTargetOrderByInputVariantId == null
+                ? Map.of() : Map.copyOf(sourceFeatureTargetOrderByInputVariantId);
+    }
+
+    public SourceSetupPlanBinding(List<String> inputVariantIds, SetupPlan setupPlan,
+                                  String sourceClassFqn, String featureMethodName,
+                                  Map<String, List<String>> targetOccurrencesByInputVariantId,
+                                  String frontierOccurrenceId, Map<String, Integer> targetOrderByInputVariantId,
+                                  Map<String, Integer> featureActionOrderByOccurrenceId) {
+        this(inputVariantIds, setupPlan, sourceClassFqn, featureMethodName, targetOccurrencesByInputVariantId,
+                frontierOccurrenceId, targetOrderByInputVariantId, featureActionOrderByOccurrenceId,
+                Map.of(), Set.of(), Map.of());
+    }
+
+    public SourceSetupPlanBinding(List<String> inputVariantIds, SetupPlan setupPlan,
+                                  String sourceClassFqn, String featureMethodName,
+                                  Map<String, List<String>> targetOccurrencesByInputVariantId,
+                                  String frontierOccurrenceId, Map<String, Integer> targetOrderByInputVariantId,
+                                  Map<String, Integer> featureActionOrderByOccurrenceId,
+                                  Map<String, String> sourceFeatureByInputVariantId,
+                                  Set<String> featurePreparationInputVariantIds) {
+        this(inputVariantIds, setupPlan, sourceClassFqn, featureMethodName, targetOccurrencesByInputVariantId,
+                frontierOccurrenceId, targetOrderByInputVariantId, featureActionOrderByOccurrenceId,
+                sourceFeatureByInputVariantId, featurePreparationInputVariantIds, Map.of());
     }
 
     public SourceSetupPlanBinding(List<String> inputVariantIds, SetupPlan setupPlan) {
@@ -64,6 +95,20 @@ public record SourceSetupPlanBinding(
     }
 
     public boolean matchesSelectedFrontier(Set<String> selectedInputIds) {
+        // A tuple from one observed feature must preserve its preparation. Inputs
+        // deliberately composed from distinct features may still share the same
+        // coherent fixture; that is a new workload, not replay of either feature.
+        int earliestSourceOrder = selectedInputIds == null ? 0 : selectedInputIds.stream()
+                .mapToInt(id -> sourceFeatureTargetOrderByInputVariantId.getOrDefault(id, 0))
+                .min().orElse(0);
+        if (selectedInputIds != null && !selectedInputIds.isEmpty()
+                && sourceFeatureByInputVariantId.keySet().containsAll(selectedInputIds)
+                && selectedInputIds.stream().map(sourceFeatureByInputVariantId::get).distinct().count() == 1
+                && selectedInputIds.stream().filter(id -> sourceFeatureTargetOrderByInputVariantId.getOrDefault(id, 0)
+                        == earliestSourceOrder)
+                .anyMatch(featurePreparationInputVariantIds::contains)) {
+            return false;
+        }
         if (!featureDerived()) return true;
         if (frontierOccurrenceId == null || selectedInputIds == null || selectedInputIds.isEmpty()
                 || !targetOrderByInputVariantId.keySet().containsAll(selectedInputIds)) {

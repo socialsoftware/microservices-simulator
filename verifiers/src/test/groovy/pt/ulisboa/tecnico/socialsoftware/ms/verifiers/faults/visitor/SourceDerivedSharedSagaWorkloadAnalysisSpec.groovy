@@ -253,7 +253,7 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
                  'updateQuizStep', DispatchPhase.FORWARD, 'UNRESOLVED_COMMAND_DISPATCH']
         ]
 
-        and: 'the exact straight-line setup is persisted once in source order, including void effects'
+        and: 'the exact straight-line fixture setup is persisted once in source order, including void effects'
         def targetInputIdsBySaga = [
                 (REMOVE): adapted.inputVariants().findAll { it.sagaFqn() == REMOVE && it.sourceClassFqn() == TARGET_TEST }*.deterministicId as Set,
                 (ADD): adapted.inputVariants().findAll { it.sagaFqn() == ADD && it.sourceClassFqn() == TARGET_TEST }*.deterministicId as Set
@@ -262,8 +262,11 @@ class SourceDerivedSharedSagaWorkloadAnalysisSpec extends VisitorTestSupport {
             def ids = binding.inputVariantIds() as Set
             ids.any { it in targetInputIdsBySaga[REMOVE] } && ids.any { it in targetInputIdsBySaga[ADD] }
         }
-        assert targetSetupBindings.size() == 1
-        def setupBinding = targetSetupBindings.first()
+        // Each observed feature keeps its own preparation alongside the shared fixture plan.
+        assert targetSetupBindings.count { !it.featureDerived() } == 1
+        assert targetSetupBindings.count { it.featureDerived() } == 4
+        assert targetSetupBindings.findAll { it.featureDerived() }*.sourceClassFqn().toSet() == [TARGET_TEST] as Set
+        def setupBinding = targetSetupBindings.find { !it.featureDerived() }
         assert setupBinding != null: adapted.diagnostics().findAll { it.contains('source setup') }
         def setup = setupBinding.setupPlan()
         assert setup.actions().size() == 12: setup.actions().collect {

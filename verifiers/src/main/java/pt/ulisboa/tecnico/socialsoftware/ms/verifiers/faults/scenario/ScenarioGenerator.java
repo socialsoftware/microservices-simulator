@@ -90,7 +90,8 @@ public final class ScenarioGenerator {
                     List.copyOf(warnings));
         }
 
-        ConflictGraphBuilder.Result conflictGraph = ConflictGraphBuilder.build(normalizedSagas, effectiveConfig);
+        ConflictGraphBuilder.Result conflictGraph = ConflictGraphBuilder.buildSelectionGraph(
+                normalizedSagas, eventConsequenceDefinitions, effectiveConfig);
         mergeCounts(counts, conflictGraph.counts());
         warnings.addAll(conflictGraph.warnings());
 
@@ -229,11 +230,10 @@ public final class ScenarioGenerator {
                 }
 
                 List<SagaScheduleInput> scheduleInputs = buildScheduleInputs(sagaSet, tuple.inputs(), sagaByFqn);
-                List<ConflictCandidate> scheduleCandidates = conflictGraph.conflictCandidates().stream()
-                        .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn())
-                                && sagaSet.contains(candidate.rightSagaFqn()))
-                        .toList();
                 List<ConflictCandidate> selectedCandidates = InputTupleSelection.selectedCandidates(
+                        sagaSet, tuple.inputs(), conflictGraph.conflictCandidates(), aggregateKeyInputEvidence,
+                        selectionMode);
+                List<ConflictCandidate> scheduleCandidates = InputTupleSelection.selectedAnchorCandidates(
                         sagaSet, tuple.inputs(), conflictGraph.conflictCandidates(), aggregateKeyInputEvidence,
                         selectionMode);
                 ScheduleEnumerator.Result scheduleResult = ScheduleEnumerator.enumerate(
@@ -307,10 +307,10 @@ public final class ScenarioGenerator {
                 .filter(binding -> binding.matchesSelectedFrontier(inputIds))
                 .filter(binding -> !binding.replaysSelectedTarget(inputIds))
                 .toList();
-        List<SourceSetupPlanBinding> setupOnly = complete.stream()
-                .filter(binding -> !binding.featureDerived())
+        List<SourceSetupPlanBinding> scoped = complete.stream()
+                .filter(SourceSetupPlanBinding::featureDerived)
                 .toList();
-        List<SourceSetupPlanBinding> selected = setupOnly.isEmpty() ? complete : setupOnly;
+        List<SourceSetupPlanBinding> selected = scoped.isEmpty() ? complete : scoped;
         return selected.stream()
                 .map(binding -> projectSetup(binding.setupPlan(), inputIds))
                 .distinct()

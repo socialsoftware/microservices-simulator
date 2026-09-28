@@ -150,6 +150,29 @@ public final class ScenarioIdGenerator {
         });
     }
 
+    public static String selectionConflictEvidenceId(String leftStepId,
+                                                     String rightStepId,
+                                                     AggregateKey leftAggregateKey,
+                                                     AggregateKey rightAggregateKey,
+                                                     AccessMode leftAccessMode,
+                                                     AccessMode rightAccessMode,
+                                                     ConflictKind kind,
+                                                     String origin,
+                                                     String originIdentity) {
+        return hash(digest -> {
+            updateString(digest, "selection-conflict-evidence");
+            updateString(digest, normalize(leftStepId));
+            updateString(digest, normalize(rightStepId));
+            updateAggregateKey(digest, leftAggregateKey);
+            updateAggregateKey(digest, rightAggregateKey);
+            updateString(digest, leftAccessMode == null ? null : leftAccessMode.name());
+            updateString(digest, rightAccessMode == null ? null : rightAccessMode.name());
+            updateString(digest, kind == null ? null : kind.name());
+            updateString(digest, normalize(origin));
+            updateString(digest, normalize(originIdentity));
+        });
+    }
+
     public static String workloadPlanId(WorkloadPlan workloadPlan) {
         WorkloadPlan plan = Objects.requireNonNull(workloadPlan, "workloadPlan");
         return hash(digest -> {

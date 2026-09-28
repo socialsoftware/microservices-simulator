@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AccessMode;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.AggregateKey;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ConflictKind;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.FootprintConfidence;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.StepDefinition;
@@ -95,6 +96,10 @@ public final class ConflictGraphBuilder {
                                             rightStepId,
                                             kind,
                                             matchResult.fallbackUsed(),
+                                            ConflictOrigin.FORWARD,
+                                            true,
+                                            true,
+                                            null,
                                             List.copyOf(candidateWarnings));
                                     candidates.put(conflictId, candidate);
                                     adjacency.computeIfAbsent(leftSaga.sagaFqn(), ignored -> new LinkedHashSet<>()).add(rightSaga.sagaFqn());
@@ -141,6 +146,233 @@ public final class ConflictGraphBuilder {
                 .toList();
 
         return new Result(Collections.unmodifiableMap(immutableAdjacency), List.copyOf(orderedCandidates), Collections.unmodifiableMap(counts), List.copyOf(warnings));
+    }
+
+    /**
+     * Builds the graph used to select and schedule workload participants.  The
+     * ordinary {@link #build(List, ScenarioGeneratorConfig)} graph remains the
+     * forward-only projection used by direct-interaction artifacts.
+     */
+    public static Result buildSelectionGraph(List<SagaDefinition> sagaDefinitions,
+                                             List<EventConsequenceDefinition> eventDefinitions,
+                                             ScenarioGeneratorConfig config) {
+        ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
+        List<SagaDefinition> safeSagas = sagaDefinitions == null ? List.of() : sagaDefinitions.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(SagaDefinition::sagaFqn, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        Map<String, SagaDefinition> sagaByFqn = new LinkedHashMap<>();
+        safeSagas.forEach(saga -> sagaByFqn.putIfAbsent(saga.sagaFqn(), saga));
+
+        Result forward = build(safeSagas, effectiveConfig);
+        LinkedHashMap<String, LinkedHashSet<String>> adjacency = mutableAdjacency(forward.adjacency());
+        LinkedHashMap<String, ConflictCandidate> candidates = new LinkedHashMap<>();
+        forward.conflictCandidates().forEach(candidate -> candidates.put(candidate.deterministicId(), candidate));
+        LinkedHashSet<String> warnings = new LinkedHashSet<>(forward.warnings());
+        LinkedHashMap<String, Integer> counts = new LinkedHashMap<>(forward.counts());
+        int recoveryCandidates = 0;
+        int eventCandidates = 0;
+
+        for (int leftSagaIndex = 0; leftSagaIndex < safeSagas.size(); leftSagaIndex++) {
+            SagaDefinition leftSaga = safeSagas.get(leftSagaIndex);
+            for (int rightSagaIndex = leftSagaIndex + 1; rightSagaIndex < safeSagas.size(); rightSagaIndex++) {
+                SagaDefinition rightSaga = safeSagas.get(rightSagaIndex);
+                for (StepDefinition leftStep : sortedSteps(leftSaga)) {
+                    for (StepDefinition rightStep : sortedSteps(rightSaga)) {
+                        recoveryCandidates += addRecoveryCandidates(candidates, adjacency, warnings,
+                                leftSaga, leftStep, rightSaga, rightStep, effectiveConfig);
+                    }
+                }
+            }
+        }
+
+        List<EventConsequenceDefinition> events = eventDefinitions == null ? List.of() : eventDefinitions.stream()
+                .filter(Objects::nonNull)
+                .sorted(Comparator.comparing(EventConsequenceDefinition::triggerSagaFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::triggerStepKey, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(definition -> definition.emissionSite() == null ? null
+                                : definition.emissionSite().deterministicId(), Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(EventConsequenceDefinition::downstreamSagaFqn, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        for (EventConsequenceDefinition event : events) {
+            SagaDefinition triggerSaga = sagaByFqn.get(event.triggerSagaFqn());
+            SagaDefinition downstreamSaga = sagaByFqn.get(event.downstreamSagaFqn());
+            StepDefinition triggerStep = findTriggerStep(triggerSaga, event.triggerStepKey());
+            if (triggerSaga == null || downstreamSaga == null || triggerStep == null || event.emissionSite() == null) {
+                continue;
+            }
+            for (SagaDefinition selectedSaga : safeSagas) {
+                if (Objects.equals(selectedSaga.sagaFqn(), triggerSaga.sagaFqn())
+                        || Objects.equals(selectedSaga.sagaFqn(), downstreamSaga.sagaFqn())) {
+                    continue;
+                }
+                for (StepDefinition downstreamStep : sortedSteps(downstreamSaga)) {
+                    for (StepDefinition selectedStep : sortedSteps(selectedSaga)) {
+                        for (StepFootprint downstreamFootprint : downstreamStep.footprints()) {
+                            for (StepFootprint selectedFootprint : allAccessFootprints(selectedStep)) {
+                                MatchResult match = match(downstreamFootprint, selectedFootprint,
+                                        effectiveConfig.allowTypeOnlyFallback());
+                                if (!match.matched() || readRead(downstreamFootprint, selectedFootprint)) {
+                                    continue;
+                                }
+                                List<String> candidateWarnings = new ArrayList<>(match.warnings());
+                                candidateWarnings.add("event-mediated selection edge; receiver identity is not attributed to the producer input");
+                                candidateWarnings.addAll(event.diagnostics());
+                                candidateWarnings.addAll(triggerStep.warnings());
+                                candidateWarnings.addAll(downstreamStep.warnings());
+                                candidateWarnings.addAll(selectedStep.warnings());
+                                candidateWarnings.addAll(downstreamFootprint.warnings());
+                                candidateWarnings.addAll(selectedFootprint.warnings());
+                                String originIdentity = String.join("\u0000",
+                                        String.valueOf(event.emissionSite().deterministicId()),
+                                        String.valueOf(event.eventHandlingClassFqn()),
+                                        String.valueOf(event.eventHandlingMethodName()),
+                                        String.valueOf(event.downstreamSagaFqn()));
+                                if (addCandidate(candidates, adjacency, triggerSaga.sagaFqn(), triggerStep,
+                                        downstreamFootprint, false, selectedSaga.sagaFqn(), selectedStep,
+                                        selectedFootprint, true, match, ConflictOrigin.EVENT_CONSEQUENCE,
+                                        downstreamSaga.sagaFqn(), originIdentity, candidateWarnings)) {
+                                    eventCandidates++;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        counts.put("selectionRecoveryConflictEdgesEmitted", recoveryCandidates);
+        counts.put("selectionEventConflictEdgesEmitted", eventCandidates);
+        counts.put("selectionConflictEdgesEmitted", candidates.size());
+        return result(adjacency, candidates, counts, warnings);
+    }
+
+    private static int addRecoveryCandidates(LinkedHashMap<String, ConflictCandidate> candidates,
+                                             LinkedHashMap<String, LinkedHashSet<String>> adjacency,
+                                             LinkedHashSet<String> warnings,
+                                             SagaDefinition leftSaga,
+                                             StepDefinition leftStep,
+                                             SagaDefinition rightSaga,
+                                             StepDefinition rightStep,
+                                             ScenarioGeneratorConfig config) {
+        int emitted = 0;
+        for (AccessSurface left : accessSurfaces(leftStep)) {
+            for (AccessSurface right : accessSurfaces(rightStep)) {
+                if (!left.recovery() && !right.recovery()) {
+                    continue;
+                }
+                MatchResult match = match(left.footprint(), right.footprint(), config.allowTypeOnlyFallback());
+                if (!match.matched() || readRead(left.footprint(), right.footprint())) {
+                    continue;
+                }
+                List<String> candidateWarnings = new ArrayList<>(match.warnings());
+                candidateWarnings.add("recovery-mediated selection edge");
+                candidateWarnings.addAll(leftStep.analysisDiagnostics());
+                candidateWarnings.addAll(rightStep.analysisDiagnostics());
+                candidateWarnings.addAll(leftStep.warnings());
+                candidateWarnings.addAll(rightStep.warnings());
+                candidateWarnings.addAll(left.footprint().warnings());
+                candidateWarnings.addAll(right.footprint().warnings());
+                if (addCandidate(candidates, adjacency, leftSaga.sagaFqn(), leftStep, left.footprint(), true,
+                        rightSaga.sagaFqn(), rightStep, right.footprint(), true, match,
+                        ConflictOrigin.RECOVERY, null,
+                        (left.recovery() ? "recovery" : "forward") + ":" + (right.recovery() ? "recovery" : "forward"),
+                        candidateWarnings)) {
+                    emitted++;
+                }
+            }
+        }
+        return emitted;
+    }
+
+    private static boolean addCandidate(LinkedHashMap<String, ConflictCandidate> candidates,
+                                        LinkedHashMap<String, LinkedHashSet<String>> adjacency,
+                                        String firstSagaFqn,
+                                        StepDefinition firstStep,
+                                        StepFootprint firstFootprint,
+                                        boolean firstInputBound,
+                                        String secondSagaFqn,
+                                        StepDefinition secondStep,
+                                        StepFootprint secondFootprint,
+                                        boolean secondInputBound,
+                                        MatchResult match,
+                                        ConflictOrigin origin,
+                                        String excludedSagaFqn,
+                                        String originIdentity,
+                                        List<String> candidateWarnings) {
+        boolean alreadyOrdered = Comparator.nullsFirst(String::compareTo).compare(firstSagaFqn, secondSagaFqn) <= 0;
+        String leftSagaFqn = alreadyOrdered ? firstSagaFqn : secondSagaFqn;
+        String rightSagaFqn = alreadyOrdered ? secondSagaFqn : firstSagaFqn;
+        StepDefinition leftStep = alreadyOrdered ? firstStep : secondStep;
+        StepDefinition rightStep = alreadyOrdered ? secondStep : firstStep;
+        StepFootprint leftFootprint = alreadyOrdered ? firstFootprint : secondFootprint;
+        StepFootprint rightFootprint = alreadyOrdered ? secondFootprint : firstFootprint;
+        boolean leftInputBound = alreadyOrdered ? firstInputBound : secondInputBound;
+        boolean rightInputBound = alreadyOrdered ? secondInputBound : firstInputBound;
+        String leftStepId = ScenarioIdGenerator.stepDefinitionId(leftSagaFqn, leftStep);
+        String rightStepId = ScenarioIdGenerator.stepDefinitionId(rightSagaFqn, rightStep);
+        ConflictKind kind = match.kind(leftFootprint.accessMode(), rightFootprint.accessMode());
+        String id = ScenarioIdGenerator.selectionConflictEvidenceId(leftStepId, rightStepId,
+                leftFootprint.aggregateKey(), rightFootprint.aggregateKey(), leftFootprint.accessMode(),
+                rightFootprint.accessMode(), kind, origin.name(), originIdentity);
+        ConflictCandidate candidate = new ConflictCandidate(id, leftSagaFqn, rightSagaFqn,
+                leftStep, rightStep, leftFootprint, rightFootprint, leftStepId, rightStepId,
+                kind, match.fallbackUsed(), origin, leftInputBound, rightInputBound,
+                excludedSagaFqn, List.copyOf(candidateWarnings));
+        if (candidates.putIfAbsent(id, candidate) != null) {
+            return false;
+        }
+        adjacency.computeIfAbsent(leftSagaFqn, ignored -> new LinkedHashSet<>()).add(rightSagaFqn);
+        adjacency.computeIfAbsent(rightSagaFqn, ignored -> new LinkedHashSet<>()).add(leftSagaFqn);
+        return true;
+    }
+
+    private static List<AccessSurface> accessSurfaces(StepDefinition step) {
+        List<AccessSurface> result = new ArrayList<>();
+        step.footprints().forEach(footprint -> result.add(new AccessSurface(footprint, false)));
+        step.compensationFootprints().forEach(footprint -> result.add(new AccessSurface(footprint, true)));
+        return List.copyOf(result);
+    }
+
+    private static List<StepFootprint> allAccessFootprints(StepDefinition step) {
+        return accessSurfaces(step).stream().map(AccessSurface::footprint).toList();
+    }
+
+    private static boolean readRead(StepFootprint left, StepFootprint right) {
+        return left.accessMode() == AccessMode.READ && right.accessMode() == AccessMode.READ;
+    }
+
+    private static StepDefinition findTriggerStep(SagaDefinition saga, String triggerStepKey) {
+        if (saga == null) return null;
+        return sortedSteps(saga).stream()
+                .filter(step -> Objects.equals(step.stepKey(), triggerStepKey)
+                        || Objects.equals(ScenarioIdGenerator.stepDefinitionId(saga.sagaFqn(), step), triggerStepKey)
+                        || Objects.equals(triggerStepKey, saga.sagaFqn() + "::" + step.name()))
+                .findFirst().orElse(null);
+    }
+
+    private static LinkedHashMap<String, LinkedHashSet<String>> mutableAdjacency(Map<String, Set<String>> source) {
+        LinkedHashMap<String, LinkedHashSet<String>> result = new LinkedHashMap<>();
+        source.forEach((key, value) -> result.put(key, new LinkedHashSet<>(value)));
+        return result;
+    }
+
+    private static Result result(LinkedHashMap<String, LinkedHashSet<String>> adjacency,
+                                 LinkedHashMap<String, ConflictCandidate> candidates,
+                                 LinkedHashMap<String, Integer> counts,
+                                 LinkedHashSet<String> warnings) {
+        LinkedHashMap<String, Set<String>> immutableAdjacency = new LinkedHashMap<>();
+        adjacency.entrySet().stream().sorted(Map.Entry.comparingByKey())
+                .forEach(entry -> immutableAdjacency.put(entry.getKey(), Set.copyOf(entry.getValue())));
+        List<ConflictCandidate> orderedCandidates = candidates.values().stream()
+                .sorted(Comparator.comparing(ConflictCandidate::leftSagaFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(ConflictCandidate::rightSagaFqn, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(ConflictCandidate::leftStepId, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(ConflictCandidate::rightStepId, Comparator.nullsFirst(String::compareTo))
+                        .thenComparing(ConflictCandidate::deterministicId, Comparator.nullsFirst(String::compareTo)))
+                .toList();
+        return new Result(Collections.unmodifiableMap(immutableAdjacency), List.copyOf(orderedCandidates),
+                Collections.unmodifiableMap(counts), List.copyOf(warnings));
     }
 
     private static List<StepDefinition> sortedSteps(SagaDefinition sagaDefinition) {
@@ -284,7 +516,20 @@ public final class ConflictGraphBuilder {
             String rightStepId,
             ConflictKind kind,
             boolean fallbackUsed,
+            ConflictOrigin origin,
+            boolean leftInputBound,
+            boolean rightInputBound,
+            String excludedSagaFqn,
             List<String> warnings) {
+    }
+
+    public enum ConflictOrigin {
+        FORWARD,
+        RECOVERY,
+        EVENT_CONSEQUENCE
+    }
+
+    private record AccessSurface(StepFootprint footprint, boolean recovery) {
     }
 
     public record Result(

@@ -362,6 +362,58 @@ class InputTupleSelectionSpec extends Specification {
         ScenarioGenerator.setupPlanFor(tuple(later), [early, exact]) == exactPlan
     }
 
+    def 'exact feature preparation wins over shared arguments and ambiguous prefixes stay blocked'() {
+        given:
+        def input = readyInput('A', 'prepared-target')
+        def sharedPlan = setupPlan('shared-producer')
+        def exactPlan = setupPlan('feature-effect')
+        def shared = new SourceSetupPlanBinding([input.deterministicId()], sharedPlan)
+        def target = [(input.deterministicId()): ['target']]
+        def order = [(input.deterministicId()): 2]
+        def exact = featureBinding([input.deterministicId()], exactPlan, target, 'target', order, ['target': 2])
+        def conflicting = featureBinding([input.deterministicId()], setupPlan('different-effect'),
+                target, 'target', order, ['target': 2])
+
+        expect:
+        ScenarioGenerator.setupPlanFor(tuple(input), [shared, exact]) == exactPlan
+        ScenarioGenerator.setupPlanFor(tuple(input), [exact, shared]) == exactPlan
+        ScenarioGenerator.setupPlanFor(tuple(input), [shared, exact, conflicting]) == null
+    }
+
+    def 'shared fixture distinguishes observed feature replay from independent feature composition'() {
+        given:
+        def left = readyInput('A', 'left-source')
+        def right = readyInput('B', 'right-source')
+        def commonPlan = setupPlan('common-fixture')
+        def contexts = [(left.deterministicId()): 'Spec#first', (right.deterministicId()): 'Spec#second']
+        def common = new SourceSetupPlanBinding([left.deterministicId(), right.deterministicId()], commonPlan,
+                null, null, [:], null, [:], [:], contexts, [left.deterministicId()] as Set)
+        def sameFeature = new SourceSetupPlanBinding([left.deterministicId(), right.deterministicId()], commonPlan,
+                null, null, [:], null, [:], [:], contexts + [(right.deterministicId()): 'Spec#first'],
+                [left.deterministicId()] as Set)
+
+        expect:
+        ScenarioGenerator.setupPlanFor(tuple(left), [common]) == null
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [common]) == commonPlan
+        ScenarioGenerator.setupPlanFor(tuple(left, right), [sameFeature]) == null
+    }
+
+    def 'a selected earlier operation stays measured instead of becoming fixture preparation'() {
+        given:
+        def writer = readyInput('A', 'writer')
+        def query = readyInput('B', 'query')
+        def commonPlan = setupPlan('common-fixture')
+        def common = new SourceSetupPlanBinding([writer.deterministicId(), query.deterministicId()], commonPlan,
+                null, null, [:], null, [:], [:],
+                [(writer.deterministicId()): 'Spec#one', (query.deterministicId()): 'Spec#one'],
+                [query.deterministicId()] as Set,
+                [(writer.deterministicId()): 0, (query.deterministicId()): 1])
+
+        expect:
+        ScenarioGenerator.setupPlanFor(tuple(query), [common]) == null
+        ScenarioGenerator.setupPlanFor(tuple(writer, query), [common]) == commonPlan
+    }
+
     def 'feature setup rejects target replay collapsed occurrences and omitted inter-target effects'() {
         given:
         def left = readyInput('A', 'left')

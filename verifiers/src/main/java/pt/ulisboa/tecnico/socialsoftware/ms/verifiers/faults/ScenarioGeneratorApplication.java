@@ -198,6 +198,10 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         logger.info("STARTING FAULT ANALYSIS MODULE");
+        if (countFaultScenarios && (!scenarioCatalogEnabled || !"COUNT_ONLY".equalsIgnoreCase(scenarioCatalogWriteMode))) {
+            throw new IllegalArgumentException("count-fault-scenarios requires enabled=true and catalog-write-mode=COUNT_ONLY");
+        }
+
 
         if (dynamicEnrichmentConfig.enabled() && !scenarioCatalogEnabled) {
             throw new IllegalStateException("Dynamic enrichment requires scenario catalog export to be enabled (verifiers.scenario-catalog.enabled=true)");
@@ -458,6 +462,13 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
         return exportResult;
     }
 
+    @Value("${verifiers.scenario-catalog.count-fault-scenarios:false}")
+    private boolean countFaultScenarios;
+    @Value("${verifiers.scenario-catalog.count-max-states:2000000}")
+    private long countMaxStates = 2_000_000;
+    @Value("${verifiers.scenario-catalog.count-max-input-tuples:100000}")
+    private long countMaxInputTuples = 100_000;
+
     private void writeCountOnlyAnalysis(ScenarioModelAdapterResult adapterResult,
                                         ScenarioGeneratorConfig config,
                                         OffsetDateTime generatedAt) throws IOException {
@@ -473,6 +484,11 @@ public class ScenarioGeneratorApplication implements CommandLineRunner {
                 packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_INPUT_FACT_FILE),
                 packageDirectory.resolve(StaticAnalysisArtifactWriter.DEFAULT_INTERACTION_FACT_FILE),
                 generatedAt.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME));
+        if (countFaultScenarios) {
+            var counts = pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.FaultScenarioCountWriter.write(
+                    adapterResult, config, packageDirectory.resolve("fault-counts"), countMaxStates, countMaxInputTuples);
+            logger.info("Fault count-only totals: {}", counts.totals());
+        }
         logger.info("Count-only package wrote accounting, Saga, input, and direct-interaction facts under {}",
                 packageDirectory.toAbsolutePath().normalize());
     }

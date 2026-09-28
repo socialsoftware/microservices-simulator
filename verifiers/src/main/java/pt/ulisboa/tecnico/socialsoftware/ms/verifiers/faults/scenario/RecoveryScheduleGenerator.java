@@ -40,6 +40,13 @@ public final class RecoveryScheduleGenerator {
     private RecoveryScheduleGenerator() {
     }
 
+    /** Exact count only: does not construct representative or persisted scenarios. */
+    public static BigInteger count(WorkloadPlan workloadPlan, String assignedVector) {
+        WorkloadPlan plan = validateInputs(workloadPlan, assignedVector, RecoveryScheduleCap.defaultCap());
+        PreparedPlan prepared = prepare(plan, assignedVector);
+        return new ExactCounter(prepared).count(State.initial(prepared.recoveryQueues().size()));
+    }
+
     public static RecoveryScheduleGenerationResult generate(WorkloadPlan workloadPlan, String assignedVector) {
         return generate(workloadPlan, assignedVector, RecoveryScheduleCap.defaultCap());
     }

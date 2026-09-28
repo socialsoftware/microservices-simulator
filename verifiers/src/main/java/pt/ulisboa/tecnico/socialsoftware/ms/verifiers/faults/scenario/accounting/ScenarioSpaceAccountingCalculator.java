@@ -19,6 +19,7 @@ import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.TopContributor;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.accounting.ScenarioSpaceAccountingReport.TypeLevelCoverage;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.InputVariant;
+import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.EventConsequenceDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.ScenarioKind;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SagaDefinition;
 import pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.model.SetupPlan;
@@ -64,11 +65,24 @@ public final class ScenarioSpaceAccountingCalculator {
                                                    List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                    ScenarioGeneratorConfig config,
                                                    int catalogWritten) {
+        return calculate(targetApplication, sagaDefinitions, inputVariants, List.of(), sourceSetupPlanBindings,
+                aggregateKeyInputEvidence, config, catalogWritten);
+    }
+
+    public ScenarioSpaceAccountingReport calculate(String targetApplication,
+                                                   List<SagaDefinition> sagaDefinitions,
+                                                   List<InputVariant> inputVariants,
+                                                   List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                                   List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+                                                   List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                                   ScenarioGeneratorConfig config,
+                                                   int catalogWritten) {
         ScenarioGeneratorConfig effectiveConfig = config == null ? new ScenarioGeneratorConfig() : config;
         Map<String, SagaDefinition> sagaByFqn = indexSagas(sagaDefinitions);
         InputVariantNormalizer.NormalizationResult normalizedInputs = InputVariantNormalizer.normalize(inputVariants, effectiveConfig);
         Map<String, List<InputVariant>> inputsBySaga = acceptedInputsByKnownSaga(normalizedInputs.inputsBySaga(), sagaByFqn);
-        GraphViews graphViews = buildGraphViews(sagaByFqn.values().stream().toList(), effectiveConfig);
+        GraphViews graphViews = buildGraphViews(sagaByFqn.values().stream().toList(),
+                eventConsequenceDefinitions, effectiveConfig);
 
         List<CalculatedRow> calculatedRows = buildGroupedRows(sagaByFqn, inputsBySaga,
                 sourceSetupPlanBindings, aggregateKeyInputEvidence, effectiveConfig, graphViews);
@@ -140,16 +154,32 @@ public final class ScenarioSpaceAccountingCalculator {
                 ? graphViews.broad() : graphViews.strict();
         BigInteger selectedTupleCount = InputTupleSelection.count(sagaSet, inputsBySaga,
                 selectedGraph.conflictCandidates(), aggregateKeyInputEvidence, selectedMode);
-        BigInteger scheduleCount = scheduleCountPerTuple(sagaSet, sagaByFqn, config, graphViews);
-        BigInteger allShapeCount = allTupleCount.multiply(scheduleCount);
-        BigInteger selectedShapeCount = selectedTupleCount.multiply(scheduleCount);
+        List<InputVariant> representativeInputs = sagaSet.stream()
+                .map(sagaFqn -> inputsBySaga.getOrDefault(sagaFqn, List.of()).stream().findFirst().orElse(null))
+                .toList();
+        BigInteger allScheduleCount = scheduleCountForTuple(sagaSet, representativeInputs, sagaByFqn,
+                aggregateKeyInputEvidence, config, graphViews, InputTupleSelection.Mode.ALL);
+        BigInteger allShapeCount = allTupleCount.multiply(allScheduleCount);
+        SelectedScheduleSummary selectedScheduleSummary = selectedMode != InputTupleSelection.Mode.ALL
+                && config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED
+                ? selectedScheduleSummary(sagaSet, sagaByFqn, inputsBySaga, sourceSetupPlanBindings,
+                aggregateKeyInputEvidence, config, selectedGraph, graphViews, selectedMode)
+                : null;
+        BigInteger selectedShapeCount = selectedScheduleSummary == null
+                ? selectedTupleCount.multiply(allScheduleCount)
+                : selectedScheduleSummary.shapeCount();
+        BigInteger scheduleCount = selectedScheduleSummary == null
+                ? allScheduleCount
+                : selectedScheduleSummary.maximumScheduleCount();
         InteractionSummary strictSummary = interactionSummary(sagaSet, graphViews.strict());
         InteractionSummary broadSummary = interactionSummary(sagaSet, graphViews.broad());
         boolean selected = selectedTupleCount.signum() > 0;
         SetupShapeCounts setupShapeCounts = selectedMode == InputTupleSelection.Mode.ALL
                 ? null
-                : setupShapeCounts(sagaSet, inputsBySaga, sourceSetupPlanBindings,
-                aggregateKeyInputEvidence, selectedMode, selectedGraph, scheduleCount);
+                : selectedScheduleSummary == null
+                ? setupShapeCounts(sagaSet, inputsBySaga, sourceSetupPlanBindings,
+                aggregateKeyInputEvidence, selectedMode, selectedGraph, scheduleCount)
+                : selectedScheduleSummary.setupShapeCounts();
 
         GroupedSagaSetRow row = new GroupedSagaSetRow(
                 sagaSetKey(sagaSet),
@@ -198,6 +228,40 @@ public final class ScenarioSpaceAccountingCalculator {
             }
         });
         return new SetupShapeCounts(totals[0], totals[1], totals[2]);
+    }
+
+    private SelectedScheduleSummary selectedScheduleSummary(
+            List<String> sagaSet,
+            Map<String, SagaDefinition> sagaByFqn,
+            Map<String, List<InputVariant>> inputsBySaga,
+            List<SourceSetupPlanBinding> sourceSetupPlanBindings,
+            List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+            ScenarioGeneratorConfig config,
+            ConflictGraphBuilder.Result selectedGraph,
+            GraphViews graphViews,
+            InputTupleSelection.Mode selectedMode) {
+        BigInteger[] shapeCount = new BigInteger[]{BigInteger.ZERO};
+        BigInteger[] maximumScheduleCount = new BigInteger[]{BigInteger.ZERO};
+        BigInteger[] setupTotals = new BigInteger[]{BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO};
+        InputTupleJoiner.forEachSelected(
+                sagaSet, inputsBySaga, selectedGraph.conflictCandidates(), aggregateKeyInputEvidence,
+                selectedMode, tuple -> {
+                    BigInteger tupleScheduleCount = scheduleCountForTuple(
+                            sagaSet, tuple.inputs(), sagaByFqn, aggregateKeyInputEvidence,
+                            config, graphViews, selectedMode);
+                    shapeCount[0] = shapeCount[0].add(tupleScheduleCount);
+                    maximumScheduleCount[0] = maximumScheduleCount[0].max(tupleScheduleCount);
+                    SetupPlan setup = ScenarioGenerator.setupPlanFor(tuple, sourceSetupPlanBindings);
+                    if (!tupleMaterializable(tuple, setup)) {
+                        setupTotals[2] = setupTotals[2].add(tupleScheduleCount);
+                    } else if (setup != null) {
+                        setupTotals[0] = setupTotals[0].add(tupleScheduleCount);
+                    } else {
+                        setupTotals[1] = setupTotals[1].add(tupleScheduleCount);
+                    }
+                });
+        return new SelectedScheduleSummary(shapeCount[0], maximumScheduleCount[0],
+                new SetupShapeCounts(setupTotals[0], setupTotals[1], setupTotals[2]));
     }
 
     /** Uses the same setup validation and participant-argument readiness path as eager generation. */
@@ -356,12 +420,14 @@ public final class ScenarioSpaceAccountingCalculator {
         return serialized;
     }
 
-    private GraphViews buildGraphViews(List<SagaDefinition> sagaDefinitions, ScenarioGeneratorConfig config) {
+    private GraphViews buildGraphViews(List<SagaDefinition> sagaDefinitions,
+                                       List<EventConsequenceDefinition> eventConsequenceDefinitions,
+                                       ScenarioGeneratorConfig config) {
         ScenarioGeneratorConfig strictConfig = graphConfig(config, false);
         ScenarioGeneratorConfig broadConfig = graphConfig(config, true);
         return new GraphViews(
-                ConflictGraphBuilder.build(sagaDefinitions, strictConfig),
-                ConflictGraphBuilder.build(sagaDefinitions, broadConfig));
+                ConflictGraphBuilder.buildSelectionGraph(sagaDefinitions, eventConsequenceDefinitions, strictConfig),
+                ConflictGraphBuilder.buildSelectionGraph(sagaDefinitions, eventConsequenceDefinitions, broadConfig));
     }
 
     private ScenarioGeneratorConfig graphConfig(ScenarioGeneratorConfig config, boolean allowTypeOnlyFallback) {
@@ -390,10 +456,13 @@ public final class ScenarioSpaceAccountingCalculator {
                 InputTupleSelection.Mode.ALL);
     }
 
-    private BigInteger scheduleCountPerTuple(List<String> sagaSet,
-                                              Map<String, SagaDefinition> sagaByFqn,
-                                              ScenarioGeneratorConfig config,
-                                              GraphViews graphViews) {
+    private BigInteger scheduleCountForTuple(List<String> sagaSet,
+                                             List<InputVariant> inputs,
+                                             Map<String, SagaDefinition> sagaByFqn,
+                                             List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
+                                             ScenarioGeneratorConfig config,
+                                             GraphViews graphViews,
+                                             InputTupleSelection.Mode selectionMode) {
         List<SagaDefinition> sagas = sagaSet.stream()
                 .map(sagaByFqn::get)
                 .filter(Objects::nonNull)
@@ -403,10 +472,10 @@ public final class ScenarioSpaceAccountingCalculator {
             count = orderPreservingInterleavings(sagas.stream().map(saga -> saga.steps().size()).toList());
         } else if (config.scheduleStrategy() == ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED) {
             ConflictGraphBuilder.Result graph = config.allowTypeOnlyFallback() ? graphViews.broad() : graphViews.strict();
-            List<ConflictGraphBuilder.ConflictCandidate> selectedCandidates = graph.conflictCandidates().stream()
-                    .filter(candidate -> sagaSet.contains(candidate.leftSagaFqn()) && sagaSet.contains(candidate.rightSagaFqn()))
-                    .toList();
-            count = segmentCompressedCount(sagas, selectedCandidates);
+            List<ConflictGraphBuilder.ConflictCandidate> anchorCandidates =
+                    InputTupleSelection.selectedAnchorCandidates(sagaSet, inputs,
+                            graph.conflictCandidates(), aggregateKeyInputEvidence, selectionMode);
+            count = segmentCompressedCount(sagas, anchorCandidates);
         } else {
             count = BigInteger.ONE;
         }
@@ -552,6 +621,11 @@ public final class ScenarioSpaceAccountingCalculator {
         private static SetupShapeCounts empty() {
             return new SetupShapeCounts(BigInteger.ZERO, BigInteger.ZERO, BigInteger.ZERO);
         }
+    }
+
+    private record SelectedScheduleSummary(BigInteger shapeCount,
+                                           BigInteger maximumScheduleCount,
+                                           SetupShapeCounts setupShapeCounts) {
     }
 
     private record GraphViews(ConflictGraphBuilder.Result strict, ConflictGraphBuilder.Result broad) {

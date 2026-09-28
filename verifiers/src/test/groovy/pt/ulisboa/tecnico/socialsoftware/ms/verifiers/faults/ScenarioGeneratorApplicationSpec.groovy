@@ -220,6 +220,7 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
                 '--verifiers.scenario-catalog.enabled=true',
                 '--verifiers.scenario-catalog.generation-strategy=BRUTE_FORCE',
                 '--verifiers.scenario-catalog.catalog-write-mode=COUNT_ONLY',
+                "--verifiers.scenario-catalog.count-fault-scenarios=${countFaults}",
                 '--verifiers.scenario-catalog.max-saga-set-size=2',
                 '--verifiers.scenario-catalog.max-catalog-scenarios=1'
         )
@@ -240,8 +241,8 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         Files.exists(interactionPath)
         Files.exists(manifestPath)
         Files.list(runDirectory).collect { it.fileName.toString() }.sort() ==
-                ['accounting.json', 'copy-contracts.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl',
-                 'scenario-catalog-manifest.json']
+                (['accounting.json', 'copy-contracts.json', 'inputs.jsonl', 'interactions.jsonl', 'sagas.jsonl',
+                 'scenario-catalog-manifest.json'] + (countFaults ? ['fault-counts'] : [])).sort()
 
         and:
         def manifest = objectMapper.readTree(Files.readString(manifestPath))
@@ -258,8 +259,19 @@ class ScenarioGeneratorApplicationSpec extends pt.ulisboa.tecnico.socialsoftware
         !accounting.has('discovery')
         !accounting.toString().contains('faultScenarioCatalogSpace')
 
+        if (countFaults) {
+            def counts = objectMapper.readTree(runDirectory.resolve('fault-counts/fault-count-summary.json').toFile())
+            assert counts.path('totals').every { it.path('status').asText() == 'COMPLETE' }
+            assert counts.path('totals').any { it.path('faultScenarios').bigIntegerValue() > it.path('workloads').bigIntegerValue() }
+            assert !Files.exists(runDirectory.resolve('workloads.jsonl'))
+            assert !Files.exists(runDirectory.resolve('fault-scenarios.jsonl'))
+        }
+
         cleanup:
         context?.close()
+
+        where:
+        countFaults << [false, true]
     }
 
     def 'Groovy tracing ignores specifications outside src test groovy'() {

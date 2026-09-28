@@ -169,7 +169,8 @@ public final class StaticAnalysisArtifactWriter {
         // artifact is only a projection of that report.
         ScenarioSpaceAccountingReport accountingReport = new ScenarioSpaceAccountingCalculator().calculate(
                 targetApplication, sagaDefinitions, safeModel.inputVariants(),
-                safeModel.sourceSetupPlanBindings(), safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
+                safeModel.eventConsequenceDefinitions(), safeModel.sourceSetupPlanBindings(),
+                safeModel.aggregateKeyInputEvidence(), safeConfig, 0);
         Map<String, Object> account = accounting(targetApplication, safeConfig, sagaDefinitions,
                 accountingInputProjections, interactionFacts, safeModel.eventConsequenceDefinitions(),
                 safeModel.aggregateKeyInputEvidence(), accountingReport);
@@ -839,7 +840,7 @@ public final class StaticAnalysisArtifactWriter {
         root.put("sagas", sagaMetrics(sagas, inputs, interactionFacts));
         root.put("inputs", inputMetrics(inputs));
         root.put("interactions", interactionMetrics(interactionFacts, accountingReport, sagas, inputs,
-                aggregateKeyInputEvidence, config));
+                events, aggregateKeyInputEvidence, config));
         root.put("events", eventMetrics(events));
         root.put("workloads", workloadMetrics(accountingReport));
         return root;
@@ -932,6 +933,7 @@ public final class StaticAnalysisArtifactWriter {
                                                    ScenarioSpaceAccountingReport accountingReport,
                                                    List<SagaDefinition> sagas,
                                                    List<InputProjection> inputs,
+                                                   List<EventConsequenceDefinition> events,
                                                    List<SourceAggregateKeyInputEvidence> aggregateKeyInputEvidence,
                                                    ScenarioGeneratorConfig config) {
         LinkedHashMap<String, Object> result = new LinkedHashMap<>();
@@ -940,8 +942,10 @@ public final class StaticAnalysisArtifactWriter {
                 .filter(InputProjection::accepted)
                 .map(InputProjection::input)
                 .collect(Collectors.groupingBy(InputVariant::sagaFqn, LinkedHashMap::new, Collectors.toList()));
-        ConflictGraphBuilder.Result strictGraph = ConflictGraphBuilder.build(sagas, graphConfig(config, false));
-        ConflictGraphBuilder.Result broadGraph = ConflictGraphBuilder.build(sagas, graphConfig(config, true));
+        ConflictGraphBuilder.Result strictGraph = ConflictGraphBuilder.buildSelectionGraph(
+                sagas, events, graphConfig(config, false));
+        ConflictGraphBuilder.Result broadGraph = ConflictGraphBuilder.buildSelectionGraph(
+                sagas, events, graphConfig(config, true));
         LinkedHashMap<String, Object> sagaSets = new LinkedHashMap<>();
         sagaSets.put("strict", sagaSetMetrics(accountingReport.typeLevelCoverage().strict(),
                 accountingReport.groupedSagaSets(), acceptedInputsBySaga, strictGraph.conflictCandidates(),

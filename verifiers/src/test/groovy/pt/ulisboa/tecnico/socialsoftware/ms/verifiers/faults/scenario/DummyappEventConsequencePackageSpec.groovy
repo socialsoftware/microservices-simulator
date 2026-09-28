@@ -110,6 +110,40 @@ class DummyappEventConsequencePackageSpec extends VisitorTestSupport {
         current.accounting().path('events').path('resolvedEventRoutes').asInt() > 0
     }
 
+    def 'dummyapp production selection graph includes extracted event and recovery surfaces without changing direct facts'() {
+        given:
+        def model = new ApplicationAnalysisScenarioModelAdapter().adapt(dummyappState())
+        def config = new ScenarioGeneratorConfig(false,
+                ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                ScenarioGeneratorConfig.CatalogWriteMode.WRITE_WORKLOADS,
+                false, 2, 100, 10, 20, true,
+                ScenarioGeneratorConfig.InputPolicy.RESOLVED_OR_REPLAYABLE,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 1234L)
+
+        when:
+        def direct = ConflictGraphBuilder.build(model.sagaDefinitions(), config)
+        def selection = ConflictGraphBuilder.buildSelectionGraph(
+                model.sagaDefinitions(), model.eventConsequenceDefinitions(), config)
+        def eventEdges = selection.conflictCandidates().findAll {
+            it.origin() == ConflictGraphBuilder.ConflictOrigin.EVENT_CONSEQUENCE
+        }
+        def recoveryEdges = selection.conflictCandidates().findAll {
+            it.origin() == ConflictGraphBuilder.ConflictOrigin.RECOVERY
+        }
+
+        then:
+        direct.conflictCandidates().every { it.origin() == ConflictGraphBuilder.ConflictOrigin.FORWARD }
+        selection.conflictCandidates().findAll {
+            it.origin() == ConflictGraphBuilder.ConflictOrigin.FORWARD
+        }*.deterministicId() == direct.conflictCandidates()*.deterministicId()
+        eventEdges
+        eventEdges.every { it.leftInputBound() != it.rightInputBound() && it.excludedSagaFqn() }
+        recoveryEdges
+        recoveryEdges.every { it.leftInputBound() && it.rightInputBound() }
+        selection.counts().selectionEventConflictEdgesEmitted == eventEdges.size()
+        selection.counts().selectionRecoveryConflictEdgesEmitted == recoveryEdges.size()
+    }
+
     def 'selected dummyapp consumer keeps its package route when other routes are unselected or reordered'() {
         given:
         def original = new ApplicationAnalysisScenarioModelAdapter().adapt(dummyappState())

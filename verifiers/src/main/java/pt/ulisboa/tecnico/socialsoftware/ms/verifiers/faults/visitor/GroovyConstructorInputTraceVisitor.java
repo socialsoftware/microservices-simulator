@@ -3152,7 +3152,7 @@ public class GroovyConstructorInputTraceVisitor {
 
         List<Expression> callArguments = extractArguments(callExpression.getArguments());
         Parameter[] parameters = helperMethod.getParameters();
-        if (parameters == null || parameters.length != callArguments.size()) {
+        if (!acceptsHelperArity(parameters, callArguments.size())) {
             return null;
         }
 
@@ -3164,10 +3164,10 @@ public class GroovyConstructorInputTraceVisitor {
 
         for (int i = 0; i < parameters.length; i++) {
             String parameterName = parameters[i].getName();
-            Expression normalizedArgument = normalizeHelperParameterBinding(parameterName,
-                    callArguments.get(i),
-                    callerExpressionScopes,
-                    classFieldExpressionScopes);
+            Expression normalizedArgument = i < callArguments.size()
+                    ? normalizeHelperParameterBinding(parameterName, callArguments.get(i),
+                            callerExpressionScopes, classFieldExpressionScopes)
+                    : parameters[i].getInitialExpression();
             if (normalizedArgument != null) {
                 helperExpressionScopes.put(parameterName, normalizedArgument);
             }
@@ -3673,8 +3673,7 @@ public class GroovyConstructorInputTraceVisitor {
 
         int argumentCount = extractArguments(methodCallExpression.getArguments()).size();
         List<MethodResolutionContext> arityMatches = methods.stream()
-                .filter(methodContext -> methodContext.methodNode().getParameters() != null
-                        && methodContext.methodNode().getParameters().length == argumentCount)
+                .filter(methodContext -> acceptsHelperArity(methodContext.methodNode().getParameters(), argumentCount))
                 .toList();
 
         if (arityMatches.size() != 1) {
@@ -3682,6 +3681,15 @@ public class GroovyConstructorInputTraceVisitor {
         }
 
         return Optional.of(arityMatches.get(0));
+    }
+
+    /** Support omitted trailing defaults; ambiguous overloads remain unresolved. */
+    private boolean acceptsHelperArity(Parameter[] parameters, int argumentCount) {
+        if (parameters == null || argumentCount > parameters.length) return false;
+        for (int i = argumentCount; i < parameters.length; i++) {
+            if (!parameters[i].hasInitialExpression()) return false;
+        }
+        return true;
     }
 
     private List<Expression> extractArguments(Expression argumentsExpression) {

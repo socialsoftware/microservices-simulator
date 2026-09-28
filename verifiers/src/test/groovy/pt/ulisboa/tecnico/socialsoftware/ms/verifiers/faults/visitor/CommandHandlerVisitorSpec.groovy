@@ -31,6 +31,18 @@ class CommandHandlerVisitorSpec extends VisitorTestSupport {
         cus.each { cu -> commandHandlerVisitor.visit(cu, state) }
     }
 
+    def "direct switch extracts read and write branches without inventing guarded or ambiguous dispatch"() {
+        given:
+        def handler = state.commandHandlers.find { it.fqn.endsWith('.DirectSwitchItemCommandHandler') }
+        def prefix = 'com.example.dummyapp.item.commands.'
+        expect:
+        handler.commandDispatch.keySet() == [prefix + 'GetItemCommand', prefix + 'DeleteItemCommand'] as Set
+        handler.commandDispatch[prefix + 'GetItemCommand'].accessPolicy() == AccessPolicy.READ
+        handler.commandDispatch[prefix + 'DeleteItemCommand'].accessPolicy() == AccessPolicy.WRITE
+        handler.commandDispatch[prefix + 'GetItemCommand'].serviceMethodName() == 'getItem'
+        handler.commandDispatch[prefix + 'DeleteItemCommand'].serviceMethodName() == 'deleteItem'
+    }
+
     // -----------------------------------------------------------------------
     // Item domain — ItemCommandHandler: @Autowired service, switch with default, SLF4J
     // -----------------------------------------------------------------------

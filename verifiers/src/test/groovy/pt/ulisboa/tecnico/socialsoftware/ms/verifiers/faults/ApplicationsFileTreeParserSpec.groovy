@@ -41,6 +41,7 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.item.commandHandler.ItemCommandHandler',
             'com.example.dummyapp.item.commandHandler.DelegatingItemCommandHandler',
             'com.example.dummyapp.item.commandHandler.ConstantAggregateTypeItemCommandHandler',
+            'com.example.dummyapp.item.commandHandler.DirectSwitchItemCommandHandler',
             'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas',
             'com.example.dummyapp.item.coordination.CreateItemFieldInjectionFunctionalitySagas',
             'com.example.dummyapp.item.coordination.CreateItemDependencyGraphFunctionalitySagas',
@@ -101,11 +102,13 @@ class ApplicationsFileTreeParserSpec extends Specification {
 
         and:
         parser.groovyFilePaths.keySet() ==~ [
+            'com.example.dummyapp.DefaultHelperInputsSpec',
             'com.example.dummyapp.DummyAppSpec',
             'com.example.dummyapp.GroovyNestedFacadeTracingSpec',
             'com.example.dummyapp.GroovySetupHelperOwnershipSpec',
             'com.example.dummyapp.GroovySagaTracingSpec',
-            'com.example.dummyapp.GroovyTccSourceModeTracingSpec'
+            'com.example.dummyapp.GroovyTccSourceModeTracingSpec',
+            'com.example.dummyapp.SharedSetupPreparationSpec'
         ]
     }
 
@@ -168,6 +171,7 @@ class ApplicationsFileTreeParserSpec extends Specification {
             'com.example.dummyapp.item.commandHandler.ItemCommandHandler',
             'com.example.dummyapp.item.commandHandler.DelegatingItemCommandHandler',
             'com.example.dummyapp.item.commandHandler.ConstantAggregateTypeItemCommandHandler',
+            'com.example.dummyapp.item.commandHandler.DirectSwitchItemCommandHandler',
             'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas',
             'com.example.dummyapp.item.coordination.CreateItemFieldInjectionFunctionalitySagas',
             'com.example.dummyapp.item.coordination.CreateItemDependencyGraphFunctionalitySagas',

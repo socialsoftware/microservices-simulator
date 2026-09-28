@@ -38,6 +38,22 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         new GroovyConstructorInputTraceVisitor().visit(sourceIndex, state)
     }
 
+    def 'trailing helper defaults preserve dto mutations and explicit overrides but reject ambiguity'() {
+        given:
+        def traces = state.groovyFullTraceResults.findAll {
+            it.sourceClassFqn == 'com.example.dummyapp.DefaultHelperInputsSpec'
+        }.collectEntries { [(it.sourceBindingName()): it] }
+        def assignments = { name ->
+            traces[name].constructorArguments()[1].recipe().children()[0].metadata().assignments()
+                    .collectEntries { [(it.propertyName()): it.valueRecipe().text()] }
+        }
+        expect:
+        assignments('defaults') == [name: 'default-item', orderId: '41']
+        assignments('override') == [name: 'chosen', orderId: '73']
+        assignments('partial') == [name: 'partial', orderId: '41']
+        traces['ambiguous'].constructorArguments()[1].provenance().contains('unresolved local-helper-method')
+    }
+
     def 'captures separate constructor traces for same method by variable binding'() {
         given:
         def constructorTraces = state.groovyConstructorInputTraces.findAll {
@@ -297,6 +313,45 @@ class GroovyConstructorInputTraceVisitorDummyappSpec extends VisitorTestSupport 
         targetTrace.occurrence().occurrenceId() == featureActions[2].occurrence().occurrenceId()
         targetTrace.occurrence().occurrenceId() !=
                 targetTrace.constructorArguments()[1].producerReference().occurrenceId()
+    }
+
+    def 'shared argument producer retains the exact feature preparation and blocks barrier fallback'() {
+        given:
+        def adapted = new ApplicationAnalysisScenarioModelAdapter().adapt(state)
+        def feature = 'shared argument producer still requires the feature void effect'
+        def target = adapted.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.SharedSetupPreparationSpec' &&
+                    it.callContextMethodName() == feature &&
+                    it.sagaFqn() == 'com.example.dummyapp.item.coordination.CreateItemFunctionalitySagas'
+        }
+        def tuple = new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner.InputTuple(
+                [target], target.deterministicId(), [])
+
+        when:
+        def selected = pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
+                .setupPlanFor(tuple, adapted.sourceSetupPlanBindings())
+
+        then:
+        selected != null
+        selected.actions()*.methodKey()*.tokenize('#')*.last()*.split('\\(')*.first() ==
+                ['createItem', 'createOrder']
+        selected.actions().last().voidResult()
+        !selected.actions().any {
+            it.sourceOccurrence().contains('shared argument producer still requires') &&
+                    it.methodKey().contains('#createItem(')
+        }
+
+        and: 'the same shared producer cannot hide unsupported preparation'
+        def blocked = adapted.inputVariants().find {
+            it.sourceClassFqn() == 'com.example.dummyapp.SharedSetupPreparationSpec' &&
+                    it.callContextMethodName() == 'shared argument producer cannot bypass a feature preparation barrier' &&
+                    it.sagaFqn() == target.sagaFqn()
+        }
+        def blockedTuple = new pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.InputTupleJoiner.InputTuple(
+                [blocked], blocked.deterministicId(), [])
+        pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.scenario.ScenarioGenerator
+                .setupPlanFor(blockedTuple, adapted.sourceSetupPlanBindings()) == null
+        adapted.diagnostics().any { it.contains('feature preparation barrier') && it.contains('blocked feature-derived setup') }
     }
 
     def 'control flow permanently closes later feature prefix extension'() {

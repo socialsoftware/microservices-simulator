@@ -561,6 +561,59 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
         report.inputBoundScenarioSpace().selectedByGenerator().total() == '3'
     }
 
+    def 'recovery anchor accounting matches all materialized indirect anchor orders'() {
+        given:
+        def sagas = [recoveryAnchorSaga('saga.A'), multiAnchorSaga('saga.B', AccessMode.READ)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:])]
+        def segmentConfig = config(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                false, 2, 10, 100,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 100000, true)
+
+        when:
+        def generated = ScenarioGenerator.generate(sagas, inputs, segmentConfig)
+        def report = calculate(sagas, inputs, segmentConfig, generated.workloadPlans().size())
+
+        then:
+        generated.workloadPlans().size() == 6
+        row(report, 'saga.A|saga.B').scheduleCountPerTuple() == '6'
+        row(report, 'saga.A|saga.B').scenarioShapeCount() == '6'
+        report.inputBoundScenarioSpace().selectedByGenerator().total() == '6'
+    }
+
+    def 'brute force preserves anchors inside a disconnected saga set while interaction pruning rejects the set'() {
+        given:
+        def sagas = [multiAnchorSaga('saga.A', AccessMode.WRITE),
+                     multiAnchorSaga('saga.B', AccessMode.READ),
+                     footprintSaga('saga.C', 'Other', 'other-1', FootprintConfidence.EXACT)]
+        def inputs = [input('saga.A', 'a1', [:]), input('saga.B', 'b1', [:]), input('saga.C', 'c1', [:])]
+        def bruteConfig = config(ScenarioGeneratorConfig.GenerationStrategy.BRUTE_FORCE,
+                false, 3, 10, 100,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 100000, true)
+        def prunedConfig = config(ScenarioGeneratorConfig.GenerationStrategy.INTERACTION_PRUNED,
+                false, 3, 10, 100,
+                ScenarioGeneratorConfig.ScheduleStrategy.SEGMENT_COMPRESSED, 100000, true)
+
+        when:
+        def brute = ScenarioGenerator.generate(sagas, inputs, bruteConfig)
+        def bruteAccounting = calculate(sagas, inputs, bruteConfig, brute.workloadPlans().size())
+        def pruned = ScenarioGenerator.generate(sagas, inputs, prunedConfig)
+        def prunedAccounting = calculate(sagas, inputs, prunedConfig, pruned.workloadPlans().size())
+
+        then:
+        brute.workloadPlans().count { it.participants().size() == 3 } == 6
+        brute.workloadPlans().findAll { it.participants().size() == 3 }.every {
+            it.conflictEvidence().size() == 2
+        }
+        row(bruteAccounting, 'saga.A|saga.B|saga.C').scheduleCountPerTuple() == '6'
+        row(bruteAccounting, 'saga.A|saga.B|saga.C').scenarioShapeCount() == '6'
+
+        and:
+        pruned.workloadPlans().count { it.participants().size() == 3 } == 0
+        pruned.workloadPlans().count { it.participants()*.sagaFqn().toSet() == ['saga.A', 'saga.B'] as Set } == 6
+        !row(prunedAccounting, 'saga.A|saga.B|saga.C').selectedByConfiguredGenerator()
+        row(prunedAccounting, 'saga.A|saga.B|saga.C').scenarioShapeCount() == '0'
+    }
+
     def 'segment compressed zero schedule cap disables accounting and materialized schedules'() {
         given:
         def sagas = [segmentSaga('saga.A', 1, AccessMode.WRITE), segmentSaga('saga.B', 1, AccessMode.READ)]
@@ -962,6 +1015,18 @@ class ScenarioSpaceAccountingCalculatorSpec extends Specification {
                 new StepDefinition("${fqn}.conflict.2".toString(), 'conflict2', 'conflict2', 1, [],
                         [new StepFootprint(new AggregateKey(null, 'Order', 'shared-2', FootprintConfidence.EXACT), anchorMode, [])], [])
         ], [])
+    }
+
+    private static SagaDefinition recoveryAnchorSaga(String fqn) {
+        new SagaDefinition(fqn, (0..<2).collect { index ->
+            new StepDefinition("${fqn}.recovery.${index}".toString(), "recovery${index}".toString(),
+                    "recovery${index}".toString(), index, [],
+                    [new StepFootprint(new AggregateKey(null, 'Producer', "producer-${index}".toString(),
+                            FootprintConfidence.EXACT), AccessMode.READ, [])],
+                    [new StepFootprint(new AggregateKey(null, 'Order', "shared-${index + 1}".toString(),
+                            FootprintConfidence.EXACT), AccessMode.WRITE, [])],
+                    true, true, true, CompensationEvidenceClass.EXPLICIT_COMPENSATION, [], [])
+        }, [])
     }
 
     private static SagaDefinition footprintSaga(String fqn, String aggregateName, String keyText, FootprintConfidence confidence) {
