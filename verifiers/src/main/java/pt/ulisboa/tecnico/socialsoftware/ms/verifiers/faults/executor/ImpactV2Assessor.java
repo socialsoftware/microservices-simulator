@@ -57,7 +57,7 @@ class ImpactV2Assessor {
         EvidenceIndex evidence = new EvidenceIndex(baseline, finalState, writes);
         ImpactV2EvidenceReport.CategoryResult deleted = deletedDependencies(evidence, gaps);
         ImpactV2EvidenceReport.CategoryResult residual = failedOperationResiduals(
-                execution, attemptId, workloadPlanId, evidence, gaps);
+                execution, attemptId, workloadPlanId, evidence, deliveries, gaps);
         ImpactV2EvidenceReport.CategoryResult event = unresolvedDeliveredEvents(execution, deliveries, gaps);
         List<ImpactV2EvidenceReport.CategoryResult> categories = List.of(deleted, residual, event);
         Set<ImpactEvidence.AggregateIdentity> affected = new TreeSet<>(IDENTITY_ORDER);
@@ -126,6 +126,7 @@ class ImpactV2Assessor {
             String attemptId,
             String workloadPlanId,
             EvidenceIndex evidence,
+            List<ImpactEvidence.EventDelivery> deliveries,
             List<ImpactEvidence.CoverageGap> gaps) {
         List<ImpactV2EvidenceReport.UnknownReason> unknowns = gapUnknowns(FAILED_OPERATION_RESIDUAL, gaps,
                 Set.of("SNAPSHOT", "WRITE", "ATTEMPT", "OBSERVER_CALLBACK", "OBSERVER_ENABLEMENT"));
@@ -158,7 +159,9 @@ class ImpactV2Assessor {
         for (ImpactEvidence.AggregateIdentity identity : candidateIds) {
             List<ImpactEvidence.CommittedWrite> objectWrites = evidence.writesById().getOrDefault(identity, List.of());
             Set<String> failedWriters = objectWrites.stream().map(ImpactEvidence.CommittedWrite::writer)
-                    .filter(Objects::nonNull).filter(writer -> failed.contains(writer.sagaInstanceId()))
+                    .filter(Objects::nonNull).filter(writer -> "SAGA".equals(writer.kind())
+                            && writer.sagaInstanceId() != null
+                            && failed.contains(writer.sagaInstanceId()))
                     .map(ImpactEvidence.Writer::sagaInstanceId)
                     .collect(java.util.stream.Collectors.toCollection(TreeSet::new));
             if (failedWriters.size() != 1) {
@@ -175,8 +178,11 @@ class ImpactV2Assessor {
             boolean soleWriter = objectWrites.stream().allMatch(write -> ownedFailedSagaWrite(
                     write.writer(), attemptId, workloadPlanId, failedSaga));
             if (!soleWriter) {
-                unknowns.add(unknown(FAILED_OPERATION_RESIDUAL, "COMPETING_OR_UNKNOWN_WRITER",
-                        identity.toString(), identity, null));
+                if (!comparisonEvidenceIncomplete) {
+                    assessExclusiveFields(execution, attemptId, workloadPlanId, failedSaga, identity,
+                            evidence.baselineById().get(identity), evidence.finalById().get(identity),
+                            objectWrites, deliveries, findings, unknowns);
+                }
                 continue;
             }
             if (comparisonEvidenceIncomplete) continue;
@@ -206,6 +212,236 @@ class ImpactV2Assessor {
             }
         }
         return category(FAILED_OPERATION_RESIDUAL, candidates, findings, unknowns);
+    }
+
+    /** Attribute observed changes, not dependencies between fields or application intent. */
+    private void assessExclusiveFields(
+            ScenarioExecutionReport execution, String attemptId, String workloadPlanId, String failedSaga,
+            ImpactEvidence.AggregateIdentity identity, ImpactEvidence.AggregateSnapshot baseline,
+            ImpactEvidence.AggregateSnapshot finalState, List<ImpactEvidence.CommittedWrite> writes,
+            List<ImpactEvidence.EventDelivery> deliveries,
+            List<ImpactV2EvidenceReport.Finding> findings, List<ImpactV2EvidenceReport.UnknownReason> unknowns) {
+        String problem = null;
+        Set<String> committed = execution.participants().stream()
+                .filter(participant -> "COMMITTED".equals(participant.finalState()))
+                .map(ScenarioExecutionReport.Participant::sagaInstanceId).collect(java.util.stream.Collectors.toSet());
+        for (ImpactEvidence.CommittedWrite write : writes) {
+            ImpactEvidence.Writer writer = write.writer();
+            boolean attributedSaga = writer != null && writer.sagaInstanceId() != null
+                    && ownedFailedSagaWrite(writer, attemptId, workloadPlanId, writer.sagaInstanceId())
+                    && (failedSaga.equals(writer.sagaInstanceId())
+                    || (committed.contains(writer.sagaInstanceId()) && "FORWARD".equals(writer.phase())));
+            boolean attributedEvent = provenSuccessfulEventWrite(
+                    execution, attemptId, workloadPlanId, write, deliveries);
+            if (!attributedSaga && !attributedEvent) {
+                problem = "COMPETING_OR_UNKNOWN_WRITER";
+                break;
+            }
+        }
+        if (problem == null && baseline == null) problem = "RESIDUAL_BASELINE_UNAVAILABLE";
+        ImpactEvidence.AggregateSnapshot latest = writes.get(writes.size() - 1).aggregate();
+        if (problem == null && (finalState == null || !samePersistentState(latest, finalState)
+                || !Objects.equals(latest.version(), finalState.version()))) {
+            problem = "FINAL_STATE_NOT_EXPLAINED_BY_TRACKED_WRITE";
+        }
+        Set<String> failedFields = new TreeSet<>();
+        Set<String> otherFields = new TreeSet<>();
+        Map<String, String> stableListKeys = stableListKeys(baseline, finalState, writes);
+        ImpactEvidence.AggregateSnapshot previous = baseline;
+        long previousSequence = -1;
+        if (problem == null) {
+            for (ImpactEvidence.CommittedWrite write : writes) {
+                ImpactEvidence.AggregateSnapshot next = write.aggregate();
+                ImpactEvidence.FrameworkMetadata metadata = next.frameworkMetadata();
+                if (previous.version() == null || next.version() == null || next.version() <= previous.version()
+                        || metadata == null || !previous.identity().equals(metadata.predecessorIdentity())
+                        || !previous.version().equals(metadata.predecessorVersion())
+                        || write.sequence() <= previousSequence) {
+                    problem = "RESIDUAL_VERSION_CHAIN_INCOMPLETE";
+                    break;
+                }
+                Set<String> fields = changedFields(previous, next, stableListKeys);
+                if (ownedFailedSagaWrite(write.writer(), attemptId, workloadPlanId, failedSaga)) {
+                    failedFields.addAll(fields);
+                } else {
+                    otherFields.addAll(fields);
+                }
+                previous = next;
+                previousSequence = write.sequence();
+            }
+        }
+        if (problem != null) {
+            unknowns.add(unknown(FAILED_OPERATION_RESIDUAL, problem, identity.toString(), identity, null));
+            return;
+        }
+        Set<String> finalDifferences = changedFields(baseline, finalState, stableListKeys);
+        Set<String> exclusiveResidual = new TreeSet<>(failedFields);
+        exclusiveResidual.removeIf(field -> otherFields.stream().anyMatch(other -> overlappingPath(field, other))
+                || !finalDifferences.contains(field));
+        boolean overlap = failedFields.stream()
+                .anyMatch(field -> otherFields.stream().anyMatch(other -> overlappingPath(field, other)));
+        boolean provenKeyedResidual = exclusiveResidual.stream().anyMatch(field -> stableListKeys.keySet().stream()
+                .anyMatch(name -> field.startsWith("/applicationData/" + escape(name) + "/")));
+        if (overlap && !provenKeyedResidual) {
+            unknowns.add(unknown(FAILED_OPERATION_RESIDUAL, "COMPETING_FIELD_CHANGE",
+                    identity.toString(), identity, null));
+            return;
+        }
+        if (!exclusiveResidual.isEmpty()) {
+            findings.add(new ImpactV2EvidenceReport.Finding(FAILED_OPERATION_RESIDUAL,
+                    "FAILED_SAGA_LEFT_EXCLUSIVE_FIELD_DIFFERENCE_AFTER_COMPLETED_RECOVERY", identity, null, null,
+                    actionIds(writes), versions(baseline, finalState, writes), List.copyOf(exclusiveResidual)));
+        }
+    }
+
+    private boolean provenSuccessfulEventWrite(
+            ScenarioExecutionReport execution,
+            String attemptId,
+            String workloadPlanId,
+            ImpactEvidence.CommittedWrite write,
+            List<ImpactEvidence.EventDelivery> deliveries) {
+        ImpactEvidence.Writer writer = write.writer();
+        if (writer == null || !"EVENT_CONSUMER".equals(writer.kind()) || !"EVENT".equals(writer.phase())
+                || !Objects.equals(attemptId, writer.executionAttemptId())
+                || !Objects.equals(workloadPlanId, writer.workloadPlanId())
+                || writer.actionId() == null || writer.eventId() == null || write.aggregate() == null) {
+            return false;
+        }
+        List<ScenarioExecutionReport.ActionOutcome> actions = execution.actualActions().stream()
+                .filter(action -> "EVENT_CONSEQUENCE".equals(action.kind()))
+                .filter(action -> "COMPLETED".equals(action.status()) && "SUCCEEDED".equals(action.bodyOutcome()))
+                .filter(action -> Objects.equals(writer.actionId(), action.actionId()))
+                .filter(action -> Objects.equals(writer.sagaInstanceId(), action.sagaInstanceId()))
+                .filter(action -> action.eventEvidence() != null
+                        && Objects.equals(writer.eventId(), action.eventEvidence().eventId())
+                        && Objects.equals(writer.functionalityName(), action.eventEvidence().eventHandlingClassFqn())
+                        && Objects.equals(writer.stepName(), action.eventEvidence().eventHandlingMethodName()))
+                .toList();
+        if (actions.size() != 1) return false;
+        ScenarioExecutionReport.ActionOutcome action = actions.getFirst();
+        List<ImpactEvidence.EventDelivery> matches = deliveries.stream()
+                .filter(delivery -> Objects.equals(writer, delivery.writer()))
+                .filter(delivery -> exactDeliveryMatch(execution, action, delivery))
+                .filter(delivery -> delivery.receiverAfter() != null
+                        && Objects.equals(write.aggregate().version(), delivery.receiverAfter().version())
+                        && samePersistentState(write.aggregate(), delivery.receiverAfter()))
+                .toList();
+        return matches.size() == 1;
+    }
+
+    private Set<String> changedFields(ImpactEvidence.AggregateSnapshot before,
+                                      ImpactEvidence.AggregateSnapshot after) {
+        return changedFields(before, after, Map.of());
+    }
+
+    private Set<String> changedFields(ImpactEvidence.AggregateSnapshot before,
+                                      ImpactEvidence.AggregateSnapshot after,
+                                      Map<String, String> stableListKeys) {
+        Set<String> fields = new TreeSet<>();
+        if (!Objects.equals(before.lifecycleState(), after.lifecycleState())) fields.add("/lifecycleState");
+        Set<String> names = new TreeSet<>(before.applicationData().keySet());
+        names.addAll(after.applicationData().keySet());
+        for (String name : names) {
+            Object oldValue = before.applicationData().get(name);
+            Object newValue = after.applicationData().get(name);
+            if (stableListKeys.containsKey(name) && oldValue instanceof List<?> oldList
+                    && newValue instanceof List<?> newList) {
+                changedKeyedList(fields, "/applicationData/" + escape(name),
+                        oldList, newList, stableListKeys.get(name));
+                continue;
+            }
+            if (before.applicationData().containsKey(name) != after.applicationData().containsKey(name)
+                    || !Objects.equals(oldValue, newValue)) {
+                fields.add("/applicationData/" + escape(name));
+            }
+        }
+        return fields;
+    }
+
+    private Map<String, String> stableListKeys(ImpactEvidence.AggregateSnapshot baseline,
+                                                ImpactEvidence.AggregateSnapshot finalState,
+                                                List<ImpactEvidence.CommittedWrite> writes) {
+        if (baseline == null || finalState == null) return Map.of();
+        List<ImpactEvidence.AggregateSnapshot> snapshots = new ArrayList<>();
+        snapshots.add(baseline);
+        writes.forEach(write -> snapshots.add(write.aggregate()));
+        snapshots.add(finalState);
+        Map<String, String> result = new TreeMap<>();
+        for (String name : baseline.applicationData().keySet()) {
+            List<List<?>> lists = new ArrayList<>();
+            for (ImpactEvidence.AggregateSnapshot snapshot : snapshots) {
+                Object value = snapshot.applicationData().get(name);
+                if (!(value instanceof List<?> list)) break;
+                lists.add(list);
+            }
+            if (lists.size() != snapshots.size()) continue;
+            Map<?, ?> first = lists.stream().flatMap(List::stream)
+                    .filter(Map.class::isInstance).map(Map.class::cast).findFirst().orElse(null);
+            if (first == null) continue;
+            List<String> valid = first.keySet().stream().filter(String.class::isInstance)
+                    .map(String.class::cast).filter(key -> key.endsWith("AggregateId"))
+                    .filter(key -> lists.stream().allMatch(list -> uniqueListKey(list, key))).sorted().toList();
+            if (valid.size() == 1) result.put(name, valid.getFirst());
+        }
+        return result;
+    }
+
+    private boolean uniqueListKey(List<?> list, String key) {
+        Set<Object> identities = new java.util.HashSet<>();
+        for (Object item : list) {
+            if (!(item instanceof Map<?, ?> map) || !map.containsKey(key)) return false;
+            if (map.keySet().stream().anyMatch(name -> !(name instanceof String))) return false;
+            Object value = map.get(key);
+            if (!(value instanceof String || value instanceof Number) || !identities.add(value)) return false;
+        }
+        return true;
+    }
+
+    private void changedKeyedList(Set<String> fields, String prefix, List<?> before,
+                                  List<?> after, String key) {
+        Map<Object, Map<?, ?>> oldItems = keyedItems(before, key);
+        Map<Object, Map<?, ?>> newItems = keyedItems(after, key);
+        if (!new ArrayList<>(oldItems.keySet()).equals(new ArrayList<>(newItems.keySet()))) {
+            fields.add(prefix);
+        }
+        Set<Object> ids = new java.util.HashSet<>(oldItems.keySet());
+        ids.addAll(newItems.keySet());
+        for (Object id : ids) {
+            String itemPath = prefix + "/" + escape(key + "=" + id);
+            Map<?, ?> oldItem = oldItems.get(id), newItem = newItems.get(id);
+            if (oldItem == null || newItem == null) {
+                fields.add(itemPath);
+                continue;
+            }
+            Set<String> names = new TreeSet<>();
+            oldItem.keySet().stream().filter(String.class::isInstance)
+                    .map(String.class::cast).forEach(names::add);
+            newItem.keySet().stream().filter(String.class::isInstance)
+                    .map(String.class::cast).forEach(names::add);
+            for (String name : names) {
+                if (oldItem.containsKey(name) != newItem.containsKey(name)
+                        || !Objects.equals(oldItem.get(name), newItem.get(name))) {
+                    fields.add(itemPath + "/" + escape(name));
+                }
+            }
+        }
+    }
+
+    private Map<Object, Map<?, ?>> keyedItems(List<?> items, String key) {
+        Map<Object, Map<?, ?>> result = new LinkedHashMap<>();
+        for (Object item : items) {
+            Map<?, ?> map = (Map<?, ?>) item;
+            result.put(map.get(key), map);
+        }
+        return result;
+    }
+
+    private boolean overlappingPath(String left, String right) {
+        return left.equals(right) || left.startsWith(right + "/") || right.startsWith(left + "/");
+    }
+
+    private String escape(String value) {
+        return value.replace("~", "~0").replace("/", "~1");
     }
 
     private ImpactV2EvidenceReport.CategoryResult unresolvedDeliveredEvents(
@@ -431,7 +667,7 @@ class ImpactV2Assessor {
                 faultScenarioId, execution.terminalStatus(), execution.scheduleConformance(), "UNAVAILABLE",
                 "ASSESSMENT_FAILED", collectionStatus, collectionReason,
                 "FINAL_SCHEDULED_ACTION", null, null, categories,
-                baseline, finalState, writes, deliveries, gaps);
+                baseline, finalState, writes, deliveries, gaps, ImpactV2EvidenceReport.RESIDUAL_POLICY);
     }
 
     private ImpactV2EvidenceReport report(
@@ -455,7 +691,8 @@ class ImpactV2Assessor {
         return new ImpactV2EvidenceReport(null, attemptId, execution.packageManifestPath(), workloadPlanId,
                 faultScenarioId, execution.terminalStatus(), execution.scheduleConformance(), assessmentStatus,
                 assessmentReason, collectionStatus, collectionReason, horizon, completeScore,
-                observedAffectedObjectCount, categories, baseline, finalState, writes, deliveries, gaps);
+                observedAffectedObjectCount, categories, baseline, finalState, writes, deliveries, gaps,
+                ImpactV2EvidenceReport.RESIDUAL_POLICY);
     }
 
     private boolean valid(ScenarioExecutionReport report) {

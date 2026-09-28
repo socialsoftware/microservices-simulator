@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor
 import com.fasterxml.jackson.databind.ObjectMapper
 import pt.ulisboa.tecnico.socialsoftware.ms.monitoring.impact.ImpactEvidence
 import spock.lang.Specification
+import spock.lang.Unroll
 
 class ImpactV2AssessorSpec extends Specification {
     private static final ObjectMapper MAPPER = new ObjectMapper()
@@ -446,6 +447,469 @@ class ImpactV2AssessorSpec extends Specification {
         report.categoryResults()*.coverageStatus().unique() == ['UNAVAILABLE']
     }
 
+    def 'exclusive observed fields distinguish residual data from successful participant changes'() {
+        given:
+        def fixture = exclusiveFieldsFixture(restored)
+
+        when:
+        def report = assess(fixture.execution, [fixture.baseline], [fixture.finalState], fixture.writes)
+        def residual = category(report, 'FAILED_OPERATION_RESIDUAL')
+
+        then:
+        report.residualAssessmentPolicy() == 'exclusive-keyed-list-fields-v4'
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == (restored ? 0 : 1)
+        residual.unknownReasons().empty
+        residual.findings()*.affectedFields() == (restored ? [] : [['/applicationData/labels']])
+        residual.findings()*.versions() == (restored ? [] : [[1L, 2L, 3L, 4L, 5L]])
+        residual.findings()*.actionIds() == (restored ? [] : [['other-after', 'other-before', 'recover', 'update']])
+
+        when: 'input observation order differs, but sequence numbers retain the execution order'
+        def reordered = assess(fixture.execution, [fixture.baseline], [fixture.finalState], fixture.writes.reverse())
+
+        then:
+        MAPPER.writeValueAsString(reordered.categoryResults()) == MAPPER.writeValueAsString(report.categoryResults())
+
+        where:
+        restored << [false, true]
+    }
+
+    def 'exclusive field assessment refuses unsupported attribution and interference'() {
+        given:
+        def f = exclusiveFieldsFixture(false)
+        def last = f.finalState
+        def lastWriter = f.writes.last().writer()
+        def metadata = last.frameworkMetadata()
+        switch (caseName) {
+            case 'same field':
+                last = successor(f.writes[2].aggregate(), 5, [labels: ['another'], participants: ['x', 'y'], count: 10])
+                break
+            case 'unknown writer': lastWriter = ImpactEvidence.Writer.unknown('unknown', 'step'); break
+            case 'event writer': lastWriter = eventWriter(9); break
+            case 'wrong attempt':
+                lastWriter = new ImpactEvidence.Writer('SAGA', 'other-attempt', 'workload', 'p2', 'other-after',
+                        'FORWARD', 'FixtureSaga', 'other-after', null)
+                break
+            case 'uncommitted writer':
+                f.execution = execution('COMPENSATED', 'EXACT', [failedAction('p1')],
+                        [compensatedParticipant('p1')], [compensatedLifecycle('p1')])
+                break
+            case 'broken predecessor':
+                metadata = new ImpactEvidence.FrameworkMetadata(null, null, last.identity(), 2L, null, null)
+                break
+            case 'missing predecessor': metadata = null; break
+            case 'wrong predecessor identity':
+                metadata = new ImpactEvidence.FrameworkMetadata(null, null, id('Other', 99), 4L, null, null)
+                break
+        }
+        if (caseName in ['broken predecessor', 'missing predecessor', 'wrong predecessor identity']) {
+            last = new ImpactEvidence.AggregateSnapshot(last.identity(), last.version(), last.lifecycleState(),
+                    last.runtimeType(), metadata, last.applicationData(), [])
+        }
+        f.writes[3] = write(caseName == 'duplicate sequence' ? 3 : 4, last, lastWriter)
+
+        when:
+        def report = assess(f.execution, caseName == 'absent baseline' ? [] : [f.baseline], [last], f.writes)
+
+        then:
+        report.assessmentStatus() == 'PARTIAL'
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == [reason]
+
+        where:
+        caseName                    | reason
+        'same field'                | 'COMPETING_FIELD_CHANGE'
+        'unknown writer'            | 'COMPETING_OR_UNKNOWN_WRITER'
+        'event writer'              | 'COMPETING_OR_UNKNOWN_WRITER'
+        'wrong attempt'             | 'COMPETING_OR_UNKNOWN_WRITER'
+        'uncommitted writer'        | 'COMPETING_OR_UNKNOWN_WRITER'
+        'broken predecessor'        | 'RESIDUAL_VERSION_CHAIN_INCOMPLETE'
+        'missing predecessor'       | 'RESIDUAL_VERSION_CHAIN_INCOMPLETE'
+        'wrong predecessor identity'| 'RESIDUAL_VERSION_CHAIN_INCOMPLETE'
+        'duplicate sequence'        | 'RESIDUAL_VERSION_CHAIN_INCOMPLETE'
+        'absent baseline'           | 'RESIDUAL_BASELINE_UNAVAILABLE'
+    }
+
+    def 'residual deletion can be attributed after another Saga changes unrelated data'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [items: ['old']])
+        def updated = successor(baseline, 2, [items: ['new']])
+        def deleted = successor(updated, 3, [items: ['new']], 'DELETED')
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [deleted], [
+                write(1, updated, sagaWriter('p2', 'update-items', 'FORWARD')),
+                write(2, deleted, sagaWriter('p1', 'remove', 'FORWARD'))])
+
+        then:
+        report.completeScore() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() == [['/lifecycleState']]
+    }
+
+    def 'another Saga lifecycle change is assessed by the same exclusive field rule'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [label: 'before'])
+        def failed = successor(baseline, 2, [label: 'failed'])
+        def recovered = successor(failed, 3, [label: restored ? 'before' : 'residual'])
+        def deleted = successor(recovered, 4, recovered.applicationData(), 'DELETED')
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [deleted], [
+                write(1, failed, sagaWriter('p1', 'update', 'FORWARD')),
+                write(2, recovered, sagaWriter('p1', 'recover', 'RECOVERY')),
+                write(3, deleted, sagaWriter('p2', 'delete', 'FORWARD'))])
+
+        then:
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == (restored ? 0 : 1)
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() ==
+                (restored ? [] : [['/applicationData/label']])
+
+        where:
+        restored << [false, true]
+    }
+
+    def 'a lifecycle field changed by both the failed and committed Sagas remains unknown'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [label: 'same'])
+        def failed = successor(baseline, 2, baseline.applicationData(), 'DELETED')
+        def recovered = successor(failed, 3, baseline.applicationData(), 'ACTIVE')
+        def other = successor(recovered, 4, baseline.applicationData(), 'DELETED')
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [other], [
+                write(1, failed, sagaWriter('p1', 'remove', 'FORWARD')),
+                write(2, recovered, sagaWriter('p1', 'restore', 'RECOVERY')),
+                write(3, other, sagaWriter('p2', 'other-remove', 'FORWARD'))])
+
+        then:
+        report.assessmentStatus() == 'PARTIAL'
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == ['COMPETING_FIELD_CHANGE']
+    }
+
+    def 'an exactly proven successful event write participates in exclusive field attribution'() {
+        given:
+        def f = eventResidualFixture(restored)
+
+        when:
+        def report = assess(f.execution, [f.baseline], [f.finalState], f.writes, f.deliveries)
+
+        then:
+        report.assessmentStatus() == 'COMPLETE'
+        report.completeScore() == (restored ? 0 : 1)
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() ==
+                (restored ? [] : [['/applicationData/failedField']])
+
+        where:
+        restored << [false, true]
+    }
+
+    def 'event writer provenance rejects #caseName'() {
+        given:
+        def f = eventResidualFixture(false)
+        mutation(f)
+
+        when:
+        def report = assess(f.execution, [f.baseline], [f.finalState], f.writes, f.deliveries)
+
+        then:
+        report.assessmentStatus() == 'PARTIAL'
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() ==
+                ['COMPETING_OR_UNKNOWN_WRITER']
+
+        where:
+        caseName        | mutation
+        'wrong identity'| { fixture -> fixture.deliveries = [delivery(9, fixture.recovered,
+                snapshot(id('Other', 1), 4, 'ACTIVE', fixture.finalState.applicationData()),
+                fixture.finalState, false)] }
+        'wrong version' | { fixture -> fixture.deliveries = [delivery(9, fixture.recovered,
+                snapshot(fixture.finalState.identity(), 99, 'ACTIVE', fixture.finalState.applicationData()),
+                fixture.finalState, false)] }
+        'wrong state'   | { fixture -> fixture.deliveries = [delivery(9, fixture.recovered,
+                snapshot(fixture.finalState.identity(), 4, 'ACTIVE',
+                        [failedField: 'residual', eventField: 'wrong']), fixture.finalState, false)] }
+        'wrong attempt' | { fixture -> fixture.writes[-1] = write(3, fixture.finalState,
+                eventWriter(9, 'other-attempt')) }
+        'duplicates'    | { fixture -> fixture.deliveries = [fixture.deliveries[0], fixture.deliveries[0]] }
+        'failed action' | { fixture -> fixture.execution = execution('PARTIAL_COMPENSATED', 'EXACT', [
+                failedAction('p1'), action('event-action', 'EVENT_CONSEQUENCE', 'p2', 'FAILED', 9)
+        ], [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')]) }
+    }
+
+    def 'an event writer overlapping a failed Saga field remains unknown'() {
+        given:
+        def f = eventResidualFixture(false)
+        def overlap = successor(f.recovered, 4, [failedField: 'event-change', eventField: 'after'])
+        f.finalState = overlap
+        f.writes[-1] = write(3, overlap, eventWriter(9))
+        f.deliveries = [delivery(9, f.recovered, overlap, overlap, false)]
+
+        when:
+        def report = assess(f.execution, [f.baseline], [f.finalState], f.writes, f.deliveries)
+
+        then:
+        report.assessmentStatus() == 'PARTIAL'
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == ['COMPETING_FIELD_CHANGE']
+    }
+
+    def 'different entries of one collection do not establish exclusive fields'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [items: [a: 1, b: 1]])
+        def failed = successor(baseline, 2, [items: [a: 2, b: 1]])
+        def other = successor(failed, 3, [items: [a: 2, b: 2]])
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [other], [
+                write(1, failed, sagaWriter('p1', 'update-a', 'FORWARD')),
+                write(2, other, sagaWriter('p2', 'update-b', 'FORWARD'))])
+
+        then:
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == ['COMPETING_FIELD_CHANGE']
+    }
+
+    @Unroll
+    def 'stable keyed list proves a residual despite an event #placement recovery'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [topics: topicRows(1, 'old', false)])
+        def forward = successor(baseline, 2, [topics: topicRows(1, 'old', true)])
+        def eventState
+        def recovery
+        def writes
+        if (placement == 'before') {
+            eventState = successor(forward, 3, [topics: topicRows(1, 'renamed', true)])
+            recovery = successor(eventState, 4, [topics: topicRows(null, 'old', false)])
+            writes = [write(1, forward, sagaWriter('p1', 'update', 'FORWARD')),
+                      write(2, eventState, eventWriter(9)),
+                      write(3, recovery, sagaWriter('p1', 'recover', 'RECOVERY'))]
+        } else {
+            recovery = successor(forward, 3, [topics: topicRows(null, 'old', false)])
+            eventState = successor(recovery, 4, [topics: topicRows(null, 'renamed', false)])
+            writes = [write(1, forward, sagaWriter('p1', 'update', 'FORWARD')),
+                      write(2, recovery, sagaWriter('p1', 'recover', 'RECOVERY')),
+                      write(3, eventState, eventWriter(9))]
+        }
+        def finalState = placement == 'before' ? recovery : eventState
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT',
+                [failedAction('p1'), successfulEventAction('p2', 9, 2)],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [finalState], writes,
+                [delivery(9, placement == 'before' ? forward : recovery, eventState, finalState, false)])
+
+        then:
+        report.completeScore() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() == [[
+                '/applicationData/topics/topicAggregateId=5/topicCourseAggregateId',
+                '/applicationData/topics/topicAggregateId=6/topicCourseAggregateId']]
+
+        where:
+        placement << ['before', 'after']
+    }
+
+    def 'keyed list without an exclusive final field remains unknown'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [topics: topicRows(1, 'old', false)])
+        def failed = successor(baseline, 2, [topics: topicRows(1, 'failed-name', false)])
+        def other = successor(failed, 3, [topics: topicRows(1, 'other-name', false)])
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [other], [
+                write(1, failed, sagaWriter('p1', 'update', 'FORWARD')),
+                write(2, other, sagaWriter('p2', 'other', 'FORWARD'))])
+
+        then:
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == ['COMPETING_FIELD_CHANGE']
+    }
+
+    def 'keyed list attribution is generic across collection and item field names'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE',
+                [entries: [[entryAggregateId: 7, ownerAggregateId: 3, label: 'old']]])
+        def failed = successor(baseline, 2,
+                [entries: [[entryAggregateId: 7, ownerAggregateId: null, label: 'old']]])
+        def other = successor(failed, 3,
+                [entries: [[entryAggregateId: 7, ownerAggregateId: null, label: 'new']]])
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [other], [
+                write(1, failed, sagaWriter('p1', 'unlink', 'FORWARD')),
+                write(2, other, sagaWriter('p2', 'rename', 'FORWARD'))])
+
+        then:
+        report.completeScore() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() == [[
+                '/applicationData/entries/entryAggregateId=7/ownerAggregateId']]
+    }
+
+    def 'duplicate collection identity does not support keyed residual attribution'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def original = [[topicAggregateId: 5, topicCourseAggregateId: 1],
+                        [topicAggregateId: 5, topicCourseAggregateId: 1]]
+        def changed = [[topicAggregateId: 5, topicCourseAggregateId: null], original[1]]
+        def other = [changed[0], [topicAggregateId: 5, topicCourseAggregateId: 2]]
+        def baseline = snapshot(identity, 1, 'ACTIVE', [topics: original])
+        def failed = successor(baseline, 2, [topics: changed])
+        def finalState = successor(failed, 3, [topics: other])
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [finalState], [
+                write(1, failed, sagaWriter('p1', 'update', 'FORWARD')),
+                write(2, finalState, sagaWriter('p2', 'other', 'FORWARD'))])
+
+        then:
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason() == ['COMPETING_FIELD_CHANGE']
+    }
+
+    def 'exclusive field rule preserves incomplete recovery evidence and final state checks'() {
+        given:
+        def f = exclusiveFieldsFixture(false)
+        def gaps = []
+        def baseline = f.baseline
+        def finalState = f.finalState
+        if (condition == 'recovery') f.execution = execution('PARTIAL_COMPENSATED', 'EXACT',
+                [failedAction('p1')], [committedParticipant('p2')], [])
+        if (condition == 'two failed writers') f.execution = execution('COMPENSATED', 'EXACT',
+                [failedAction('p1'), failedAction('p2')], [compensatedParticipant('p1'), compensatedParticipant('p2')],
+                [compensatedLifecycle('p1'), compensatedLifecycle('p2')])
+        if (condition == 'snapshot gap') gaps = [new ImpactEvidence.CoverageGap('SNAPSHOT', 'baseline',
+                'PERSISTENT_ATTRIBUTE_UNSUPPORTED', 'unobserved value')]
+        if (condition == 'final revision') finalState = successor(finalState, 6, finalState.applicationData())
+
+        when:
+        def report = assess(f.execution, [baseline], [finalState], f.writes, [], gaps)
+
+        then:
+        report.completeScore() == null
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings().empty
+        category(report, 'FAILED_OPERATION_RESIDUAL').unknownReasons()*.reason().contains(reason)
+
+        where:
+        condition            | reason
+        'recovery'           | 'FAILED_SAGA_RECOVERY_INCOMPLETE'
+        'two failed writers' | 'FAILED_WRITER_IDENTITY_UNAVAILABLE'
+        'snapshot gap'       | 'PERSISTENT_ATTRIBUTE_UNSUPPORTED'
+        'final revision'     | 'FINAL_STATE_NOT_EXPLAINED_BY_TRACKED_WRITE'
+    }
+
+    def 'policy and field evidence round trip without relabelling retained legacy reports'() {
+        given:
+        def f = exclusiveFieldsFixture(false)
+        def report = assess(f.execution, [f.baseline], [f.finalState], f.writes)
+
+        when:
+        def json = MAPPER.writeValueAsString(report)
+        def reread = MAPPER.readValue(json, ImpactV2EvidenceReport)
+        def legacy = MAPPER.readTree(json)
+        legacy.remove('residualAssessmentPolicy')
+
+        then:
+        reread == report
+        MAPPER.treeToValue(legacy, ImpactV2EvidenceReport).residualAssessmentPolicy() == 'whole-object-single-writer-v1'
+    }
+
+    def 'multiple residual fields still count one object and distinguish null from absence'() {
+        given:
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [count: 1, participants: []])
+        def changed = successor(baseline, 2, [count: 2, participants: [], 'a/b~c': null])
+        def other = successor(changed, 3, [count: 2, participants: ['x'], 'a/b~c': null])
+        def execution = execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')])
+
+        when:
+        def report = assess(execution, [baseline], [other], [
+                write(1, changed, sagaWriter('p1', 'change', 'FORWARD')),
+                write(2, other, sagaWriter('p2', 'participants', 'FORWARD'))])
+
+        then:
+        report.completeScore() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').positiveObjectCount() == 1
+        category(report, 'FAILED_OPERATION_RESIDUAL').findings()*.affectedFields() ==
+                [['/applicationData/a~1b~0c', '/applicationData/count']]
+    }
+
+    private static Map exclusiveFieldsFixture(boolean restored) {
+        def identity = id('com.example.dummyapp.order.aggregate.Order', 2)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [labels: ['old'], participants: [], count: 10])
+        def other = successor(baseline, 2, [labels: ['old'], participants: ['x'], count: 10])
+        def failed = successor(other, 3, [labels: ['new'], participants: ['x'], count: 20])
+        def recovered = successor(failed, 4, [labels: restored ? ['old'] : [null], participants: ['x'], count: 10])
+        def finalState = successor(recovered, 5, [labels: recovered.applicationData().labels, participants: ['x', 'y'], count: 10])
+        [baseline: baseline, finalState: finalState,
+         execution: execution('PARTIAL_COMPENSATED', 'EXACT', [failedAction('p1')],
+                 [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')]),
+         writes: [write(1, other, sagaWriter('p2', 'other-before', 'FORWARD')),
+                  write(2, failed, sagaWriter('p1', 'update', 'FORWARD')),
+                  write(3, recovered, sagaWriter('p1', 'recover', 'RECOVERY')),
+                  write(4, finalState, sagaWriter('p2', 'other-after', 'FORWARD'))]]
+    }
+
+    private static Map eventResidualFixture(boolean restored) {
+        def identity = id('com.example.dummyapp.item.aggregate.Item', 1)
+        def baseline = snapshot(identity, 1, 'ACTIVE', [failedField: 'before', eventField: 'before'])
+        def failed = successor(baseline, 2, [failedField: 'forward', eventField: 'before'])
+        def recovered = successor(failed, 3,
+                [failedField: restored ? 'before' : 'residual', eventField: 'before'])
+        def finalState = successor(recovered, 4,
+                [failedField: recovered.applicationData().failedField, eventField: 'after'])
+        [baseline: baseline, recovered: recovered, finalState: finalState,
+         execution: execution('PARTIAL_COMPENSATED', 'EXACT', [
+                 failedAction('p1'), successfulEventAction('p2', 9)
+         ], [compensatedParticipant('p1'), committedParticipant('p2')], [compensatedLifecycle('p1')]),
+         writes: [write(1, failed, sagaWriter('p1', 'update', 'FORWARD')),
+                  write(2, recovered, sagaWriter('p1', 'recover', 'RECOVERY')),
+                  write(3, finalState, eventWriter(9))],
+         deliveries: [delivery(9, recovered, finalState, finalState, false)]]
+    }
+
+    private static List<Map<String, Object>> topicRows(Integer courseId, String firstName,
+                                                        boolean third) {
+        def rows = [[topicAggregateId: 5, topicCourseAggregateId: courseId,
+                     topicName: firstName, topicVersion: firstName == 'renamed' ? 2 : 1],
+                    [topicAggregateId: 6, topicCourseAggregateId: courseId,
+                     topicName: 'second', topicVersion: 1]]
+        if (third) rows << [topicAggregateId: 7, topicCourseAggregateId: 1,
+                            topicName: 'third', topicVersion: 1]
+        rows
+    }
+
+    private static ImpactEvidence.AggregateSnapshot successor(ImpactEvidence.AggregateSnapshot previous,
+                                                               long version, Map data, String lifecycle = 'ACTIVE') {
+        new ImpactEvidence.AggregateSnapshot(previous.identity(), version, lifecycle, previous.runtimeType(),
+                new ImpactEvidence.FrameworkMetadata(null, null, previous.identity(), previous.version(), null, null), data, [])
+    }
+
     private static ImpactV2EvidenceReport assess(ScenarioExecutionReport execution,
                                                   List<ImpactEvidence.AggregateSnapshot> baseline,
                                                   List<ImpactEvidence.AggregateSnapshot> finalState,
@@ -483,18 +947,19 @@ class ImpactV2AssessorSpec extends Specification {
                 'com.example.dummyapp.order.coordination.CreateOrderFunctionalitySagas', action, null)
     }
 
-    private static ImpactEvidence.Writer eventWriter(int eventId) {
-        new ImpactEvidence.Writer('EVENT_CONSUMER', 'attempt', 'workload', 'p2', 'event-action', 'EVENT',
-                'com.example.dummyapp.item.aggregate.ItemService', 'handle', eventId)
+    private static ImpactEvidence.Writer eventWriter(int eventId, String attempt = 'attempt') {
+        new ImpactEvidence.Writer('EVENT_CONSUMER', attempt, 'workload', 'p2', 'event-action', 'EVENT',
+                'FixtureHandling', 'handle', eventId)
     }
 
     private static ImpactEvidence.EventDelivery delivery(int eventId,
                                                          ImpactEvidence.AggregateSnapshot before,
                                                          ImpactEvidence.AggregateSnapshot after,
                                                          ImpactEvidence.AggregateSnapshot finalState,
-                                                         Boolean finalEligibility) {
+                                                         Boolean finalEligibility,
+                                                         ImpactEvidence.Writer writer = eventWriter(eventId)) {
         new ImpactEvidence.EventDelivery(10, eventId, 'OrderChanged', 2, 1L, before, after,
-                true, true, finalState, finalEligibility, eventWriter(eventId))
+                true, true, finalState, finalEligibility, writer)
     }
 
     private static ScenarioExecutionReport execution(String status = 'SUCCESS',

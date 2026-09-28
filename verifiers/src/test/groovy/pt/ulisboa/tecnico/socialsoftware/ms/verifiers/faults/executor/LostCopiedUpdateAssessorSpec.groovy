@@ -8,6 +8,20 @@ class LostCopiedUpdateAssessorSpec extends Specification {
     private static final def ASSESSOR = new LostCopiedUpdateAssessor()
     private static final def CARD = identity('CardAggregate', 1)
 
+    def 'diagnostic gap contexts do not alter fifth criterion assessment'() {
+        given:
+        def trace = positiveTrace('FORWARD')
+        trace.gaps = ['MISSING_COMMAND_SCOPE:example.Input']
+        def before = ASSESSOR.assess(trace, [snapshot(CARD, 1, cards('old', 'red'))])
+        when:
+        trace.gapContexts = [[reason: trace.gaps[0], hook: 'CONSTRUCTOR_COPY', order: 2,
+                              sourceType: 'example.Input', targetType: 'example.Stored']]
+        trace.gapContextsTruncated = false
+        def after = ASSESSOR.assess(trace, [snapshot(CARD, 1, cards('old', 'red'))])
+        then:
+        after == before
+    }
+
     @Unroll
     def 'groups a proved #phase copied overwrite into one finding'() {
         given:
@@ -240,6 +254,47 @@ class LostCopiedUpdateAssessorSpec extends Specification {
 
         expect:
         ASSESSOR.assess(trace, [snapshot(CARD, 1, cards(1, 'red'))]).findings().size() == 1
+    }
+
+    @Unroll
+    def 'saga construction requires transported copy and confirmed overwrite: #mode'() {
+        given:
+        def trace = positiveTrace('FORWARD')
+        def copy = trace.events.find { it.kind == 'CONSTRUCTOR_COPY' }
+        copy.order = 1
+        copy.data.sagaConstruction = true
+        copy.data.call = null
+        copy.data.key = 5
+        trace.contracts[0].targetKey = 'reference'
+        def input = trace.events.find { it.kind == 'COMMAND_INPUT' }
+        input.order = 2
+        input.data.values = ['$.stored': [type: 'fixture.StoredCard', copyOrders: [1], values: copy.data.values]]
+        def link = trace.events.find { it.kind == 'TRANSPORT_LINK' }
+        link.order = 3; link.kind = 'COPY_TRANSPORT_LINK'
+        link.data = [call: 2, copyOrder: 1, path: '$.stored', cloned: true]
+        def registration = trace.events.find { it.kind == 'REGISTERED_COPY' }
+        registration.data.copyOrder = 1
+        registration.data.transportLinkOrder = 3
+        if (mode == 'missing-link') trace.events.remove(link)
+        if (mode == 'wrong-origin') link.data.copyOrder = 99
+        if (mode == 'wrong-author') input.data.writer = writer('C', 'FORWARD')
+        if (mode == 'rollback') trace.events.removeAll { it.order == 6 }
+        if (mode == 'not-persisted') trace.events.remove(registration)
+        if (mode == 'changed') input.data.values.'$.stored'.values = [reference: 5, heading: 'changed']
+        when:
+        def report = ASSESSOR.assess(trace, [snapshot(CARD, 1, cards('old', 'red'))])
+        then:
+        report.findings().size() == count
+        report.coverageGaps().empty == complete
+        where:
+        mode            | count | complete
+        'valid'         | 1     | true
+        'missing-link'  | 0     | false
+        'wrong-origin'  | 0     | false
+        'wrong-author'  | 0     | false
+        'changed'       | 0     | false
+        'rollback'      | 0     | true
+        'not-persisted' | 0     | true
     }
 
     private static Map<String, Object> positiveTrace(String phase) {

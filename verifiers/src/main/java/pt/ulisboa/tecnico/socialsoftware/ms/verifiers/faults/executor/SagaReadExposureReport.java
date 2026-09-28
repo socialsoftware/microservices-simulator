@@ -44,7 +44,7 @@ public record SagaReadExposureReport(
     public static final String SCHEMA_VERSION = "microservices-simulator.saga-read-exposure.v2";
     public static final String SCOPE = "Exact declared outer-response contracts in measured synchronous Saga/local calls";
     public static final List<String> EXCLUDED_PATHS = List.of("SETUP", "OBSERVERS_AND_PROBES", "RECOVERY_READS",
-            "INTERNAL_READS", "LISTS_AND_PREDICATES", "NESTED_REFERENCES", "IN_MEMORY_REUSE", "EVENT_CONSUMERS",
+            "INTERNAL_READS", "LISTS_AND_PREDICATES", "NESTED_REFERENCES", "IN_MEMORY_REUSE", "EVENT_CONSUMER_READS",
             "UNMAPPED_COMMANDS", "GRPC_STREAM_TCC", "DIRECT_WRITES_OUTSIDE_FRAMEWORK");
 
     public SagaReadExposureReport {
@@ -94,8 +94,12 @@ public record SagaReadExposureReport(
     }
 
     /** The minimal source facts needed to audit an occurrence/checkpoint join. */
-    public record SourceContract(List<Occurrence> occurrences, List<Checkpoint> checkpoints) {
-        public SourceContract { occurrences = copy(occurrences); checkpoints = copy(checkpoints); }
+    public record SourceContract(List<Occurrence> occurrences, List<Checkpoint> checkpoints,
+                                 List<EventOccurrence> events) {
+        public SourceContract { occurrences = copy(occurrences); checkpoints = copy(checkpoints); events = copy(events); }
+        public SourceContract(List<Occurrence> occurrences, List<Checkpoint> checkpoints) {
+            this(occurrences, checkpoints, List.of());
+        }
         public static SourceContract from(WorkloadPlan workload) {
             if (workload == null) return new SourceContract(List.of(), List.of());
             return new SourceContract(workload.forwardSchedule().stream().map(step -> new Occurrence(
@@ -104,19 +108,25 @@ public record SagaReadExposureReport(
                     new Checkpoint(checkpoint.deterministicId(), checkpoint.sagaInstanceId(),
                             checkpoint.sourceScheduledStepId(), checkpoint.stepId(), checkpoint.runtimeStepName(),
                             checkpoint.occurrenceId(), checkpoint.evidenceClass() == null ? null
-                            : checkpoint.evidenceClass().name())).toList());
+                            : checkpoint.evidenceClass().name())).toList(), workload.eventConsequences().stream()
+                    .map(event -> new EventOccurrence(event.deterministicId(), event.triggerScheduledStepId(),
+                            event.eventTypeFqn(), event.eventHandlingClassFqn(), event.eventHandlingMethodName(),
+                            event.eventHandlerClassFqn())).toList());
         }
     }
     public record Occurrence(String id, String sagaInstanceId, String stepId, String runtimeStepName, int order) { }
     public record Checkpoint(String id, String sagaInstanceId, String sourceScheduledStepId, String stepId,
                              String runtimeStepName, String occurrenceId, String evidenceClass) { }
+    public record EventOccurrence(String id, String triggerScheduledStepId, String eventType,
+                                  String handlingClass, String handlingMethod, String handlerClass) { }
 
     /** Exception messages and setup values are deliberately absent. */
     public record Action(String id, String kind, String sagaInstanceId, String functionalityName,
                          String sourceScheduledStepId, String sourceStepId, String runtimeStepName,
                          String checkpointId, String compensationEvidenceClass, String runtimeOccurrenceId,
                          Integer plannedPosition, int actualPosition, String status, String bodyOutcome,
-                         String commitOutcome, List<Recovery> recovery) {
+                         String commitOutcome, List<Recovery> recovery, String eventConsequenceId,
+                         ScenarioExecutionReport.EventRuntimeEvidence eventEvidence) {
         public Action { recovery = copy(recovery); }
         static Action from(ScenarioExecutionReport.ActionOutcome value, ScenarioExecutionReport execution) {
             List<String> names = execution.participants().stream()
@@ -126,7 +136,8 @@ public record SagaReadExposureReport(
                     value.sourceScheduledStepId(), value.sourceStepId(), value.runtimeStepName(),
                     value.sourceCompensationCheckpointId(), value.compensationEvidenceClass(), value.runtimeOccurrenceId(),
                     value.plannedPosition(), value.actualPosition(), value.status(), value.bodyOutcome(), value.commitOutcome(),
-                    value.recoverySubOutcomes().stream().map(result -> new Recovery(result.kind(), result.status())).toList());
+                    value.recoverySubOutcomes().stream().map(result -> new Recovery(result.kind(), result.status())).toList(),
+                    value.sourceEventConsequenceId(), value.eventEvidence());
         }
     }
     public record Recovery(String kind, String status) { }

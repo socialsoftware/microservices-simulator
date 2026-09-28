@@ -129,6 +129,15 @@ final class SagaReadExposureAssessor {
         Revision revision = produced.revision();
         if (!Objects.equals(revision.runtimeType(), read.contract().runtimeType()))
             return Decision.unknown("PERSISTENT_RUNTIME_TYPE_COLLISION");
+        if (produced.writer() != null && "EVENT_CONSUMER".equals(produced.writer().kind())) {
+            Action delivery = index.eventAction(produced);
+            if (delivery == null) return Decision.unknown("EVENT_PRODUCER_ACTION_UNPROVEN");
+            if (produced.order() >= call.order() || delivery.actualPosition() >= readerAction.actualPosition())
+                return Decision.unknown("EVENT_DELIVERY_ORDER_UNPROVEN");
+            // Selected synchronous deliveries are indivisible executor actions. The read occurs
+            // after the handler returned; the publisher's Saga lifecycle does not own this write.
+            return Decision.negative("EVENT_DELIVERY_COMPLETED_BEFORE_READ");
+        }
         Action producerAction = index.forwardAction(produced.writer());
         if (producerAction == null) {
             Action producingAction = index.action(produced.writer());
@@ -312,6 +321,7 @@ final class SagaReadExposureAssessor {
         private final Map<String, List<Action>> committedBySaga;
         private final Map<String, List<Occurrence>> occurrences;
         private final Map<String, List<Checkpoint>> checkpoints;
+        private final Map<String, List<EventOccurrence>> events;
         private final List<Action> actual;
         private final long lastOrder;
 
@@ -330,6 +340,7 @@ final class SagaReadExposureAssessor {
                     && value.sagaInstanceId() != null).toList(), Action::sagaInstanceId);
             occurrences = group(source.occurrences().stream().filter(value -> value.id() != null).toList(), Occurrence::id);
             checkpoints = group(source.checkpoints().stream().filter(value -> value.id() != null).toList(), Checkpoint::id);
+            events = group(source.events().stream().filter(value -> value.id() != null).toList(), EventOccurrence::id);
             lastOrder = writes.stream().mapToLong(Write::order).max().orElse(0);
         }
 
@@ -337,6 +348,45 @@ final class SagaReadExposureAssessor {
             return writer != null && "SAGA".equals(writer.kind()) && Objects.equals(attemptId, writer.executionAttemptId())
                     && Objects.equals(workloadId, writer.workloadPlanId()) && !blank(writer.sagaInstanceId())
                     && !blank(writer.actionId()) && !blank(writer.functionalityName()) && !blank(writer.stepName());
+        }
+
+        Action eventAction(Write produced) {
+            ImpactEvidence.Writer writer = produced.writer();
+            if (!"EVENT".equals(writer.phase()) || !Objects.equals(attemptId, writer.executionAttemptId())
+                    || !Objects.equals(workloadId, writer.workloadPlanId()) || blank(writer.actionId())
+                    || blank(writer.sagaInstanceId()) || writer.eventId() == null) return null;
+            List<Action> matches = actions.getOrDefault(writer.actionId(), List.of());
+            if (matches.size() != 1) return null;
+            Action action = matches.getFirst();
+            var evidence = action.eventEvidence();
+            if (!"EVENT_CONSEQUENCE".equals(action.kind()) || !"COMPLETED".equals(action.status())
+                    || !"SUCCEEDED".equals(action.bodyOutcome()) || evidence == null
+                    || !Objects.equals(writer.sagaInstanceId(), action.sagaInstanceId())
+                    || !Objects.equals(writer.eventId(), evidence.eventId())
+                    || !Objects.equals(produced.revision().identity().aggregateId(), evidence.subscriberAggregateId())
+                    || !Objects.equals(writer.functionalityName(), evidence.eventHandlingClassFqn())
+                    || !Objects.equals(writer.stepName(), evidence.eventHandlingMethodName())) return null;
+            List<EventOccurrence> routes = events.getOrDefault(action.eventConsequenceId(), List.of());
+            if (routes.size() != 1) return null;
+            EventOccurrence route = routes.getFirst();
+            List<Occurrence> triggers = occurrences.getOrDefault(route.triggerScheduledStepId(), List.of());
+            if (triggers.size() != 1 || !sameSource(action, triggers.getFirst())
+                    || !Objects.equals(action.sourceScheduledStepId(), route.triggerScheduledStepId())
+                    || !Objects.equals(action.runtimeOccurrenceId(), route.id())
+                    || !sameEventType(evidence.eventTypeFqn(), route.eventType())
+                    || !Objects.equals(evidence.eventHandlingClassFqn(), route.handlingClass())
+                    || !Objects.equals(evidence.eventHandlingMethodName(), route.handlingMethod())
+                    || !Objects.equals(evidence.eventHandlerClassFqn(), route.handlerClass())) return null;
+            return action;
+        }
+
+        private boolean sameEventType(String runtime, String declared) {
+            // Exported routes may use a simple event name, as the executor's route check does.
+            // Identity still requires the exact event ID, action, handler and receiver above.
+            if (Objects.equals(runtime, declared)) return runtime != null;
+            if (runtime == null || declared == null || declared.contains(".")) return false;
+            int separator = Math.max(runtime.lastIndexOf('.'), runtime.lastIndexOf('$'));
+            return runtime.substring(separator + 1).equals(declared);
         }
 
         Action action(ImpactEvidence.Writer writer) {

@@ -26,6 +26,79 @@ class SagaReadExposureSpec extends Specification {
         System.clearProperty(SagaReadExposureCollector.ENABLED_PROPERTY)
     }
 
+    def 'completed event delivery owns its write independently of later publisher compensation'() {
+        when:
+        def result = assess(eventFixture())
+
+        then:
+        result.collectionCoverage() == 'COMPLETE_WITHIN_SCOPE'
+        result.observedExposureCount() == 0
+        result.assessments()[0].reason() == 'EVENT_DELIVERY_COMPLETED_BEFORE_READ'
+        result.sourceContract().events()[0].id() == 'event-1'
+        result.actions()[0].eventEvidence().eventId() == 23
+    }
+
+    def 'simple source event type still needs the exact runtime event and handler'() {
+        given:
+        def data = eventFixture()
+        data.sources = new SourceContract(data.sources.occurrences(), data.sources.checkpoints(),
+                [change(data.sources.events()[0], [eventType: 'Event'])])
+
+        expect:
+        assess(data).collectionCoverage() == 'COMPLETE_WITHIN_SCOPE'
+    }
+
+    @Unroll
+    def 'event writer proof remains unknown for #caseName'() {
+        given:
+        def data = eventFixture()
+        mutation(data)
+
+        when:
+        def result = assess(data)
+
+        then:
+        result.collectionCoverage() == 'PARTIAL'
+        result.assessments()[0].verdict() == 'UNKNOWN'
+        result.observedExposureCount() == 0
+
+        where:
+        caseName | mutation
+        'old attempt' | { it.events[0].writer = change(it.events[0].writer, [executionAttemptId: 'old']) }
+        'wrong workload' | { it.events[0].writer = change(it.events[0].writer, [workloadPlanId: 'other']) }
+        'wrong event' | { it.events[0].writer = change(it.events[0].writer, [eventId: 24]) }
+        'wrong handling method' | { it.events[0].writer = change(it.events[0].writer, [stepName: 'other']) }
+        'wrong phase' | { it.events[0].writer = change(it.events[0].writer, [phase: 'FORWARD']) }
+        'missing source route' | { it.sources = new SourceContract(it.sources.occurrences(), it.sources.checkpoints()) }
+        'ambiguous route' | { it.sources = new SourceContract(it.sources.occurrences(), it.sources.checkpoints(), it.sources.events()*2) }
+        'ambiguous action' | { it.execution = change(it.execution, [actualActions: it.execution.actualActions()+it.execution.actualActions()[0]]) }
+        'wrong receiver' | { changeEvent(it, [eventEvidence: change(it.execution.actualActions()[0].eventEvidence(), [subscriberAggregateId: 8])]) }
+        'wrong handler' | { changeEvent(it, [eventEvidence: change(it.execution.actualActions()[0].eventEvidence(), [eventHandlerClassFqn: 'other'])]) }
+        'wrong event type' | { changeEvent(it, [eventEvidence: change(it.execution.actualActions()[0].eventEvidence(), [eventTypeFqn: 'other.Event'])]) }
+        'wrong trigger' | { changeEvent(it, [sourceScheduledStepId: 'source-read']) }
+        'wrong occurrence' | { changeEvent(it, [runtimeOccurrenceId: 'other']) }
+        'failed delivery' | { changeEvent(it, [status: 'EVENT_CONSEQUENCE_FAILED', bodyOutcome: 'FAILED']) }
+        'empty delivery' | { changeEvent(it, [status: 'NO_ELIGIBLE_SUBSCRIBER', bodyOutcome: 'NOT_RUN']) }
+        'delivery after reader' | { changeEvent(it, [actualPosition: 4]) }
+    }
+
+    private static void changeEvent(Map data, Map updates) {
+        data.execution = change(data.execution, [actualActions: data.execution.actualActions().collect {
+            it.actionId() == 'action-create' ? change(it, updates) : it }])
+    }
+
+    private static Map eventFixture() {
+        def data = fixture()
+        data.sources = new SourceContract(data.sources.occurrences(), data.sources.checkpoints(),
+                [new EventOccurrence('event-1', 'source-create', 'dummy.Event', 'dummy.Handling', 'handle', 'dummy.Handler')])
+        data.events[0].writer = new ImpactEvidence.Writer('EVENT_CONSUMER', 'attempt', 'workload', 'A',
+                'action-create', 'EVENT', 'dummy.Handling', 'handle', 23)
+        changeEvent(data, [kind: 'EVENT_CONSEQUENCE', sourceEventConsequenceId: 'event-1', runtimeOccurrenceId: 'event-1',
+                eventEvidence: new ScenarioExecutionReport.EventRuntimeEvidence(23, 'dummy.Event', 2, 5L, true,
+                        7, 'dummy.Handling', 'handle', 'dummy.Handler')])
+        data
+    }
+
     def 'dummyapp creation delivered to a reader without writes is observed with metadata-only self-contained proof'() {
         when:
         def result = assess(fixture())

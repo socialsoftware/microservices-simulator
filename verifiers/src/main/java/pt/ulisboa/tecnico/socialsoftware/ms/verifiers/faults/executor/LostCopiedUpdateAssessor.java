@@ -100,12 +100,17 @@ public final class LostCopiedUpdateAssessor {
         }
         JsonNode copy = construction.data();
         Long readOrder = longValue(copy.get("readOrder"));
-        Long inputOrder = longValue(copy.get("call"));
+        boolean sagaConstruction = copy.path("sagaConstruction").asBoolean(false);
+        Event copyTransport = indexed.get(longValue(registered.get("transportLinkOrder")));
+        Long inputOrder = sagaConstruction && copyTransport != null
+                ? longValue(copyTransport.data().get("call")) : longValue(copy.get("call"));
         Event read = readOrder == null ? null : indexed.get(readOrder);
         Event input = inputOrder == null ? null : indexed.get(inputOrder);
         if (read == null || !"RESPONSE".equals(read.kind()) || input == null
                 || !"COMMAND_INPUT".equals(input.kind())
-                || !(read.order() < input.order() && input.order() < construction.order())) {
+                || !(sagaConstruction
+                    ? read.order() < construction.order() && construction.order() < input.order()
+                    : read.order() < input.order() && input.order() < construction.order())) {
             gap(gaps, registration.order(), "ORIGIN", identity.toString(),
                     "RESPONSE_INPUT_COPY_CHAIN_UNAVAILABLE", "Missing or unordered response/input/copy chain");
             return;
@@ -172,7 +177,9 @@ public final class LostCopiedUpdateAssessor {
         }
 
         JsonNode contract = matchingContracts.get(0);
-        if (!validSourceChain(copy, read, input, construction.order(), indexed.values(), contract)) {
+        if (!(sagaConstruction
+                ? validSagaChain(copy, read, input, construction, copyTransport, registration, contract)
+                : validSourceChain(copy, read, input, construction.order(), indexed.values(), contract))) {
             gap(gaps, construction.order(), "ORIGIN", identity.toString(),
                     "DISCONNECTED_RESPONSE_INPUT_COPY_CHAIN",
                     "Response, transported command input and constructor copy do not form one observed value chain");
@@ -232,6 +239,34 @@ public final class LostCopiedUpdateAssessor {
                     old.deepCopy(), beforeValue.deepCopy(), read.order(), input.order(), construction.order(),
                     foreign.order(), after.order(), predecessorWriter));
         });
+    }
+
+    private boolean validSagaChain(JsonNode copy, Event read, Event input, Event construction,
+                                   Event link, Event registration, JsonNode contract) {
+        if (link == null || !"COPY_TRANSPORT_LINK".equals(link.kind())
+                || !Objects.equals(longValue(link.data().get("copyOrder")), construction.order())
+                || !(input.order() < link.order() && link.order() < registration.order())) return false;
+        Actor reader = actor(copy.path("readWriter"));
+        if (reader == null || !reader.equals(actor(copy.path("writer")))
+                || !reader.equals(actor(input.data().path("writer")))
+                || !reader.equals(actor(registration.data().path("writer")))
+                || !equivalent(copy.path("readWriter"), read.data().path("writer"))) return false;
+        String readPath = text(copy.get("readPath"));
+        String path = text(link.data().get("path"));
+        if (readPath == null || path == null || !sourceItemMatches(
+                read.data().path("values").get(readPath), text(copy.get("sourceType")),
+                copy.path("values"), contract)) return false;
+        JsonNode item = input.data().path("values").path(path);
+        if (!Objects.equals(text(copy.get("targetType")), text(item.get("type")))
+                || !array(item.path("copyOrders")).stream()
+                        .anyMatch(n -> Objects.equals(longValue(n), construction.order()))) return false;
+        var fields = copy.path("values").fields();
+        while (fields.hasNext()) {
+            var field = fields.next();
+            if (!equivalent(field.getValue(), item.path("values").get(field.getKey()))) return false;
+        }
+        String key = text(contract.get("targetKey"));
+        return key != null && equivalent(copy.get("key"), item.path("values").get(key));
     }
 
     private boolean validSourceChain(JsonNode copy, Event read, Event input, long constructionOrder,

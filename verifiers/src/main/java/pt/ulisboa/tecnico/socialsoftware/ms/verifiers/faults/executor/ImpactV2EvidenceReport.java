@@ -28,10 +28,13 @@ public record ImpactV2EvidenceReport(
         List<ImpactEvidence.AggregateSnapshot> finalState,
         List<ImpactEvidence.CommittedWrite> committedWrites,
         List<ImpactEvidence.EventDelivery> eventDeliveries,
-        List<ImpactEvidence.CoverageGap> coverageGaps) {
+        List<ImpactEvidence.CoverageGap> coverageGaps,
+        String residualAssessmentPolicy) {
 
     public static final String SCHEMA_VERSION =
             "microservices-simulator.scenario-impact-v2-assessment.v1";
+    public static final String RESIDUAL_POLICY = "exclusive-keyed-list-fields-v4";
+    public static final String LEGACY_RESIDUAL_POLICY = "whole-object-single-writer-v1";
 
     public ImpactV2EvidenceReport {
         schemaVersion = schemaVersion == null ? SCHEMA_VERSION : schemaVersion;
@@ -41,6 +44,9 @@ public record ImpactV2EvidenceReport(
         committedWrites = copy(committedWrites);
         eventDeliveries = copy(eventDeliveries);
         coverageGaps = copy(coverageGaps);
+        // Reading a retained report must not label its old assessment with the new rule.
+        residualAssessmentPolicy = residualAssessmentPolicy == null
+                ? LEGACY_RESIDUAL_POLICY : residualAssessmentPolicy;
     }
 
     public record CategoryResult(
@@ -70,10 +76,18 @@ public record ImpactV2EvidenceReport(
             ImpactEvidence.AggregateIdentity relatedObject,
             Integer eventId,
             List<String> actionIds,
-            List<Long> versions) {
+            List<Long> versions,
+            @JsonInclude(JsonInclude.Include.NON_EMPTY) List<String> affectedFields) {
+        public Finding(String category, String reason, ImpactEvidence.AggregateIdentity affectedObject,
+                       ImpactEvidence.AggregateIdentity relatedObject, Integer eventId,
+                       List<String> actionIds, List<Long> versions) {
+            this(category, reason, affectedObject, relatedObject, eventId, actionIds, versions, List.of());
+        }
+
         public Finding {
             actionIds = copy(actionIds);
             versions = copy(versions);
+            affectedFields = copy(affectedFields);
         }
     }
 
