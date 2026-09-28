@@ -1,0 +1,1447 @@
+{
+  "completed": 32,
+  "excludedAsync": 4,
+  "rows": [
+    {
+      "candidate": "07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13/attempt-002/attempt.json",
+      "newAttemptSha256": "eb409d9e281546c20b4d8527c1fc2019335291184b3f8a8c459c60d36001831c",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "09cc4268fc29185213d6328ff413b42ba83ec2cb90d342d7e0f7c3f66388d304",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/09cc4268fc29185213d6328ff413b42ba83ec2cb90d342d7e0f7c3f66388d304/attempt-002/attempt.json",
+      "newAttemptSha256": "9866cf9cf20b026d8d5e298e205ba6d943aa3e2fa745b28ac292ddfc1c501508",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "1e4b12f07788fd366401d308ea0bf6b1bc99f83cc1f67eeef1adb7e72dcf07c3",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/1e4b12f07788fd366401d308ea0bf6b1bc99f83cc1f67eeef1adb7e72dcf07c3/attempt-002/attempt.json",
+      "newAttemptSha256": "754481658f026635ffd47bf5004fab1f79553e27769629e7575a768f968053a1",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "1fbe5c49e00b5fc42b3f795064142165989fa0b17cf09d77f2472ff03fb45edf",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/1fbe5c49e00b5fc42b3f795064142165989fa0b17cf09d77f2472ff03fb45edf/attempt-002/attempt.json",
+      "newAttemptSha256": "f2aa211a8a18e5a841353cf40bc6067b421a109774dd3bbb156095d4c226db6e",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "35f5141f7aead760b41806f27b0ff80eff7c4001cfaf5dc7da25b25f0ae89d4f",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/35f5141f7aead760b41806f27b0ff80eff7c4001cfaf5dc7da25b25f0ae89d4f/attempt-002/attempt.json",
+      "newAttemptSha256": "58f4e6b975dc0e5e6f831ffe2860e7e4bfa77cdd39b5681f14babd2c3d53d68d",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "3fcf15ebcfce513df26ecf9bd5998ff6603fe8513b461f418cd89c013064f98a",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/3fcf15ebcfce513df26ecf9bd5998ff6603fe8513b461f418cd89c013064f98a/attempt-002/attempt.json",
+      "newAttemptSha256": "a1f3f07b61bdc9784acfb8363c6b41689ab44994b07183e8b53af1585bb99723",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "4143e80dfbc6f2d4fd3f54d2942cd360ee261e535463c0cdccea6597a4ca1648",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/4143e80dfbc6f2d4fd3f54d2942cd360ee261e535463c0cdccea6597a4ca1648/attempt-002/attempt.json",
+      "newAttemptSha256": "785404ca72af7d86b08d64480fd2f00431427158f1fe32327210aa1c5ccc2364",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "56fb08546ad6b3dfe508e7da934a6fdea53716c2effb1e44013a92e35d732d9b",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/56fb08546ad6b3dfe508e7da934a6fdea53716c2effb1e44013a92e35d732d9b/attempt-002/attempt.json",
+      "newAttemptSha256": "be7a53518b970b988284a80c39f228b0ac355ffe0e182b95ab1fa72d172880b8",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "5713239418cf0b72b00d97ed42f6e4be5310f9671787f80b74f5bfacee2db138",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/5713239418cf0b72b00d97ed42f6e4be5310f9671787f80b74f5bfacee2db138/attempt-002/attempt.json",
+      "newAttemptSha256": "d72fd138f987b8ccdf854e39d26b0971b6a7e472124da9dc08b3b4a9180f7540",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "5bc4681d7f68b942262c04366dadf5ad9b3a883162fc83d30c8cc6863cd9654a",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/5bc4681d7f68b942262c04366dadf5ad9b3a883162fc83d30c8cc6863cd9654a/attempt-002/attempt.json",
+      "newAttemptSha256": "c1f666c819aa003d7396db94c8f62df4b34504d50837efdc775aed07ee6526bf",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "621b9951e6f4328146abe2d32ed3f1f0cb34f0e17319f391cf4f79b5d38c15e6",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/621b9951e6f4328146abe2d32ed3f1f0cb34f0e17319f391cf4f79b5d38c15e6/attempt-002/attempt.json",
+      "newAttemptSha256": "7adab218a8923cafa5fe6c417431a074f36aec8130670ddf95f5fe434ca33de9",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "62798c1f3e47bd85ba39a1a5a4e88a2b312f95b7b6ef40b922f8d2ecdb0f25c4",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/62798c1f3e47bd85ba39a1a5a4e88a2b312f95b7b6ef40b922f8d2ecdb0f25c4/attempt-002/attempt.json",
+      "newAttemptSha256": "3cba9f2739cfce1a2ca3c4fa72a14dc6f5d9eb5e8268d1e4848fba77dd595284",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "64c412f39c3170e7e490655b75f66b8e4bbaee9f8acea104704d191354a2dada",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/64c412f39c3170e7e490655b75f66b8e4bbaee9f8acea104704d191354a2dada/attempt-002/attempt.json",
+      "newAttemptSha256": "13fa7e58eed89853ab37290c6b80a333bda8333f35e349b4784c8e79b6945db5",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "99477c40a5f814d4431d20d182f099d42a64e3cbedf07e6dc51d029e3f11dfca",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/99477c40a5f814d4431d20d182f099d42a64e3cbedf07e6dc51d029e3f11dfca/attempt-002/attempt.json",
+      "newAttemptSha256": "7503c0848d126d65cc3f0978404cc7828b5fbc579c07807262cef0d7ada35621",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "9bfac46ec348bc0f03f3f5df8b9a4702727bfaf01f1a2ccf5fe80fbaacc4e24b",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/9bfac46ec348bc0f03f3f5df8b9a4702727bfaf01f1a2ccf5fe80fbaacc4e24b/attempt-002/attempt.json",
+      "newAttemptSha256": "6e91bcf4efb38110e9a18aa934c753620220dabe3fb0c2fc3a64b6e54eb1ee14",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658/attempt-002/attempt.json",
+      "newAttemptSha256": "899f4fa0a2fc6f6610ce24e836857ef0941414dd76fbc27f17b61471322156b2",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "bbef46696e77f385d83270edd9ce159434d6c65404fda873145b8f0e296a575d",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/bbef46696e77f385d83270edd9ce159434d6c65404fda873145b8f0e296a575d/attempt-002/attempt.json",
+      "newAttemptSha256": "7ce029467c278bd38b56e70ee6851e2eb82410c4fb225a48452b5f6f144e78b9",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "c28dc56250ea2e4b5eb7a720cbdf9fc6d97f063c32eae422369f8b41eaa49b6a",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/c28dc56250ea2e4b5eb7a720cbdf9fc6d97f063c32eae422369f8b41eaa49b6a/attempt-002/attempt.json",
+      "newAttemptSha256": "53ad4eaad9d6f7da9bfc18a49973a054b0de6931d19ec39deb432e122e2f768c",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "c78bf3ecb6692f73efa56626f154d3a5a704ba83a4bca71d159222de5abf2a84",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/c78bf3ecb6692f73efa56626f154d3a5a704ba83a4bca71d159222de5abf2a84/attempt-002/attempt.json",
+      "newAttemptSha256": "ff357cdb746903fbe7082534aa4e48a8b52f95e80e95b9af6ff73b4de177f377",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "e7476c3f83f315dcc291de2d114cbfa6098f24bf934e21f02a87bccf0e322f9c",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/e7476c3f83f315dcc291de2d114cbfa6098f24bf934e21f02a87bccf0e322f9c/attempt-002/attempt.json",
+      "newAttemptSha256": "d9b3a5695cb7de41584ecc8e6694b7de639fda0c635f2fd49a8eeb16a2be862c",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "eee88be48f0766de812c38616518eb0354535c3128059bc286970585f7b5f601",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/eee88be48f0766de812c38616518eb0354535c3128059bc286970585f7b5f601/attempt-002/attempt.json",
+      "newAttemptSha256": "debe096a1f034e12920383281ea7e4224291633d774286e86095e91914373e08",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "f7e1432f000910e1da6819966be7d666e84be03979bf94e9fe25419ba9f49f22",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/f7e1432f000910e1da6819966be7d666e84be03979bf94e9fe25419ba9f49f22/attempt-002/attempt.json",
+      "newAttemptSha256": "1f3319e4a83950ba9d1b90e4db26f81a1d151ead40edd42c820b5c8fb577f014",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "status": "COMPLETE",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094/attempt-002/attempt.json",
+      "newAttemptSha256": "37bcb93c675174ebc7c7bc3d0e1c4b04ff55443ca4ae469f5cb0c3f842ac0ca8",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "0a4fd9faede245aa58cd14537d6c48856668681aab7ff1540c2c3de04fc3b871",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/0a4fd9faede245aa58cd14537d6c48856668681aab7ff1540c2c3de04fc3b871/attempt-002/attempt.json",
+      "newAttemptSha256": "c17c65b3925204a44019c1cd05a657a3cdf16bdd18d28acb8eefd1ce88d7c4fa",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397/attempt-002/attempt.json",
+      "newAttemptSha256": "b6524fc76a88513c084f6f27a8b6e31486ef5a0dc144c8de56b186dd119a6309",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "3e2d841d683fd69f70840c72b34bb3542b31a65804bf54d1df7ab5bcbe48531e",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/3e2d841d683fd69f70840c72b34bb3542b31a65804bf54d1df7ab5bcbe48531e/attempt-002/attempt.json",
+      "newAttemptSha256": "1d37853b40abdb71211a1c67b2df53df61efc3134e8083af4d70a6cf0d10aa48",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "4dafd832c467ece98fd8a8607549b59661e1da8c070f61ce2ab6e81756fb6dbf",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/4dafd832c467ece98fd8a8607549b59661e1da8c070f61ce2ab6e81756fb6dbf/attempt-002/attempt.json",
+      "newAttemptSha256": "96169f3f284e56bc665329d92c9493aafd04c096766cc566b2efd4bdef717258",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "548420aeaf7c778486703ef6628706a55e6b58069654641277a837f15dfe0225",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/548420aeaf7c778486703ef6628706a55e6b58069654641277a837f15dfe0225/attempt-002/attempt.json",
+      "newAttemptSha256": "89d2268c644677b651209e97e5d5705d25a6766e89fcd2a4904a9abc2be19dfe",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "5624ea143212ac3c58dce5c80ea6b8090e16913a40378342efe663fed42c5fdd",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/5624ea143212ac3c58dce5c80ea6b8090e16913a40378342efe663fed42c5fdd/attempt-002/attempt.json",
+      "newAttemptSha256": "0893bf8170193528a214b94bbddbf1722054605391d263b5df1b1833ab72f00c",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "65cfaba6e68933c345a1ae2fb4af05de92a9ce566b9bda6198604f64f6b89e8c",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateTopic + UpdateTopic",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/65cfaba6e68933c345a1ae2fb4af05de92a9ce566b9bda6198604f64f6b89e8c/attempt-002/attempt.json",
+      "newAttemptSha256": "ce031c34ab78772eaefd04f9a4ff8182e6c6102bc8e1efdd73d278a29cb6f8a1",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "status": "COMPLETE",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateCourseExecution + CreateQuestion",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b/attempt-002/attempt.json",
+      "newAttemptSha256": "1aa28143d4edb0021d4f7c9cf1e3af98d3e47ca65ccc1071bf32c1fa296acfc2",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+      "oldReferenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+      "status": "COMPLETE",
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    },
+    {
+      "candidate": "53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd",
+      "copyCount": 0,
+      "copyCoverage": "COMPLETE_WITHIN_SCOPE",
+      "copyGaps": [],
+      "family": "CreateCourseExecution + CreateQuestion",
+      "fitness": {
+        "fitnessComponents": {
+          "COMPENSATED_READ_EXPOSURE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "DELETED_DEPENDENCY": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE",
+            "observedCount": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "count": 0,
+            "coverage": "COMPLETE",
+            "observedCount": 0
+          }
+        },
+        "fitnessScore": 0.0,
+        "fitnessUnavailableReasons": []
+      },
+      "newAttempt": "verifiers/target/saga-copy-transport-2026-09-28/53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd/attempt-002/attempt.json",
+      "newAttemptSha256": "3996c3deb5a643644fdb6bb24aa16da60fedc868d40eff425ed5203644ee4f1e",
+      "oldCopyCoverage": "INCOMPLETE",
+      "oldReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+      "oldReferenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+      "status": "COMPLETE",
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    }
+  ],
+  "selected": 270
+}

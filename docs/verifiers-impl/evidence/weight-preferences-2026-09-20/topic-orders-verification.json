@@ -1,0 +1,161 @@
+{
+  "batch": "topic-orders",
+  "archiveSha256": "4f14fd3f542df57b6703d3e9016735a22b895278e6091b3632250d58bbde96d0",
+  "archiveBytes": 76678042,
+  "attemptReportSetsVerified": 98,
+  "receiptsVerified": 95,
+  "workloads": [
+    {
+      "name": "recovery-late-event",
+      "workload": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+      "family": null,
+      "stage": "COMPLETE",
+      "control": "SUCCESS/EXACT/COMPLETE_ZERO",
+      "archiveSha256": "4f14fd3f542df57b6703d3e9016735a22b895278e6091b3632250d58bbde96d0",
+      "candidates": 62,
+      "scores": {
+        "zero": 26,
+        "positive": 20,
+        "unavailable": 16
+      },
+      "positiveComponents": {
+        "FAILED_OPERATION_RESIDUAL": 20
+      },
+      "positiveComponentsRegardlessOfOverallAvailability": {
+        "FAILED_OPERATION_RESIDUAL": 20,
+        "LOST_COPIED_UPDATE": 2
+      },
+      "lostUpdateWitnesses": [
+        {
+          "candidate": "370e7ea70bdcfabd7872830711ca39655d1d25d832cf05cb8ff3ec13c1fd1322",
+          "overallScore": null,
+          "components": {
+            "DELETED_DEPENDENCY": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE"
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "observedCount": 0,
+              "count": null,
+              "coverage": "PARTIAL"
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE"
+            },
+            "COMPENSATED_READ_EXPOSURE": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE"
+            },
+            "LOST_COPIED_UPDATE": {
+              "observedCount": 1,
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE"
+            }
+          }
+        },
+        {
+          "candidate": "58d85a63828ae55fe8b46a9d50516757fc96223fadfd456b360d7accd0c9d2b6",
+          "overallScore": null,
+          "components": {
+            "DELETED_DEPENDENCY": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE"
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "observedCount": 0,
+              "count": null,
+              "coverage": "PARTIAL"
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE"
+            },
+            "COMPENSATED_READ_EXPOSURE": {
+              "observedCount": 0,
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE"
+            },
+            "LOST_COPIED_UPDATE": {
+              "observedCount": 1,
+              "count": 1,
+              "coverage": "COMPLETE_WITHIN_SCOPE"
+            }
+          }
+        }
+      ],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json"
+    },
+    {
+      "name": "forward-between-read-write",
+      "workload": "3daab108dc89814c41963d784172bca4636d8589cba46dfd8d58f545e732b6c4",
+      "family": null,
+      "stage": "POSITIVE_NO_FAULT_CONTROL",
+      "control": null,
+      "archiveSha256": "4f14fd3f542df57b6703d3e9016735a22b895278e6091b3632250d58bbde96d0",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": 1.0,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 1,
+            "count": 1,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          }
+        },
+        "fitnessUnavailableReasons": []
+      }
+    },
+    {
+      "name": "no-event",
+      "workload": "4d36f10b68efc977d9495444fdf2f181b1df64b788d474c897b0e98f33ab2f7e",
+      "family": null,
+      "stage": "COMPLETE",
+      "control": "SUCCESS/EXACT/COMPLETE_ZERO",
+      "archiveSha256": "4f14fd3f542df57b6703d3e9016735a22b895278e6091b3632250d58bbde96d0",
+      "candidates": 35,
+      "scores": {
+        "zero": 20,
+        "positive": 15
+      },
+      "positiveComponents": {
+        "FAILED_OPERATION_RESIDUAL": 15
+      },
+      "positiveComponentsRegardlessOfOverallAvailability": {
+        "FAILED_OPERATION_RESIDUAL": 15
+      },
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json"
+    }
+  ],
+  "scope": "Structurally selected extension; retained controls and complete/partial maps; fixed runtime and qualified event-origin assessor."
+}

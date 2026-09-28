@@ -1,0 +1,12 @@
+{
+  "checked": 28,
+  "seed": 1,
+  "budgets": [
+    16,
+    64
+  ],
+  "comparedAgainst": 256,
+  "matchedFields": "entire decision rows including candidates, rewards, choices and context hashes",
+  "status": "PASS",
+  "combinedArmPending": true
+}

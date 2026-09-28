@@ -1,0 +1,130 @@
+[
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/UpdateTournament-FindTournament/BRUTE_FORCE/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/UpdateTournament-FindTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/GetCourseExecutionById-FindTournament/BRUTE_FORCE/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/GetCourseExecutionById-FindTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/GetCourseExecutionById-UpdateTournament/BRUTE_FORCE/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20/GetCourseExecutionById-UpdateTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20-next1/GetCourseExecutionById-UpdateTournament/BRUTE_FORCE/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  },
+  {
+    "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-preservation-2026-09-20-next1/GetCourseExecutionById-UpdateTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json",
+    "validated": true,
+    "recordFiles": [
+      "accounting",
+      "copy-contracts",
+      "faultScenarios",
+      "inputs",
+      "interactions",
+      "manifest",
+      "requests",
+      "sagas",
+      "setups",
+      "workloads"
+    ]
+  }
+]

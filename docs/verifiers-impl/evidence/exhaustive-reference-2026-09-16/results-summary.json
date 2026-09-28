@@ -1,0 +1,79 @@
+{
+  "candidateCount": 186,
+  "commonMeasuredHorizon": 184,
+  "completeZeroCount": 72,
+  "knownPositiveCount": 112,
+  "meanPositivesAtCommonHorizon": {
+    "ga": 110,
+    "random": 110.06666666666666
+  },
+  "mode": "RECORDED_FEEDBACK_SEARCH_NOT_LIVE_TIMING",
+  "runsReachingAllKnownPositives": {
+    "ga": 23,
+    "random": 27
+  },
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "unknownCount": 2,
+  "elapsedMinutes": 53.759567197163896,
+  "checkpoints": {
+    "ga": {
+      "25": 12.033333333333333,
+      "50": 26.033333333333335,
+      "100": 54.93333333333333,
+      "150": 85.16666666666667,
+      "184": 110
+    },
+    "random": {
+      "25": 8.833333333333334,
+      "50": 18.833333333333332,
+      "100": 45.43333333333333,
+      "150": 80,
+      "184": 110.06666666666666
+    }
+  },
+  "repeatAgreement": {
+    "matching": 6,
+    "total": 6
+  },
+  "stops": {
+    "ga": {
+      "BUDGET": 23,
+      "PROPOSAL_STALL": 7
+    },
+    "random": {
+      "BUDGET": 27,
+      "PROPOSAL_STALL": 3
+    }
+  }
+}

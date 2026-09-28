@@ -1,0 +1,127 @@
+[ {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas" ],
+  "faultScenarios" : 148,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 21,
+  "materializedScenarios" : 148
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas" ],
+  "faultScenarios" : 30,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 5,
+  "materializedScenarios" : 30
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas" ],
+  "faultScenarios" : 788,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 56,
+  "materializedScenarios" : 788
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas" ],
+  "faultScenarios" : 295,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 19,
+  "materializedScenarios" : 295
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 48,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 7,
+  "materializedScenarios" : 48
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 48,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 7,
+  "materializedScenarios" : 48
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas" ],
+  "faultScenarios" : 9896,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 420,
+  "materializedScenarios" : 9896
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas" ],
+  "faultScenarios" : 328,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 10,
+  "materializedScenarios" : 328
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas" ],
+  "faultScenarios" : 1824,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 112,
+  "materializedScenarios" : 1824
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas" ],
+  "faultScenarios" : 732,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 41,
+  "materializedScenarios" : 732
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 496,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 32,
+  "materializedScenarios" : 496
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 496,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 32,
+  "materializedScenarios" : 496
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas" ],
+  "faultScenarios" : 170304,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 3200,
+  "materializedScenarios" : 170304
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveUserFromCourseExecutionFunctionalitySagas" ],
+  "faultScenarios" : 2208,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 30,
+  "materializedScenarios" : 2208
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas" ],
+  "faultScenarios" : 48528,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 600,
+  "materializedScenarios" : 48528
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas" ],
+  "faultScenarios" : 972,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 9,
+  "materializedScenarios" : 972
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 6240,
+  "schedule" : "ORDER_PRESERVING_INTERLEAVING",
+  "workloads" : 180,
+  "materializedScenarios" : 6240
+}, {
+  "status" : "PASS",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "faultScenarios" : 6240,
+  "schedule" : "SEGMENT_COMPRESSED",
+  "workloads" : 180,
+  "materializedScenarios" : 6240
+} ]

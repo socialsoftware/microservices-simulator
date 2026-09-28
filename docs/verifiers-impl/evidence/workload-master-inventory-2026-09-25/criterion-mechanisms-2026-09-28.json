@@ -1,0 +1,1778 @@
+{
+  "giantMaps": {
+    "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "n": 3360,
+          "known": 3348,
+          "unknown": 12,
+          "positive": 150,
+          "score": 150.0,
+          "meanKnown": 0.044802867383512544,
+          "scorePerScenario": 0.044642857142857144
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "n": 3360,
+          "known": 3330,
+          "unknown": 30,
+          "positive": 2622,
+          "score": 2672.0,
+          "meanKnown": 0.8024024024024023,
+          "scorePerScenario": 0.7952380952380952
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "n": 3360,
+          "known": 3348,
+          "unknown": 12,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "n": 3360,
+          "known": 3348,
+          "unknown": 12,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        },
+        "LOST_COPIED_UPDATE": {
+          "n": 3360,
+          "known": 3348,
+          "unknown": 12,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        }
+      },
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/workloads.jsonl",
+      "structuralProfileSha256": "38e4c7103786eddb8769f698807ea95fac41b3b050eeb40a5a28082a605f06d9",
+      "inputs": [
+        "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828",
+        "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9",
+        "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6",
+        "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+      ],
+      "ordinarySchedule": [
+        {
+          "id": "s1",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "getUserStep#0",
+          "faultSlot": 0
+        },
+        {
+          "id": "s2",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "addParticipantStep#0",
+          "faultSlot": 1
+        },
+        {
+          "id": "s3",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "getOldTournamentStep#0",
+          "faultSlot": 2
+        },
+        {
+          "id": "s4",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getOriginalTournamentStep#0",
+          "faultSlot": 3
+        },
+        {
+          "id": "s5",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getTopicsStep#0",
+          "faultSlot": 4
+        },
+        {
+          "id": "s6",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateTournamentStep#0",
+          "faultSlot": 5
+        },
+        {
+          "id": "s7",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "findQuestionsByTopicIds#0",
+          "faultSlot": 6
+        },
+        {
+          "id": "s8",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateQuizStep#0",
+          "faultSlot": 7
+        },
+        {
+          "id": "s9",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "getTournamentStep#0",
+          "faultSlot": 8
+        },
+        {
+          "id": "s10",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "leaveTournamentStep#0",
+          "faultSlot": 9
+        },
+        {
+          "id": "s11",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeQuizStep#0",
+          "faultSlot": 10
+        },
+        {
+          "id": "s12",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeTournamentStep#0",
+          "faultSlot": 11
+        }
+      ],
+      "participants": [
+        {
+          "id": "p1",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+          "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+        },
+        {
+          "id": "p2",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+          "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+        },
+        {
+          "id": "p3",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+          "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+        },
+        {
+          "id": "p4",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+        }
+      ]
+    },
+    "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "n": 3918,
+          "known": 3700,
+          "unknown": 218,
+          "positive": 1782,
+          "score": 1782.0,
+          "meanKnown": 0.48162162162162164,
+          "scorePerScenario": 0.4548238897396631
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "n": 3918,
+          "known": 3700,
+          "unknown": 218,
+          "positive": 3222,
+          "score": 4654.0,
+          "meanKnown": 1.2578378378378379,
+          "scorePerScenario": 1.187850944359367
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "n": 3918,
+          "known": 3700,
+          "unknown": 218,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "n": 3918,
+          "known": 3668,
+          "unknown": 250,
+          "positive": 1858,
+          "score": 3152.0,
+          "meanKnown": 0.8593238822246456,
+          "scorePerScenario": 0.8044920877998979
+        },
+        "LOST_COPIED_UPDATE": {
+          "n": 3918,
+          "known": 3700,
+          "unknown": 218,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        }
+      },
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/workloads.jsonl",
+      "structuralProfileSha256": "38e4c7103786eddb8769f698807ea95fac41b3b050eeb40a5a28082a605f06d9",
+      "inputs": [
+        "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828",
+        "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9",
+        "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6",
+        "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+      ],
+      "ordinarySchedule": [
+        {
+          "id": "s1",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "getUserStep#0",
+          "faultSlot": 0
+        },
+        {
+          "id": "s2",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "addParticipantStep#0",
+          "faultSlot": 1
+        },
+        {
+          "id": "s3",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getOriginalTournamentStep#0",
+          "faultSlot": 2
+        },
+        {
+          "id": "s4",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getTopicsStep#0",
+          "faultSlot": 3
+        },
+        {
+          "id": "s5",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateTournamentStep#0",
+          "faultSlot": 4
+        },
+        {
+          "id": "s6",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "findQuestionsByTopicIds#0",
+          "faultSlot": 5
+        },
+        {
+          "id": "s7",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateQuizStep#0",
+          "faultSlot": 6
+        },
+        {
+          "id": "s8",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "getOldTournamentStep#0",
+          "faultSlot": 7
+        },
+        {
+          "id": "s9",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "getTournamentStep#0",
+          "faultSlot": 8
+        },
+        {
+          "id": "s10",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeQuizStep#0",
+          "faultSlot": 9
+        },
+        {
+          "id": "s11",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "leaveTournamentStep#0",
+          "faultSlot": 10
+        },
+        {
+          "id": "s12",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeTournamentStep#0",
+          "faultSlot": 11
+        }
+      ],
+      "participants": [
+        {
+          "id": "p1",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+          "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+        },
+        {
+          "id": "p2",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+          "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+        },
+        {
+          "id": "p3",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+          "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+        },
+        {
+          "id": "p4",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+        }
+      ]
+    },
+    "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "n": 5184,
+          "known": 4950,
+          "unknown": 234,
+          "positive": 2090,
+          "score": 2090.0,
+          "meanKnown": 0.4222222222222222,
+          "scorePerScenario": 0.40316358024691357
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "n": 5184,
+          "known": 4704,
+          "unknown": 480,
+          "positive": 4047,
+          "score": 5712.0,
+          "meanKnown": 1.2142857142857142,
+          "scorePerScenario": 1.1018518518518519
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "n": 5184,
+          "known": 4950,
+          "unknown": 234,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "n": 5184,
+          "known": 4870,
+          "unknown": 314,
+          "positive": 2581,
+          "score": 3498.0,
+          "meanKnown": 0.7182751540041068,
+          "scorePerScenario": 0.6747685185185185
+        },
+        "LOST_COPIED_UPDATE": {
+          "n": 5184,
+          "known": 4950,
+          "unknown": 234,
+          "positive": 0,
+          "score": 0.0,
+          "meanKnown": 0.0,
+          "scorePerScenario": 0.0
+        }
+      },
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/input-package/workloads.jsonl",
+      "structuralProfileSha256": "38e4c7103786eddb8769f698807ea95fac41b3b050eeb40a5a28082a605f06d9",
+      "inputs": [
+        "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828",
+        "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9",
+        "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6",
+        "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+      ],
+      "ordinarySchedule": [
+        {
+          "id": "s1",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "getUserStep#0",
+          "faultSlot": 0
+        },
+        {
+          "id": "s2",
+          "kind": "step",
+          "participant": "p1",
+          "sagaStep": "addParticipantStep#0",
+          "faultSlot": 1
+        },
+        {
+          "id": "s3",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getOriginalTournamentStep#0",
+          "faultSlot": 2
+        },
+        {
+          "id": "s4",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "getTopicsStep#0",
+          "faultSlot": 3
+        },
+        {
+          "id": "s5",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateTournamentStep#0",
+          "faultSlot": 4
+        },
+        {
+          "id": "s6",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "findQuestionsByTopicIds#0",
+          "faultSlot": 5
+        },
+        {
+          "id": "s7",
+          "kind": "step",
+          "participant": "p4",
+          "sagaStep": "updateQuizStep#0",
+          "faultSlot": 6
+        },
+        {
+          "id": "s8",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "getOldTournamentStep#0",
+          "faultSlot": 7
+        },
+        {
+          "id": "s9",
+          "kind": "step",
+          "participant": "p2",
+          "sagaStep": "leaveTournamentStep#0",
+          "faultSlot": 8
+        },
+        {
+          "id": "s10",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "getTournamentStep#0",
+          "faultSlot": 9
+        },
+        {
+          "id": "s11",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeQuizStep#0",
+          "faultSlot": 10
+        },
+        {
+          "id": "s12",
+          "kind": "step",
+          "participant": "p3",
+          "sagaStep": "removeTournamentStep#0",
+          "faultSlot": 11
+        }
+      ],
+      "participants": [
+        {
+          "id": "p1",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+          "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+        },
+        {
+          "id": "p2",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+          "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+        },
+        {
+          "id": "p3",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+          "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+        },
+        {
+          "id": "p4",
+          "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+          "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+        }
+      ]
+    }
+  },
+  "criterionAllocations": {
+    "DELETED_DEPENDENCY": {
+      "S-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 2833.0,
+            "positive": 2833,
+            "unknown": 252
+          },
+          {
+            "seed": 11,
+            "score": 2811.0,
+            "positive": 2808,
+            "unknown": 230
+          },
+          {
+            "seed": 29,
+            "score": 2825.0,
+            "positive": 2821,
+            "unknown": 235
+          },
+          {
+            "seed": 47,
+            "score": 2846.0,
+            "positive": 2843,
+            "unknown": 219
+          },
+          {
+            "seed": 73,
+            "score": 2805.0,
+            "positive": 2801,
+            "unknown": 248
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 2546.6,
+            "cumulativeScore": 138.0,
+            "positiveDiscoveries": 138
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2526.6,
+            "cumulativeScore": 1350.0,
+            "positiveDiscoveries": 1350
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 2551.8,
+            "cumulativeScore": 1261.4,
+            "positiveDiscoveries": 1261.4
+          }
+        }
+      },
+      "SP-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 3379.0,
+            "positive": 3374,
+            "unknown": 352
+          },
+          {
+            "seed": 11,
+            "score": 3302.0,
+            "positive": 3297,
+            "unknown": 324
+          },
+          {
+            "seed": 29,
+            "score": 2633.0,
+            "positive": 2628,
+            "unknown": 272
+          },
+          {
+            "seed": 47,
+            "score": 2939.0,
+            "positive": 2934,
+            "unknown": 286
+          },
+          {
+            "seed": 73,
+            "score": 2178.0,
+            "positive": 2173,
+            "unknown": 239
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 367.2,
+            "cumulativeScore": 44.0,
+            "positiveDiscoveries": 44
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2470,
+            "cumulativeScore": 1145.8,
+            "positiveDiscoveries": 1145.8
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3643.6,
+            "cumulativeScore": 1608.2,
+            "positiveDiscoveries": 1608.2
+          }
+        }
+      },
+      "P-local": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 3013.0,
+            "positive": 3008,
+            "unknown": 281
+          },
+          {
+            "seed": 11,
+            "score": 3077.0,
+            "positive": 3072,
+            "unknown": 285
+          },
+          {
+            "seed": 29,
+            "score": 3099.0,
+            "positive": 3094,
+            "unknown": 284
+          },
+          {
+            "seed": 47,
+            "score": 3100.0,
+            "positive": 3095,
+            "unknown": 268
+          },
+          {
+            "seed": 73,
+            "score": 3070.0,
+            "positive": 3065,
+            "unknown": 281
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 8.8,
+            "cumulativeScore": 0.4,
+            "positiveDiscoveries": 0.4
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2789.6,
+            "cumulativeScore": 1446.4,
+            "positiveDiscoveries": 1446.4
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3264.4,
+            "cumulativeScore": 1536.4,
+            "positiveDiscoveries": 1536.4
+          }
+        }
+      },
+      "H0": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 3013.0,
+            "positive": 3008,
+            "unknown": 281
+          },
+          {
+            "seed": 11,
+            "score": 3077.0,
+            "positive": 3072,
+            "unknown": 285
+          },
+          {
+            "seed": 29,
+            "score": 3099.0,
+            "positive": 3094,
+            "unknown": 284
+          },
+          {
+            "seed": 47,
+            "score": 3100.0,
+            "positive": 3095,
+            "unknown": 268
+          },
+          {
+            "seed": 73,
+            "score": 3070.0,
+            "positive": 3065,
+            "unknown": 281
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 8.8,
+            "cumulativeScore": 0.4,
+            "positiveDiscoveries": 0.4
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2789.6,
+            "cumulativeScore": 1446.4,
+            "positiveDiscoveries": 1446.4
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3264.4,
+            "cumulativeScore": 1536.4,
+            "positiveDiscoveries": 1536.4
+          }
+        }
+      },
+      "H1-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 3177.0,
+            "positive": 3172,
+            "unknown": 306
+          },
+          {
+            "seed": 11,
+            "score": 3196.0,
+            "positive": 3191,
+            "unknown": 306
+          },
+          {
+            "seed": 29,
+            "score": 3221.0,
+            "positive": 3216,
+            "unknown": 300
+          },
+          {
+            "seed": 47,
+            "score": 3232.0,
+            "positive": 3227,
+            "unknown": 290
+          },
+          {
+            "seed": 73,
+            "score": 3187.0,
+            "positive": 3182,
+            "unknown": 305
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 6.4,
+            "cumulativeScore": 0.2,
+            "positiveDiscoveries": 0.2
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2982.2,
+            "cumulativeScore": 1511.6,
+            "positiveDiscoveries": 1511.6
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3479.6,
+            "cumulativeScore": 1608.0,
+            "positiveDiscoveries": 1608
+          }
+        }
+      },
+      "UCB-independent": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 2433.0,
+            "positive": 2428,
+            "unknown": 215
+          },
+          {
+            "seed": 11,
+            "score": 2425.0,
+            "positive": 2420,
+            "unknown": 207
+          },
+          {
+            "seed": 29,
+            "score": 2453.0,
+            "positive": 2448,
+            "unknown": 210
+          },
+          {
+            "seed": 47,
+            "score": 2445.0,
+            "positive": 2440,
+            "unknown": 186
+          },
+          {
+            "seed": 73,
+            "score": 2353.0,
+            "positive": 2348,
+            "unknown": 203
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 35.2,
+            "cumulativeScore": 4.2,
+            "positiveDiscoveries": 4.2
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2661.2,
+            "cumulativeScore": 1402.6,
+            "positiveDiscoveries": 1402.6
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 1771,
+            "cumulativeScore": 926.0,
+            "positiveDiscoveries": 926
+          }
+        }
+      }
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "S-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 8888.0,
+            "positive": 6603,
+            "unknown": 369
+          },
+          {
+            "seed": 11,
+            "score": 8774.0,
+            "positive": 6527,
+            "unknown": 351
+          },
+          {
+            "seed": 29,
+            "score": 8819.0,
+            "positive": 6531,
+            "unknown": 375
+          },
+          {
+            "seed": 47,
+            "score": 8624.0,
+            "positive": 6431,
+            "unknown": 363
+          },
+          {
+            "seed": 73,
+            "score": 8779.0,
+            "positive": 6532,
+            "unknown": 348
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 2603.4,
+            "cumulativeScore": 2135.8,
+            "positiveDiscoveries": 2092
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2578.6,
+            "cumulativeScore": 3350.6,
+            "positiveDiscoveries": 2201.6
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 2606,
+            "cumulativeScore": 3209.2,
+            "positiveDiscoveries": 2150
+          }
+        }
+      },
+      "SP-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 9404.0,
+            "positive": 6508,
+            "unknown": 568
+          },
+          {
+            "seed": 11,
+            "score": 9280.0,
+            "positive": 6486,
+            "unknown": 538
+          },
+          {
+            "seed": 29,
+            "score": 9168.0,
+            "positive": 6354,
+            "unknown": 589
+          },
+          {
+            "seed": 47,
+            "score": 9288.0,
+            "positive": 6440,
+            "unknown": 557
+          },
+          {
+            "seed": 73,
+            "score": 9119.0,
+            "positive": 6318,
+            "unknown": 561
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 112.8,
+            "cumulativeScore": 97.4,
+            "positiveDiscoveries": 96.4
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3584.6,
+            "cumulativeScore": 4337.2,
+            "positiveDiscoveries": 2967.8
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 4119.6,
+            "cumulativeScore": 4750.6,
+            "positiveDiscoveries": 3290.4
+          }
+        }
+      },
+      "P-local": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 8830.0,
+            "positive": 6121,
+            "unknown": 486
+          },
+          {
+            "seed": 11,
+            "score": 8687.0,
+            "positive": 6040,
+            "unknown": 592
+          },
+          {
+            "seed": 29,
+            "score": 7761.0,
+            "positive": 5971,
+            "unknown": 278
+          },
+          {
+            "seed": 47,
+            "score": 8965.0,
+            "positive": 6193,
+            "unknown": 592
+          },
+          {
+            "seed": 73,
+            "score": 9018.0,
+            "positive": 6310,
+            "unknown": 518
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 545.2,
+            "cumulativeScore": 459.0,
+            "positiveDiscoveries": 449.6
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3239.4,
+            "cumulativeScore": 3977.8,
+            "positiveDiscoveries": 2701
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3546,
+            "cumulativeScore": 4063.8,
+            "positiveDiscoveries": 2824.8
+          }
+        }
+      },
+      "H0": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 8799.0,
+            "positive": 6093,
+            "unknown": 486
+          },
+          {
+            "seed": 11,
+            "score": 8738.0,
+            "positive": 6058,
+            "unknown": 603
+          },
+          {
+            "seed": 29,
+            "score": 7844.0,
+            "positive": 5993,
+            "unknown": 293
+          },
+          {
+            "seed": 47,
+            "score": 8994.0,
+            "positive": 6211,
+            "unknown": 593
+          },
+          {
+            "seed": 73,
+            "score": 9100.0,
+            "positive": 6276,
+            "unknown": 570
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 462.4,
+            "cumulativeScore": 388.0,
+            "positiveDiscoveries": 380
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3197,
+            "cumulativeScore": 3943.2,
+            "positiveDiscoveries": 2667.8
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3705.8,
+            "cumulativeScore": 4231.4,
+            "positiveDiscoveries": 2946
+          }
+        }
+      },
+      "H1-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 9091.0,
+            "positive": 6310,
+            "unknown": 508
+          },
+          {
+            "seed": 11,
+            "score": 9177.0,
+            "positive": 6367,
+            "unknown": 547
+          },
+          {
+            "seed": 29,
+            "score": 7343.0,
+            "positive": 5866,
+            "unknown": 248
+          },
+          {
+            "seed": 47,
+            "score": 9261.0,
+            "positive": 6400,
+            "unknown": 566
+          },
+          {
+            "seed": 73,
+            "score": 9287.0,
+            "positive": 6400,
+            "unknown": 611
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 605.4,
+            "cumulativeScore": 488.8,
+            "positiveDiscoveries": 479.6
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3696.2,
+            "cumulativeScore": 4450.0,
+            "positiveDiscoveries": 3055.4
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3257.4,
+            "cumulativeScore": 3764.6,
+            "positiveDiscoveries": 2605.2
+          }
+        }
+      },
+      "UCB-independent": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 8247.0,
+            "positive": 5688,
+            "unknown": 440
+          },
+          {
+            "seed": 11,
+            "score": 8172.0,
+            "positive": 5653,
+            "unknown": 443
+          },
+          {
+            "seed": 29,
+            "score": 8156.0,
+            "positive": 5630,
+            "unknown": 443
+          },
+          {
+            "seed": 47,
+            "score": 8148.0,
+            "positive": 5630,
+            "unknown": 462
+          },
+          {
+            "seed": 73,
+            "score": 8122.0,
+            "positive": 5623,
+            "unknown": 443
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 40.4,
+            "cumulativeScore": 35.8,
+            "positiveDiscoveries": 35.6
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3260,
+            "cumulativeScore": 4037.0,
+            "positiveDiscoveries": 2728.6
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3166.8,
+            "cumulativeScore": 3796.8,
+            "positiveDiscoveries": 2581.2
+          }
+        }
+      }
+    },
+    "COMPENSATED_READ_EXPOSURE": {
+      "S-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 4101.0,
+            "positive": 2680,
+            "unknown": 284
+          },
+          {
+            "seed": 11,
+            "score": 4028.0,
+            "positive": 2612,
+            "unknown": 286
+          },
+          {
+            "seed": 29,
+            "score": 4106.0,
+            "positive": 2693,
+            "unknown": 292
+          },
+          {
+            "seed": 47,
+            "score": 4014.0,
+            "positive": 2629,
+            "unknown": 289
+          },
+          {
+            "seed": 73,
+            "score": 4109.0,
+            "positive": 2685,
+            "unknown": 307
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 2419,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 2408,
+            "cumulativeScore": 2149.8,
+            "positiveDiscoveries": 1258.2
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 2434.2,
+            "cumulativeScore": 1871.0,
+            "positiveDiscoveries": 1350.8
+          }
+        }
+      },
+      "SP-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 5671.0,
+            "positive": 3686,
+            "unknown": 456
+          },
+          {
+            "seed": 11,
+            "score": 5617.0,
+            "positive": 3819,
+            "unknown": 478
+          },
+          {
+            "seed": 29,
+            "score": 3212.0,
+            "positive": 1918,
+            "unknown": 261
+          },
+          {
+            "seed": 47,
+            "score": 5467.0,
+            "positive": 3738,
+            "unknown": 453
+          },
+          {
+            "seed": 73,
+            "score": 3236.0,
+            "positive": 1942,
+            "unknown": 259
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 127.2,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3256.8,
+            "cumulativeScore": 2706.6,
+            "positiveDiscoveries": 1591.6
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 2765.8,
+            "cumulativeScore": 1903.2,
+            "positiveDiscoveries": 1398.2
+          }
+        }
+      },
+      "P-local": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 5470.0,
+            "positive": 3568,
+            "unknown": 433
+          },
+          {
+            "seed": 11,
+            "score": 5527.0,
+            "positive": 3588,
+            "unknown": 416
+          },
+          {
+            "seed": 29,
+            "score": 4932.0,
+            "positive": 3151,
+            "unknown": 362
+          },
+          {
+            "seed": 47,
+            "score": 5526.0,
+            "positive": 3601,
+            "unknown": 423
+          },
+          {
+            "seed": 73,
+            "score": 5492.0,
+            "positive": 3587,
+            "unknown": 425
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 3.8,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3764.8,
+            "cumulativeScore": 3057.6,
+            "positiveDiscoveries": 1801.8
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3122.6,
+            "cumulativeScore": 2318.2,
+            "positiveDiscoveries": 1683.6
+          }
+        }
+      },
+      "H0": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 5470.0,
+            "positive": 3568,
+            "unknown": 433
+          },
+          {
+            "seed": 11,
+            "score": 5529.0,
+            "positive": 3589,
+            "unknown": 416
+          },
+          {
+            "seed": 29,
+            "score": 4932.0,
+            "positive": 3151,
+            "unknown": 362
+          },
+          {
+            "seed": 47,
+            "score": 5526.0,
+            "positive": 3601,
+            "unknown": 423
+          },
+          {
+            "seed": 73,
+            "score": 5492.0,
+            "positive": 3587,
+            "unknown": 425
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 3.8,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3764.6,
+            "cumulativeScore": 3057.6,
+            "positiveDiscoveries": 1801.8
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3122.8,
+            "cumulativeScore": 2318.6,
+            "positiveDiscoveries": 1683.8
+          }
+        }
+      },
+      "H1-cal": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 5665.0,
+            "positive": 3685,
+            "unknown": 455
+          },
+          {
+            "seed": 11,
+            "score": 5535.0,
+            "positive": 3583,
+            "unknown": 416
+          },
+          {
+            "seed": 29,
+            "score": 4971.0,
+            "positive": 3187,
+            "unknown": 365
+          },
+          {
+            "seed": 47,
+            "score": 5361.0,
+            "positive": 3635,
+            "unknown": 435
+          },
+          {
+            "seed": 73,
+            "score": 5669.0,
+            "positive": 3708,
+            "unknown": 442
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 3,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3594.4,
+            "cumulativeScore": 2929.2,
+            "positiveDiscoveries": 1726
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 3422,
+            "cumulativeScore": 2494.6,
+            "positiveDiscoveries": 1817.2
+          }
+        }
+      },
+      "UCB-independent": {
+        "seeds": [
+          {
+            "seed": 1,
+            "score": 4477.0,
+            "positive": 2820,
+            "unknown": 353
+          },
+          {
+            "seed": 11,
+            "score": 4673.0,
+            "positive": 2947,
+            "unknown": 337
+          },
+          {
+            "seed": 29,
+            "score": 4514.0,
+            "positive": 2843,
+            "unknown": 332
+          },
+          {
+            "seed": 47,
+            "score": 4623.0,
+            "positive": 2912,
+            "unknown": 345
+          },
+          {
+            "seed": 73,
+            "score": 4596.0,
+            "positive": 2921,
+            "unknown": 348
+          }
+        ],
+        "giants": {
+          "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d": {
+            "allocations": 10.4,
+            "cumulativeScore": 0.0,
+            "positiveDiscoveries": 0
+          },
+          "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5": {
+            "allocations": 3886.8,
+            "cumulativeScore": 3134.8,
+            "positiveDiscoveries": 1847.4
+          },
+          "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a": {
+            "allocations": 1776.4,
+            "cumulativeScore": 1414.4,
+            "positiveDiscoveries": 1013.8
+          }
+        }
+      }
+    }
+  },
+  "topFamilies": {
+    "DELETED_DEPENDENCY": [
+      [
+        "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+        4022.0
+      ],
+      [
+        "RemoveTournament + UpdateTournament",
+        32.0
+      ],
+      [
+        "AddParticipant + LeaveTournament + RemoveTournament",
+        29.0
+      ],
+      [
+        "RemoveCourseExecution",
+        9.0
+      ],
+      [
+        "FindTournament + RemoveTournament",
+        8.0
+      ],
+      [
+        "DeleteTopic",
+        6.0
+      ],
+      [
+        "RemoveTournament",
+        2.0
+      ],
+      [
+        "FindQuiz + RemoveTournament",
+        2.0
+      ],
+      [
+        "RemoveQuestion",
+        1.0
+      ],
+      [
+        "AddStudent + RemoveStudentFromCourseExecution",
+        0.0
+      ]
+    ],
+    "FAILED_OPERATION_RESIDUAL": [
+      [
+        "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+        13038.0
+      ],
+      [
+        "FindQuiz + UpdateTopic + UpdateTournament",
+        550.0
+      ],
+      [
+        "AddParticipant + FindTournament + UpdateTournament",
+        516.0
+      ],
+      [
+        "UpdateTopic + UpdateTournament",
+        208.0
+      ],
+      [
+        "CreateQuestion + CreateTournamentAsync",
+        117.0
+      ],
+      [
+        "AddParticipant + LeaveTournament + UpdateTournament",
+        114.0
+      ],
+      [
+        "AddParticipant + UpdateTournament",
+        64.0
+      ],
+      [
+        "CreateCourseExecution + CreateQuestion",
+        47.0
+      ],
+      [
+        "RemoveTournament + UpdateTournament",
+        34.0
+      ],
+      [
+        "AddParticipant + LeaveTournament + RemoveTournament",
+        29.0
+      ]
+    ],
+    "UNRESOLVED_DELIVERED_EVENT": [
+      [
+        "FindQuestionByAggregateId + UpdateQuestion",
+        7.0
+      ],
+      [
+        "DeleteTopic",
+        1.0
+      ],
+      [
+        "UpdateQuestion",
+        1.0
+      ],
+      [
+        "AddStudent + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AddParticipant + GetCourseExecutionById + UpdateStudentName",
+        0.0
+      ],
+      [
+        "AddParticipant + FindTournament + UpdateTournament",
+        0.0
+      ],
+      [
+        "CreateTournament + UpdateStudentName",
+        0.0
+      ],
+      [
+        "AddParticipant + UpdateStudentName",
+        0.0
+      ]
+    ],
+    "COMPENSATED_READ_EXPOSURE": [
+      [
+        "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+        6650.0
+      ],
+      [
+        "AddParticipant + FindTournament + UpdateTournament",
+        76.0
+      ],
+      [
+        "AddParticipant + LeaveTournament + UpdateTournament",
+        52.0
+      ],
+      [
+        "FindTournament + UpdateTournament",
+        4.0
+      ],
+      [
+        "AddStudent + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AddParticipant + GetCourseExecutionById + UpdateStudentName",
+        0.0
+      ],
+      [
+        "CreateTournament + UpdateStudentName",
+        0.0
+      ],
+      [
+        "AddParticipant + UpdateStudentName",
+        0.0
+      ]
+    ],
+    "LOST_COPIED_UPDATE": [
+      [
+        "FindQuiz + UpdateTopic + UpdateTournament",
+        18.0
+      ],
+      [
+        "UpdateTopic + UpdateTournament",
+        10.0
+      ],
+      [
+        "FindTournament + UpdateTopic + UpdateTournament",
+        4.0
+      ],
+      [
+        "AddStudent + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+        0.0
+      ],
+      [
+        "AddParticipant + GetCourseExecutionById + UpdateStudentName",
+        0.0
+      ],
+      [
+        "AddParticipant + FindTournament + UpdateTournament",
+        0.0
+      ],
+      [
+        "CreateTournament + UpdateStudentName",
+        0.0
+      ],
+      [
+        "AddParticipant + UpdateStudentName",
+        0.0
+      ]
+    ]
+  },
+  "residualSeed29Episode": {
+    "H1-cal": {
+      "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+      "choices": 3,
+      "score": 1.0,
+      "firstThree": [
+        {
+          "decision": 124,
+          "score": 1.0,
+          "choice": {
+            "index": 1.5107936320976663,
+            "estimate": 0.5756910747586611,
+            "uncertainty": 0.9351025573390053,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 1.5107936320976663,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        },
+        {
+          "decision": 125,
+          "score": 0.0,
+          "choice": {
+            "index": 2.2493330551670923,
+            "estimate": 0.8164456213577747,
+            "uncertainty": 1.4328874338093174,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 2.2493330551670923,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        },
+        {
+          "decision": 5446,
+          "score": 0.0,
+          "choice": {
+            "index": 0.9282433780180978,
+            "estimate": 0.2569183115970636,
+            "uncertainty": 0.6713250664210342,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 0.9282433780180978,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        }
+      ]
+    },
+    "SP-cal": {
+      "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+      "choices": 4845,
+      "score": 5425.0,
+      "firstThree": [
+        {
+          "decision": 210,
+          "score": 1.0,
+          "choice": {
+            "index": 0.9632272343136903,
+            "estimate": 0.6711091867800973,
+            "uncertainty": 0.2921180475335929,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 0.9632272343136903,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        },
+        {
+          "decision": 220,
+          "score": 0.0,
+          "choice": {
+            "index": 0.9741143492083619,
+            "estimate": 0.7254089546074844,
+            "uncertainty": 0.24870539460087754,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 0.9741143492083619,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        },
+        {
+          "decision": 221,
+          "score": 0.0,
+          "choice": {
+            "index": 0.9410396825358021,
+            "estimate": 0.7030800543151836,
+            "uncertainty": 0.23795962822061847,
+            "tie": {
+              "rule": "seeded-near-maximum-v1",
+              "candidates": [
+                "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+              ],
+              "maximumIndex": 0.9410396825358021,
+              "selectedGap": 0.0,
+              "draw": null
+            }
+          }
+        }
+      ]
+    }
+  },
+  "scope": "Post-hoc descriptive analysis of frozen maps and existing traces; no model, observer or reference changes and no new experiment.",
+  "limits": [
+    "Criterion rankings concentrate on one Saga family and do not show universal criterion-policy suitability.",
+    "Hybrid versus local-progress differences are smaller than hybrid versus structure-only.",
+    "Interpretation of shared versus local learning remains confounded by exploration calibration and few seeds.",
+    "Historical maps retain different runtime provenance; matching structural vectors and inputs is not a controlled runtime experiment."
+  ],
+  "sourceHashes": {
+    "verifiers/target/allocator-formal-full-2026-09-28/inputs.json": "a9cde3a1cc62b8cd93213bbf2429b384fe67b142b4f4f0e06807ae89911e5dc3",
+    "docs/verifiers-impl/evidence/workload-master-inventory-2026-09-25/master-inventory-2026-09-28.json": "6870d8e7b92c5bde549d7264c79ac18c300aaf2ad4a2f273cab18c3eb9d395c4",
+    "docs/verifiers-impl/evidence/workload-master-inventory-2026-09-25/ucb-addendum-2026-09-28.json": "9d61ca2545dd56493df5a9d469a5077492c89c57699c47f697616c2c79dd3b3e",
+    "verifiers/target/allocator-formal-full-2026-09-28/FAILED_OPERATION_RESIDUAL-H1-cal-seed29-budget8000.json.gz": "16a3518aa19386fa6af69f5504e7f24571591693bcd7358a573be0ea969278f5",
+    "verifiers/target/allocator-formal-full-2026-09-28/FAILED_OPERATION_RESIDUAL-SP-cal-seed29-budget8000.json.gz": "24c2d43443be1be3c4a27afe4636f93dade23062d22fadc5e9859f563c7d227f"
+  }
+}

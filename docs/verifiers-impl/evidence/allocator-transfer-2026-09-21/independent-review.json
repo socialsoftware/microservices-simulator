@@ -1,0 +1,21 @@
+{
+  "status": "PASS",
+  "checks": [
+    "training: exact candidate/reward/GA-operator parity with original allocator; cold target indices also identical",
+    "structural-cold: exact candidate/reward/GA-operator parity with original allocator; cold target indices also identical",
+    "progress-cold: exact candidate/reward/GA-operator parity with original allocator; cold target indices also identical",
+    "All training contexts reconstructed from prior feedback only",
+    "structural: transferred initial estimates and uncertainty match independent batch linear solve",
+    "progress: transferred initial estimates and uncertainty match independent batch linear solve",
+    "All four target GA/progress states begin identically empty",
+    "Only warm arms inherit exact trained model state; cold starts have zero prior updates",
+    "Existing allocator, GA, fitness, catalogue and cooldown source unchanged"
+  ],
+  "maxInitialPredictionError": {
+    "structural": 6.994405055138486e-15,
+    "progress": 6.938893903907228e-17
+  },
+  "seed": 1,
+  "scope": "real retained inputs, no application execution",
+  "oracleSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-transfer-2026-09-21/make_oracle.py"
+}

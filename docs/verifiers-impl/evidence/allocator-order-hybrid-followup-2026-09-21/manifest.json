@@ -1,0 +1,44 @@
+{
+  "schema": "allocator-order-hybrid-followup-manifest.v1",
+  "status": "FROZEN_BEFORE_NEW_SEARCH_OUTCOMES",
+  "protocolSha256": "a077fefbc3bfd5a8b3935d24fc16d55184a870a3febcc84b18de77eae5957b8c",
+  "sourceSha256": {
+    "verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+    "verifiers/experiments/allocator-order-hybrid-followup/integration.py": "cd65ed78d476680438600887f34d5dcadb94993f840e0d20f8e71de02e50e0a4",
+    "verifiers/experiments/allocator-order-hybrid-followup/provenance.py": "52658d3895bbf1cde3a315aa5ca2b116808fadc2cd181164c737b4417d44b155",
+    "verifiers/experiments/allocator-order-hybrid-followup/run_study.py": "16b2f1a153d43f91abc2c67859f2d4b6f4d1f21303a0a3c794897078f531a15c",
+    "verifiers/experiments/allocator-order-hybrid-followup/summarize.py": "16909864982bd879ea21fcb342cfd4a559910da2283c775caa1c1aec435c63cf",
+    "verifiers/experiments/allocator-order-hybrid/study.py": "4b2fbc53a65a86b6122a59c65f851805829ab4d7a005fe715d2eeaea5a1652fc",
+    "verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+    "verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+    "verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+    "verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+    "verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+    "verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+    "verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+    "verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+    "verifiers/experiments/allocator-transfer/inputs.py": "56bd38b724d5f057e8f9b9dae33a6ff56ae13adcdbcef195c2d086e1b04fb31c"
+  },
+  "inputSha256": {
+    "docs/verifiers-impl/evidence/allocator-transfer-2026-09-21/inputs.json": "2c953a38ce99d2cea485da8440a5fd064b987ca5f1f406c47934b35af308ce53",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-2026-09-21/protocol.json": "70905c92bb95937766be1d377c396e08066ac19cc45f3041ec43f53a16ca4990",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-2026-09-21/order-inputs.json": "d9736c982af94f5f9c081a326b90b2242692b3375e751afbe2a468fe8050d30a",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-2026-09-21/completion.json": "d234c86fb17abd1809c2d4ba4283dfe8a1b9075835a48b57a773869bb3c530a6",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-2026-09-21/verification.json": "dfe58e4bd66963d7899f2db7ceedfef81a53b7d6b2331e14be20adf533ed9c68",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21/QUESTIONS.md": "a1a6f6f004211d19ff63cea58de1bc9eba4336115bc9e5a2b341eef635c8c4b0",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21/pre-search-component-inventory.json": "bff86efda716876f7576454790b431d5ea6922549578fa6e7ac15b4768fedd4c",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21/collection-description.json": "2f69a233342113cc640839d52aed83af6961791ed675bd756aaa16b09841dcbd",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21/prior-artifact-hashes.json": "5eb19057438d30f8fbc55804f786333d6c2fce49ac881cd744389ba1467cbcc4",
+    "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21/budget-prefix-review.json": "e5ed429aaf38c450b3cd4bad51a7c599d030990546de0e8b706bebc8cec11ebc"
+  },
+  "priorRunReuse": {
+    "rows": 434,
+    "traceCount": 420,
+    "identityCount": 14,
+    "aggregateSha256": "f2f01ec99249e4f861d44cd381638464734bf4a2cdf5281651d8c7c97855095f"
+  },
+  "exclusions": [
+    "Standalone independent review and diagnostic scripts are not search dependencies and are intentionally outside the executable source freeze.",
+    "No new search output or algorithm outcome existed when this manifest was frozen."
+  ]
+}

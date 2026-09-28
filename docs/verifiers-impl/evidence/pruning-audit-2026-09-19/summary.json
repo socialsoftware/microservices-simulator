@@ -1,0 +1,81 @@
+{
+  "scope": "Static selection and complete enumeration; no runtime observations",
+  "eligibleInputs": 817,
+  "pairs": 666,
+  "retainedPairs": 248,
+  "discardedPairs": 418,
+  "discardedInputTuples": 186250,
+  "discardedWithPotentialEventBridge": 67,
+  "discardedWithPotentialRecoveryInteraction": 6,
+  "probes": [
+    {
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas"
+      ],
+      "fullWorkloads": 16,
+      "prunedWorkloads": 0,
+      "staticMaterializable": 16,
+      "runtimeQualified": false
+    },
+    {
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas"
+      ],
+      "fullWorkloads": 2,
+      "prunedWorkloads": 0,
+      "staticMaterializable": 2,
+      "runtimeQualified": false
+    },
+    {
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.DeactivateUserFunctionalitySagas"
+      ],
+      "status": "NO_SAME_SOURCE_TUPLE"
+    },
+    {
+      "sagas": [
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas",
+        "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas"
+      ],
+      "fullWorkloads": 6,
+      "prunedWorkloads": 6,
+      "staticMaterializable": 6,
+      "runtimeQualified": false
+    }
+  ],
+  "enumeration": [
+    {
+      "noFaultScenarios": 2,
+      "package": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-audit-2026-09-19-run1/GetCourseExecutionById-FindTournament/BRUTE_FORCE",
+      "distinctScenarios": 8
+    },
+    {
+      "noFaultScenarios": 16,
+      "package": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-audit-2026-09-19-run1/UpdateStudentName-FindTournament/BRUTE_FORCE",
+      "distinctScenarios": 64
+    },
+    {
+      "noFaultScenarios": 6,
+      "package": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/pruning-audit-2026-09-19-run1/UpdateTournament-FindTournament/BRUTE_FORCE",
+      "distinctScenarios": 98
+    }
+  ],
+  "verifiedPackageManifests": {
+    "GetCourseExecutionById-FindTournament/BRUTE_FORCE/scenario-catalog-manifest.json": "5cf962a76a6d8071f81f8308fe28b1fe3976348091583c16968373b1a7eb941d",
+    "GetCourseExecutionById-FindTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json": "251dd5b1c4ee3334615f9125c9c30028b1d5eaae38959264ee46c50d8e8b62a0",
+    "UpdateStudentName-FindTournament/BRUTE_FORCE/scenario-catalog-manifest.json": "7e8384b9c99408fecbac343e54026b0daa7e8fffe6aa50a967e0c3663d28ea6d",
+    "UpdateStudentName-FindTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json": "251dd5b1c4ee3334615f9125c9c30028b1d5eaae38959264ee46c50d8e8b62a0",
+    "UpdateTournament-FindTournament/BRUTE_FORCE/scenario-catalog-manifest.json": "6f5dd55f991ec0b3c9083f97f20ff6093dac33c587e2fc3945a677699bb7bb46",
+    "UpdateTournament-FindTournament/INTERACTION_PRUNED/scenario-catalog-manifest.json": "804cc7b46cd845210b6596824a2232b881138d6b062c0dfe50a799a2b492cc68"
+  },
+  "artifactHashes": {
+    "fault-enumeration.json": "8715baf4653cc5929a551a1ada895b171a094f369021ca0a15f1d4245b855d02",
+    "generation-manifest.json": "65ca06f45be5ba1877031189d96b5eee9f700365fad0f95cc3eab262346b0f9e",
+    "inputs.json": "7381879416302fca1aa883fa1cdeca3c4bc869c0f193604c06a2dc41c0a211ee",
+    "inventory.json": "8b12fe539ad6abec4cbc04c43f3cd4a9aece0fa431b9cee008754db256fbd34c",
+    "probes.json": "a6a60bfdc4452bfb5aa1faf45f9f5ed7a4c0b9b29b1fb5328dae82d0f9b6e6c3"
+  }
+}

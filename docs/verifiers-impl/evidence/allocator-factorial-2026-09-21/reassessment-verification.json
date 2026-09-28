@@ -1,0 +1,92 @@
+{
+  "oldReplayMatched": 202,
+  "unrelatedCategoriesUnchanged": 202,
+  "workloads": {
+    "diversity-03": {
+      "candidates": 36,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "diversity-04": {
+      "candidates": 12,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "diversity-05": {
+      "candidates": 14,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "diversity-07": {
+      "candidates": 6,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "diversity-08": {
+      "candidates": 12,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "late-04": {
+      "candidates": 4,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "late-02": {
+      "candidates": 8,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "recovery-late-event": {
+      "candidates": 62,
+      "reassessed": 16,
+      "changedRewards": {}
+    },
+    "no-event": {
+      "candidates": 35,
+      "reassessed": 0,
+      "changedRewards": {}
+    },
+    "large-012": {
+      "candidates": 3918,
+      "reassessed": 186,
+      "changedRewards": {
+        "all": 184
+      }
+    }
+  },
+  "newlyAvailable": 184,
+  "remainingUnknown": 266,
+  "reuse": "All small-cohort reward sequences and mixed dependency rewards unchanged for every candidate; reuse original comparisons. Rerun mixed all-criteria only.",
+  "newlyAvailableResidualAssessments": 186,
+  "finalAllCriteriaCounts": {
+    "zero": 613,
+    "positive": 3228,
+    "unknown": 266
+  },
+  "remainingUnavailableReasons": [
+    {
+      "reasons": [
+        "FAILED_OPERATION_RESIDUAL_INCOMPLETE"
+      ],
+      "count": 16
+    },
+    {
+      "reasons": [
+        "COMPENSATED_READ_EXPOSURE_INCOMPLETE"
+      ],
+      "count": 32
+    },
+    {
+      "reasons": [
+        "EXECUTION_OR_ASSESSMENT_UNAVAILABLE",
+        "DELETED_DEPENDENCY_INCOMPLETE",
+        "FAILED_OPERATION_RESIDUAL_INCOMPLETE",
+        "UNRESOLVED_DELIVERED_EVENT_INCOMPLETE",
+        "COMPENSATED_READ_EXPOSURE_INCOMPLETE",
+        "LOST_COPIED_UPDATE_INCOMPLETE"
+      ],
+      "count": 218
+    }
+  ]
+}

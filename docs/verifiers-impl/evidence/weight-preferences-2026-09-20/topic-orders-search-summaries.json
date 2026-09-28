@@ -1,0 +1,174 @@
+{
+  "no-event-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 35,
+    "unavailable": 0,
+    "count": 35,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "no-event-all": {
+    "status": "COMPLETE",
+    "count": 35,
+    "positive": 15,
+    "zero": 20,
+    "unavailable": 0,
+    "checkpoints": {
+      "ga": {
+        "10": {
+          "positive": 4.866666666666666,
+          "score": 4.866666666666666,
+          "unavailable": 0
+        },
+        "17": {
+          "positive": 8.366666666666667,
+          "score": 8.366666666666667,
+          "unavailable": 0
+        },
+        "35": {
+          "positive": 15,
+          "score": 15.0,
+          "unavailable": 0
+        }
+      },
+      "random": {
+        "10": {
+          "positive": 4.033333333333333,
+          "score": 4.033333333333333,
+          "unavailable": 0
+        },
+        "17": {
+          "positive": 7.2,
+          "score": 7.2,
+          "unavailable": 0
+        },
+        "35": {
+          "positive": 15,
+          "score": 15.0,
+          "unavailable": 0
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 1.7333333333333334,
+      "random": 2.1333333333333333
+    },
+    "meanTo80Positive": {
+      "ga": 24.033333333333335,
+      "random": 26.733333333333334
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 25,
+      "randomWins": 5,
+      "ties": 0,
+      "meanDifference": 0.05187301587301587
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    }
+  },
+  "no-event-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 35,
+    "unavailable": 0,
+    "count": 35,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "recovery-late-event-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 62,
+    "unavailable": 0,
+    "count": 62,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "recovery-late-event-all": {
+    "status": "COMPLETE",
+    "count": 62,
+    "positive": 20,
+    "zero": 26,
+    "unavailable": 16,
+    "checkpoints": {
+      "ga": {
+        "10": {
+          "positive": 2.933333333333333,
+          "score": 2.933333333333333,
+          "unavailable": 2.7
+        },
+        "31": {
+          "positive": 11.5,
+          "score": 11.5,
+          "unavailable": 7.366666666666666
+        },
+        "50": {
+          "positive": 17.233333333333334,
+          "score": 17.233333333333334,
+          "unavailable": 12.366666666666667
+        },
+        "62": {
+          "positive": 20,
+          "score": 20.0,
+          "unavailable": 16
+        }
+      },
+      "random": {
+        "10": {
+          "positive": 3.1333333333333333,
+          "score": 3.1333333333333333,
+          "unavailable": 2.6666666666666665
+        },
+        "31": {
+          "positive": 10.133333333333333,
+          "score": 10.133333333333333,
+          "unavailable": 7.9
+        },
+        "50": {
+          "positive": 16.5,
+          "score": 16.5,
+          "unavailable": 13.233333333333333
+        },
+        "62": {
+          "positive": 20,
+          "score": 20.0,
+          "unavailable": 16
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 2.933333333333333,
+      "random": 3.033333333333333
+    },
+    "meanTo80Positive": {
+      "ga": 43.9,
+      "random": 47.13333333333333
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 18,
+      "randomWins": 12,
+      "ties": 0,
+      "meanDifference": 0.03661290322580645
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    }
+  },
+  "recovery-late-event-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 62,
+    "unavailable": 0,
+    "count": 62,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  }
+}

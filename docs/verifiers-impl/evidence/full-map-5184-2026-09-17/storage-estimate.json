@@ -1,0 +1,7 @@
+{
+  "sourceAttempts": 3000,
+  "meanAttemptFilesBytes": 1427679.9623333334,
+  "maxAttemptFilesBytes": 1527584,
+  "projected5184AttemptFilesBytes": 7401092924.736001,
+  "excluded": "Shared package snapshot blocks, campaign summaries, preparation, logs outside attempt directories. Not a worst-case bound."
+}

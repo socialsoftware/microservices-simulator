@@ -1,0 +1,266 @@
+{
+  "all": {
+    "status": "COMPLETE",
+    "count": 5184,
+    "positive": 3979,
+    "zero": 657,
+    "unavailable": 548,
+    "checkpoints": {
+      "ga": {
+        "100": {
+          "positive": 84.93333333333334,
+          "score": 264.0,
+          "unavailable": 7.3
+        },
+        "500": {
+          "positive": 426.43333333333334,
+          "score": 1342.0,
+          "unavailable": 37.666666666666664
+        },
+        "1000": {
+          "positive": 841.1666666666666,
+          "score": 2617.0333333333333,
+          "unavailable": 82.2
+        },
+        "2592": {
+          "positive": 2103.6666666666665,
+          "score": 6254.766666666666,
+          "unavailable": 242.36666666666667
+        },
+        "5184": {
+          "positive": 3979,
+          "score": 10952.0,
+          "unavailable": 548
+        }
+      },
+      "random": {
+        "100": {
+          "positive": 75.86666666666666,
+          "score": 213.16666666666666,
+          "unavailable": 10.666666666666666
+        },
+        "500": {
+          "positive": 382.3,
+          "score": 1058.7666666666667,
+          "unavailable": 53.96666666666667
+        },
+        "1000": {
+          "positive": 764.7333333333333,
+          "score": 2107.266666666667,
+          "unavailable": 106.53333333333333
+        },
+        "2592": {
+          "positive": 1985.7333333333333,
+          "score": 5460.133333333333,
+          "unavailable": 276.9
+        },
+        "5184": {
+          "positive": 3979,
+          "score": 10952.0,
+          "unavailable": 548
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 1.1,
+      "random": 1.1
+    },
+    "meanTo80Positive": {
+      "ga": 4051.0666666666666,
+      "random": 4148.466666666666
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 30,
+      "randomWins": 0,
+      "ties": 0,
+      "meanDifference": 0.019322451421919812
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    },
+    "randomOrderIdenticalAcrossProfiles": true,
+    "to80GaWins": 30,
+    "at1000GaWins": 30
+  },
+  "deleted-dependency": {
+    "status": "COMPLETE",
+    "count": 5184,
+    "positive": 2090,
+    "zero": 2860,
+    "unavailable": 234,
+    "checkpoints": {
+      "ga": {
+        "100": {
+          "positive": 57.3,
+          "score": 57.3,
+          "unavailable": 2.9
+        },
+        "500": {
+          "positive": 285.7,
+          "score": 285.7,
+          "unavailable": 16.266666666666666
+        },
+        "1000": {
+          "positive": 549.3333333333334,
+          "score": 549.3333333333334,
+          "unavailable": 33.166666666666664
+        },
+        "2592": {
+          "positive": 1273.3666666666666,
+          "score": 1273.3666666666666,
+          "unavailable": 101.36666666666666
+        },
+        "5184": {
+          "positive": 2090,
+          "score": 2090.0,
+          "unavailable": 234
+        }
+      },
+      "random": {
+        "100": {
+          "positive": 41.06666666666667,
+          "score": 41.06666666666667,
+          "unavailable": 4.7
+        },
+        "500": {
+          "positive": 202.46666666666667,
+          "score": 202.46666666666667,
+          "unavailable": 23.533333333333335
+        },
+        "1000": {
+          "positive": 401.1666666666667,
+          "score": 401.1666666666667,
+          "unavailable": 46.56666666666667
+        },
+        "2592": {
+          "positive": 1040.5666666666666,
+          "score": 1040.5666666666666,
+          "unavailable": 117.5
+        },
+        "5184": {
+          "positive": 2090,
+          "score": 2090.0,
+          "unavailable": 234
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 2.1666666666666665,
+      "random": 2.1666666666666665
+    },
+    "meanTo80Positive": {
+      "ga": 3695.3333333333335,
+      "random": 4150.733333333334
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 30,
+      "randomWins": 0,
+      "ties": 0,
+      "meanDifference": 0.07349750243664716
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    },
+    "randomOrderIdenticalAcrossProfiles": true,
+    "to80GaWins": 30,
+    "at1000GaWins": 30
+  },
+  "compensated-read": {
+    "status": "COMPLETE",
+    "count": 5184,
+    "positive": 2581,
+    "zero": 2289,
+    "unavailable": 314,
+    "checkpoints": {
+      "ga": {
+        "100": {
+          "positive": 59.46666666666667,
+          "score": 82.6,
+          "unavailable": 5
+        },
+        "500": {
+          "positive": 293,
+          "score": 413.1333333333333,
+          "unavailable": 24.8
+        },
+        "1000": {
+          "positive": 583.4,
+          "score": 819.2,
+          "unavailable": 49.56666666666667
+        },
+        "2592": {
+          "positive": 1435.9333333333334,
+          "score": 1993.7666666666667,
+          "unavailable": 139.36666666666667
+        },
+        "5184": {
+          "positive": 2581,
+          "score": 3498.0,
+          "unavailable": 314
+        }
+      },
+      "random": {
+        "100": {
+          "positive": 49.56666666666667,
+          "score": 67.86666666666666,
+          "unavailable": 6.3
+        },
+        "500": {
+          "positive": 250.26666666666668,
+          "score": 341.6333333333333,
+          "unavailable": 30.666666666666668
+        },
+        "1000": {
+          "positive": 497.5,
+          "score": 676.2666666666667,
+          "unavailable": 60.833333333333336
+        },
+        "2592": {
+          "positive": 1289.2333333333333,
+          "score": 1746.7666666666667,
+          "unavailable": 157.7
+        },
+        "5184": {
+          "positive": 2581,
+          "score": 3498.0,
+          "unavailable": 314
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 1.6666666666666667,
+      "random": 1.6666666666666667
+    },
+    "meanTo80Positive": {
+      "ga": 3930.366666666667,
+      "random": 4145.5
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 30,
+      "randomWins": 0,
+      "ties": 0,
+      "meanDifference": 0.036972103835722595
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    },
+    "randomOrderIdenticalAcrossProfiles": true,
+    "to80GaWins": 30,
+    "at1000GaWins": 30
+  }
+}

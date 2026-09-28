@@ -1,0 +1,2118 @@
+{
+  "scope": "Joint score, same eight baseline policies and five seeds",
+  "cohorts": {
+    "small": {
+      "checks": {
+        "coldStartsMatched": true,
+        "seededTiesReproduced": true,
+        "completeBudgets": true,
+        "unknownsNeverZeroOrUpdates": true,
+        "feedbackMatchesCorrectedMaps": true,
+        "matchedGaCandidateAndScorePrefixesWithinRevision": true,
+        "baselineColdStatesCompared": 40,
+        "crossRevisionGaPrefixesRequired": false
+      },
+      "summaries": [
+        {
+          "arm": "uniform",
+          "score": {
+            "before": 848.4,
+            "after": 869.0
+          },
+          "positives": {
+            "before": 743.6,
+            "after": 764.2
+          },
+          "unknowns": {
+            "before": 239.6,
+            "after": 77.4
+          },
+          "positiveFamilies": {
+            "before": 24,
+            "after": 25
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "P-shared",
+          "score": {
+            "before": 1561.4,
+            "after": 1571.6
+          },
+          "positives": {
+            "before": 1355.8,
+            "after": 1378.2
+          },
+          "unknowns": {
+            "before": 504.2,
+            "after": 277.8
+          },
+          "positiveFamilies": {
+            "before": 19.8,
+            "after": 20.6
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            0,
+            1
+          ]
+        },
+        {
+          "arm": "S-cal",
+          "score": {
+            "before": 1862.2,
+            "after": 1882.4
+          },
+          "positives": {
+            "before": 1634.4,
+            "after": 1654.6
+          },
+          "unknowns": {
+            "before": 381.6,
+            "after": 274.6
+          },
+          "positiveFamilies": {
+            "before": 23,
+            "after": 23.8
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "SP-cal",
+          "score": {
+            "before": 1855.2,
+            "after": 1885.4
+          },
+          "positives": {
+            "before": 1627.2,
+            "after": 1656.4
+          },
+          "unknowns": {
+            "before": 376.8,
+            "after": 269.8
+          },
+          "positiveFamilies": {
+            "before": 22.8,
+            "after": 24
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "P-local",
+          "score": {
+            "before": 1607.0,
+            "after": 1651.2
+          },
+          "positives": {
+            "before": 1392.2,
+            "after": 1436.4
+          },
+          "unknowns": {
+            "before": 395,
+            "after": 269.8
+          },
+          "positiveFamilies": {
+            "before": 23.6,
+            "after": 24.2
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "H0",
+          "score": {
+            "before": 1600.2,
+            "after": 1648.8
+          },
+          "positives": {
+            "before": 1385.4,
+            "after": 1433.4
+          },
+          "unknowns": {
+            "before": 402.2,
+            "after": 269.8
+          },
+          "positiveFamilies": {
+            "before": 23.6,
+            "after": 24.2
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "H1-cal",
+          "score": {
+            "before": 1631.2,
+            "after": 1660.8
+          },
+          "positives": {
+            "before": 1416.4,
+            "after": 1445.8
+          },
+          "unknowns": {
+            "before": 388.2,
+            "after": 270.2
+          },
+          "positiveFamilies": {
+            "before": 23.6,
+            "after": 24.2
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "UCB-independent",
+          "score": {
+            "before": 1487.0,
+            "after": 1492.2
+          },
+          "positives": {
+            "before": 1263.2,
+            "after": 1268.6
+          },
+          "unknowns": {
+            "before": 108,
+            "after": 51.8
+          },
+          "positiveFamilies": {
+            "before": 23.4,
+            "after": 24.8
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "pairedRows": [
+        {
+          "arm": "uniform",
+          "seed": 1,
+          "before": {
+            "score": 826.0,
+            "positives": 732,
+            "unknowns": 223,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 840.0,
+            "positives": 746,
+            "unknowns": 76,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 1,
+          "before": {
+            "score": 1583.0,
+            "positives": 1377,
+            "unknowns": 522,
+            "positiveFamilies": 21
+          },
+          "after": {
+            "score": 1641.0,
+            "positives": 1434,
+            "unknowns": 277,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 1,
+          "before": {
+            "score": 1558.0,
+            "positives": 1370,
+            "unknowns": 399,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1608.0,
+            "positives": 1420,
+            "unknowns": 270,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 1,
+          "before": {
+            "score": 1538.0,
+            "positives": 1350,
+            "unknowns": 399,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1604.0,
+            "positives": 1413,
+            "unknowns": 270,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 1,
+          "before": {
+            "score": 1858.0,
+            "positives": 1635,
+            "unknowns": 382,
+            "positiveFamilies": 22
+          },
+          "after": {
+            "score": 1882.0,
+            "positives": 1651,
+            "unknowns": 283,
+            "positiveFamilies": 23
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 1,
+          "before": {
+            "score": 1485.0,
+            "positives": 1263,
+            "unknowns": 106,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1486.0,
+            "positives": 1264,
+            "unknowns": 51,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 11,
+          "before": {
+            "score": 878.0,
+            "positives": 767,
+            "unknowns": 240,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 900.0,
+            "positives": 789,
+            "unknowns": 83,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 11,
+          "before": {
+            "score": 1632.0,
+            "positives": 1414,
+            "unknowns": 401,
+            "positiveFamilies": 21
+          },
+          "after": {
+            "score": 1638.0,
+            "positives": 1426,
+            "unknowns": 281,
+            "positiveFamilies": 22
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 1,
+          "before": {
+            "score": 1838.0,
+            "positives": 1612,
+            "unknowns": 387,
+            "positiveFamilies": 20
+          },
+          "after": {
+            "score": 1866.0,
+            "positives": 1637,
+            "unknowns": 283,
+            "positiveFamilies": 23
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 11,
+          "before": {
+            "score": 1858.0,
+            "positives": 1627,
+            "unknowns": 403,
+            "positiveFamilies": 22
+          },
+          "after": {
+            "score": 1892.0,
+            "positives": 1661,
+            "unknowns": 278,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 1567.0,
+            "positives": 1379,
+            "unknowns": 376,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1611.0,
+            "positives": 1422,
+            "unknowns": 271,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 11,
+          "before": {
+            "score": 1610.0,
+            "positives": 1387,
+            "unknowns": 410,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1672.0,
+            "positives": 1449,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 11,
+          "before": {
+            "score": 1845.0,
+            "positives": 1614,
+            "unknowns": 397,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1908.0,
+            "positives": 1677,
+            "unknowns": 271,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 11,
+          "before": {
+            "score": 1482.0,
+            "positives": 1257,
+            "unknowns": 115,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1490.0,
+            "positives": 1266,
+            "unknowns": 50,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 29,
+          "before": {
+            "score": 854.0,
+            "positives": 755,
+            "unknowns": 253,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 880.0,
+            "positives": 781,
+            "unknowns": 78,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 11,
+          "before": {
+            "score": 1610.0,
+            "positives": 1387,
+            "unknowns": 410,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1671.0,
+            "positives": 1448,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 29,
+          "before": {
+            "score": 1456.0,
+            "positives": 1254,
+            "unknowns": 551,
+            "positiveFamilies": 21
+          },
+          "after": {
+            "score": 1269.0,
+            "positives": 1130,
+            "unknowns": 281,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 29,
+          "before": {
+            "score": 1868.0,
+            "positives": 1637,
+            "unknowns": 381,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1889.0,
+            "positives": 1666,
+            "unknowns": 271,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 29,
+          "before": {
+            "score": 1614.0,
+            "positives": 1395,
+            "unknowns": 397,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1653.0,
+            "positives": 1434,
+            "unknowns": 273,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 29,
+          "before": {
+            "score": 1860.0,
+            "positives": 1637,
+            "unknowns": 377,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1889.0,
+            "positives": 1666,
+            "unknowns": 271,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 29,
+          "before": {
+            "score": 1617.0,
+            "positives": 1398,
+            "unknowns": 397,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1647.0,
+            "positives": 1428,
+            "unknowns": 273,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 29,
+          "before": {
+            "score": 1495.0,
+            "positives": 1272,
+            "unknowns": 107,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1503.0,
+            "positives": 1280,
+            "unknowns": 52,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 47,
+          "before": {
+            "score": 844.0,
+            "positives": 736,
+            "unknowns": 240,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 866.0,
+            "positives": 758,
+            "unknowns": 73,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 47,
+          "before": {
+            "score": 1515.0,
+            "positives": 1322,
+            "unknowns": 504,
+            "positiveFamilies": 19
+          },
+          "after": {
+            "score": 1630.0,
+            "positives": 1433,
+            "unknowns": 269,
+            "positiveFamilies": 21
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 1636.0,
+            "positives": 1413,
+            "unknowns": 408,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1687.0,
+            "positives": 1464,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 47,
+          "before": {
+            "score": 1862.0,
+            "positives": 1631,
+            "unknowns": 385,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1875.0,
+            "positives": 1644,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 47,
+          "before": {
+            "score": 1616.0,
+            "positives": 1389,
+            "unknowns": 399,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1651.0,
+            "positives": 1424,
+            "unknowns": 268,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 47,
+          "before": {
+            "score": 1611.0,
+            "positives": 1384,
+            "unknowns": 413,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1650.0,
+            "positives": 1423,
+            "unknowns": 268,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 47,
+          "before": {
+            "score": 1870.0,
+            "positives": 1639,
+            "unknowns": 393,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1875.0,
+            "positives": 1644,
+            "unknowns": 271,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 47,
+          "before": {
+            "score": 1490.0,
+            "positives": 1262,
+            "unknowns": 104,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1494.0,
+            "positives": 1266,
+            "unknowns": 52,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 73,
+          "before": {
+            "score": 840.0,
+            "positives": 728,
+            "unknowns": 242,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 859.0,
+            "positives": 747,
+            "unknowns": 77,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 73,
+          "before": {
+            "score": 1621.0,
+            "positives": 1412,
+            "unknowns": 543,
+            "positiveFamilies": 17
+          },
+          "after": {
+            "score": 1680.0,
+            "positives": 1468,
+            "unknowns": 281,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 1633.0,
+            "positives": 1414,
+            "unknowns": 389,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1657.0,
+            "positives": 1438,
+            "unknowns": 271,
+            "positiveFamilies": 25
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 73,
+          "before": {
+            "score": 1865.0,
+            "positives": 1642,
+            "unknowns": 357,
+            "positiveFamilies": 23
+          },
+          "after": {
+            "score": 1874.0,
+            "positives": 1651,
+            "unknowns": 272,
+            "positiveFamilies": 23
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 73,
+          "before": {
+            "score": 1637.0,
+            "positives": 1420,
+            "unknowns": 370,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1672.0,
+            "positives": 1455,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 73,
+          "before": {
+            "score": 1625.0,
+            "positives": 1408,
+            "unknowns": 392,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1672.0,
+            "positives": 1455,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 73,
+          "before": {
+            "score": 1863.0,
+            "positives": 1634,
+            "unknowns": 330,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1889.0,
+            "positives": 1658,
+            "unknowns": 253,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 73,
+          "before": {
+            "score": 1483.0,
+            "positives": 1262,
+            "unknowns": 108,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1488.0,
+            "positives": 1267,
+            "unknowns": 54,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 1641.0,
+            "positives": 1414,
+            "unknowns": 397,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1653.0,
+            "positives": 1426,
+            "unknowns": 269,
+            "positiveFamilies": 24
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 1679.0,
+            "positives": 1462,
+            "unknowns": 371,
+            "positiveFamilies": 24
+          },
+          "after": {
+            "score": 1696.0,
+            "positives": 1479,
+            "unknowns": 271,
+            "positiveFamilies": 24
+          }
+        }
+      ],
+      "resultsSha256": "224b797b4338ed49c0743b8563bbd7dbaa6cfae85db90b4f6657e5aa5fed896c",
+      "protocol": {
+        "scope": "Measurement revision on previously examined benchmark; not held-out confirmation",
+        "inputSha256": "a24a07bee60b8b20c725e50d12f746c333819c82b0082d883f5de797bcd4afe9",
+        "budget": 4000,
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "arms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal",
+          "UCB-independent"
+        ],
+        "profiles": [
+          "all-five"
+        ],
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/formal_replay.py": "f8f7a8319aebbac8b81bf73ac12d9875755cd6ebd296265a49120f89f7122254",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_replay.py": "e62c5197f353eff679ef8087096a260a7ef374983223aa8f4dbe2ad10ea291f4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/master_freeze.py": "d085737e53ca5f64d2c4de1ddfd7471856bd069f089a1e20747f91aaa10c6f76",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/measurement_replay.py": "d281b423055ac7f9f6009747f89b85673269ebd1f12cb61e286a44838cbf81b7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/ucb_addendum.py": "7e7720c8f515407c431ce24751641c0ba72f20eab1f4a7dd4dbfcbcb91bbc3ac"
+        },
+        "kernel": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/finite_matvec.cpython-314-darwin.so",
+        "kernelSha256": "d480434639b7e4a1445278e6930fab1aef00c79f07846ff270166bd4c55c961b",
+        "fitness": {
+          "policy": "weighted-criteria-v2",
+          "weights": {
+            "DELETED_DEPENDENCY": 1,
+            "FAILED_OPERATION_RESIDUAL": 1,
+            "UNRESOLVED_DELIVERED_EVENT": 1,
+            "COMPENSATED_READ_EXPOSURE": 1,
+            "LOST_COPIED_UPDATE": 1
+          }
+        },
+        "localSearch": "ga",
+        "tieRule": "seeded-near-maximum-v1",
+        "baselineDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-formal-small-2026-09-28",
+        "baselineProtocolSha256": "d3108106a97070447f81114e6f002ac82ceb8ca6f943a1c6447053da77996330",
+        "ucbBaselineDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-ucb-small-2026-09-28",
+        "baselineUcbResultsSha256": "f43a87b9ce94298efc65608d115a0bb535b3bf95e2d4fc4b2bbfc970b3c13bbd",
+        "parametersSelectedFromAlphaResults": false,
+        "historicalRunsReplaced": false
+      },
+      "population": {
+        "workloads": 313,
+        "scenarios": 6396,
+        "identicalCandidatesAndStructuralProfiles": true,
+        "profiles": {
+          "all-five": {
+            "before": {
+              "positive": 1650,
+              "negative": 4186,
+              "unavailable": 560,
+              "score": 1881.0
+            },
+            "after": {
+              "positive": 1706,
+              "negative": 4399,
+              "unavailable": 291,
+              "score": 1937.0
+            }
+          },
+          "DELETED_DEPENDENCY": {
+            "before": {
+              "positive": 84,
+              "negative": 6305,
+              "unavailable": 7,
+              "score": 89.0
+            },
+            "after": {
+              "positive": 84,
+              "negative": 6304,
+              "unavailable": 8,
+              "score": 89.0
+            }
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "before": {
+              "positive": 1804,
+              "negative": 4553,
+              "unavailable": 39,
+              "score": 1804.0
+            },
+            "after": {
+              "positive": 1804,
+              "negative": 4552,
+              "unavailable": 40,
+              "score": 1804.0
+            }
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "before": {
+              "positive": 9,
+              "negative": 6380,
+              "unavailable": 7,
+              "score": 9.0
+            },
+            "after": {
+              "positive": 9,
+              "negative": 6379,
+              "unavailable": 8,
+              "score": 9.0
+            }
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "before": {
+              "positive": 132,
+              "negative": 6255,
+              "unavailable": 9,
+              "score": 132.0
+            },
+            "after": {
+              "positive": 132,
+              "negative": 6254,
+              "unavailable": 10,
+              "score": 132.0
+            }
+          },
+          "LOST_COPIED_UPDATE": {
+            "before": {
+              "positive": 32,
+              "negative": 5838,
+              "unavailable": 526,
+              "score": 32.0
+            },
+            "after": {
+              "positive": 32,
+              "negative": 6107,
+              "unavailable": 257,
+              "score": 32.0
+            }
+          }
+        },
+        "budget": 4000,
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "arms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal",
+          "UCB-independent"
+        ]
+      }
+    },
+    "full": {
+      "checks": {
+        "coldStartsMatched": true,
+        "seededTiesReproduced": true,
+        "completeBudgets": true,
+        "unknownsNeverZeroOrUpdates": true,
+        "feedbackMatchesCorrectedMaps": true,
+        "matchedGaCandidateAndScorePrefixesWithinRevision": true,
+        "baselineColdStatesCompared": 40,
+        "crossRevisionGaPrefixesRequired": false
+      },
+      "summaries": [
+        {
+          "arm": "uniform",
+          "score": {
+            "before": 5413.2,
+            "after": 5469.2
+          },
+          "positives": {
+            "before": 3026.4,
+            "after": 3082.4
+          },
+          "unknowns": {
+            "before": 632,
+            "after": 363
+          },
+          "positiveFamilies": {
+            "before": 25,
+            "after": 26
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "P-shared",
+          "score": {
+            "before": 14191.2,
+            "after": 13975.8
+          },
+          "positives": {
+            "before": 5736.2,
+            "after": 5829.4
+          },
+          "unknowns": {
+            "before": 685.8,
+            "after": 596
+          },
+          "positiveFamilies": {
+            "before": 12.4,
+            "after": 11.6
+          },
+          "scoreWinsTiesLosses": [
+            2,
+            1,
+            2
+          ]
+        },
+        {
+          "arm": "S-cal",
+          "score": {
+            "before": 15281.4,
+            "after": 15310.8
+          },
+          "positives": {
+            "before": 6371,
+            "after": 6384.2
+          },
+          "unknowns": {
+            "before": 523.8,
+            "after": 495.8
+          },
+          "positiveFamilies": {
+            "before": 6.2,
+            "after": 8.6
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            0,
+            1
+          ]
+        },
+        {
+          "arm": "SP-cal",
+          "score": {
+            "before": 16054.6,
+            "after": 15983.6
+          },
+          "positives": {
+            "before": 6163.8,
+            "after": 6145.4
+          },
+          "unknowns": {
+            "before": 624.6,
+            "after": 632.6
+          },
+          "positiveFamilies": {
+            "before": 11.2,
+            "after": 12
+          },
+          "scoreWinsTiesLosses": [
+            2,
+            1,
+            2
+          ]
+        },
+        {
+          "arm": "P-local",
+          "score": {
+            "before": 16041.4,
+            "after": 16135.6
+          },
+          "positives": {
+            "before": 5900.2,
+            "after": 5932.2
+          },
+          "unknowns": {
+            "before": 630.8,
+            "after": 588.2
+          },
+          "positiveFamilies": {
+            "before": 18,
+            "after": 18.8
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "H0",
+          "score": {
+            "before": 16373.8,
+            "after": 16456.6
+          },
+          "positives": {
+            "before": 5917,
+            "after": 5949.4
+          },
+          "unknowns": {
+            "before": 647.8,
+            "after": 605.2
+          },
+          "positiveFamilies": {
+            "before": 18,
+            "after": 18.8
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "arm": "H1-cal",
+          "score": {
+            "before": 16065.0,
+            "after": 15900.6
+          },
+          "positives": {
+            "before": 6044.4,
+            "after": 6022.4
+          },
+          "unknowns": {
+            "before": 620.6,
+            "after": 573.4
+          },
+          "positiveFamilies": {
+            "before": 14.8,
+            "after": 17.8
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            0,
+            1
+          ]
+        },
+        {
+          "arm": "UCB-independent",
+          "score": {
+            "before": 17518.8,
+            "after": 17517.4
+          },
+          "positives": {
+            "before": 6046.4,
+            "after": 6046.2
+          },
+          "unknowns": {
+            "before": 652,
+            "after": 643.6
+          },
+          "positiveFamilies": {
+            "before": 16.4,
+            "after": 17
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            2,
+            3
+          ]
+        }
+      ],
+      "pairedRows": [
+        {
+          "arm": "uniform",
+          "seed": 1,
+          "before": {
+            "score": 5453.0,
+            "positives": 3030,
+            "unknowns": 640,
+            "positiveFamilies": 25
+          },
+          "after": {
+            "score": 5509.0,
+            "positives": 3086,
+            "unknowns": 371,
+            "positiveFamilies": 26
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 1,
+          "before": {
+            "score": 12534.0,
+            "positives": 5381,
+            "unknowns": 881,
+            "positiveFamilies": 12
+          },
+          "after": {
+            "score": 10997.0,
+            "positives": 5689,
+            "unknowns": 603,
+            "positiveFamilies": 9
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 1,
+          "before": {
+            "score": 17134.0,
+            "positives": 5902,
+            "unknowns": 646,
+            "positiveFamilies": 20
+          },
+          "after": {
+            "score": 17235.0,
+            "positives": 5944,
+            "unknowns": 592,
+            "positiveFamilies": 21
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 1,
+          "before": {
+            "score": 17200.0,
+            "positives": 5897,
+            "unknowns": 654,
+            "positiveFamilies": 20
+          },
+          "after": {
+            "score": 17298.0,
+            "positives": 5939,
+            "unknowns": 600,
+            "positiveFamilies": 21
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 1,
+          "before": {
+            "score": 15387.0,
+            "positives": 6448,
+            "unknowns": 432,
+            "positiveFamilies": 11
+          },
+          "after": {
+            "score": 15492.0,
+            "positives": 6457,
+            "unknowns": 452,
+            "positiveFamilies": 9
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 1,
+          "before": {
+            "score": 12438.0,
+            "positives": 5857,
+            "unknowns": 599,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 12514.0,
+            "positives": 5930,
+            "unknowns": 511,
+            "positiveFamilies": 18
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 1,
+          "before": {
+            "score": 17273.0,
+            "positives": 6003,
+            "unknowns": 717,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 17269.0,
+            "positives": 6002,
+            "unknowns": 709,
+            "positiveFamilies": 19
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 11,
+          "before": {
+            "score": 5455.0,
+            "positives": 3030,
+            "unknowns": 632,
+            "positiveFamilies": 25
+          },
+          "after": {
+            "score": 5511.0,
+            "positives": 3086,
+            "unknowns": 363,
+            "positiveFamilies": 26
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 11,
+          "before": {
+            "score": 17244.0,
+            "positives": 6045,
+            "unknowns": 658,
+            "positiveFamilies": 11
+          },
+          "after": {
+            "score": 17399.0,
+            "positives": 6115,
+            "unknowns": 570,
+            "positiveFamilies": 11
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 11,
+          "before": {
+            "score": 15242.0,
+            "positives": 6382,
+            "unknowns": 507,
+            "positiveFamilies": 5
+          },
+          "after": {
+            "score": 15305.0,
+            "positives": 6412,
+            "unknowns": 458,
+            "positiveFamilies": 6
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 11,
+          "before": {
+            "score": 16107.0,
+            "positives": 5857,
+            "unknowns": 713,
+            "positiveFamilies": 16
+          },
+          "after": {
+            "score": 16214.0,
+            "positives": 5894,
+            "unknowns": 666,
+            "positiveFamilies": 17
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 11,
+          "before": {
+            "score": 18439.0,
+            "positives": 6330,
+            "unknowns": 702,
+            "positiveFamilies": 5
+          },
+          "after": {
+            "score": 18036.0,
+            "positives": 6185,
+            "unknowns": 838,
+            "positiveFamilies": 9
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 17640.0,
+            "positives": 6095,
+            "unknowns": 653,
+            "positiveFamilies": 20
+          },
+          "after": {
+            "score": 17713.0,
+            "positives": 6121,
+            "unknowns": 620,
+            "positiveFamilies": 21
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 11,
+          "before": {
+            "score": 18031.0,
+            "positives": 6197,
+            "unknowns": 630,
+            "positiveFamilies": 13
+          },
+          "after": {
+            "score": 18030.0,
+            "positives": 6197,
+            "unknowns": 623,
+            "positiveFamilies": 14
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 29,
+          "before": {
+            "score": 5402.0,
+            "positives": 3026,
+            "unknowns": 627,
+            "positiveFamilies": 25
+          },
+          "after": {
+            "score": 5458.0,
+            "positives": 3082,
+            "unknowns": 358,
+            "positiveFamilies": 26
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 11,
+          "before": {
+            "score": 16725.0,
+            "positives": 5913,
+            "unknowns": 729,
+            "positiveFamilies": 16
+          },
+          "after": {
+            "score": 16819.0,
+            "positives": 5948,
+            "unknowns": 683,
+            "positiveFamilies": 17
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 29,
+          "before": {
+            "score": 15879.0,
+            "positives": 5679,
+            "unknowns": 873,
+            "positiveFamilies": 15
+          },
+          "after": {
+            "score": 16241.0,
+            "positives": 5819,
+            "unknowns": 721,
+            "positiveFamilies": 14
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 29,
+          "before": {
+            "score": 15214.0,
+            "positives": 6334,
+            "unknowns": 535,
+            "positiveFamilies": 5
+          },
+          "after": {
+            "score": 15263.0,
+            "positives": 6364,
+            "unknowns": 475,
+            "positiveFamilies": 9
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 29,
+          "before": {
+            "score": 12829.0,
+            "positives": 6065,
+            "unknowns": 351,
+            "positiveFamilies": 15
+          },
+          "after": {
+            "score": 12879.0,
+            "positives": 6081,
+            "unknowns": 331,
+            "positiveFamilies": 15
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 29,
+          "before": {
+            "score": 14726.0,
+            "positives": 5898,
+            "unknowns": 482,
+            "positiveFamilies": 19
+          },
+          "after": {
+            "score": 14876.0,
+            "positives": 5946,
+            "unknowns": 420,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 18267.0,
+            "positives": 6279,
+            "unknowns": 712,
+            "positiveFamilies": 8
+          },
+          "after": {
+            "score": 18287.0,
+            "positives": 6309,
+            "unknowns": 662,
+            "positiveFamilies": 10
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 29,
+          "before": {
+            "score": 15046.0,
+            "positives": 5905,
+            "unknowns": 501,
+            "positiveFamilies": 19
+          },
+          "after": {
+            "score": 15184.0,
+            "positives": 5956,
+            "unknowns": 436,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 47,
+          "before": {
+            "score": 5405.0,
+            "positives": 3034,
+            "unknowns": 624,
+            "positiveFamilies": 25
+          },
+          "after": {
+            "score": 5461.0,
+            "positives": 3090,
+            "unknowns": 355,
+            "positiveFamilies": 26
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 29,
+          "before": {
+            "score": 18013.0,
+            "positives": 6173,
+            "unknowns": 630,
+            "positiveFamilies": 15
+          },
+          "after": {
+            "score": 18013.0,
+            "positives": 6173,
+            "unknowns": 624,
+            "positiveFamilies": 15
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 47,
+          "before": {
+            "score": 12624.0,
+            "positives": 5458,
+            "unknowns": 730,
+            "positiveFamilies": 12
+          },
+          "after": {
+            "score": 12567.0,
+            "positives": 5406,
+            "unknowns": 800,
+            "positiveFamilies": 12
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 47,
+          "before": {
+            "score": 15415.0,
+            "positives": 6379,
+            "unknowns": 542,
+            "positiveFamilies": 6
+          },
+          "after": {
+            "score": 15284.0,
+            "positives": 6348,
+            "unknowns": 519,
+            "positiveFamilies": 13
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 47,
+          "before": {
+            "score": 18498.0,
+            "positives": 6364,
+            "unknowns": 660,
+            "positiveFamilies": 8
+          },
+          "after": {
+            "score": 18498.0,
+            "positives": 6364,
+            "unknowns": 660,
+            "positiveFamilies": 8
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 47,
+          "before": {
+            "score": 17398.0,
+            "positives": 6045,
+            "unknowns": 734,
+            "positiveFamilies": 17
+          },
+          "after": {
+            "score": 17449.0,
+            "positives": 6059,
+            "unknowns": 714,
+            "positiveFamilies": 17
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 12411.0,
+            "positives": 5791,
+            "unknowns": 386,
+            "positiveFamilies": 19
+          },
+          "after": {
+            "score": 12451.0,
+            "positives": 5830,
+            "unknowns": 319,
+            "positiveFamilies": 20
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 47,
+          "before": {
+            "score": 17477.0,
+            "positives": 6056,
+            "unknowns": 735,
+            "positiveFamilies": 17
+          },
+          "after": {
+            "score": 17524.0,
+            "positives": 6072,
+            "unknowns": 714,
+            "positiveFamilies": 17
+          }
+        },
+        {
+          "arm": "uniform",
+          "seed": 73,
+          "before": {
+            "score": 5351.0,
+            "positives": 3012,
+            "unknowns": 637,
+            "positiveFamilies": 25
+          },
+          "after": {
+            "score": 5407.0,
+            "positives": 3068,
+            "unknowns": 368,
+            "positiveFamilies": 26
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 47,
+          "before": {
+            "score": 16909.0,
+            "positives": 5882,
+            "unknowns": 698,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 16909.0,
+            "positives": 5882,
+            "unknowns": 689,
+            "positiveFamilies": 18
+          }
+        },
+        {
+          "arm": "P-shared",
+          "seed": 73,
+          "before": {
+            "score": 12675.0,
+            "positives": 6118,
+            "unknowns": 287,
+            "positiveFamilies": 12
+          },
+          "after": {
+            "score": 12675.0,
+            "positives": 6118,
+            "unknowns": 286,
+            "positiveFamilies": 12
+          }
+        },
+        {
+          "arm": "S-cal",
+          "seed": 73,
+          "before": {
+            "score": 15149.0,
+            "positives": 6312,
+            "unknowns": 603,
+            "positiveFamilies": 4
+          },
+          "after": {
+            "score": 15210.0,
+            "positives": 6340,
+            "unknowns": 575,
+            "positiveFamilies": 6
+          }
+        },
+        {
+          "arm": "P-local",
+          "seed": 73,
+          "before": {
+            "score": 14842.0,
+            "positives": 5799,
+            "unknowns": 579,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 14904.0,
+            "positives": 5818,
+            "unknowns": 549,
+            "positiveFamilies": 19
+          }
+        },
+        {
+          "arm": "SP-cal",
+          "seed": 73,
+          "before": {
+            "score": 18069.0,
+            "positives": 6203,
+            "unknowns": 811,
+            "positiveFamilies": 10
+          },
+          "after": {
+            "score": 17991.0,
+            "positives": 6167,
+            "unknowns": 823,
+            "positiveFamilies": 10
+          }
+        },
+        {
+          "arm": "H0",
+          "seed": 73,
+          "before": {
+            "score": 15421.0,
+            "positives": 5814,
+            "unknowns": 620,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 15458.0,
+            "positives": 5832,
+            "unknowns": 593,
+            "positiveFamilies": 19
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 17776.0,
+            "positives": 6146,
+            "unknowns": 811,
+            "positiveFamilies": 9
+          },
+          "after": {
+            "score": 16751.0,
+            "positives": 5921,
+            "unknowns": 753,
+            "positiveFamilies": 19
+          }
+        },
+        {
+          "arm": "UCB-independent",
+          "seed": 73,
+          "before": {
+            "score": 17368.0,
+            "positives": 5977,
+            "unknowns": 585,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 17366.0,
+            "positives": 5977,
+            "unknowns": 573,
+            "positiveFamilies": 19
+          }
+        },
+        {
+          "arm": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 14231.0,
+            "positives": 5911,
+            "unknowns": 541,
+            "positiveFamilies": 18
+          },
+          "after": {
+            "score": 14301.0,
+            "positives": 5931,
+            "unknowns": 513,
+            "positiveFamilies": 19
+          }
+        }
+      ],
+      "resultsSha256": "b99eaed9b6564c5ebd6df5f78cec8b82afe4a1da336c58e534a851346033c8d9",
+      "protocol": {
+        "scope": "Measurement revision on previously examined benchmark; not held-out confirmation",
+        "inputSha256": "674d351b615ceafc0479c9f0f5e7f0bc72e6b3ae655ae5dca6d47c4eb6cb317c",
+        "budget": 8000,
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "arms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal",
+          "UCB-independent"
+        ],
+        "profiles": [
+          "all-five"
+        ],
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/formal_replay.py": "f8f7a8319aebbac8b81bf73ac12d9875755cd6ebd296265a49120f89f7122254",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_replay.py": "e62c5197f353eff679ef8087096a260a7ef374983223aa8f4dbe2ad10ea291f4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/master_freeze.py": "d085737e53ca5f64d2c4de1ddfd7471856bd069f089a1e20747f91aaa10c6f76",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/measurement_replay.py": "d281b423055ac7f9f6009747f89b85673269ebd1f12cb61e286a44838cbf81b7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/ucb_addendum.py": "7e7720c8f515407c431ce24751641c0ba72f20eab1f4a7dd4dbfcbcb91bbc3ac"
+        },
+        "kernel": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/finite_matvec.cpython-314-darwin.so",
+        "kernelSha256": "d480434639b7e4a1445278e6930fab1aef00c79f07846ff270166bd4c55c961b",
+        "fitness": {
+          "policy": "weighted-criteria-v2",
+          "weights": {
+            "DELETED_DEPENDENCY": 1,
+            "FAILED_OPERATION_RESIDUAL": 1,
+            "UNRESOLVED_DELIVERED_EVENT": 1,
+            "COMPENSATED_READ_EXPOSURE": 1,
+            "LOST_COPIED_UPDATE": 1
+          }
+        },
+        "localSearch": "ga",
+        "tieRule": "seeded-near-maximum-v1",
+        "baselineDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-formal-full-2026-09-28",
+        "baselineProtocolSha256": "cc83d48066f2091e57e14b358595828d8287fb5a3131e1ca2c1094e933575962",
+        "ucbBaselineDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-ucb-full-2026-09-28",
+        "baselineUcbResultsSha256": "ad41f885187f3cf86e5915e77a40e986166b14824fa4134fe0e1d3a45702fa4d",
+        "parametersSelectedFromAlphaResults": false,
+        "historicalRunsReplaced": false
+      },
+      "population": {
+        "workloads": 316,
+        "scenarios": 18858,
+        "identicalCandidatesAndStructuralProfiles": true,
+        "profiles": {
+          "all-five": {
+            "before": {
+              "positive": 11441,
+              "negative": 6029,
+              "unavailable": 1388,
+              "score": 25171.0
+            },
+            "after": {
+              "positive": 11497,
+              "negative": 6242,
+              "unavailable": 1119,
+              "score": 25227.0
+            }
+          },
+          "DELETED_DEPENDENCY": {
+            "before": {
+              "positive": 4106,
+              "negative": 14281,
+              "unavailable": 471,
+              "score": 4111.0
+            },
+            "after": {
+              "positive": 4106,
+              "negative": 14280,
+              "unavailable": 472,
+              "score": 4111.0
+            }
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "before": {
+              "positive": 11695,
+              "negative": 6396,
+              "unavailable": 767,
+              "score": 14842.0
+            },
+            "after": {
+              "positive": 11695,
+              "negative": 6395,
+              "unavailable": 768,
+              "score": 14842.0
+            }
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "before": {
+              "positive": 9,
+              "negative": 18378,
+              "unavailable": 471,
+              "score": 9.0
+            },
+            "after": {
+              "positive": 9,
+              "negative": 18377,
+              "unavailable": 472,
+              "score": 9.0
+            }
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "before": {
+              "positive": 4571,
+              "negative": 13702,
+              "unavailable": 585,
+              "score": 6782.0
+            },
+            "after": {
+              "positive": 4571,
+              "negative": 13701,
+              "unavailable": 586,
+              "score": 6782.0
+            }
+          },
+          "LOST_COPIED_UPDATE": {
+            "before": {
+              "positive": 32,
+              "negative": 17836,
+              "unavailable": 990,
+              "score": 32.0
+            },
+            "after": {
+              "positive": 32,
+              "negative": 18105,
+              "unavailable": 721,
+              "score": 32.0
+            }
+          }
+        },
+        "budget": 8000,
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "arms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal",
+          "UCB-independent"
+        ]
+      }
+    }
+  },
+  "completion": {
+    "complete": true,
+    "totalRuns": 80,
+    "comparisonSha256": "d6f2b258ffcd66d085af3d30824a4e13b93809ec9b0fa2f8bd063f41c281a652"
+  },
+  "preparationSha256": "11967a211c2fd24c5bf8feb951c6310546928d22088809af3779fb87f21d3a6a",
+  "rawDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28"
+}

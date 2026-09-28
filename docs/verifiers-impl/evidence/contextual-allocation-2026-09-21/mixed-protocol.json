@@ -1,0 +1,53 @@
+{
+  "purpose": "Additional engineering-scale comparison: the same nine-map cohort plus the independently verified complete3918candidate map; not a generalisation benchmark. Large map selection is based on complete locally available exact catalogue, before allocator outcomes.",
+  "budgets": [
+    100,
+    500,
+    1000
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "configSha256": "ac3c6329f21b04f39b86cab22c7f6e0a665d544d405736f5440b6bea8718a183",
+  "profiles": [
+    "all five unit weights",
+    "deleted dependencies only"
+  ],
+  "policies": [
+    "round-robin",
+    "uniform",
+    "adaptive-ucb",
+    "contextual-linucb"
+  ],
+  "tuning": "Use implementation defaults; no adjustment based on this cohort results.",
+  "candidateCount": 4107
+}

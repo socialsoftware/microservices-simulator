@@ -1,0 +1,6 @@
+{
+  "stage": "COMPLETE",
+  "sourceHashesUnchanged": true,
+  "finishedAt": 1789739508.6680079,
+  "reportingRecovery": "Used existing /tmp/thesis-generation-plots-venv/bin/python; bundled Python lacks matplotlib; counts not rerun."
+}

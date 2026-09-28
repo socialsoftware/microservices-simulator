@@ -1,0 +1,3353 @@
+{
+  "metadata": {
+    "compatibility": "EXACT_PACKAGE_ROLE_HASHES",
+    "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "packages": [
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/interactions.jsonl",
+        "manifestSha256": "262ec3c14475143d1b74800570b7b70991e1225b1514321b1742f2df50bd9d7e",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/interactions.jsonl",
+        "manifestSha256": "a141b971aa8544c402f156428ac1c1aafb0b640af7ca7381d7901f31816fe89b",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/interactions.jsonl",
+        "manifestSha256": "75519f2fe05781c0ed27312d1e180cf36d6c66cf62bdc0b6275006bc8cf8ca9a",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/interactions.jsonl",
+        "manifestSha256": "3380ac32023e84c14850394b372b47cc22a5a87544124998ce16dfbfd1f2b0a1",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/interactions.jsonl",
+        "manifestSha256": "ea7ed343430eefaab1eb74eccf9121309c1360090e66228a0f5f594dac7d819c",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/interactions.jsonl",
+        "manifestSha256": "d8af330f0cde469054a9a01758ecd939fc5cc3e6880fdd7872a981efdceadb6e",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/interactions.jsonl",
+        "manifestSha256": "912e9c747e3e62ef1d2353feb6607aa1e9f52832365f672f9a6605b7f473af40",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/interactions.jsonl",
+        "manifestSha256": "89990bc7ff54abaf9781d037c01d123fcd1efc2789754615bf9250e2ce61081b",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/interactions.jsonl",
+        "manifestSha256": "9fed085265c22d92918625f14a2f4a3eeea4623c05a28de968a22069643169cf",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/interactions.jsonl",
+        "manifestSha256": "8b15fe815ad9c218089ddcac221773d2ff0ddba1e52d5d4a817f0b1e9e839f18",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/interactions.jsonl",
+        "manifestSha256": "4cead6c327e14cc483ba62cd5f6f550ff308eaf6ac56c517b2be434d362edf46",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/interactions.jsonl",
+        "manifestSha256": "72f39871404a3f1b4982ebd65580349f59813cc8c5d32b606a299491b8ce6a9c",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/interactions.jsonl",
+        "manifestSha256": "afb68839c7371590aed13b3835439bf53593fd64a3f990158eb7a777ebc6178e",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/interactions.jsonl",
+        "manifestSha256": "ceed1c175403719da9d609e48010c97d5ae54f50bb1ba8b82ac77b7e6c31063e",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/interactions.jsonl",
+        "manifestSha256": "23df1ca63fb935b80360aaca219ce0563c8eedc68b3c295ce7accacae480803d",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/interactions.jsonl",
+        "manifestSha256": "f2f2f6a55331a4be5a258363633255a66e28b79d758ecbabb1fa947e501d574e",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      },
+      {
+        "manifest": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/package/scenario-catalog-manifest.json",
+        "sagas": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/package/sagas.jsonl",
+        "interactions": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/package/interactions.jsonl",
+        "manifestSha256": "39f2cdca93a36393003445d65afc4219f4c57794f0255bbd3c204f0986c30c7a",
+        "sagasSha256": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+        "interactionsSha256": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+      }
+    ]
+  },
+  "workloads": {
+    "67a72159f5484054f5cbf5e4f555438aafbb72a9120057e13c7c9b3cefb6457e": {
+      "schema": "allocator-order-features.v1",
+      "workload": "67a72159f5484054f5cbf5e4f555438aafbb72a9120057e13c7c9b3cefb6457e",
+      "counts": {
+        "scheduledAccesses": 8,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "2f62ebc8f98ecebfef9ba8b6d506ddaca2376d48a852a1eea9ab98af1a6ecc17": {
+      "schema": "allocator-order-features.v1",
+      "workload": "2f62ebc8f98ecebfef9ba8b6d506ddaca2376d48a852a1eea9ab98af1a6ecc17",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 3,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.75,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "7c26d665df5b33f0672bf9369d5687fa76cce5b35e5bf3f9cbe5a53dc91a8c85": {
+      "schema": "allocator-order-features.v1",
+      "workload": "7c26d665df5b33f0672bf9369d5687fa76cce5b35e5bf3f9cbe5a53dc91a8c85",
+      "counts": {
+        "scheduledAccesses": 8,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a603fd11d92f83fa04f9baa36a21658d3682eae22145e0a5ed3a575cf2805ccd": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a603fd11d92f83fa04f9baa36a21658d3682eae22145e0a5ed3a575cf2805ccd",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 3,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.75,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173": {
+      "schema": "allocator-order-features.v1",
+      "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 2,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.6666666666666666,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "dfc87108c9dcda1501b7689e23b5d72f9ddf61494508c9f7eaef1ea163abc542": {
+      "schema": "allocator-order-features.v1",
+      "workload": "dfc87108c9dcda1501b7689e23b5d72f9ddf61494508c9f7eaef1ea163abc542",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 4,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.8,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "02cf5305c1279a7ba1484e6da8766ef84c4ba8f6456254f10290faa5282cf834": {
+      "schema": "allocator-order-features.v1",
+      "workload": "02cf5305c1279a7ba1484e6da8766ef84c4ba8f6456254f10290faa5282cf834",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 2,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.6666666666666666,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "806b968b0fe868da6804b3b18117c1e152003ba7a06242bddea2ce8d2d9f014a": {
+      "schema": "allocator-order-features.v1",
+      "workload": "806b968b0fe868da6804b3b18117c1e152003ba7a06242bddea2ce8d2d9f014a",
+      "counts": {
+        "scheduledAccesses": 8,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "0c3d4232347f0eb3ddf8c76b0fc865c3c8e2c8c8616f774613a053db147d3397": {
+      "schema": "allocator-order-features.v1",
+      "workload": "0c3d4232347f0eb3ddf8c76b0fc865c3c8e2c8c8616f774613a053db147d3397",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 3,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.75,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "13810131c7b2856e3001d431ba87426c1c09b69ecc838ef7b2f8aae7e01e745a": {
+      "schema": "allocator-order-features.v1",
+      "workload": "13810131c7b2856e3001d431ba87426c1c09b69ecc838ef7b2f8aae7e01e745a",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 2,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.6666666666666666,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311": {
+      "schema": "allocator-order-features.v1",
+      "workload": "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311",
+      "counts": {
+        "scheduledAccesses": 8,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324": {
+      "schema": "allocator-order-features.v1",
+      "workload": "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "3a99f1c3f0a46577174eaaaeb9e925f5cc372925837b17dbcf56b0651a8dc05d": {
+      "schema": "allocator-order-features.v1",
+      "workload": "3a99f1c3f0a46577174eaaaeb9e925f5cc372925837b17dbcf56b0651a8dc05d",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "6a2791eeb9c159a6e95b0db4fddb2d381bee42c023d64cb10c30d42835a247c4": {
+      "schema": "allocator-order-features.v1",
+      "workload": "6a2791eeb9c159a6e95b0db4fddb2d381bee42c023d64cb10c30d42835a247c4",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "2397cf5673db11a76a721f39f1c05f4146da56d9b3cdaf1adb3a71fe4ff49ea9": {
+      "schema": "allocator-order-features.v1",
+      "workload": "2397cf5673db11a76a721f39f1c05f4146da56d9b3cdaf1adb3a71fe4ff49ea9",
+      "counts": {
+        "scheduledAccesses": 5,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a73ca1b910a33c3dc1b124a88c799157246ecb4de91fc3bbf96de8bc1bac6808": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a73ca1b910a33c3dc1b124a88c799157246ecb4de91fc3bbf96de8bc1bac6808",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 1,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.5,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19": {
+      "schema": "allocator-order-features.v1",
+      "workload": "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "93abf85cf62ec80d204fd6cea1002a1175d3ea3c6542be184294095a8a36845f": {
+      "schema": "allocator-order-features.v1",
+      "workload": "93abf85cf62ec80d204fd6cea1002a1175d3ea3c6542be184294095a8a36845f",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff": {
+      "schema": "allocator-order-features.v1",
+      "workload": "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "d1bebd79ca82f9e70f65bdd0c067e129aa8899fee5beb591cc947a6e7dfac2d7": {
+      "schema": "allocator-order-features.v1",
+      "workload": "d1bebd79ca82f9e70f65bdd0c067e129aa8899fee5beb591cc947a6e7dfac2d7",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "e465b03fa9b26a1f974d1c46bc0024e121e7b20936ed575d44f0a039ffb8db6e": {
+      "schema": "allocator-order-features.v1",
+      "workload": "e465b03fa9b26a1f974d1c46bc0024e121e7b20936ed575d44f0a039ffb8db6e",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "902e4e9ad2c0d332501bda8fd1a990aa08fbd6eab93bd332ec9484db3a4fa98b": {
+      "schema": "allocator-order-features.v1",
+      "workload": "902e4e9ad2c0d332501bda8fd1a990aa08fbd6eab93bd332ec9484db3a4fa98b",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 1,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.5,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "d965e34a99d9a9704efd9ce4c1571ff378afb5d0a2ef7837c281818ab046963d": {
+      "schema": "allocator-order-features.v1",
+      "workload": "d965e34a99d9a9704efd9ce4c1571ff378afb5d0a2ef7837c281818ab046963d",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f": {
+      "schema": "allocator-order-features.v1",
+      "workload": "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "0705b39ad71b92ae23e9578e248cbc2601f7dfb38bea763bcdadc86242ef4cc4": {
+      "schema": "allocator-order-features.v1",
+      "workload": "0705b39ad71b92ae23e9578e248cbc2601f7dfb38bea763bcdadc86242ef4cc4",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036": {
+      "schema": "allocator-order-features.v1",
+      "workload": "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "377f8726fe6f933146a1d678933eb1039c9dafbc9a976a8fd926ee12a18cacab": {
+      "schema": "allocator-order-features.v1",
+      "workload": "377f8726fe6f933146a1d678933eb1039c9dafbc9a976a8fd926ee12a18cacab",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "84664b24fd86c4cc3ab20d22bba7e09f0719d44d9734eebdbe2dd912f380ed74": {
+      "schema": "allocator-order-features.v1",
+      "workload": "84664b24fd86c4cc3ab20d22bba7e09f0719d44d9734eebdbe2dd912f380ed74",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 1,
+          "order:event-type-potential:write-before-read": 1,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.5,
+        "order:event-type-potential:write-before-read": 0.5,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e": {
+      "schema": "allocator-order-features.v1",
+      "workload": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2": {
+      "schema": "allocator-order-features.v1",
+      "workload": "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "c8209081a67dbabf131f950f28a27166fd1dd6a4965fc8aa5ca9169610fde1f4": {
+      "schema": "allocator-order-features.v1",
+      "workload": "c8209081a67dbabf131f950f28a27166fd1dd6a4965fc8aa5ca9169610fde1f4",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "5736e1470f45125e336601410c97facb637c8cde5df4bcb6bce598b0bcda0843": {
+      "schema": "allocator-order-features.v1",
+      "workload": "5736e1470f45125e336601410c97facb637c8cde5df4bcb6bce598b0bcda0843",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "4332768b3d7c05c59ffddc2cdee843be1142ca49a860c27cb3b1390dda8b1ed8": {
+      "schema": "allocator-order-features.v1",
+      "workload": "4332768b3d7c05c59ffddc2cdee843be1142ca49a860c27cb3b1390dda8b1ed8",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "375a71fcf5f364122cd2630b31517426c09fdf1e1d709d061b5c191c49294dea": {
+      "schema": "allocator-order-features.v1",
+      "workload": "375a71fcf5f364122cd2630b31517426c09fdf1e1d709d061b5c191c49294dea",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94": {
+      "schema": "allocator-order-features.v1",
+      "workload": "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "43daecb06b9a74a660248bae4179802081dc5eecad2fc5f582732ae0fe282faa": {
+      "schema": "allocator-order-features.v1",
+      "workload": "43daecb06b9a74a660248bae4179802081dc5eecad2fc5f582732ae0fe282faa",
+      "counts": {
+        "scheduledAccesses": 5,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "1dc403f4facceacf0593664a93ba5282cdbb224b06c902c0ecac6904ccdbeeeb": {
+      "schema": "allocator-order-features.v1",
+      "workload": "1dc403f4facceacf0593664a93ba5282cdbb224b06c902c0ecac6904ccdbeeeb",
+      "counts": {
+        "scheduledAccesses": 7,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5": {
+      "schema": "allocator-order-features.v1",
+      "workload": "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "d9fb3b5894d4a4cc7df9644b4c4b6887627ad118016f202d2099b8ae52670cfa": {
+      "schema": "allocator-order-features.v1",
+      "workload": "d9fb3b5894d4a4cc7df9644b4c4b6887627ad118016f202d2099b8ae52670cfa",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "783024ced6398dc266c67d98d18677048872fbe0c78839e1d5260179a4f61ebf": {
+      "schema": "allocator-order-features.v1",
+      "workload": "783024ced6398dc266c67d98d18677048872fbe0c78839e1d5260179a4f61ebf",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "ea782cdd59c27e105edaeb699330d4de6a7edcbdf3f7d8f81f6d5aa0e1f1012b": {
+      "schema": "allocator-order-features.v1",
+      "workload": "ea782cdd59c27e105edaeb699330d4de6a7edcbdf3f7d8f81f6d5aa0e1f1012b",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "78a838a8690707dd7c2f468bdb6cbaf46cbe00edd1b5ca516577d48c9f65330e": {
+      "schema": "allocator-order-features.v1",
+      "workload": "78a838a8690707dd7c2f468bdb6cbaf46cbe00edd1b5ca516577d48c9f65330e",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "9c4501ab67617a484ec4187781430ce1fd2158c8e176d9642de1734f0d3c30b3": {
+      "schema": "allocator-order-features.v1",
+      "workload": "9c4501ab67617a484ec4187781430ce1fd2158c8e176d9642de1734f0d3c30b3",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7": {
+      "schema": "allocator-order-features.v1",
+      "workload": "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "f305554eff3e14d8d924979b639972912688af5635458837a5d4a5b3e2e9e497": {
+      "schema": "allocator-order-features.v1",
+      "workload": "f305554eff3e14d8d924979b639972912688af5635458837a5d4a5b3e2e9e497",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "b82f81187951ee557ba4c69c0016bb79df3314d78a165d7f04a9f13c22a50071": {
+      "schema": "allocator-order-features.v1",
+      "workload": "b82f81187951ee557ba4c69c0016bb79df3314d78a165d7f04a9f13c22a50071",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "9e4e1a4beda312b0b97222f6a67b822afcf17823751d8cdf2ce6b68d6fd07ff6": {
+      "schema": "allocator-order-features.v1",
+      "workload": "9e4e1a4beda312b0b97222f6a67b822afcf17823751d8cdf2ce6b68d6fd07ff6",
+      "counts": {
+        "scheduledAccesses": 5,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2": {
+      "schema": "allocator-order-features.v1",
+      "workload": "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 1,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.5,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "32e2c0d7024e821f3c6d6aeb147f36082c215061457bfc50c5a86b469e133b84": {
+      "schema": "allocator-order-features.v1",
+      "workload": "32e2c0d7024e821f3c6d6aeb147f36082c215061457bfc50c5a86b469e133b84",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a91a653a65941763e18b2f89975441131edd8cc998e21e5a23c088a1ac146df4": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a91a653a65941763e18b2f89975441131edd8cc998e21e5a23c088a1ac146df4",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82": {
+      "schema": "allocator-order-features.v1",
+      "workload": "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "90a85adf74b3bd13feee57f945741a412f6e0615b701399eb3caebd3388d78a4": {
+      "schema": "allocator-order-features.v1",
+      "workload": "90a85adf74b3bd13feee57f945741a412f6e0615b701399eb3caebd3388d78a4",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "840ccecac5bc2c6923d04d7e7e4ee71fc4284017012dd86e452f309907d89683": {
+      "schema": "allocator-order-features.v1",
+      "workload": "840ccecac5bc2c6923d04d7e7e4ee71fc4284017012dd86e452f309907d89683",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "e61b02dd89a8281e2a16a2626bfd018d1824790bce88f9449e4ecea4a93eee79": {
+      "schema": "allocator-order-features.v1",
+      "workload": "e61b02dd89a8281e2a16a2626bfd018d1824790bce88f9449e4ecea4a93eee79",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da": {
+      "schema": "allocator-order-features.v1",
+      "workload": "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a6b0e8ca89cc4b0fb59c0d7d8a3cb59cd2345f955bf2591aa4c65a25fb927127": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a6b0e8ca89cc4b0fb59c0d7d8a3cb59cd2345f955bf2591aa4c65a25fb927127",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "5ac65c4bcfbc2f91a8747e49b696f12ff2a4793ea9f44e485e52362c8486f727": {
+      "schema": "allocator-order-features.v1",
+      "workload": "5ac65c4bcfbc2f91a8747e49b696f12ff2a4793ea9f44e485e52362c8486f727",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 1,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.5,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "60bf9a799c48fe0d99dafc85b706796aeb6129cc28629a000f996706f681b159": {
+      "schema": "allocator-order-features.v1",
+      "workload": "60bf9a799c48fe0d99dafc85b706796aeb6129cc28629a000f996706f681b159",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 1,
+          "order:event-type-potential:write-before-read": 1,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.5,
+        "order:event-type-potential:write-before-read": 0.5,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e": {
+      "schema": "allocator-order-features.v1",
+      "workload": "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e",
+      "counts": {
+        "scheduledAccesses": 2,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "09870ac257900e8644893185a9a25330442bc058008e2edb5a85a54447a225f5": {
+      "schema": "allocator-order-features.v1",
+      "workload": "09870ac257900e8644893185a9a25330442bc058008e2edb5a85a54447a225f5",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 1,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.5,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "dd4d2d1e93bb345060fcc28733c02ef58a2f2ee99cdaa56d3115f4298f84e920": {
+      "schema": "allocator-order-features.v1",
+      "workload": "dd4d2d1e93bb345060fcc28733c02ef58a2f2ee99cdaa56d3115f4298f84e920",
+      "counts": {
+        "scheduledAccesses": 3,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "4eaa4bbc8f296c8b2bd9ae624d11e4c8a0b655c3b9123a037f2188121180bde9": {
+      "schema": "allocator-order-features.v1",
+      "workload": "4eaa4bbc8f296c8b2bd9ae624d11e4c8a0b655c3b9123a037f2188121180bde9",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037": {
+      "schema": "allocator-order-features.v1",
+      "workload": "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "618787ae619d95f9bc22000e2ee413ad4f8f4e44bd44c15e4d8aa9007340b6dc": {
+      "schema": "allocator-order-features.v1",
+      "workload": "618787ae619d95f9bc22000e2ee413ad4f8f4e44bd44c15e4d8aa9007340b6dc",
+      "counts": {
+        "scheduledAccesses": 5,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "4766967faab25f8a909b9b97c45dfcbf79838ae86cf23457451fbc4e8a3e8347": {
+      "schema": "allocator-order-features.v1",
+      "workload": "4766967faab25f8a909b9b97c45dfcbf79838ae86cf23457451fbc4e8a3e8347",
+      "counts": {
+        "scheduledAccesses": 4,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "20bd52195677ebaadb74b87fbaba8a76c0ae00e2ec87f10fab1909904b4da6e3": {
+      "schema": "allocator-order-features.v1",
+      "workload": "20bd52195677ebaadb74b87fbaba8a76c0ae00e2ec87f10fab1909904b4da6e3",
+      "counts": {
+        "scheduledAccesses": 6,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07": {
+      "schema": "allocator-order-features.v1",
+      "workload": "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "aceceb6ce351a18e37be6a67971ddd9446c5e4d05ebb655bee58f6c337af8fe8": {
+      "schema": "allocator-order-features.v1",
+      "workload": "aceceb6ce351a18e37be6a67971ddd9446c5e4d05ebb655bee58f6c337af8fe8",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c": {
+      "schema": "allocator-order-features.v1",
+      "workload": "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "counts": {
+        "scheduledAccesses": 1,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 4,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.8,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "fe399af06dc303b6d816a836c5e87104724dcdb1ac6e893669bd36e548d9019a": {
+      "schema": "allocator-order-features.v1",
+      "workload": "fe399af06dc303b6d816a836c5e87104724dcdb1ac6e893669bd36e548d9019a",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 2,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.6666666666666666,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "9555c4645a94910cf48dc2459dd47eabee9fd532d561666e00113e4d9440fbdf": {
+      "schema": "allocator-order-features.v1",
+      "workload": "9555c4645a94910cf48dc2459dd47eabee9fd532d561666e00113e4d9440fbdf",
+      "counts": {
+        "scheduledAccesses": 9,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 4,
+          "order:type-potential:write-before-write": 2,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.8,
+        "order:type-potential:write-before-write": 0.6666666666666666,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "PARTIAL",
+        "gaps": [],
+        "limitations": [
+          {
+            "kind": "STEP_ANALYSIS_LIMITATION",
+            "subject": "scheduled-step",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "sagaStep": "updateQuizStep#0",
+            "limitation": "FORWARD:UNRESOLVED_COMMAND_DISPATCH: cannot resolve command dispatch through call send"
+          }
+        ],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "3d8d79c5d058b8a539089ca09da8020d531f51f6f19efa0f3caabc615cc851f7": {
+      "schema": "allocator-order-features.v1",
+      "workload": "3d8d79c5d058b8a539089ca09da8020d531f51f6f19efa0f3caabc615cc851f7",
+      "counts": {
+        "scheduledAccesses": 10,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 3,
+          "order:type-potential:write-before-write": 1,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 1,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.75,
+        "order:type-potential:write-before-write": 0.5,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.5,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a00c956cdae0f5288362e1b19d59970e5f332cd58cbe2e293cc15a1d041f9c08": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a00c956cdae0f5288362e1b19d59970e5f332cd58cbe2e293cc15a1d041f9c08",
+      "counts": {
+        "scheduledAccesses": 10,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 1,
+          "order:type-potential:write-before-read": 0,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.5,
+        "order:type-potential:write-before-read": 0.0,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "e61e7630681dbfb09a48e991bcb6a6bba53cca4dfeb9471ba58cb38a5b1dde95": {
+      "schema": "allocator-order-features.v1",
+      "workload": "e61e7630681dbfb09a48e991bcb6a6bba53cca4dfeb9471ba58cb38a5b1dde95",
+      "counts": {
+        "scheduledAccesses": 10,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 3,
+          "order:type-potential:write-before-write": 1,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 0,
+        "mappedEvents": 0
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.75,
+        "order:type-potential:write-before-write": 0.5,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8": {
+      "schema": "allocator-order-features.v1",
+      "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+      "counts": {
+        "scheduledAccesses": 7,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 4,
+          "order:type-potential:write-before-read": 4,
+          "order:type-potential:write-before-write": 4,
+          "order:type-potential:read-between-foreign-writes": 4,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.8,
+        "order:type-potential:write-before-read": 0.8,
+        "order:type-potential:write-before-write": 0.8,
+        "order:type-potential:read-between-foreign-writes": 0.8,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "c2e3f0a617ca7e3547920a53c6e52801d83256bc40e46ab4e4a7ad7ecb28b4b8": {
+      "schema": "allocator-order-features.v1",
+      "workload": "c2e3f0a617ca7e3547920a53c6e52801d83256bc40e46ab4e4a7ad7ecb28b4b8",
+      "counts": {
+        "scheduledAccesses": 6,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 4,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 1,
+        "mappedEvents": 1
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.8,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "afb1774f08a3ad5d59c64a767c5658179ff9088e4d7358403d2e08a292783221": {
+      "schema": "allocator-order-features.v1",
+      "workload": "afb1774f08a3ad5d59c64a767c5658179ff9088e4d7358403d2e08a292783221",
+      "counts": {
+        "scheduledAccesses": 5,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 0,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 0,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 1
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.0,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.0,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.5
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51": {
+      "schema": "allocator-order-features.v1",
+      "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+      "counts": {
+        "scheduledAccesses": 7,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 4,
+          "order:type-potential:write-before-read": 4,
+          "order:type-potential:write-before-write": 4,
+          "order:type-potential:read-between-foreign-writes": 4,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.8,
+        "order:type-potential:write-before-read": 0.8,
+        "order:type-potential:write-before-write": 0.8,
+        "order:type-potential:read-between-foreign-writes": 0.8,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    },
+    "95cf5833a03b6713b7f0784fadf42d042230112cb398787df8ea55240154d277": {
+      "schema": "allocator-order-features.v1",
+      "workload": "95cf5833a03b6713b7f0784fadf42d042230112cb398787df8ea55240154d277",
+      "counts": {
+        "scheduledAccesses": 6,
+        "rawPatterns": {
+          "order:type-potential:read-before-write": 2,
+          "order:type-potential:write-before-read": 2,
+          "order:type-potential:write-before-write": 4,
+          "order:type-potential:read-between-foreign-writes": 0,
+          "order:event-type-potential:read-before-write": 0,
+          "order:event-type-potential:write-before-read": 0,
+          "order:event-type-potential:write-before-write": 0
+        },
+        "scheduledEvents": 2,
+        "mappedEvents": 2
+      },
+      "features": {
+        "order:type-potential:read-before-write": 0.6666666666666666,
+        "order:type-potential:write-before-read": 0.6666666666666666,
+        "order:type-potential:write-before-write": 0.8,
+        "order:type-potential:read-between-foreign-writes": 0.0,
+        "order:event-type-potential:read-before-write": 0.0,
+        "order:event-type-potential:write-before-read": 0.0,
+        "order:event-type-potential:write-before-write": 0.0
+      },
+      "coverage": {
+        "status": "COMPLETE",
+        "staticKnowledge": "COMPLETE_WITHIN_EXTRACTED_SCOPE",
+        "gaps": [],
+        "limitations": [],
+        "outcomeInputs": false,
+        "semantics": "aggregate-type-potential-only",
+        "objectIdentityClaim": false,
+        "anomalyClaim": false,
+        "absenceMeaning": "no-recorded-access-not-proved-absence"
+      }
+    }
+  }
+}

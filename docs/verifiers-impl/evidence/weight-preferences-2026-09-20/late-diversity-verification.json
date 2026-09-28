@@ -1,0 +1,289 @@
+{
+  "batch": "late-diversity",
+  "archiveSha256": "e5782037bff83a6a58e45d7cfb3480eb7c8c3b02c37e8fc00a8f41b4fc58cc8f",
+  "archiveBytes": 67382732,
+  "attemptReportSetsVerified": 14,
+  "receiptsVerified": 10,
+  "workloads": [
+    {
+      "name": "late-04",
+      "workload": "a98059ab10b580a559ab1c12d057013090bd2b5b0c55df3f109ae570cab891e4",
+      "family": [
+        "RemoveCourseExecution"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "e5782037bff83a6a58e45d7cfb3480eb7c8c3b02c37e8fc00a8f41b4fc58cc8f",
+      "candidates": 4,
+      "scores": {
+        "zero": 3,
+        "positive": 1
+      },
+      "positiveComponents": {
+        "FAILED_OPERATION_RESIDUAL": 1
+      },
+      "positiveComponentsRegardlessOfOverallAvailability": {
+        "FAILED_OPERATION_RESIDUAL": 1
+      },
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json"
+    },
+    {
+      "name": "late-03",
+      "workload": "0dd59d615e2a15b645b964673a7356d88075f599ed3a0aeb7e2f331e5f854b8c",
+      "family": [
+        "FindTournament",
+        "UpdateTournament"
+      ],
+      "stage": "CONTROL_REJECTED",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "DEVIATED",
+        "terminalStatus": "PARTIAL_COMPENSATED"
+      },
+      "archiveSha256": "e5782037bff83a6a58e45d7cfb3480eb7c8c3b02c37e8fc00a8f41b4fc58cc8f",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": 0.0,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          }
+        },
+        "fitnessUnavailableReasons": []
+      }
+    },
+    {
+      "name": "late-01",
+      "workload": "387a476a3af6fa5f360b51e99ef14aebd79c370534a494fdf3d17a7a94754f9f",
+      "family": [
+        "AddParticipantAsync",
+        "FindTournament"
+      ],
+      "stage": "CONTROL_SCORE_UNAVAILABLE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": null,
+              "coverage": "INCOMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": null,
+          "fitnessUnavailableReasons": [
+            "LOST_COPIED_UPDATE_INCOMPLETE"
+          ]
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "e5782037bff83a6a58e45d7cfb3480eb7c8c3b02c37e8fc00a8f41b4fc58cc8f",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": null,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 0,
+            "count": null,
+            "coverage": "INCOMPLETE"
+          }
+        },
+        "fitnessUnavailableReasons": [
+          "LOST_COPIED_UPDATE_INCOMPLETE"
+        ]
+      }
+    },
+    {
+      "name": "late-02",
+      "workload": "ac14e6f61404afbd4fdd342b0206513366e5496fe56b847d7d2fafe8c913075c",
+      "family": [
+        "FindTournament",
+        "RemoveTournament"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "e5782037bff83a6a58e45d7cfb3480eb7c8c3b02c37e8fc00a8f41b4fc58cc8f",
+      "candidates": 8,
+      "scores": {
+        "zero": 6,
+        "positive": 2
+      },
+      "positiveComponents": {
+        "DELETED_DEPENDENCY": 2,
+        "FAILED_OPERATION_RESIDUAL": 2
+      },
+      "positiveComponentsRegardlessOfOverallAvailability": {
+        "DELETED_DEPENDENCY": 2,
+        "FAILED_OPERATION_RESIDUAL": 2
+      },
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json"
+    }
+  ],
+  "scope": "Structurally selected extension; retained controls and complete/partial maps; fixed runtime and qualified event-origin assessor."
+}

@@ -1,0 +1,10 @@
+{
+  "candidateCount": 5184,
+  "dockerBuildCacheReportedReclaimedGB": 5.649,
+  "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/more-workloads-2026-09-15/domain-counts/add-update-leave-remove-serial-ef019",
+  "freeBytesBeforeControl": 16354856960,
+  "note": "Measurement only; GA/random feedback replay follows separately. All five criterion weights remain 1.",
+  "runtimeConfig": "verifiers/target/catalogue-live-2026-09-16/ga-config.json",
+  "sourceConfig": "verifiers/target/ga-500x3-2026-09-15/ga-seed-11/config.json",
+  "workers": 3
+}

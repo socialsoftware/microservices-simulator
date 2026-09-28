@@ -1,0 +1,4 @@
+-------------------------------------------------------------------------------
+Test set: pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest
+-------------------------------------------------------------------------------
+Tests run: 4, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 3.958 s -- in pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.answer.QuizAnswerEventHandlingTest

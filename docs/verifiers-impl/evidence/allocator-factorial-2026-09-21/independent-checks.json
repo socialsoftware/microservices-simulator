@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "adaptive-ucb per-workload legacy prefix across switches",
+    "adaptive-ucb hidden-future outcomes cannot change first21 choices",
+    "adaptive-ucb identical fully exhausted endpoint and189 unique attempts",
+    "adaptive-ucb-cooldown per-workload legacy prefix across switches",
+    "adaptive-ucb-cooldown hidden-future outcomes cannot change first21 choices",
+    "adaptive-ucb-cooldown identical fully exhausted endpoint and189 unique attempts",
+    "adaptive-ucb-cooldown identical guard rule after every unknown while alternative exists",
+    "progress-linucb per-workload legacy prefix across switches",
+    "progress-linucb hidden-future outcomes cannot change first21 choices",
+    "progress-linucb identical fully exhausted endpoint and189 unique attempts",
+    "progress-linucb structural profile permutation cannot affect decisions",
+    "progress-linucb-cooldown per-workload legacy prefix across switches",
+    "progress-linucb-cooldown hidden-future outcomes cannot change first21 choices",
+    "progress-linucb-cooldown identical fully exhausted endpoint and189 unique attempts",
+    "progress-linucb-cooldown identical guard rule after every unknown while alternative exists",
+    "progress-linucb-cooldown structural profile permutation cannot affect decisions",
+    "contextual-linucb per-workload legacy prefix across switches",
+    "contextual-linucb hidden-future outcomes cannot change first21 choices",
+    "contextual-linucb identical fully exhausted endpoint and189 unique attempts",
+    "contextual-linucb-cooldown per-workload legacy prefix across switches",
+    "contextual-linucb-cooldown hidden-future outcomes cannot change first21 choices",
+    "contextual-linucb-cooldown identical fully exhausted endpoint and189 unique attempts",
+    "contextual-linucb-cooldown identical guard rule after every unknown while alternative exists",
+    "shared linear model inverse/coefficients agree with independent direct solution"
+  ],
+  "inverseMaxError": 1.0880185641326534e-14,
+  "thetaMaxError": 2.3203661214665772e-14
+}

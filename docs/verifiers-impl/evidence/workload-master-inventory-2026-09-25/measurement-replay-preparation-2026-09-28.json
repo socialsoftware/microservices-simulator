@@ -1,0 +1,2286 @@
+{
+  "ready": true,
+  "totalRuns": 80,
+  "profiles": [
+    "all-five"
+  ],
+  "cohorts": {
+    "small": {
+      "workloads": 313,
+      "scenarios": 6396,
+      "identicalCandidatesAndStructuralProfiles": true,
+      "profiles": {
+        "all-five": {
+          "before": {
+            "positive": 1650,
+            "negative": 4186,
+            "unavailable": 560,
+            "score": 1881.0
+          },
+          "after": {
+            "positive": 1706,
+            "negative": 4399,
+            "unavailable": 291,
+            "score": 1937.0
+          }
+        },
+        "DELETED_DEPENDENCY": {
+          "before": {
+            "positive": 84,
+            "negative": 6305,
+            "unavailable": 7,
+            "score": 89.0
+          },
+          "after": {
+            "positive": 84,
+            "negative": 6304,
+            "unavailable": 8,
+            "score": 89.0
+          }
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "before": {
+            "positive": 1804,
+            "negative": 4553,
+            "unavailable": 39,
+            "score": 1804.0
+          },
+          "after": {
+            "positive": 1804,
+            "negative": 4552,
+            "unavailable": 40,
+            "score": 1804.0
+          }
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "before": {
+            "positive": 9,
+            "negative": 6380,
+            "unavailable": 7,
+            "score": 9.0
+          },
+          "after": {
+            "positive": 9,
+            "negative": 6379,
+            "unavailable": 8,
+            "score": 9.0
+          }
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "before": {
+            "positive": 132,
+            "negative": 6255,
+            "unavailable": 9,
+            "score": 132.0
+          },
+          "after": {
+            "positive": 132,
+            "negative": 6254,
+            "unavailable": 10,
+            "score": 132.0
+          }
+        },
+        "LOST_COPIED_UPDATE": {
+          "before": {
+            "positive": 32,
+            "negative": 5838,
+            "unavailable": 526,
+            "score": 32.0
+          },
+          "after": {
+            "positive": 32,
+            "negative": 6107,
+            "unavailable": 257,
+            "score": 32.0
+          }
+        }
+      },
+      "budget": 4000,
+      "seeds": [
+        1,
+        11,
+        29,
+        47,
+        73
+      ],
+      "arms": [
+        "uniform",
+        "P-shared",
+        "S-cal",
+        "SP-cal",
+        "P-local",
+        "H0",
+        "H1-cal",
+        "UCB-independent"
+      ],
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/small",
+      "protocolSha256": "db9752c5a0bc4d438ac154fdb901fc4f2e2ecd707cd0b60ebb84468f4bd618a6",
+      "proofSha256": "f77d61e17ff649fc96c58f29ac842dd30a093947c03aaaeec2367ae92ddb3ea2",
+      "numericProof": {
+        "protocolSha256": "817134a3d23b7a7f21ed6d63f17f7b559ec8866578b5a1feccb553bcec85c0dd",
+        "exactComparisons": [
+          {
+            "arm": "uniform",
+            "decisions": 16
+          },
+          {
+            "arm": "P-shared",
+            "decisions": 16
+          },
+          {
+            "arm": "S-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "SP-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "P-local",
+            "decisions": 16
+          },
+          {
+            "arm": "H0",
+            "decisions": 16
+          },
+          {
+            "arm": "H1-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "UCB-independent",
+            "decisions": 16
+          }
+        ],
+        "ucbAdapter": {
+          "exactCanonicalDecisions": 1500,
+          "seeds": [
+            1,
+            11,
+            29,
+            47,
+            73
+          ],
+          "feedbackIncludes": [
+            "unavailable",
+            "negative",
+            "positive"
+          ],
+          "inactiveArmsIncludedInGlobalClock": true
+        }
+      }
+    },
+    "full": {
+      "workloads": 316,
+      "scenarios": 18858,
+      "identicalCandidatesAndStructuralProfiles": true,
+      "profiles": {
+        "all-five": {
+          "before": {
+            "positive": 11441,
+            "negative": 6029,
+            "unavailable": 1388,
+            "score": 25171.0
+          },
+          "after": {
+            "positive": 11497,
+            "negative": 6242,
+            "unavailable": 1119,
+            "score": 25227.0
+          }
+        },
+        "DELETED_DEPENDENCY": {
+          "before": {
+            "positive": 4106,
+            "negative": 14281,
+            "unavailable": 471,
+            "score": 4111.0
+          },
+          "after": {
+            "positive": 4106,
+            "negative": 14280,
+            "unavailable": 472,
+            "score": 4111.0
+          }
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "before": {
+            "positive": 11695,
+            "negative": 6396,
+            "unavailable": 767,
+            "score": 14842.0
+          },
+          "after": {
+            "positive": 11695,
+            "negative": 6395,
+            "unavailable": 768,
+            "score": 14842.0
+          }
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "before": {
+            "positive": 9,
+            "negative": 18378,
+            "unavailable": 471,
+            "score": 9.0
+          },
+          "after": {
+            "positive": 9,
+            "negative": 18377,
+            "unavailable": 472,
+            "score": 9.0
+          }
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "before": {
+            "positive": 4571,
+            "negative": 13702,
+            "unavailable": 585,
+            "score": 6782.0
+          },
+          "after": {
+            "positive": 4571,
+            "negative": 13701,
+            "unavailable": 586,
+            "score": 6782.0
+          }
+        },
+        "LOST_COPIED_UPDATE": {
+          "before": {
+            "positive": 32,
+            "negative": 17836,
+            "unavailable": 990,
+            "score": 32.0
+          },
+          "after": {
+            "positive": 32,
+            "negative": 18105,
+            "unavailable": 721,
+            "score": 32.0
+          }
+        }
+      },
+      "budget": 8000,
+      "seeds": [
+        1,
+        11,
+        29,
+        47,
+        73
+      ],
+      "arms": [
+        "uniform",
+        "P-shared",
+        "S-cal",
+        "SP-cal",
+        "P-local",
+        "H0",
+        "H1-cal",
+        "UCB-independent"
+      ],
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/full",
+      "protocolSha256": "74ae9631b27153e7a11d5278f02ba9218961ce6321a92505acd6fab11ccda001",
+      "proofSha256": "4d20f3dd0877530aaec94d7c1c94ab5e554f9a0fb9c3839a94a1d4d12a034a69",
+      "numericProof": {
+        "protocolSha256": "570d5a2d153be7b44add4376c2b329505906f28498ac3633b1c0280b09edfffd",
+        "exactComparisons": [
+          {
+            "arm": "uniform",
+            "decisions": 16
+          },
+          {
+            "arm": "P-shared",
+            "decisions": 16
+          },
+          {
+            "arm": "S-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "SP-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "P-local",
+            "decisions": 16
+          },
+          {
+            "arm": "H0",
+            "decisions": 16
+          },
+          {
+            "arm": "H1-cal",
+            "decisions": 16
+          },
+          {
+            "arm": "UCB-independent",
+            "decisions": 16
+          }
+        ],
+        "ucbAdapter": {
+          "exactCanonicalDecisions": 1500,
+          "seeds": [
+            1,
+            11,
+            29,
+            47,
+            73
+          ],
+          "feedbackIncludes": [
+            "unavailable",
+            "negative",
+            "positive"
+          ],
+          "inactiveArmsIncludedInGlobalClock": true
+        }
+      }
+    }
+  },
+  "replacements": {
+    "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71.json",
+      "newReferenceSha256": "a1f9e7ae461fa46d3bbf1635e1385dfec95b0d97141fc4f90465b0e9c8b20269",
+      "changedObservations": 22
+    },
+    "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82.json",
+      "newReferenceSha256": "7e2aaf9defee6a0d0f5a55f0750ebaaffc89818b25b538f385a67b2f04d77a56",
+      "changedObservations": 14
+    },
+    "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-74-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc.json",
+      "newReferenceSha256": "5f0e6ceef5ec2176c884a0a5091e7c8e2560332be07b85f8a5e2bfef6828ab05",
+      "changedObservations": 29
+    },
+    "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b.json",
+      "newReferenceSha256": "8f7df55eb7413bad483c2229f437f6b3e774c4e1862f4263c0f21b1ea154544c",
+      "changedObservations": 117
+    },
+    "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-61-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196.json",
+      "newReferenceSha256": "10ac6c053e9e7f18368307a913af6df8939c9bd82105d6972eb06d94c1e69ba4",
+      "changedObservations": 20
+    },
+    "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-73-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f.json",
+      "newReferenceSha256": "4a1c2e64f7149fd4d456902993f7411cb0c1210361c3f34c26a29651e4d8e69b",
+      "changedObservations": 47
+    },
+    "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369": {
+      "oldReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-92-map-four-v11/reference.json",
+      "newReference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-measurement-replay-2026-09-28/references/edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369.json",
+      "newReferenceSha256": "1a99ea05cdec5f645218fe2075867a3c00726f267aae8e2b45075d767479d27d",
+      "changedObservations": 21
+    }
+  },
+  "changes": [
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "09cc4268fc29185213d6328ff413b42ba83ec2cb90d342d7e0f7c3f66388d304",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/09cc4268fc29185213d6328ff413b42ba83ec2cb90d342d7e0f7c3f66388d304/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "1e4b12f07788fd366401d308ea0bf6b1bc99f83cc1f67eeef1adb7e72dcf07c3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1e4b12f07788fd366401d308ea0bf6b1bc99f83cc1f67eeef1adb7e72dcf07c3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "1fbe5c49e00b5fc42b3f795064142165989fa0b17cf09d77f2472ff03fb45edf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1fbe5c49e00b5fc42b3f795064142165989fa0b17cf09d77f2472ff03fb45edf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "35f5141f7aead760b41806f27b0ff80eff7c4001cfaf5dc7da25b25f0ae89d4f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/35f5141f7aead760b41806f27b0ff80eff7c4001cfaf5dc7da25b25f0ae89d4f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "3fcf15ebcfce513df26ecf9bd5998ff6603fe8513b461f418cd89c013064f98a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3fcf15ebcfce513df26ecf9bd5998ff6603fe8513b461f418cd89c013064f98a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "4143e80dfbc6f2d4fd3f54d2942cd360ee261e535463c0cdccea6597a4ca1648",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4143e80dfbc6f2d4fd3f54d2942cd360ee261e535463c0cdccea6597a4ca1648/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "56fb08546ad6b3dfe508e7da934a6fdea53716c2effb1e44013a92e35d732d9b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/56fb08546ad6b3dfe508e7da934a6fdea53716c2effb1e44013a92e35d732d9b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "5713239418cf0b72b00d97ed42f6e4be5310f9671787f80b74f5bfacee2db138",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5713239418cf0b72b00d97ed42f6e4be5310f9671787f80b74f5bfacee2db138/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "5bc4681d7f68b942262c04366dadf5ad9b3a883162fc83d30c8cc6863cd9654a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5bc4681d7f68b942262c04366dadf5ad9b3a883162fc83d30c8cc6863cd9654a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "621b9951e6f4328146abe2d32ed3f1f0cb34f0e17319f391cf4f79b5d38c15e6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/621b9951e6f4328146abe2d32ed3f1f0cb34f0e17319f391cf4f79b5d38c15e6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "62798c1f3e47bd85ba39a1a5a4e88a2b312f95b7b6ef40b922f8d2ecdb0f25c4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/62798c1f3e47bd85ba39a1a5a4e88a2b312f95b7b6ef40b922f8d2ecdb0f25c4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "64c412f39c3170e7e490655b75f66b8e4bbaee9f8acea104704d191354a2dada",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/64c412f39c3170e7e490655b75f66b8e4bbaee9f8acea104704d191354a2dada/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "99477c40a5f814d4431d20d182f099d42a64e3cbedf07e6dc51d029e3f11dfca",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/99477c40a5f814d4431d20d182f099d42a64e3cbedf07e6dc51d029e3f11dfca/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "9bfac46ec348bc0f03f3f5df8b9a4702727bfaf01f1a2ccf5fe80fbaacc4e24b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9bfac46ec348bc0f03f3f5df8b9a4702727bfaf01f1a2ccf5fe80fbaacc4e24b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "bbef46696e77f385d83270edd9ce159434d6c65404fda873145b8f0e296a575d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/bbef46696e77f385d83270edd9ce159434d6c65404fda873145b8f0e296a575d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "c28dc56250ea2e4b5eb7a720cbdf9fc6d97f063c32eae422369f8b41eaa49b6a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c28dc56250ea2e4b5eb7a720cbdf9fc6d97f063c32eae422369f8b41eaa49b6a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "c78bf3ecb6692f73efa56626f154d3a5a704ba83a4bca71d159222de5abf2a84",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c78bf3ecb6692f73efa56626f154d3a5a704ba83a4bca71d159222de5abf2a84/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "e7476c3f83f315dcc291de2d114cbfa6098f24bf934e21f02a87bccf0e322f9c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e7476c3f83f315dcc291de2d114cbfa6098f24bf934e21f02a87bccf0e322f9c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "eee88be48f0766de812c38616518eb0354535c3128059bc286970585f7b5f601",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/eee88be48f0766de812c38616518eb0354535c3128059bc286970585f7b5f601/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "candidate": "f7e1432f000910e1da6819966be7d666e84be03979bf94e9fe25419ba9f49f22",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f7e1432f000910e1da6819966be7d666e84be03979bf94e9fe25419ba9f49f22/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "0a4fd9faede245aa58cd14537d6c48856668681aab7ff1540c2c3de04fc3b871",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/0a4fd9faede245aa58cd14537d6c48856668681aab7ff1540c2c3de04fc3b871/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "3e2d841d683fd69f70840c72b34bb3542b31a65804bf54d1df7ab5bcbe48531e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3e2d841d683fd69f70840c72b34bb3542b31a65804bf54d1df7ab5bcbe48531e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "4dafd832c467ece98fd8a8607549b59661e1da8c070f61ce2ab6e81756fb6dbf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4dafd832c467ece98fd8a8607549b59661e1da8c070f61ce2ab6e81756fb6dbf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "548420aeaf7c778486703ef6628706a55e6b58069654641277a837f15dfe0225",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/548420aeaf7c778486703ef6628706a55e6b58069654641277a837f15dfe0225/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "5624ea143212ac3c58dce5c80ea6b8090e16913a40378342efe663fed42c5fdd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5624ea143212ac3c58dce5c80ea6b8090e16913a40378342efe663fed42c5fdd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "65cfaba6e68933c345a1ae2fb4af05de92a9ce566b9bda6198604f64f6b89e8c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/65cfaba6e68933c345a1ae2fb4af05de92a9ce566b9bda6198604f64f6b89e8c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "8783dda349307e5e83ea7239d52eb1e53ebaf1e8932db445291245d0a29f12a6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8783dda349307e5e83ea7239d52eb1e53ebaf1e8932db445291245d0a29f12a6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "89c5d304b9704afffd1e79b317d5494a85f84a6ff130904cfc503dfed29935e6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/89c5d304b9704afffd1e79b317d5494a85f84a6ff130904cfc503dfed29935e6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "ace2603ac87d8ef56bd4a2757fcd7cb197b8061517c850276724757f0409a340",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ace2603ac87d8ef56bd4a2757fcd7cb197b8061517c850276724757f0409a340/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "adc446bff9ffce90b20e97decb29ead6033d964585deeeec5d62bf98415ba621",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/adc446bff9ffce90b20e97decb29ead6033d964585deeeec5d62bf98415ba621/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "d79734dad3bc0e9d9d34e927eb259c5a58db771d9140ee576cd2a49a236577ab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d79734dad3bc0e9d9d34e927eb259c5a58db771d9140ee576cd2a49a236577ab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "candidate": "f0e733ad4618cf26bfcd9490f461ae1e291cf4fb0ff89ee5cca04c68ee7e090f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f0e733ad4618cf26bfcd9490f461ae1e291cf4fb0ff89ee5cca04c68ee7e090f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "012aec44ce6ecee067c17fc23bef1e41f751f58757aeaeea8afcb4fb4a5fcb15",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/012aec44ce6ecee067c17fc23bef1e41f751f58757aeaeea8afcb4fb4a5fcb15/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "01c47ab5c84a81d82ef9e182f343f3b88933f16b09ef938b22962b665ecf18b7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/01c47ab5c84a81d82ef9e182f343f3b88933f16b09ef938b22962b665ecf18b7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "0492c63f433451bf7d2e3aff1e8049c10a4d1f6f8f8dee05c963b5bbbda0c117",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/0492c63f433451bf7d2e3aff1e8049c10a4d1f6f8f8dee05c963b5bbbda0c117/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "13029578e059cefa317230c3b9e42de61962deb5686631571ee0e870a1fbd3ee",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/13029578e059cefa317230c3b9e42de61962deb5686631571ee0e870a1fbd3ee/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "1f2915b484a3d2e65806503e54debad44bd70e335a71cd5fc8c80cef51a2939e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1f2915b484a3d2e65806503e54debad44bd70e335a71cd5fc8c80cef51a2939e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "2031bf138d3b64c910a90e7d987414a69b04c8cb88be9260cdc8e38a7f891293",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2031bf138d3b64c910a90e7d987414a69b04c8cb88be9260cdc8e38a7f891293/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "2d800d04b001b0318f5a0d353f15e89130ec1cc52660d1a50eb5d7d9e048e2e4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2d800d04b001b0318f5a0d353f15e89130ec1cc52660d1a50eb5d7d9e048e2e4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "35346b85b6f93ca9e1217aab1a9fbb572fdfd2141bbfd31e2cabafc2c57d314d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/35346b85b6f93ca9e1217aab1a9fbb572fdfd2141bbfd31e2cabafc2c57d314d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "371873d59e953b07b8593a7c8b2ef5f9ce972acb013974a9b59f74bf1bf97b57",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/371873d59e953b07b8593a7c8b2ef5f9ce972acb013974a9b59f74bf1bf97b57/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "3cd8a5cb25ed2970ffde34a4378f23cbc58b5b98a70f7e250d1db5cf6957115e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3cd8a5cb25ed2970ffde34a4378f23cbc58b5b98a70f7e250d1db5cf6957115e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "3d5154243a710c1180b2d78dbf4deb80cddc0d09c154d9b8a2cee0cef6109931",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3d5154243a710c1180b2d78dbf4deb80cddc0d09c154d9b8a2cee0cef6109931/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "45b5a8e8e2bcda6d858cd86c4c39d27b419b0912b0ef7cca57c0552bb699da6c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/45b5a8e8e2bcda6d858cd86c4c39d27b419b0912b0ef7cca57c0552bb699da6c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "462964b75b6d1a051d6e5767d9ad3c233c16e1e7b68f0fffa51bbfab9a2fbad7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/462964b75b6d1a051d6e5767d9ad3c233c16e1e7b68f0fffa51bbfab9a2fbad7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "6d86e22a8422a454babd38d780dac8ee4e4d3c8c7c7d2a72a1c84b5ebbe55ee7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6d86e22a8422a454babd38d780dac8ee4e4d3c8c7c7d2a72a1c84b5ebbe55ee7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "70da4a525f1feefce24bb96e8a6bf3ad325c9ef0d1cd382bb4e0ed84f5335789",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/70da4a525f1feefce24bb96e8a6bf3ad325c9ef0d1cd382bb4e0ed84f5335789/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "7dfc3689c2989992712096416f84704ac706e5a7d6cb97e86840a286f4e8de37",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7dfc3689c2989992712096416f84704ac706e5a7d6cb97e86840a286f4e8de37/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "85e801ea25d657206457e7b91db69dde0ae4d8e7d4afef950848bc82602e41ee",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/85e801ea25d657206457e7b91db69dde0ae4d8e7d4afef950848bc82602e41ee/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "8c79946a94a72526b02878cc643cf838bee1e4202e426bab8ed573bfdb3b646d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8c79946a94a72526b02878cc643cf838bee1e4202e426bab8ed573bfdb3b646d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "93b0a455fc6baeacb9352abba186230777c4bd87c09bbefe6b004d9bc86d5824",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/93b0a455fc6baeacb9352abba186230777c4bd87c09bbefe6b004d9bc86d5824/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "a6f1acad8258128d21bd1e10ca8b01de122145f6048aaa9d657a179ab3d198a5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a6f1acad8258128d21bd1e10ca8b01de122145f6048aaa9d657a179ab3d198a5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "c107b9c78c0a449ae9b3feb7e6f03e82554f394f2a6a4056a2f79743db7122fd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c107b9c78c0a449ae9b3feb7e6f03e82554f394f2a6a4056a2f79743db7122fd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "d2c6aee8386eeb9a545b172f8d6e89bf6ac7b3265231a58ec30ffabe88189fa5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d2c6aee8386eeb9a545b172f8d6e89bf6ac7b3265231a58ec30ffabe88189fa5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "d7444892ca636ee79f60deaf0061355870cad3bb8b5a3a9e64a9bb4e5fd97bbf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d7444892ca636ee79f60deaf0061355870cad3bb8b5a3a9e64a9bb4e5fd97bbf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "d904888ed27f4e6695274fe6bf0429519e9b4ac8be378a5d6f7b19840c44b5cf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d904888ed27f4e6695274fe6bf0429519e9b4ac8be378a5d6f7b19840c44b5cf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "db2e31a51c16d12d0e3f804b43bc3c38509643e81d609970d4145df339e7d01a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/db2e31a51c16d12d0e3f804b43bc3c38509643e81d609970d4145df339e7d01a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "ef9073895e6d2fc9ad8b49d21991f58938f78a47da10f3f40d78571e64a37a4f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ef9073895e6d2fc9ad8b49d21991f58938f78a47da10f3f40d78571e64a37a4f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "f351538b12b0a5d34771651be5418925b33c21f4a23874867e490d88a8b14492",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f351538b12b0a5d34771651be5418925b33c21f4a23874867e490d88a8b14492/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "f603e53b075327fffc8dfcd1ee87e8fc274511392df24850f6530214d19c133e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f603e53b075327fffc8dfcd1ee87e8fc274511392df24850f6530214d19c133e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "candidate": "f671ddd5289863a1100c592ecbac083676b6fba3628650e0146e82ce53672dd7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f671ddd5289863a1100c592ecbac083676b6fba3628650e0146e82ce53672dd7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "018649d4f1ea123f26054583ccab04b306d62ed0d013b2186ed3ed09804aee04",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/018649d4f1ea123f26054583ccab04b306d62ed0d013b2186ed3ed09804aee04/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "02905ab7a27959b9997d042c1945212959124a02379965de88b499995894ccad",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/02905ab7a27959b9997d042c1945212959124a02379965de88b499995894ccad/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "033622280451ad6b402806bfa9061936f763f0a36e9d3c71d0770cce1605fd37",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/033622280451ad6b402806bfa9061936f763f0a36e9d3c71d0770cce1605fd37/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "04e353f3e983579ab110447bbaf89428510d31752cc0853745671251f1a9950b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/04e353f3e983579ab110447bbaf89428510d31752cc0853745671251f1a9950b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "07daaad24a6e09a27b556fa2bcc3f560bf37dfb39a370df1b9e25fb68897d2fd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/07daaad24a6e09a27b556fa2bcc3f560bf37dfb39a370df1b9e25fb68897d2fd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "092e53fb5c10c54e7f6a1073e37241721908cd1a47b704bc07701372fd1940ef",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/092e53fb5c10c54e7f6a1073e37241721908cd1a47b704bc07701372fd1940ef/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "122db44a955de8b19b6e7e2d4b16334fd43dacb60890b332c92be02275d01efa",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/122db44a955de8b19b6e7e2d4b16334fd43dacb60890b332c92be02275d01efa/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1486d3f315d0b508c35bca08fde4ac7e9b116113c14530023b0007bf9018f56a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1486d3f315d0b508c35bca08fde4ac7e9b116113c14530023b0007bf9018f56a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "16b9e3df1f7c29493a4b825889cf745eb6b723512eb4712855a2169a33f69ccd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/16b9e3df1f7c29493a4b825889cf745eb6b723512eb4712855a2169a33f69ccd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1a661f86a9c322da7290863dde2f96c8f9f5b7bc248c2d1632c10176025d61ab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1a661f86a9c322da7290863dde2f96c8f9f5b7bc248c2d1632c10176025d61ab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1c0533b61c364710369cd34ccd8b8a8be7c463007578f0a07ae8a84541683a1c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1c0533b61c364710369cd34ccd8b8a8be7c463007578f0a07ae8a84541683a1c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1d000bb6e4d39507043cc31c96dff63e100cf92c410301d1da81a904facc0595",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1d000bb6e4d39507043cc31c96dff63e100cf92c410301d1da81a904facc0595/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1d8a54216e540d90eff80ca176e1dd4dcb00fbfece035e95d3337fd864cad005",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1d8a54216e540d90eff80ca176e1dd4dcb00fbfece035e95d3337fd864cad005/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "1db26e5649bcbe7c1335de67198218207c2b4332f02d4bef80d0d892b72330ec",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/1db26e5649bcbe7c1335de67198218207c2b4332f02d4bef80d0d892b72330ec/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "210d961206c67803329c35fa2e9b0098a10222dfe18d61326f5fa9eb1bef99b9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/210d961206c67803329c35fa2e9b0098a10222dfe18d61326f5fa9eb1bef99b9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "277b96e225b2c0602f3e4ba755f17c087692a5bd06809a7c027dac81002eb98e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/277b96e225b2c0602f3e4ba755f17c087692a5bd06809a7c027dac81002eb98e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "2c0e4491e6efd778d661d9cdac433908b7570f05c144150c6e30648aef2eb522",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2c0e4491e6efd778d661d9cdac433908b7570f05c144150c6e30648aef2eb522/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "2e8ca3c3e5a1d41bf7dcd599f6dcd3fda4d2ae61c2c019db7f8f6eba60c756b3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2e8ca3c3e5a1d41bf7dcd599f6dcd3fda4d2ae61c2c019db7f8f6eba60c756b3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "337392c61b312e13c4102ab348818a1d02108efd6ec5c2b0a97e73a4c6873315",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/337392c61b312e13c4102ab348818a1d02108efd6ec5c2b0a97e73a4c6873315/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "354b0938ab59c19b51e83688c32df2d9e4eb4348260c376bba4ae0f627a229e9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/354b0938ab59c19b51e83688c32df2d9e4eb4348260c376bba4ae0f627a229e9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "36b58002845a7822073adf7381505b78deb72771e2b201509366e689b1f219b2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/36b58002845a7822073adf7381505b78deb72771e2b201509366e689b1f219b2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "38ac0d7d0ea01d44e22340af1c1fad67274235345da5576d9eb9e65750f64f75",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/38ac0d7d0ea01d44e22340af1c1fad67274235345da5576d9eb9e65750f64f75/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "3eb25f5aafe4231b32671e145f37ccd27d76935aefa3d676494fc129ab549609",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3eb25f5aafe4231b32671e145f37ccd27d76935aefa3d676494fc129ab549609/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "44ed3dd7837acbb7ed787dfa63496b9e1055a61fc1a7c27660c6090dee5dd2bb",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/44ed3dd7837acbb7ed787dfa63496b9e1055a61fc1a7c27660c6090dee5dd2bb/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "493c9e6bea1f2cbe872a6d3570bfbe8d1382c24e47ebaad8f3e0200b45a12348",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/493c9e6bea1f2cbe872a6d3570bfbe8d1382c24e47ebaad8f3e0200b45a12348/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "4c81e089312667365260137b47fbb38cb813d7c9004755f97d23356425c93887",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4c81e089312667365260137b47fbb38cb813d7c9004755f97d23356425c93887/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "4ccf651886b73547c8c3b4268a20c068ec05630a1b8c16baaabce3a61e8c11d3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4ccf651886b73547c8c3b4268a20c068ec05630a1b8c16baaabce3a61e8c11d3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "4df63e04931c785b8bfc1a1e2a48a1b15e54156b28abad05a7c12ff76e51f794",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4df63e04931c785b8bfc1a1e2a48a1b15e54156b28abad05a7c12ff76e51f794/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "50bc8feeed9d3310d59400cb5dea4e0a1e3410d1485d4dbd5118a9651d9c44a9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/50bc8feeed9d3310d59400cb5dea4e0a1e3410d1485d4dbd5118a9651d9c44a9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "50efc57f016ca2d447fc7a658ccfba604499a0344b92441d0c42c3c0a9eeb19a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/50efc57f016ca2d447fc7a658ccfba604499a0344b92441d0c42c3c0a9eeb19a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "52d919c2de9629b1c4f60176cfafa06ffd3d4f7c977ed6139ba768f89a8ca7f9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/52d919c2de9629b1c4f60176cfafa06ffd3d4f7c977ed6139ba768f89a8ca7f9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "5307db6f7d8cc0c98b25e4ff69b10ab0d2ec770bf5f0abeeb54062709b6bb8ba",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5307db6f7d8cc0c98b25e4ff69b10ab0d2ec770bf5f0abeeb54062709b6bb8ba/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "538df106e8768a8fa2312e5dcdd1d7cdd2d79306dd11b61e85b7c27d0b2e60a2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/538df106e8768a8fa2312e5dcdd1d7cdd2d79306dd11b61e85b7c27d0b2e60a2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "551873c5f3f7558c7444499ab7cb125a60a3c8b85d0212a44dac916d3380fac5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/551873c5f3f7558c7444499ab7cb125a60a3c8b85d0212a44dac916d3380fac5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "57d1677c815ceb36d06ea1b95be5fa04496f7819be2d5beee56ba22859f71aab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/57d1677c815ceb36d06ea1b95be5fa04496f7819be2d5beee56ba22859f71aab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "5913a9c471265c31cf8ca0ffd3bcc3f0a0039fe5fbb98a213cf551e01d98c2b4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5913a9c471265c31cf8ca0ffd3bcc3f0a0039fe5fbb98a213cf551e01d98c2b4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "59410e267d608f9ce61fd9d0d67348df747c2bac321ab2b40d066c80e7a41720",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/59410e267d608f9ce61fd9d0d67348df747c2bac321ab2b40d066c80e7a41720/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "5bac02083410430d949059a11b948fbf8788bf18ad4577a031881b2355d3e263",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5bac02083410430d949059a11b948fbf8788bf18ad4577a031881b2355d3e263/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "67407c26a26c2521055f3ccf8be0b9babbaff490479d84b3167b94c764bf7181",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/67407c26a26c2521055f3ccf8be0b9babbaff490479d84b3167b94c764bf7181/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "683c07ba0208c44631096d0f1d4e1fe127c4ca9e542e3ab78b058f4ce3b37a28",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/683c07ba0208c44631096d0f1d4e1fe127c4ca9e542e3ab78b058f4ce3b37a28/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "68e4d7ca0de54e91ae573f55e4d8329a145be10f8c28a63c3794e4814b5bb6e0",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/68e4d7ca0de54e91ae573f55e4d8329a145be10f8c28a63c3794e4814b5bb6e0/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "69f28496d9c7b211bf6b93eb4b3052859b20c83f84b623360c0c35227dc8780a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/69f28496d9c7b211bf6b93eb4b3052859b20c83f84b623360c0c35227dc8780a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "6c14f164fb0d46cb03611372e5a15fb6fc4e78482797b5d970ad84055532eca4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6c14f164fb0d46cb03611372e5a15fb6fc4e78482797b5d970ad84055532eca4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "6c520ecf74a62de0ca4bf4b3ae4c14b6b101a3145d251224b3e15454b05391a6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6c520ecf74a62de0ca4bf4b3ae4c14b6b101a3145d251224b3e15454b05391a6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "6d4afc14459314e3311b6a313d96ebe6b75dbf1f3bd5f7b6e22d70f55d7b5657",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6d4afc14459314e3311b6a313d96ebe6b75dbf1f3bd5f7b6e22d70f55d7b5657/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "72d811e0ffb60ad19b6688cd3006a0f5d7cae959ff4bd88698172f8f90c128f7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/72d811e0ffb60ad19b6688cd3006a0f5d7cae959ff4bd88698172f8f90c128f7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "75e8c6dfeb09975566a47cdc955da517667fdeac75ef42a46e90c8158008b90e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/75e8c6dfeb09975566a47cdc955da517667fdeac75ef42a46e90c8158008b90e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "76427a00fd76f5332a88564228b81798f54eca274716df428fd3713f07a78b9c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/76427a00fd76f5332a88564228b81798f54eca274716df428fd3713f07a78b9c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7820504206c4c8a5b2728d44ee3c89c5d3ef3f83d54089086089cde91a3006d2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7820504206c4c8a5b2728d44ee3c89c5d3ef3f83d54089086089cde91a3006d2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7a5e6af06360ffb985d165fd523737a85f4bd00a43c3e1e500cded9ec7027be3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7a5e6af06360ffb985d165fd523737a85f4bd00a43c3e1e500cded9ec7027be3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7a65cf0441a402aa49ffc92d3800ba24a98203d2b3faafbcf7589fb9f96335a6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7a65cf0441a402aa49ffc92d3800ba24a98203d2b3faafbcf7589fb9f96335a6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7b76a78ec89de21a1a5e88e6da64bfcc3a074e6c1e89aff4dc33dcd582fd10ca",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7b76a78ec89de21a1a5e88e6da64bfcc3a074e6c1e89aff4dc33dcd582fd10ca/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7be75f2aa20bb5c621cf4e3f158776379baf8a17bd4fe08f4fa0fa5190ad2535",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7be75f2aa20bb5c621cf4e3f158776379baf8a17bd4fe08f4fa0fa5190ad2535/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7ca04b75aa369b5b8769c4c2c762e2ed041cac4daa607b77f73134118dec3edf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7ca04b75aa369b5b8769c4c2c762e2ed041cac4daa607b77f73134118dec3edf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "7dc9f26565f494b1e41b62f5eecaed02514bed0895851e9a63c697139d9276d7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7dc9f26565f494b1e41b62f5eecaed02514bed0895851e9a63c697139d9276d7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "81c34f87776d31f6866225b74af6910bf0eef1094f05c6423b80d9bfcfd206e2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/81c34f87776d31f6866225b74af6910bf0eef1094f05c6423b80d9bfcfd206e2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "81cdaaa75effb57ade6bddb214f80a01bd6aa86475d925049aa5f33a9a78ccd6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/81cdaaa75effb57ade6bddb214f80a01bd6aa86475d925049aa5f33a9a78ccd6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "83d365e5bae055e69f706adb530a23724afaabfd8cf462713b09455c91b21ea6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/83d365e5bae055e69f706adb530a23724afaabfd8cf462713b09455c91b21ea6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "8453885961c127fae409ff10b23f1576bf4c38df16cdb7a16fcef0c4ee4be34c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8453885961c127fae409ff10b23f1576bf4c38df16cdb7a16fcef0c4ee4be34c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "85e46123d4160d0a7f216c9f735cd722cdebec82cb8d6f2f120b307b45a3c5f6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/85e46123d4160d0a7f216c9f735cd722cdebec82cb8d6f2f120b307b45a3c5f6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "89342c05ba681a4f808121620be4f2c34c3d5019d45d9eef6a3cb836de57594a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/89342c05ba681a4f808121620be4f2c34c3d5019d45d9eef6a3cb836de57594a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "918c822081f0e9458c4323bd7b3bab63b1cec365856bdfdb70aae6ac76f0bbd6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/918c822081f0e9458c4323bd7b3bab63b1cec365856bdfdb70aae6ac76f0bbd6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "93229766d2746652ed9c5d86d3d34cbc37f21f0f3a246789ca3d5b878ad16936",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/93229766d2746652ed9c5d86d3d34cbc37f21f0f3a246789ca3d5b878ad16936/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "96c31face097dad5ad6c614824375642f14cf159db96b95ddd8938b7529d622a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/96c31face097dad5ad6c614824375642f14cf159db96b95ddd8938b7529d622a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "9915acca954ab00bdc03635047847c2f9da3c6bccb8837ea2c86624dc7c8f55d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9915acca954ab00bdc03635047847c2f9da3c6bccb8837ea2c86624dc7c8f55d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "9a6a2a406106ee1bbd91a3d0cc3935b1a4da0d41f3349a09ca62654b7bbb1030",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9a6a2a406106ee1bbd91a3d0cc3935b1a4da0d41f3349a09ca62654b7bbb1030/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "9a72bbf82604af940e051fd56009b09053e2448edff0dfda904b402bb5a9f1d4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9a72bbf82604af940e051fd56009b09053e2448edff0dfda904b402bb5a9f1d4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "9e62ffa5b2873f5cf24ef13119d4ca1775d8c0060e961ee3238d48ab9f25ab2d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9e62ffa5b2873f5cf24ef13119d4ca1775d8c0060e961ee3238d48ab9f25ab2d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "a2c4b8d0e99e73ce42f0848a456a75f1817024cb1b237b0b7c3cc2ad2b9a472e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a2c4b8d0e99e73ce42f0848a456a75f1817024cb1b237b0b7c3cc2ad2b9a472e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "a3fb281db35a1ae37c3757d6a06ee9a265f77efb0eef0b725682a7204fce94f7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a3fb281db35a1ae37c3757d6a06ee9a265f77efb0eef0b725682a7204fce94f7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "a428548b479512bce3970be34b741615dca9c00b1b58e1c9fc29fa8fa81bf303",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a428548b479512bce3970be34b741615dca9c00b1b58e1c9fc29fa8fa81bf303/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "a5740aea048323556e1882d989f6fc76f14aed65cdf57e79c681683be0bd88d5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a5740aea048323556e1882d989f6fc76f14aed65cdf57e79c681683be0bd88d5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "a8fba1f9a15ec6639db4ea0f76532647bb1f05aef9b900350ff463ca071b0638",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a8fba1f9a15ec6639db4ea0f76532647bb1f05aef9b900350ff463ca071b0638/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "ada756d9bd7d0d1fb6981a67233205994f435d0157970a59177611f9ce76f315",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ada756d9bd7d0d1fb6981a67233205994f435d0157970a59177611f9ce76f315/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "adeea501361bb80552a3fa1f445fc85947c26c1ea0f876955954fc76eb621f49",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/adeea501361bb80552a3fa1f445fc85947c26c1ea0f876955954fc76eb621f49/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "aea2c2b8114cff93455f62e6f0cec916c399d73b668bf0085083bc9085c6c0b8",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/aea2c2b8114cff93455f62e6f0cec916c399d73b668bf0085083bc9085c6c0b8/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b03116c60080e9d21c2eb06b8b54fe06493711a01193b983fb6a470f5a049738",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b03116c60080e9d21c2eb06b8b54fe06493711a01193b983fb6a470f5a049738/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b262fce7ab35d13ff9f2ee04076e8114b3756e33b4b674ad3997a1214125b06a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b262fce7ab35d13ff9f2ee04076e8114b3756e33b4b674ad3997a1214125b06a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b2e5e390d7ed61c9a50b3a2d0804ef0aa5652ebb4da11459ddde7d320d8b5f1c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b2e5e390d7ed61c9a50b3a2d0804ef0aa5652ebb4da11459ddde7d320d8b5f1c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b37739b9a743e4c4f9f426ce569878fa4498ecdf5f1f7ebaaa5fa45223c50cfe",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b37739b9a743e4c4f9f426ce569878fa4498ecdf5f1f7ebaaa5fa45223c50cfe/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b3d016c6009a7c82d6699f6b6d863e5d17226f65b6632bc6c9acfa4dd7194b36",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b3d016c6009a7c82d6699f6b6d863e5d17226f65b6632bc6c9acfa4dd7194b36/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "b59d2f9c9d51d62a6200f0596c2d15f48046c8e353156728667657c39daf84a3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b59d2f9c9d51d62a6200f0596c2d15f48046c8e353156728667657c39daf84a3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "bd07b478436af7efecf690361c8d84ad4b5eadac891b3c4b5739ad8921a33744",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/bd07b478436af7efecf690361c8d84ad4b5eadac891b3c4b5739ad8921a33744/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "bd729b0edb9c4a2576f50ce42d08871b7e0844e6f87fa591bfab1531b15e4878",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/bd729b0edb9c4a2576f50ce42d08871b7e0844e6f87fa591bfab1531b15e4878/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c06434a06bba6bb7401cc5024ef631844c03ca0ea62d7fe9ebdb77e96793ca1f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c06434a06bba6bb7401cc5024ef631844c03ca0ea62d7fe9ebdb77e96793ca1f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c1dd56727913f9feb55bad919978234c8f6610efb849fa3eae3604416ee6d4da",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c1dd56727913f9feb55bad919978234c8f6610efb849fa3eae3604416ee6d4da/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c27f3d1d66281ce7d8b2404c0592bfa289a039595b8118945d298f4aac876406",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c27f3d1d66281ce7d8b2404c0592bfa289a039595b8118945d298f4aac876406/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c2e081b318ece59669cb56ace9b5527464b9a2b322b3c4126cdd5bbed0ac7a8d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c2e081b318ece59669cb56ace9b5527464b9a2b322b3c4126cdd5bbed0ac7a8d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c42fe8b48de93d7beecf2c98616edf0e8edc4e52ac638a02d4674b756745a976",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c42fe8b48de93d7beecf2c98616edf0e8edc4e52ac638a02d4674b756745a976/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c769a0da035476d321b19851b4b69b4fb8cab78bec148759e8dd4f492228ea83",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c769a0da035476d321b19851b4b69b4fb8cab78bec148759e8dd4f492228ea83/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "c7ad3d4545806d291980d299060e6b0303dcd3164e68f568adccc8584ac05068",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c7ad3d4545806d291980d299060e6b0303dcd3164e68f568adccc8584ac05068/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "ca8fdb19b4a60d643cfffcf0b058dcf983ce7d0788588c2a1bbf411988a6194d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ca8fdb19b4a60d643cfffcf0b058dcf983ce7d0788588c2a1bbf411988a6194d/attempt-002/attempt.json",
+      "status": "PROCESS_FAILURE",
+      "jointScore": null
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "ce48d4a24c5de2633484f706ab2e0e8ecc263fb447c85a928d8fe186d055f271",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ce48d4a24c5de2633484f706ab2e0e8ecc263fb447c85a928d8fe186d055f271/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "d1f3064f9c39cbe0597c2f8761de8f1be7b91c626ff68fe1ad152771f98c8d11",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d1f3064f9c39cbe0597c2f8761de8f1be7b91c626ff68fe1ad152771f98c8d11/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "d2932d750f5c7a369f8e8b40e3ba984298dca239558300c54ac94bbd38b63c12",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d2932d750f5c7a369f8e8b40e3ba984298dca239558300c54ac94bbd38b63c12/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "d3b513ebbb6ec9c1768eb685223f1e3df63e81ae0eb800937d6da1601d1f4c69",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d3b513ebbb6ec9c1768eb685223f1e3df63e81ae0eb800937d6da1601d1f4c69/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "d56faad6e1c43f6d866d89c451feb4cf474ceabd637af2345948a40860e2c8a4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d56faad6e1c43f6d866d89c451feb4cf474ceabd637af2345948a40860e2c8a4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "d808f19fc898c8721c488df1ed452d56539a8e4dc24a0935555fa8d3d54b684e",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d808f19fc898c8721c488df1ed452d56539a8e4dc24a0935555fa8d3d54b684e/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "dbffc443c4895d3852033f4d2082c862864cf84eeb6ca3698141dca1b95add62",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/dbffc443c4895d3852033f4d2082c862864cf84eeb6ca3698141dca1b95add62/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "dc310cb62335114e4d85990b0e004d5d22d930aad480a70cc48a0534c2079ce6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/dc310cb62335114e4d85990b0e004d5d22d930aad480a70cc48a0534c2079ce6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "e29559e9ab35305b2dfdc63f92caf8146133e92b72842f08b97c1cb294ec993c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e29559e9ab35305b2dfdc63f92caf8146133e92b72842f08b97c1cb294ec993c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "e3c7912057dba5b6d55aa7f6542989fc39523cb0612acccff1e8ae21fff7a689",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e3c7912057dba5b6d55aa7f6542989fc39523cb0612acccff1e8ae21fff7a689/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "e6ef21eb6f89deac90ce5b0e6b3c7cfb98e75dfd36ef5fd946c55c1e55082299",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e6ef21eb6f89deac90ce5b0e6b3c7cfb98e75dfd36ef5fd946c55c1e55082299/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "e8a45e6f232a013c92fb51e7dbb20aaf27bc54485d8dd90001e43c6c3c6b82da",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e8a45e6f232a013c92fb51e7dbb20aaf27bc54485d8dd90001e43c6c3c6b82da/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "ecdf3451424b0c42eb0999ebd64d5931e8a562a181291ac8f11ce6fa153c0682",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ecdf3451424b0c42eb0999ebd64d5931e8a562a181291ac8f11ce6fa153c0682/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f1a8cd8dd9aff9df732e64f1eb9345872d984fc96efa84811c39bfeaba6086c2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f1a8cd8dd9aff9df732e64f1eb9345872d984fc96efa84811c39bfeaba6086c2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f60dd2c62050165f715e53370b4cea1633aae4108c1f1f6e7dc0e94023519bd8",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f60dd2c62050165f715e53370b4cea1633aae4108c1f1f6e7dc0e94023519bd8/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f66e741af149caa56643b6b49f5681c43c22c6fd66d7e9516f63e52d261e7a48",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f66e741af149caa56643b6b49f5681c43c22c6fd66d7e9516f63e52d261e7a48/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f8f066e2992d28c601f0f40c2e62a0e3276a397b178005bfcf66ef8215616fab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f8f066e2992d28c601f0f40c2e62a0e3276a397b178005bfcf66ef8215616fab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f9bfca01a14dca8e55578eca177d0b391ffd7aa86b1b62f4206aa03d08fcbccf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f9bfca01a14dca8e55578eca177d0b391ffd7aa86b1b62f4206aa03d08fcbccf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "f9f24f14b3c3ab96c13d87031edc15254b09e16c27fce49bd51d37dc4d51a851",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f9f24f14b3c3ab96c13d87031edc15254b09e16c27fce49bd51d37dc4d51a851/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "fc949c7d90517538a6fb0d6243b2ab6786d20a882a20998f2cb1dd6ee01d33a5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/fc949c7d90517538a6fb0d6243b2ab6786d20a882a20998f2cb1dd6ee01d33a5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "fe41f76d6c6c5a8d51ad30a68c432d5c03116bb6ed8e0972346e96e7b0c69a27",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/fe41f76d6c6c5a8d51ad30a68c432d5c03116bb6ed8e0972346e96e7b0c69a27/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "fe5ccf29047a931963dc36f96f02d5fa74b52318fe36c39c81ec1160d7b65a03",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/fe5ccf29047a931963dc36f96f02d5fa74b52318fe36c39c81ec1160d7b65a03/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "candidate": "fe666e2468f078784a08b6dd2063672c4784ec8a93e12a5164e407421bc52f49",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/fe666e2468f078784a08b6dd2063672c4784ec8a93e12a5164e407421bc52f49/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "0d4e8cccc160ab2c440c5fa706403c59814b2a2bca4a1bb0904a3c3f3697f31f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/0d4e8cccc160ab2c440c5fa706403c59814b2a2bca4a1bb0904a3c3f3697f31f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "29d3827a51a6b5b9e4c66a8f10c6593abfcd548fe6da63f16f8afdfd127296e7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/29d3827a51a6b5b9e4c66a8f10c6593abfcd548fe6da63f16f8afdfd127296e7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "4489a18dcac1b1026af8f11684e0a0ea27c6bc741e490e1c7680d0d70c516025",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4489a18dcac1b1026af8f11684e0a0ea27c6bc741e490e1c7680d0d70c516025/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "531b75cf8fc7d8a2271c194502bfffbe1e0b2d62178202f89f856b28a06e83af",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/531b75cf8fc7d8a2271c194502bfffbe1e0b2d62178202f89f856b28a06e83af/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "5db1c05efcaf58c9434788ff1acccba41407853ae470edd04b866cda55c672a1",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5db1c05efcaf58c9434788ff1acccba41407853ae470edd04b866cda55c672a1/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "607f899ccfff06a2e873e1d060757b0b2a4eaf8ce2c01d5c697e2d3f5c59ab59",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/607f899ccfff06a2e873e1d060757b0b2a4eaf8ce2c01d5c697e2d3f5c59ab59/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "7070b74c1d5899fbdbabc96d132178f2a0571223dacb0df45f66dd1a56bf5bb9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7070b74c1d5899fbdbabc96d132178f2a0571223dacb0df45f66dd1a56bf5bb9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "87784a0be4544d921209ceee6db8432de2e6823b61291b4aa17a0fced6aef5c8",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/87784a0be4544d921209ceee6db8432de2e6823b61291b4aa17a0fced6aef5c8/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "8cea805c07ebdfd4f1872b5e26601e6790e61d8c16d4eb8deb74f1252232a326",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8cea805c07ebdfd4f1872b5e26601e6790e61d8c16d4eb8deb74f1252232a326/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "91d4d131288f557af6b92cf6a5a7684a0a92225900c373ded82a47baecc76353",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/91d4d131288f557af6b92cf6a5a7684a0a92225900c373ded82a47baecc76353/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "96c80e3845e06dc75d8d2058a9e9089595df7743442c781f09a0a291eb9209b8",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/96c80e3845e06dc75d8d2058a9e9089595df7743442c781f09a0a291eb9209b8/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "9767f159c685e7718ef4457b756b2bd8586e404023ce0de7ff22bbf46bb419cb",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9767f159c685e7718ef4457b756b2bd8586e404023ce0de7ff22bbf46bb419cb/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "a64632f98bba1f6fda99d3f4cb3ef01f8ab2a10455bc70326d36d1e29a8f5755",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a64632f98bba1f6fda99d3f4cb3ef01f8ab2a10455bc70326d36d1e29a8f5755/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "a70e23ec803c5174179dda595880dcc5fd0c518634f6cb8fc6d217d09316a51d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a70e23ec803c5174179dda595880dcc5fd0c518634f6cb8fc6d217d09316a51d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "b93be790dc2a7b47f08ef29bd070fce9db2d144359ab972534694ab1414bfc8f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b93be790dc2a7b47f08ef29bd070fce9db2d144359ab972534694ab1414bfc8f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "dc0d2be6e249eb95d2bbd95f1a70621d71291d6225765871650781a17cffc491",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/dc0d2be6e249eb95d2bbd95f1a70621d71291d6225765871650781a17cffc491/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "e471d95fc6a73bd3c9c5cceb73b719a3301235db5a0732ff0b92f4a4b1018017",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e471d95fc6a73bd3c9c5cceb73b719a3301235db5a0732ff0b92f4a4b1018017/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "e649d21e5d97b446f0613249dc178bc503689b3bd44fe4d28ff360b73419afb2",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e649d21e5d97b446f0613249dc178bc503689b3bd44fe4d28ff360b73419afb2/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "ff5157f679966fe8565644b82be983f479d9c9e81c1de7a94a918bfd74b85a4c",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ff5157f679966fe8565644b82be983f479d9c9e81c1de7a94a918bfd74b85a4c/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "candidate": "fffd97a7e124db360e988a6132b10e34b2a772316ff795e7a88a4dbc0fb89e86",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/fffd97a7e124db360e988a6132b10e34b2a772316ff795e7a88a4dbc0fb89e86/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "04195d7012c4ad6261cf330a703addf09d0919d5ce96fb708f78b129ebc5132a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/04195d7012c4ad6261cf330a703addf09d0919d5ce96fb708f78b129ebc5132a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "05f5642943770aa455645c1264e1f507154ad750191837bf8c9d2e3d61350822",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/05f5642943770aa455645c1264e1f507154ad750191837bf8c9d2e3d61350822/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "132f591cfcc3dcc7283686c8c2bbda074895b2b31d3369cb4484d7a1edb26811",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/132f591cfcc3dcc7283686c8c2bbda074895b2b31d3369cb4484d7a1edb26811/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "16ee7423ee1f163811d5b923e404b354f2c1bab3b2b4846825c281e1c522534f",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/16ee7423ee1f163811d5b923e404b354f2c1bab3b2b4846825c281e1c522534f/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "2201847cd7f4843d922143c670354c514f18f43c4bc5403e305d392bd851c6bf",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2201847cd7f4843d922143c670354c514f18f43c4bc5403e305d392bd851c6bf/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "28538587b0a76f413528a0f5f63845582c648084e821a671baca714943bb782d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/28538587b0a76f413528a0f5f63845582c648084e821a671baca714943bb782d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "2bbfb7c35afcd7d5d1035d971cccada3202a2108cef53d730805b752f1777926",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2bbfb7c35afcd7d5d1035d971cccada3202a2108cef53d730805b752f1777926/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "2c032e630c1ec1d3c81f3b75690e8980828e0d01fc04e7b729023026f3a423c8",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2c032e630c1ec1d3c81f3b75690e8980828e0d01fc04e7b729023026f3a423c8/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "2cca6aba499080657cdb1a23f455f726e791f9c55fa32df9537782e5c1c44aab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2cca6aba499080657cdb1a23f455f726e791f9c55fa32df9537782e5c1c44aab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "4808612e65eff368fe866b87c991aa34ac3c39965a0963e350bebbdb6de83ec6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4808612e65eff368fe866b87c991aa34ac3c39965a0963e350bebbdb6de83ec6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "4a8b22f30b3d68a2279eeb3c595fa1958dd41b76c2146f76f03f966e1c1cebe0",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4a8b22f30b3d68a2279eeb3c595fa1958dd41b76c2146f76f03f966e1c1cebe0/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "4ef9e898198ecc2196ad4e3302a24e31d1ba5a3a370117b7f0671ee55455e4ab",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4ef9e898198ecc2196ad4e3302a24e31d1ba5a3a370117b7f0671ee55455e4ab/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "4f488552ad2362c84c9632686673fc319e1799b5e2569951ee7127f5b8bffb06",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/4f488552ad2362c84c9632686673fc319e1799b5e2569951ee7127f5b8bffb06/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "511e3aa3ef8e7686ce6ae1aaf982a83f3b52b20e0ccd5b4ae7dbbfd08db4bfa7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/511e3aa3ef8e7686ce6ae1aaf982a83f3b52b20e0ccd5b4ae7dbbfd08db4bfa7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "514550e6ebc2a04c824ea9be6b643545f1f414ecf611c3876900b08b8393442d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/514550e6ebc2a04c824ea9be6b643545f1f414ecf611c3876900b08b8393442d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "5388faae9c0a5d14d8348df4877d39117a8908158329f971d5e5f608da4849b3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5388faae9c0a5d14d8348df4877d39117a8908158329f971d5e5f608da4849b3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "5ac0db86bcbeb775c10b7dfc6cbb241040800d9d334468a1d17a15418d9d6e0b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5ac0db86bcbeb775c10b7dfc6cbb241040800d9d334468a1d17a15418d9d6e0b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "5d5f305c74cfcb59a5c41323645d7eec95988aeed7e6340383c7e1b407941489",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5d5f305c74cfcb59a5c41323645d7eec95988aeed7e6340383c7e1b407941489/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "5d77018ff32ecfc9833b0e0afe483093293f2b8a3dc77272b5fc80ad2ef32feb",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5d77018ff32ecfc9833b0e0afe483093293f2b8a3dc77272b5fc80ad2ef32feb/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "67330cdc0a6ebc0c65272a326804a71d7f5dfaacbdb6d5bc3a133079af553383",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/67330cdc0a6ebc0c65272a326804a71d7f5dfaacbdb6d5bc3a133079af553383/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "681d1853c9958ecc16c082e9917fe5a42d9325360af3c0f597bc5566e61a2928",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/681d1853c9958ecc16c082e9917fe5a42d9325360af3c0f597bc5566e61a2928/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "6e26da2abb181039f9aea46a89e9b51aac843f8919061aab41de902c736bbbdc",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6e26da2abb181039f9aea46a89e9b51aac843f8919061aab41de902c736bbbdc/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "6edcc07976ddaf2c2e02f36dfd607b3c554bb9e3b163d05f5ef86011379a112b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6edcc07976ddaf2c2e02f36dfd607b3c554bb9e3b163d05f5ef86011379a112b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "6f906d7271687fbb5f205b04454d6f4f9f1fcba255d3a9348019ceb2e4562399",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6f906d7271687fbb5f205b04454d6f4f9f1fcba255d3a9348019ceb2e4562399/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "70d6058c08a5dffa916f06cddd074ff0bb75bdd8ccce83ed1de26fb3f11c50ea",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/70d6058c08a5dffa916f06cddd074ff0bb75bdd8ccce83ed1de26fb3f11c50ea/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "733c4cbf9007d891d6d91bbf2858d8d1c0fa6ef663d4d2ea34fdc7e7ddfd4fd9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/733c4cbf9007d891d6d91bbf2858d8d1c0fa6ef663d4d2ea34fdc7e7ddfd4fd9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "7a5db96be26ab4eb483935f75af2cc082f6d0a4da1bdffd9b5f647bf05660c33",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7a5db96be26ab4eb483935f75af2cc082f6d0a4da1bdffd9b5f647bf05660c33/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "7c148d4e297546d7ca6b30c0907675cb0a7cbb425fd3d9e2e6295a3857649e2a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/7c148d4e297546d7ca6b30c0907675cb0a7cbb425fd3d9e2e6295a3857649e2a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "8e30724af40df74c250fa1b854e2a42c4e9f7150fd569559c58e47173602dcda",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8e30724af40df74c250fa1b854e2a42c4e9f7150fd569559c58e47173602dcda/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "8f356854426657b9c1302b80f1ce2e5cddb3c936ddf075b7ff142d349fcb07ac",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8f356854426657b9c1302b80f1ce2e5cddb3c936ddf075b7ff142d349fcb07ac/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "92dd8ad13ff773a08aec5346cfd2807c4d2f8d3825f5457e7f086c57fb89d96b",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/92dd8ad13ff773a08aec5346cfd2807c4d2f8d3825f5457e7f086c57fb89d96b/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "95664eb946331173fd68eccc714579b225cb543f65d7319d68a95a575aab3869",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/95664eb946331173fd68eccc714579b225cb543f65d7319d68a95a575aab3869/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "964878c97f222bd6395d77dca17b58e68b0826b3d27fdedd3677a05491332ea9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/964878c97f222bd6395d77dca17b58e68b0826b3d27fdedd3677a05491332ea9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "a1ae932c41c1db3977a2e63621dacc6ab17a20b0f16b7d813a52cc613b8d3acd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/a1ae932c41c1db3977a2e63621dacc6ab17a20b0f16b7d813a52cc613b8d3acd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "af556f2379132cc8056dd2ba0e05d2585d44033715c0c0f298c9b143240b0eac",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/af556f2379132cc8056dd2ba0e05d2585d44033715c0c0f298c9b143240b0eac/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "b4ea0c76780a33791a925e8fd111e6b0d56e408929a0ea35d2ce69272203c667",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b4ea0c76780a33791a925e8fd111e6b0d56e408929a0ea35d2ce69272203c667/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "bcd7d0fc4d19a276d1ae593997628ab14e39ccde3a76839ce35783f5389ae1e6",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/bcd7d0fc4d19a276d1ae593997628ab14e39ccde3a76839ce35783f5389ae1e6/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "c442aa984e075c2034fcdcf1c02d541d0d7da3a17e31643750bda35a4316725d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c442aa984e075c2034fcdcf1c02d541d0d7da3a17e31643750bda35a4316725d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "c936f35d39a11a94998226b2a61843be2b5863d6b2fec32e51c4ab3f4ca7dd44",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c936f35d39a11a94998226b2a61843be2b5863d6b2fec32e51c4ab3f4ca7dd44/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "ca7b9a4f68aad0406adc42fc456d59b3c1b2ab52b31c675660f7f61eb2b0ed17",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ca7b9a4f68aad0406adc42fc456d59b3c1b2ab52b31c675660f7f61eb2b0ed17/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "caa92be0f8f2f63f40e652aeeca5f93f34bcd52a33621c6fef99cbeb755e9bd9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/caa92be0f8f2f63f40e652aeeca5f93f34bcd52a33621c6fef99cbeb755e9bd9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "cfa327af848ff08b56ccf45f71546a6365213a41fc28c31c700942e1b4f9ec94",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/cfa327af848ff08b56ccf45f71546a6365213a41fc28c31c700942e1b4f9ec94/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "dbf385ff5eb0fa3504e6314ce11a3b75c6211551fc75d3b3192b412f526826aa",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/dbf385ff5eb0fa3504e6314ce11a3b75c6211551fc75d3b3192b412f526826aa/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "e68e22ba43ab577254dac818bf2a700d27867c317eeef8a427e606ba06d362fd",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/e68e22ba43ab577254dac818bf2a700d27867c317eeef8a427e606ba06d362fd/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "ebc5bd2a023f150cb2874d6ce25972e5f54b4c6fcda54a030faf2374e6213209",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ebc5bd2a023f150cb2874d6ce25972e5f54b4c6fcda54a030faf2374e6213209/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "ebf0cca544c9ba725aa19bedb92def852e10b8c158c1d560803e965eae7e06fc",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ebf0cca544c9ba725aa19bedb92def852e10b8c158c1d560803e965eae7e06fc/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "candidate": "f35ca18021df5fb5dcf8441adf43af7150eaa9e5ab548474b8ce72a231508994",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/f35ca18021df5fb5dcf8441adf43af7150eaa9e5ab548474b8ce72a231508994/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "025b5b7ed764c6da879155dbb3c2484b54eabecf0ef9271d415bf76fe6c1acfb",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/025b5b7ed764c6da879155dbb3c2484b54eabecf0ef9271d415bf76fe6c1acfb/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "0736c5509c02fe0c8ecf47c1c29347f9999350103510a78ca9bc7c7f49ea6ff9",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/0736c5509c02fe0c8ecf47c1c29347f9999350103510a78ca9bc7c7f49ea6ff9/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "207a3fc29376b51bd4dee4b90ae5b264ec5a80e53a565bc6f1bc02b1c3ddb7ed",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/207a3fc29376b51bd4dee4b90ae5b264ec5a80e53a565bc6f1bc02b1c3ddb7ed/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "2bfddd6a67d363d645b6d772c0c21d2a47a005da2b2edbb60f963d8f6b5dcc9d",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/2bfddd6a67d363d645b6d772c0c21d2a47a005da2b2edbb60f963d8f6b5dcc9d/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "3ad7ddeaf79a5c37d013bba8f15c9714d303d892b34c7a7e11fe2456f8a96ed0",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3ad7ddeaf79a5c37d013bba8f15c9714d303d892b34c7a7e11fe2456f8a96ed0/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "3b4cea62f73327359710f35499821074294d200cc08d4ed10a75df44eccf4152",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/3b4cea62f73327359710f35499821074294d200cc08d4ed10a75df44eccf4152/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "43c6cced5542b8bd2bac61be6ea41048b5c116cb09b8728b8227bd6a34157eb5",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/43c6cced5542b8bd2bac61be6ea41048b5c116cb09b8728b8227bd6a34157eb5/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "495c3ef5ba164b69f06310a7742d806d5fe6f73895b263b9c633b5aac27b81d0",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/495c3ef5ba164b69f06310a7742d806d5fe6f73895b263b9c633b5aac27b81d0/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "5457e1da2ab5bf0d24fbd13050c849f7988cc9e5612ad4d6d62f95688f9a1901",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/5457e1da2ab5bf0d24fbd13050c849f7988cc9e5612ad4d6d62f95688f9a1901/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "6f4dd9bd7680026ddc048dd2c1583f6f316f0725fec02a628fd692695aa1e0ae",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/6f4dd9bd7680026ddc048dd2c1583f6f316f0725fec02a628fd692695aa1e0ae/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "80f929a95511239b49aedacfe914c63bb75cf86e115aea8925828be2c8f064f3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/80f929a95511239b49aedacfe914c63bb75cf86e115aea8925828be2c8f064f3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "8ae5b535fe95ee88cb19683d34cca2c445cdc6b4b5512dd52741e61d3a06b0e4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8ae5b535fe95ee88cb19683d34cca2c445cdc6b4b5512dd52741e61d3a06b0e4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "8e4e90c231899d3081c529f7d145812325256ff9a188156a42603d6b9d93b134",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/8e4e90c231899d3081c529f7d145812325256ff9a188156a42603d6b9d93b134/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "929b8ff885ce8c8b616451b7f06b759d3a7167c102a346d0309714ca6c4747de",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/929b8ff885ce8c8b616451b7f06b759d3a7167c102a346d0309714ca6c4747de/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "98041c00800edd42ea61b3fc2157ee2869a14f44562724050c73990a14cfdc13",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/98041c00800edd42ea61b3fc2157ee2869a14f44562724050c73990a14cfdc13/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "9819737355e7fdd4b6ff3d39c66f572ef9881471df60fdd657bed20ffec52cb4",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/9819737355e7fdd4b6ff3d39c66f572ef9881471df60fdd657bed20ffec52cb4/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "b4563c7338acf906c727eb2ef51f516aad4337ff514203f402e198ab9c54b3e3",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/b4563c7338acf906c727eb2ef51f516aad4337ff514203f402e198ab9c54b3e3/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "c1e3f85cf14552fffec36e57144c626f053919f9bd26c4fc340b5b008f564cb1",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/c1e3f85cf14552fffec36e57144c626f053919f9bd26c4fc340b5b008f564cb1/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "cce3bda72c280008b0d5a31ac208857584e89a8fda7219bd48a42e86b759ffb7",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/cce3bda72c280008b0d5a31ac208857584e89a8fda7219bd48a42e86b759ffb7/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "d02677c0e67e2a22dd0b60380873b0c3c88a99a2cebeb204740cc807bf35ee1a",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/d02677c0e67e2a22dd0b60380873b0c3c88a99a2cebeb204740cc807bf35ee1a/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 1.0
+    },
+    {
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "candidate": "ee474cd9195768bdfceac0a24a8ac4e977ebeeb3e5646de3539a69a662cbbbcc",
+      "newAttempt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/saga-copy-transport-2026-09-28-final/ee474cd9195768bdfceac0a24a8ac4e977ebeeb3e5646de3539a69a662cbbbcc/attempt-002/attempt.json",
+      "status": "COMPLETE",
+      "jointScore": 0.0
+    }
+  ],
+  "failedRemeasurementsRetained": 1,
+  "note": "Joint replay only; original eight policy settings, no new progress/order or automatic alpha adoption",
+  "workerSmoke": {
+    "passed": true,
+    "attemptsPerArm": 8,
+    "arms": [
+      "H1-cal",
+      "UCB-independent"
+    ],
+    "includedInFormalResults": false
+  }
+}

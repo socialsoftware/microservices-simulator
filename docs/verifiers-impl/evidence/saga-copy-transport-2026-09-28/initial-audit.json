@@ -1,0 +1,296 @@
+{
+  "completed": 20,
+  "copy": {
+    "NEGATIVE": 20
+  },
+  "excludedAsync": 4,
+  "executionChanged": 0,
+  "joint": {
+    "NEGATIVE": 20
+  },
+  "oldReferencesVerified": 7,
+  "oldReportHashesVerified": 1620,
+  "otherCriteriaChanged": 0,
+  "rows": [
+    {
+      "candidate": "07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "eb409d9e281546c20b4d8527c1fc2019335291184b3f8a8c459c60d36001831c",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "09cc4268fc29185213d6328ff413b42ba83ec2cb90d342d7e0f7c3f66388d304",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "9866cf9cf20b026d8d5e298e205ba6d943aa3e2fa745b28ac292ddfc1c501508",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "1e4b12f07788fd366401d308ea0bf6b1bc99f83cc1f67eeef1adb7e72dcf07c3",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "754481658f026635ffd47bf5004fab1f79553e27769629e7575a768f968053a1",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "1fbe5c49e00b5fc42b3f795064142165989fa0b17cf09d77f2472ff03fb45edf",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "f2aa211a8a18e5a841353cf40bc6067b421a109774dd3bbb156095d4c226db6e",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "35f5141f7aead760b41806f27b0ff80eff7c4001cfaf5dc7da25b25f0ae89d4f",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "58f4e6b975dc0e5e6f831ffe2860e7e4bfa77cdd39b5681f14babd2c3d53d68d",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "3fcf15ebcfce513df26ecf9bd5998ff6603fe8513b461f418cd89c013064f98a",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "a1f3f07b61bdc9784acfb8363c6b41689ab44994b07183e8b53af1585bb99723",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "4143e80dfbc6f2d4fd3f54d2942cd360ee261e535463c0cdccea6597a4ca1648",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "785404ca72af7d86b08d64480fd2f00431427158f1fe32327210aa1c5ccc2364",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "56fb08546ad6b3dfe508e7da934a6fdea53716c2effb1e44013a92e35d732d9b",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "be7a53518b970b988284a80c39f228b0ac355ffe0e182b95ab1fa72d172880b8",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "5713239418cf0b72b00d97ed42f6e4be5310f9671787f80b74f5bfacee2db138",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "d72fd138f987b8ccdf854e39d26b0971b6a7e472124da9dc08b3b4a9180f7540",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "5bc4681d7f68b942262c04366dadf5ad9b3a883162fc83d30c8cc6863cd9654a",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "c1f666c819aa003d7396db94c8f62df4b34504d50837efdc775aed07ee6526bf",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "621b9951e6f4328146abe2d32ed3f1f0cb34f0e17319f391cf4f79b5d38c15e6",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "7adab218a8923cafa5fe6c417431a074f36aec8130670ddf95f5fe434ca33de9",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "62798c1f3e47bd85ba39a1a5a4e88a2b312f95b7b6ef40b922f8d2ecdb0f25c4",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "3cba9f2739cfce1a2ca3c4fa72a14dc6f5d9eb5e8268d1e4848fba77dd595284",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "64c412f39c3170e7e490655b75f66b8e4bbaee9f8acea104704d191354a2dada",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "13fa7e58eed89853ab37290c6b80a333bda8333f35e349b4784c8e79b6945db5",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "99477c40a5f814d4431d20d182f099d42a64e3cbedf07e6dc51d029e3f11dfca",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "7503c0848d126d65cc3f0978404cc7828b5fbc579c07807262cef0d7ada35621",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "9bfac46ec348bc0f03f3f5df8b9a4702727bfaf01f1a2ccf5fe80fbaacc4e24b",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "6e91bcf4efb38110e9a18aa934c753620220dabe3fb0c2fc3a64b6e54eb1ee14",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "899f4fa0a2fc6f6610ce24e836857ef0941414dd76fbc27f17b61471322156b2",
+      "oldReferenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "otherCriteriaUnchanged": true,
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    {
+      "candidate": "08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateTopic + UpdateTopic",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "37bcb93c675174ebc7c7bc3d0e1c4b04ff55443ca4ae469f5cb0c3f842ac0ca8",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "otherCriteriaUnchanged": true,
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateTopic + UpdateTopic",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "b6524fc76a88513c084f6f27a8b6e31486ef5a0dc144c8de56b186dd119a6309",
+      "oldReferenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "otherCriteriaUnchanged": true,
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    {
+      "candidate": "010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateCourseExecution + CreateQuestion",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "1aa28143d4edb0021d4f7c9cf1e3af98d3e47ca65ccc1071bf32c1fa296acfc2",
+      "oldReferenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+      "otherCriteriaUnchanged": true,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    },
+    {
+      "candidate": "53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd",
+      "copyVerdict": "NEGATIVE",
+      "executionUnchanged": true,
+      "family": "CreateCourseExecution + CreateQuestion",
+      "jointScore": 0.0,
+      "jointVerdict": "NEGATIVE",
+      "newAttemptSha256": "3996c3deb5a643644fdb6bb24aa16da60fedc868d40eff425ed5203644ee4f1e",
+      "oldReferenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+      "otherCriteriaUnchanged": true,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    }
+  ],
+  "selected": 270,
+  "selectionSha256": "219b212963b0fc297ff42c0e7ffece6a6d468447d3f49d0c87951e8b0b507ab3",
+  "sourceHashes": {
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/copiedupdate/CopiedUpdateSession.java": "810a68ac8f25ba5f05785dad515a952387edb8f435399c6e9c92da3916901b86",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/LostCopiedUpdateAssessor.java": "590c252b486b06a01730c8db19cf22629c6b85f989fb0b4bf513bf575fc53fd4"
+  },
+  "tests": [
+    {
+      "errors": 0,
+      "failures": 0,
+      "name": "CopiedUpdateSessionSpec",
+      "reportSha256": "92951d49deec38a64f3f3325ef086715bf62082fd07aa0b9f389c3aa32f83f28",
+      "skipped": 0,
+      "tests": 23
+    },
+    {
+      "errors": 0,
+      "failures": 0,
+      "name": "LostCopiedUpdateAssessorSpec",
+      "reportSha256": "f210da65a412103e1088c9a17658c8b4f0d2bc0c30de5ecae08d3d1e7ce7d27a",
+      "skipped": 0,
+      "tests": 28
+    },
+    {
+      "errors": 0,
+      "failures": 0,
+      "name": "ConstructorCopyVisitorDummyappSpec",
+      "reportSha256": "abe94e6e744a3fd3a156d88fc8455cdd1509cdffa65763ba807a77c5680f812d",
+      "skipped": 0,
+      "tests": 4
+    },
+    {
+      "errors": 0,
+      "failures": 0,
+      "name": "ConstructorCopyVisitorQuizzesSpec",
+      "reportSha256": "f69768f2cd7560158ae5a98f6394125f79032f2ffe830c17bd42039d45a13bbb",
+      "skipped": 0,
+      "tests": 1
+    }
+  ]
+}

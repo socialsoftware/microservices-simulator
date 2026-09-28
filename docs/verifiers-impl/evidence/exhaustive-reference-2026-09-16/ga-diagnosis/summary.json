@@ -1,0 +1,479 @@
+{
+  "examples": [
+    {
+      "genes": [
+        null,
+        8,
+        6
+      ],
+      "key": "0f497c861b914a5de1d5a31e18fde55cc4231c462fd3a6a5db782d3303623287",
+      "mutation": null,
+      "operator": "crossover",
+      "parents": [
+        {
+          "I": 1,
+          "fitnessScore": 2.0,
+          "key": "0f497c861b914a5de1d5a31e18fde55cc4231c462fd3a6a5db782d3303623287"
+        },
+        {
+          "I": 1,
+          "fitnessScore": 1.0,
+          "key": "c163ce559a430654cc6fedb2c128426a0c4da33186d6c2383b17a5f5316f9fe6"
+        }
+      ],
+      "proposal": 13,
+      "recovery": "[{\"step\":\"s1\"},{\"step\":\"s2\"},{\"step\":\"s3\"},{\"step\":\"s4\"},{\"step\":\"s5\"},{\"step\":\"s6\"},{\"step\":\"s7\"},{\"step\":\"s8\"},{\"compensate\":\"s5\"},{\"step\":\"s9\"},{\"compensate\":\"s3\"},{\"compensate\":\"s8\"}]",
+      "replacedRecovery": false,
+      "scenarioId": "b979cb310f539edd7bba7ee4897c8809e5e81b3c63d8baf80b073f915c8f8067",
+      "status": "DUPLICATE",
+      "vector": "000000101"
+    },
+    {
+      "genes": [
+        1,
+        null,
+        6
+      ],
+      "key": "82541e81073c5be447fb4c74db68055605e97f20e09f133c5956424b0e0f104c",
+      "mutation": null,
+      "operator": "crossover",
+      "parents": [
+        {
+          "I": 1,
+          "fitnessScore": 1.0,
+          "key": "82541e81073c5be447fb4c74db68055605e97f20e09f133c5956424b0e0f104c"
+        },
+        {
+          "I": 1,
+          "fitnessScore": 2.0,
+          "key": "0f497c861b914a5de1d5a31e18fde55cc4231c462fd3a6a5db782d3303623287"
+        }
+      ],
+      "proposal": 15,
+      "recovery": "[{\"step\":\"s1\"},{\"step\":\"s2\"},{\"step\":\"s3\"},{\"step\":\"s4\"},{\"step\":\"s5\"},{\"step\":\"s6\"},{\"step\":\"s7\"},{\"compensate\":\"s5\"},{\"step\":\"s8\"},{\"compensate\":\"s3\"},{\"step\":\"s9\"}]",
+      "replacedRecovery": false,
+      "scenarioId": "b7fbba0d30d36c8f3e01b22505a3fde612908269859f5721eb1d83866d7de229",
+      "status": "DUPLICATE",
+      "vector": "010000100"
+    },
+    {
+      "genes": [
+        1,
+        null,
+        3
+      ],
+      "key": "e0fedc00be20bc41f85504ca5b2d2f5fd93c3e76402c51e0e3c426933b9a1fc1",
+      "mutation": null,
+      "operator": "crossover",
+      "parents": [
+        {
+          "I": 0,
+          "fitnessScore": 0.0,
+          "key": "2371bfe5b6f1b40a2517c79457719d68a26297d3058301d45a9e8496aa64ca6a"
+        },
+        {
+          "I": 1,
+          "fitnessScore": 1.0,
+          "key": "c163ce559a430654cc6fedb2c128426a0c4da33186d6c2383b17a5f5316f9fe6"
+        }
+      ],
+      "proposal": 17,
+      "recovery": "[{\"step\":\"s1\"},{\"step\":\"s2\"},{\"step\":\"s3\"},{\"step\":\"s4\"},{\"compensate\":\"s3\"},{\"step\":\"s8\"},{\"step\":\"s9\"}]",
+      "replacedRecovery": true,
+      "scenarioId": "d772019d38edc01c9ad0ebb592948cf23b668fa182796eabb58748e96129bd5e",
+      "status": "DUPLICATE",
+      "vector": "010100000"
+    }
+  ],
+  "interpretation": "Proposal buckets end at 8, 50, 100, 150, 186 distinct evaluations. Duplicates and tail stalls belong to the next not-yet-completed evaluation. Population observed read-only through emit; all retained choices verified identical.",
+  "proposalBucketsByCompletedEvaluations": {
+    "100": {
+      "bothParentsScore2": 1498,
+      "childGenesEqual": 995,
+      "childIsParent": 619,
+      "crossoverDUPLICATE": 992,
+      "crossoverEVALUATED": 508,
+      "crossoverPositive": 470,
+      "crossoverProposals": 1500,
+      "crossoverScore2": 248,
+      "mutationAttempted": 448,
+      "proposals": 3657,
+      "randomDUPLICATE": 1165,
+      "randomEVALUATED": 992,
+      "randomPositive": 397,
+      "randomProposals": 2157,
+      "randomScore2": 133,
+      "replacedRecovery": 772,
+      "sameParent": 178
+    },
+    "150": {
+      "bothParentsScore2": 1500,
+      "childGenesEqual": 969,
+      "childIsParent": 606,
+      "crossoverDUPLICATE": 1162,
+      "crossoverEVALUATED": 338,
+      "crossoverPositive": 319,
+      "crossoverProposals": 1500,
+      "crossoverScore2": 185,
+      "mutationAttempted": 459,
+      "proposals": 7171,
+      "randomDUPLICATE": 4509,
+      "randomEVALUATED": 1162,
+      "randomPositive": 588,
+      "randomProposals": 5671,
+      "randomScore2": 241,
+      "replacedRecovery": 766,
+      "sameParent": 164
+    },
+    "186": {
+      "bothParentsScore2": 1079,
+      "childGenesEqual": 672,
+      "childIsParent": 460,
+      "crossoverDUPLICATE": 991,
+      "crossoverEVALUATED": 88,
+      "crossoverPositive": 86,
+      "crossoverProposals": 1079,
+      "crossoverScore2": 46,
+      "mutationAttempted": 335,
+      "proposals": 54610,
+      "randomDUPLICATE": 52547,
+      "randomEVALUATED": 984,
+      "randomPositive": 711,
+      "randomProposals": 53531,
+      "randomScore2": 379,
+      "replacedRecovery": 524,
+      "sameParent": 163
+    },
+    "50": {
+      "bothParentsScore2": 785,
+      "childGenesEqual": 809,
+      "childIsParent": 549,
+      "crossoverDUPLICATE": 696,
+      "crossoverEVALUATED": 564,
+      "crossoverPositive": 478,
+      "crossoverProposals": 1260,
+      "crossoverScore2": 227,
+      "mutationAttempted": 374,
+      "proposals": 2207,
+      "randomDUPLICATE": 251,
+      "randomEVALUATED": 696,
+      "randomPositive": 220,
+      "randomProposals": 947,
+      "randomScore2": 74,
+      "replacedRecovery": 630,
+      "sameParent": 193
+    },
+    "8": {
+      "proposals": 249,
+      "randomDUPLICATE": 9,
+      "randomEVALUATED": 240,
+      "randomPositive": 83,
+      "randomProposals": 249,
+      "randomScore2": 24
+    }
+  },
+  "replaysMatchRetained": true,
+  "runs": [
+    {
+      "firstAllScore2Population": 37,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 1
+    },
+    {
+      "firstAllScore2Population": 32,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 2
+    },
+    {
+      "firstAllScore2Population": 31,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 3
+    },
+    {
+      "firstAllScore2Population": 56,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 4
+    },
+    {
+      "firstAllScore2Population": 27,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 5
+    },
+    {
+      "firstAllScore2Population": 36,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 6
+    },
+    {
+      "firstAllScore2Population": 65,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 7
+    },
+    {
+      "firstAllScore2Population": 52,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 8
+    },
+    {
+      "firstAllScore2Population": 44,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 9
+    },
+    {
+      "firstAllScore2Population": 32,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 10
+    },
+    {
+      "firstAllScore2Population": 33,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 11
+    },
+    {
+      "firstAllScore2Population": 49,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 12
+    },
+    {
+      "firstAllScore2Population": 39,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        6
+      ],
+      "seed": 13
+    },
+    {
+      "firstAllScore2Population": 29,
+      "populationDistinctVectorsAt100": 4,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 14
+    },
+    {
+      "firstAllScore2Population": 44,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 15
+    },
+    {
+      "firstAllScore2Population": 50,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 16
+    },
+    {
+      "firstAllScore2Population": 36,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 17
+    },
+    {
+      "firstAllScore2Population": 49,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 18
+    },
+    {
+      "firstAllScore2Population": 41,
+      "populationDistinctVectorsAt100": 7,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 19
+    },
+    {
+      "firstAllScore2Population": 36,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 20
+    },
+    {
+      "firstAllScore2Population": 21,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 21
+    },
+    {
+      "firstAllScore2Population": 24,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 22
+    },
+    {
+      "firstAllScore2Population": 33,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 23
+    },
+    {
+      "firstAllScore2Population": 23,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 24
+    },
+    {
+      "firstAllScore2Population": 35,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 25
+    },
+    {
+      "firstAllScore2Population": 27,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 26
+    },
+    {
+      "firstAllScore2Population": 43,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 27
+    },
+    {
+      "firstAllScore2Population": 27,
+      "populationDistinctVectorsAt100": 5,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 28
+    },
+    {
+      "firstAllScore2Population": 47,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 29
+    },
+    {
+      "firstAllScore2Population": 41,
+      "populationDistinctVectorsAt100": 6,
+      "populationUpdateFaultsAt100": [
+        5,
+        6
+      ],
+      "seed": 30
+    }
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "candidateCount": 72,
+  "commonMeasuredHorizon": 71,
+  "knownPositiveCount": 29,
+  "meanEvaluationsToHalfKnownPositives": {
+    "ga-original": 36.733333333333334,
+    "ga-uniform": 28.666666666666668,
+    "uniform": 35.5
+  },
+  "meanPositives": {
+    "ga-original": {
+      "25": 9.933333333333334,
+      "50": 20.133333333333333,
+      "71": 28.333333333333332
+    },
+    "ga-uniform": {
+      "25": 12.933333333333334,
+      "50": 22.066666666666666,
+      "71": 28.633333333333333
+    },
+    "uniform": {
+      "25": 10.3,
+      "50": 20.733333333333334,
+      "71": 28.566666666666666
+    }
+  },
+  "runsReachingAllKnownPositives": {
+    "ga-original": 29,
+    "ga-uniform": 30,
+    "uniform": 30
+  },
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "pairedCheckpoints": {
+    "25": {
+      "win": 23,
+      "tie": 5,
+      "loss": 2
+    },
+    "50": {
+      "tie": 3,
+      "win": 20,
+      "loss": 7
+    }
+  },
+  "coverage": {
+    "completePositive": 29,
+    "completeZero": 41,
+    "unavailable": 2,
+    "exact": 57,
+    "deviated": 13,
+    "compensationFailures": 2,
+    "repeatChecksPassed": 6
+  },
+  "validation": {
+    "allScoresMatchReference": true,
+    "inputHashesUnchanged": true,
+    "original30TracesUnchanged": true,
+    "variant30FullDistinctCatalogues": true
+  },
+  "campaignWallSeconds": 1402.7215831279755
+}

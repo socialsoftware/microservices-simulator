@@ -1,0 +1,39 @@
+{
+  "candidateCount": 5184,
+  "controlStatus": "COMPLETE",
+  "fitness": {
+    "fitnessComponents": {
+      "COMPENSATED_READ_EXPOSURE": {
+        "count": 0,
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0
+      },
+      "DELETED_DEPENDENCY": {
+        "count": 0,
+        "coverage": "COMPLETE",
+        "observedCount": 0
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "count": 0,
+        "coverage": "COMPLETE",
+        "observedCount": 0
+      },
+      "LOST_COPIED_UPDATE": {
+        "count": 0,
+        "coverage": "COMPLETE_WITHIN_SCOPE",
+        "observedCount": 0
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "count": 0,
+        "coverage": "COMPLETE",
+        "observedCount": 0
+      }
+    },
+    "fitnessScore": 0.0,
+    "fitnessUnavailableReasons": []
+  },
+  "knownLimitations": "Unavailable assessments are retained. No application change, weight change or detector expansion.",
+  "runtimeIntegrity": "PASS",
+  "scheduleConformance": "EXACT",
+  "terminalStatus": "SUCCESS"
+}

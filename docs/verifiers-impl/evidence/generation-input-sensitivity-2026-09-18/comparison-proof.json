@@ -1,0 +1,14 @@
+{
+  "baselineAgreement": {
+    "inputs-cap-1.json": "b759f226e07745b0156d24c808eb9024fdcc15ab8cca07af11c12c284b5531c5",
+    "rows-cap-1.jsonl": "a511c97d7da0c04edc4374b580f6a274c4b0ba841f4d2c4ba6e57e48006fd54f",
+    "inputs-cap-3.json": "bda707396025cb7b822c868309dc7a9e09795c8145a0424ed10e4f0caa1a6cb7",
+    "rows-cap-3.jsonl": "b1682bca38e27561bab546a1090d139ed684a5a374231dfc0db5c912090cc1cc"
+  },
+  "inputPopulationNested": true,
+  "rawArtifacts": {
+    "rows-cap-1.jsonl": "a511c97d7da0c04edc4374b580f6a274c4b0ba841f4d2c4ba6e57e48006fd54f",
+    "rows-cap-10.jsonl": "c43ac5b8c2768cd86e820b458c1327118e186b157d3e5353f54a4f3afae82735",
+    "rows-cap-3.jsonl": "b1682bca38e27561bab546a1090d139ed684a5a374231dfc0db5c912090cc1cc"
+  }
+}

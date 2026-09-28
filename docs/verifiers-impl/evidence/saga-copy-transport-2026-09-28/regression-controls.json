@@ -1,0 +1,86 @@
+{
+  "negative": 6,
+  "positive": 4,
+  "rows": [
+    {
+      "case": "forward-stale-false",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/forward-stale-false.json",
+      "newSha256": "2c53eaedff208eb067cf857f1fb6f752a3c91dbe7b68eeb054d0023a5a51e318",
+      "oldSha256": "84d189b482e09b384fb9703b28865e5ef2a9f374774f7158ca0ad5c109259bb8"
+    },
+    {
+      "case": "forward-fresh-false",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/forward-fresh-false.json",
+      "newSha256": "884a51285e19bdf4e722cf24b10d7d1e6724c4745241fa24c0f10b466f0de336",
+      "oldSha256": "5fab4245460070605ac85176f98c2b51fa6325ed392e26cd240a70ee1c2ad3c5"
+    },
+    {
+      "case": "recovery-stale-false",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-stale-false.json",
+      "newSha256": "57614d5964aced5029347272badd9253a1b1a802c7004f3640330dce9503ca3e",
+      "oldSha256": "0d5dd2b16c827cc041694f1beca391700cb4acd2661f1b54e30113c3a87a4203"
+    },
+    {
+      "case": "recovery-delayed-event-false",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-delayed-event-false.json",
+      "newSha256": "2e22e7aba75931e0d5f75e11ecee7221bb5ef5f8a8955e1575bb32a287a12129",
+      "oldSha256": "3d85359096c99c634ba27c9874b25b72f0ec11751a26610ab62dade4b3a65c0f"
+    },
+    {
+      "case": "recovery-no-event-false",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-no-event-false.json",
+      "newSha256": "6d645ab25edef34938bf971efa74489b82a274ecf92361f8e4b2632f7ac7d9fe",
+      "oldSha256": "7a3c83c35d80bbb3e2134f2d98c2ee8b8ce4e50234ddd24a4cc53761f8055f68"
+    },
+    {
+      "case": "forward-stale-true",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/forward-stale-true.json",
+      "newSha256": "73b3b2e3c59cd740412b77687bc96146104e15b45639622585b9c7c045ae71ee",
+      "oldSha256": "fcc020b73bab5efaa741915af1c59482d14485a62a231f43ec3028d7ff23c66c"
+    },
+    {
+      "case": "forward-fresh-true",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/forward-fresh-true.json",
+      "newSha256": "0aebd79c57fc6fce695486bb2c7194393f4fc2a6416f2a069d4ef8994bcad096",
+      "oldSha256": "7b3d1dfa5deb6135c3888e684f89e44ae5a6766bd99dba262f5cbe008de27fb1"
+    },
+    {
+      "case": "recovery-stale-true",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-stale-true.json",
+      "newSha256": "fe29e61eaf184fe397063bcf4ea0d18418b1e2f3e17b8c205214486ba9e87708",
+      "oldSha256": "3f36c4c433b886416cf10bde724edafd2826e3aee9830f17c64e781a285055cc"
+    },
+    {
+      "case": "recovery-delayed-event-true",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-delayed-event-true.json",
+      "newSha256": "86ef0900dd099a42c532f29515b4573d7dc135750f3299a122b358e2d0ce34f7",
+      "oldSha256": "726568fce3c7dfc61648313d995aaa2bfea0f859940c37052d10eda66e6cbced"
+    },
+    {
+      "case": "recovery-no-event-true",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28-final/controls/recovery-no-event-true.json",
+      "newSha256": "ceabaf6add6909375220894cbacd51ada5c6a45a1ad1aeaaf673c828e7b9a5ff",
+      "oldSha256": "ae9c1334744dd7695a9e014083fd00e9e34b2b2271e820f79b7b96967de0fb48"
+    }
+  ]
+}

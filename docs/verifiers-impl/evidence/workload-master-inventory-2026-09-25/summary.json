@@ -1,0 +1,80 @@
+{
+  "attemptStatuses": {
+    "COMPLETE": 15529,
+    "INVALID_REPORT": 2,
+    "PARTIAL": 296,
+    "PROCESS_FAILURE": 458,
+    "TIMEOUT": 11
+  },
+  "baseline96Retained": 96,
+  "conflictingCandidateKeys": 251,
+  "criteria": {
+    "COMPENSATED_READ_EXPOSURE": {
+      "positive": 4571,
+      "unavailable": 585,
+      "zero": 11140
+    },
+    "DELETED_DEPENDENCY": {
+      "positive": 4105,
+      "unavailable": 471,
+      "zero": 11720
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "positive": 11149,
+      "unavailable": 767,
+      "zero": 4380
+    },
+    "LOST_COPIED_UPDATE": {
+      "positive": 24,
+      "unavailable": 990,
+      "zero": 15282
+    },
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "positive": 3,
+      "unavailable": 471,
+      "zero": 15822
+    }
+  },
+  "distinctScenarios": 16296,
+  "duplicateReferences": 43,
+  "errors": [],
+  "familiesWithPositive": {
+    "COMPENSATED_READ_EXPOSURE": 4,
+    "DELETED_DEPENDENCY": 9,
+    "FAILED_OPERATION_RESIDUAL": 23,
+    "LOST_COPIED_UPDATE": 3,
+    "UNRESOLVED_DELIVERED_EVENT": 3
+  },
+  "joint": {
+    "positive": 11061,
+    "unavailable": 869,
+    "zero": 4366
+  },
+  "largestThreeScenarioCount": 12462,
+  "noFaultScoreStates": {
+    "positive": 14,
+    "zero": 162
+  },
+  "references": 219,
+  "runtimeGroups": {
+    "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 7,
+    "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+    "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 3,
+    "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 83,
+    "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 10,
+    "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 3,
+    "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 65,
+    "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 4
+  },
+  "sagaFamilies": 87,
+  "schemaVersion": "thesis-workload-master-inventory.v1",
+  "scope": "Locally accessible recorded reference sets with matching candidate, observation and fitness keys; all workload IDs retained, no claim of full catalogue coverage or scientific sample trimming.",
+  "workloads": 176,
+  "workloadsWithPositive": {
+    "COMPENSATED_READ_EXPOSURE": 11,
+    "DELETED_DEPENDENCY": 22,
+    "FAILED_OPERATION_RESIDUAL": 56,
+    "LOST_COPIED_UPDATE": 4,
+    "UNRESOLVED_DELIVERED_EVENT": 3
+  }
+}

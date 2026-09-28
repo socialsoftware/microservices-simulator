@@ -1,0 +1,80 @@
+{
+  "scores": {
+    "5.0": 689,
+    "2.0": 1429,
+    "1.0": 747,
+    "0.0": 657,
+    "3.0": 554,
+    "4.0": 560,
+    "None": 548
+  },
+  "unknownByRecordedStatus": {
+    "PROCESS_FAILURE": 222,
+    "PARTIAL": 246,
+    "COMPLETE": 68,
+    "TIMEOUT": 11,
+    "INVALID_REPORT": 1
+  },
+  "processFailureReportTerminals": {
+    "COMPENSATION_FAILED": 222
+  },
+  "processFailureBlockers": {
+    "COMPENSATION_FAILED: pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorDomainException: Aggregate with aggregate id 12 does not exist.": 222
+  },
+  "partialReasons": {
+    "COMPETING_LIFECYCLE_CHANGE": 246
+  },
+  "scoredConformance": {
+    "EXACT": 2971,
+    "DEVIATED": 1665
+  },
+  "repeats": [
+    {
+      "key": "0003df5dcff05dacb19c24c1d124513c686db036c005521fc6b84cfa56810d3f",
+      "score": 5.0,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    },
+    {
+      "key": "2a4659d5fc450be761c55546155fc60f01bd4e9dbb80f9d61333eb5aeaa59a7b",
+      "score": null,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    },
+    {
+      "key": "564fe4c38316edc83bf5d93ee12be41b06581b3d22c97ecc8f5b3ddf3bf4906a",
+      "score": null,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    },
+    {
+      "key": "7fccdfbe6238410970749cbed167e900d0a034082df6bd71e8980137b0a496c2",
+      "score": 0.0,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    },
+    {
+      "key": "ac88ccced589a965f947a8030327c7965cfb3e1a18a2842f1d4a09ee561d7b5b",
+      "score": 1.0,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    },
+    {
+      "key": "d53a6e400ba6b9fec4d57862eb26961620ce841bf49de7374cf2d82ccebdb3ba",
+      "score": 1.0,
+      "sameFitnessAndCoverage": true,
+      "sameStatus": true,
+      "sameConformance": true
+    }
+  ],
+  "sourceHashes": {
+    "verifiers/target/full-map-5184-2026-09-17/map/reference.json": "86d5a93dd12df85d7fa2d8ab5db95aa26d3bdf74f4b83ce722aeeee02c0c154b",
+    "verifiers/target/full-map-5184-2026-09-17/evaluation-intent.json": "81f94eeefc3e6bdc77f208f01083f67d6463c107ac10abc2ef925e2b3774bde0",
+    "verifiers/target/full-map-5184-repeats-2026-09-18/reference.json": "91b9f31e046c9e9f8ac75e5d23b9e904c8d6abae7a3e6b2d0295ae58f311e9e4"
+  }
+}

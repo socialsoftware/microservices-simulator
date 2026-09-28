@@ -1,0 +1,537 @@
+{
+  "schemaVersion": "workload-unlock-qualification.v1",
+  "runtimeDescriptor": "verifiers/target/full-map-5184-2026-09-17/config.json",
+  "sourceHashesUnchanged": true,
+  "attemptCount": 10,
+  "allExactAndFiveCriteriaComplete": true,
+  "eventGeneration": {
+    "counts": {
+      "inputVariantsSeen": 1,
+      "inputVariantsAccepted": 1,
+      "inputVariantsDeduplicated": 0,
+      "inputVariantsExcludedByPolicy": 0,
+      "inputVariantsRejectedBySourceMode": 0,
+      "inputVariantsCapped": 0,
+      "inputSagasWithInputs": 1,
+      "footprintPairsSeen": 14071,
+      "conflictEdgesEmitted": 1168,
+      "conflictEdgesIgnoredReadRead": 333,
+      "conflictEdgesRejected": 12547,
+      "typeOnlyFallbackEdges": 0,
+      "symbolicFallbackEdges": 1168,
+      "unknownFallbackEdges": 0,
+      "workloadPlansEmitted": 1,
+      "singleWorkloadsEmitted": 1,
+      "eventConsequenceDefinitionsSeen": 18,
+      "eventConsequenceWorkloadsEmitted": 15,
+      "eventConsequencePlacementsEmitted": 15,
+      "eventConsequenceCombinedWorkloadsEmitted": 12,
+      "workloadsEmitted": 16,
+      "workloadsCapped": 0,
+      "eventConsequenceExpansionCapEncounters": 0,
+      "eventConsequenceBaseWorkloadsOmittedAtCap": 0,
+      "workloadPlansDeduplicated": 0,
+      "multiWorkloadsEmitted": 0,
+      "connectedSagaSetsSeen": 0,
+      "connectedSagaSetsEmitted": 0,
+      "connectedSagaSetsPruned": 0,
+      "inputTuplesSeen": 0,
+      "inputTuplesEmitted": 0,
+      "inputTuplesDeduplicated": 0,
+      "schedulesSeen": 0,
+      "schedulesEmitted": 0,
+      "schedulesCapped": 0
+    },
+    "inputs": [
+      "fdcbce1a30eac8c4e70981013544081994e4c055ebf4e48c5226ef6b343c9c8e"
+    ],
+    "warnings": [
+      "symbolic aggregate candidate used for aggregate ?/QuizAnswer",
+      "symbolic aggregate candidate used for aggregate ?/Question",
+      "symbolic aggregate candidate used for aggregate ?/Quiz",
+      "symbolic aggregate candidate used for aggregate ?/User",
+      "symbolic aggregate candidate used for aggregate ?/Execution",
+      "symbolic aggregate candidate used for aggregate ?/Course",
+      "symbolic aggregate candidate used for aggregate ?/Topic",
+      "symbolic aggregate candidate used for aggregate ?/Tournament"
+    ],
+    "configuration": {
+      "exportEnabled": true,
+      "generationStrategy": "INTERACTION_PRUNED",
+      "catalogWriteMode": "WRITE_WORKLOADS",
+      "includeSingles": true,
+      "maxSagaSetSize": 1,
+      "maxCatalogScenarios": 1000,
+      "maxInputVariantsPerSaga": 1000,
+      "maxSchedulesPerInputTuple": 20,
+      "allowTypeOnlyFallback": false,
+      "inputPolicy": "RESOLVED_OR_REPLAYABLE",
+      "scheduleStrategy": "SERIAL",
+      "deterministicSeed": 1234,
+      "maxGroupedSagaSetRows": 100000,
+      "maxEventConsequencesPerWorkload": 3
+    }
+  },
+  "attempts": [
+    {
+      "label": "join-update-query",
+      "workloadId": "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "faultVector": "00000000",
+      "scenarioId": "e08db7355ec1017b9aabe51fd92f1d14f35217a48196776537e98c9d34ad4527",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "2d81afbcf7266c3e64ec1dcf4af2d96128a5b476c47413dd93092122035395bb",
+        "execution-report.impact-v2.json": "e423d78aaf27f8f0195d80bec9422e550f7a5d9fc14a4eb20b711e74f1c2aedb",
+        "execution-report.impact.json": "292446731d46fcf3fd297e1b8fe1c80b578ae02c5c2f4d069c2bb3a6bd6e9665",
+        "execution-report.json": "c8aa7de2474f00b4b6f9b32636cc0240274a956848b9e3ebf25fbb683b20d240",
+        "execution-report.saga-read-exposure.json": "ee6dd6c6d3838d8c3d763aa30ce29ea4e822d2c561e0be2fa55f9a0728045f52",
+        "replay.json": "ec6c4e3c603eacc3a639e92f624f7b0cd625c846904a40d0984ab1e9e37cfb28"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/join-update-query/control.json"
+    },
+    {
+      "label": "join-update-query",
+      "workloadId": "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "faultVector": "00000001",
+      "scenarioId": "8acd814cef4428526bf9dca5db8b547c21c4d20a4470fe5962dd3d9884f7dacd",
+      "terminalStatus": "PARTIAL_COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 2.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 1,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 1
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 1,
+          "coverage": "COMPLETE",
+          "observedCount": 1
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "3ad005d7159d05f2c8175eb4e22ec15e252d08c6ff916085c43c084094c6cc91",
+        "execution-report.impact-v2.json": "10bcd5d28df164934f06def3d73bd8ad56194a92a106a49db8fee7fbce89ed99",
+        "execution-report.impact.json": "798fc4415947f998aca8e10463f30b9ff5fc4609e4faad9a705bf2dfdfd7624d",
+        "execution-report.json": "5edd55f431b40c449b313c4814016b3fe44b3dca2fdc9184ae5c08fc848b3e96",
+        "execution-report.saga-read-exposure.json": "daf187295ea1b4102a4f0fd0d7911cc4a421b95cd07bbb299be5a228e77b2952",
+        "replay.json": "4426a26c0065473605ed2a5a0bffd6489717d12f9255e7f153f6c30724d6cdee"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/join-update-query/fault-witness.json"
+    },
+    {
+      "label": "remove-course-answer-quiz",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultVector": "000",
+      "scenarioId": "b16c51234c68da3c6e26de05d0b8ee8ae03a2ea0f718309e0c1da33002832097",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "aff5ad5947d1e62076133aba89cb071c68e4f0ddae0b97c0e5a17afb3816651a",
+        "execution-report.impact-v2.json": "7c7dab7d3da4a5ead74cce87ae34ab3cd5ac4c0eda20e86566fbf961d2cadd4d",
+        "execution-report.impact.json": "256db4682308c9500f0107d362295b791622be45e0a61b8342d2f27053d5dd41",
+        "execution-report.json": "7c1af09b5a4e0f8be41956672246d418107971419d0281edbb30fc16d6bd56a8",
+        "execution-report.saga-read-exposure.json": "989cb60158ac109e96898946e822fefb347c81eb30d60ea2b99eaef8f09d0276",
+        "replay.json": "6161ab453b0608ec707038cc596eece57da02c236a2f05d553208a01218f064b"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-answer-quiz/result-001.json"
+    },
+    {
+      "label": "remove-course-answer-quiz",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultVector": "100",
+      "scenarioId": "848be3b3e772be65194db808d210efe7b41c3c00816b4593981af85aa5bd01c0",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "fda0fcbee7f56f732c67b2e7bf3d4e9847ed6bddcadd4d10062f431eb5748955",
+        "execution-report.impact-v2.json": "739cce1ec958f6f4de659b2ecde4b480a48c656d663133e6671388410f92ba9b",
+        "execution-report.impact.json": "4ce4d895d21e193e70b5f10f1ddd15c2cbdd0f4e4ac780539132edc9b8f8fc57",
+        "execution-report.json": "bdd40b1af4eed932865478c6201cca612baa36f8dde2d534b124bf564c827a6b",
+        "execution-report.saga-read-exposure.json": "7c30e3154dc1e76dc5f7a48d1239aea545d2c957cf746e98c1305894b5d553ea",
+        "replay.json": "3f6a88a86df84823e34c44e7577c01ab8bf07c0498fe15b77a012779d4f4288a"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-answer-quiz/result-002.json"
+    },
+    {
+      "label": "remove-course-answer-quiz",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultVector": "010",
+      "scenarioId": "cf23fecc9a1c77f3021a187120f57a7f912472776ad55208e28037195be26fed",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "d294c99f4318c36d0c885d91aaa99d49651ed1e24a5ea63e7cd5c3c0386cef41",
+        "execution-report.impact-v2.json": "97607e12cfa82f8d476b0a6eff21aeefedf1f9498f307479d65d9b442d8f3566",
+        "execution-report.impact.json": "00a0e90a61b880dea41ac468931a0aaccfef10a115c13abe42e11dc54c95cf89",
+        "execution-report.json": "29b57a68a03907aaf5a29f948f60012cb85d7079eeed1a60016f06a0eebfe0c9",
+        "execution-report.saga-read-exposure.json": "9e05c16edb8e7dc46ea350da5917e7208f549c0e385190c941684c885b07357b",
+        "replay.json": "b9bbe9627164cd17061b7c885671fe7a561fb36b802036e396886f3b28486cd3"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-answer-quiz/result-003.json"
+    },
+    {
+      "label": "remove-course-answer-quiz",
+      "workloadId": "46ba0843baee94204e06eaa800135fd6ea58d3066028bb1860ae598fc2037476",
+      "faultVector": "001",
+      "scenarioId": "ade6fcc5b4fdffdcf5c2a111c07e91b7b2dfc1e93b18982d84ec214dd72cc4ec",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 1.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 1,
+          "coverage": "COMPLETE",
+          "observedCount": 1
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "4a7f6ccd2a3031ca4644fd4e5977602f028175dab08cb968ae30edc0798da79f",
+        "execution-report.impact-v2.json": "63cf31c82aa8ce2685b4828b55eb296398745fc261c5d32cc58800c70cdf6acf",
+        "execution-report.impact.json": "79c0d412f40191dce221c0da1a437ac9d48f9cd82c619b0cfde1cfa28500ce67",
+        "execution-report.json": "ce95d521a5dce5b57754f2b0472dad4244e8afe4465096d4fbaab72ef9f10e13",
+        "execution-report.saga-read-exposure.json": "1a0985b15cb552ca43e150c8eb2aa8558465288421e92065951f0a13ec5e028d",
+        "replay.json": "8299b611cf0e048291ba217fccb649ee48074d4acd9a32d23f93d5cd94fe8cbf"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-answer-quiz/result-004.json"
+    },
+    {
+      "label": "remove-course-quiz-answer",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultVector": "000",
+      "scenarioId": "99ed9137375a616330cadf74d30277fe90c6e69e7985724b27dcca46a6dbe3c0",
+      "terminalStatus": "SUCCESS",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "50a0758359e0b1a3711dbd559d79514bcea280e1b67ec5bd16daa3ee422d96e6",
+        "execution-report.impact-v2.json": "71d7bc2b2ab5510aa820428bd1a46fa283b580dfb004222192230526f7b983c6",
+        "execution-report.impact.json": "25a00cb2bb58d561e026798d41af614b7c6d017791b39f146fb04df294c11598",
+        "execution-report.json": "d9a41650559cce35ec85a010661277096a54ea9a3caabe14050c312871775315",
+        "execution-report.saga-read-exposure.json": "eb7f60e4b66ed073262168dc8ea6f098f84ad5079dace2b9be2a7cd8e63b19b6",
+        "replay.json": "f418be8bdafc497619ef4d9bede87b9bea344824da3241b6d2713afda1eb038e"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-quiz-answer/result-001.json"
+    },
+    {
+      "label": "remove-course-quiz-answer",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultVector": "100",
+      "scenarioId": "e62ae4754da9f6a1483b4cf45465899f3a7cc33242dc95869167f1084346158e",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "ad5ae94fbf1192171eae600fea0c795e4ca7c0e70f81e02fa5f96a18f20438fe",
+        "execution-report.impact-v2.json": "f1aad05a2d0e6755c235aa421fe1745202972e7f89d935398f38ab776c559c35",
+        "execution-report.impact.json": "bbfc4b394632080647523a41a1b3208f5e8c279dc6ab0fee30db3666c8d9de85",
+        "execution-report.json": "fc4069c7aaf6d4cc9585ec413998954e9d324aca366401c8fe196bf71b99aafd",
+        "execution-report.saga-read-exposure.json": "f1dc37ac21be7accbe6bbbbdf5c18a88f2f00bb0464beb49e58e5826e31e968f",
+        "replay.json": "60285c2299e33aa1f21880e43d63cb9856d3a58dd256f53dab6e3839e6a01f95"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-quiz-answer/result-002.json"
+    },
+    {
+      "label": "remove-course-quiz-answer",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultVector": "010",
+      "scenarioId": "98f87f6b826de515daf8809eef2398467a4767f51fcc29225a83e9a409be498a",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 0.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "856332200c243d24cb5438b4b8e4b42a18c19cc811666a893e0ef7853fed536b",
+        "execution-report.impact-v2.json": "bb3f15a3679268ff63fad246f56312a3ae6beb05725070153cf707e113c58302",
+        "execution-report.impact.json": "350aa305e96f245fc95a0a0c76765add5d21cf8b2d85ba4eedc37efab42cbb31",
+        "execution-report.json": "4d6b85a26c6d6f2f26fb0ee55856579a025d0319af314a98bb0d14666c3cc953",
+        "execution-report.saga-read-exposure.json": "7bb9fefa057ca8d02ea2b308ee1a33232d9ebdefe62f3aec235e4a0a2e1c47cf",
+        "replay.json": "82bb859d21188de9c0dc66e555a6723b56cc488ac57f76ad263cb02d736806b5"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-quiz-answer/result-003.json"
+    },
+    {
+      "label": "remove-course-quiz-answer",
+      "workloadId": "ebb4407fe6560f3ce72ff2ccb8467675a4e32069cdb6638f96cf19cc211514ee",
+      "faultVector": "001",
+      "scenarioId": "35e0d928ebc4d4c188c98169955df4aca42c1fca0575df0f50f244b4eb17e2dd",
+      "terminalStatus": "COMPENSATED",
+      "scheduleConformance": "EXACT",
+      "fitnessScore": 1.0,
+      "fitnessComponents": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "count": 1,
+          "coverage": "COMPLETE",
+          "observedCount": 1
+        },
+        "LOST_COPIED_UPDATE": {
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE",
+          "observedCount": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "count": 0,
+          "coverage": "COMPLETE",
+          "observedCount": 0
+        }
+      },
+      "fitnessUnavailableReasons": [],
+      "reportHashes": {
+        "execution-report-lost-copied-updates.json": "0033ac8956fb61ba822ff42c4c82b036fee35dac68a5ec271d7eefe4265296f1",
+        "execution-report.impact-v2.json": "717503dd29bd2a293a2a2d06193887389033ca7f6e380ee42179979365495691",
+        "execution-report.impact.json": "d2dc1f1fd4145b329167a2ae16b87a63efa3f03dce1982ad1829adef971c3b4e",
+        "execution-report.json": "0ddd85f1e41b042382b886be0ca21432be81f1f875095d24650bdccb4328308a",
+        "execution-report.saga-read-exposure.json": "43f1e15ed6d9f176e505ab37e71493ac760d68d6c2843e6405dd2e45722dba00",
+        "replay.json": "8683c18c4cab3261d52cfb11b5c1e778269060879e0db31629dd5e118f33205b"
+      },
+      "rawResult": "verifiers/target/workload-unlock-2026-09-18/remove-course-quiz-answer/result-004.json"
+    }
+  ]
+}

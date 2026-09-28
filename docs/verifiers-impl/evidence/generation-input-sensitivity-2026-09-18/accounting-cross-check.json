@@ -1,0 +1,6 @@
+{
+  "passed" : true,
+  "inputCap" : 10,
+  "comparisons" : 3996,
+  "scheduleCap" : 5000
+}

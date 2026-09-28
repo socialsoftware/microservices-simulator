@@ -1,0 +1,62 @@
+[
+  {
+    "label": "GetCourseExecutionById-FindTournament",
+    "tupleIndex": 0,
+    "inputIds": [
+      "2113453558f5ab7d764eaa783ce46291ae1996374e4a1a54dc1b6d070a572c82",
+      "3d0c5acdc584e713f3ae28a30024c6d630d6c442ad8ca7670a8596c5b5767671"
+    ],
+    "source": [
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet",
+        "callContext": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet"
+      },
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AddParticipantAndUpdateStudentNameTest",
+        "method": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet",
+        "callContext": "sequential - add creator: update; add: fails because when creator is added tournament have not process the event yet"
+      }
+    ]
+  },
+  {
+    "label": "GetCourseExecutionById-UpdateTournament",
+    "tupleIndex": 0,
+    "inputIds": [
+      "2b7161b0ba2270fe9142179cf06137e3e8737ff745711d0fa61080d20e0f8111",
+      "83cf8a8a847e2d8c2455a666aaf743b3b066c82e3d6a78697d697fa816dbf953"
+    ],
+    "source": [
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations",
+        "callContext": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations"
+      },
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations",
+        "callContext": "concurrent: update - updateTournamentStep; anonymize creator; update - resume fails: event: creator still anonymized despite compensations"
+      }
+    ]
+  },
+  {
+    "label": "UpdateTournament-FindTournament",
+    "tupleIndex": 0,
+    "inputIds": [
+      "055c27095c6dc94ea67b6a8a7095da0fffd91f780ed4c5bc94aa4ed7193ffb67",
+      "f92412db546ac08967a357bac506ff0805d52c186220bd94291c9a2854e9df27"
+    ],
+    "source": [
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event",
+        "callContext": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event"
+      },
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event",
+        "callContext": "concurrent: update - updateTournamentStep; anonymize creator; update - resume; event"
+      }
+    ]
+  }
+]

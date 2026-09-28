@@ -1,0 +1,894 @@
+{
+  "status": "COMPLETE",
+  "purpose": "One-seed recorded comparison on historical measurement versions",
+  "budget": 8000,
+  "seed": 1,
+  "workloads": 155,
+  "recordedCandidates": 16195,
+  "matchedColdStarts": true,
+  "matchedLocalGaPrefixes": true,
+  "results": {
+    "uniform": {
+      "attempts": 8000,
+      "positiveScenarios": 4656,
+      "negativeScenarios": 2555,
+      "unavailableJointScore": 789,
+      "cumulativeScore": 10207.0,
+      "visitedWorkloads": 155,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 6109,
+          "unavailable": 141,
+          "positive": 1750
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 2915,
+          "positive": 4851,
+          "unavailable": 234
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7856,
+          "unavailable": 141,
+          "positive": 3
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 6149,
+          "unavailable": 178,
+          "positive": 1673
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7316,
+          "unavailable": 660,
+          "positive": 24
+        }
+      },
+      "unknownAttemptStatuses": {
+        "PROCESS_FAILURE": 132,
+        "COMPLETE": 555,
+        "PARTIAL": 93,
+        "INVALID_REPORT": 1,
+        "TIMEOUT": 8
+      },
+      "allocationsByRecordedRuntime": {
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 4386,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 233,
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 3043,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 16,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 4,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 300,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 9,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 9
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 1482
+        },
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 1431
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 1354
+        },
+        {
+          "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+          "family": "CreateQuestion + CreateTournamentAsync",
+          "allocations": 222
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 186
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 20,
+          "cumulativeScore": 25.0,
+          "unknowns": 11
+        },
+        {
+          "attempt": 256,
+          "positives": 43,
+          "cumulativeScore": 54.0,
+          "unknowns": 18
+        },
+        {
+          "attempt": 512,
+          "positives": 77,
+          "cumulativeScore": 106.0,
+          "unknowns": 45
+        },
+        {
+          "attempt": 1024,
+          "positives": 170,
+          "cumulativeScore": 237.0,
+          "unknowns": 103
+        },
+        {
+          "attempt": 2048,
+          "positives": 459,
+          "cumulativeScore": 637.0,
+          "unknowns": 226
+        },
+        {
+          "attempt": 4096,
+          "positives": 1485,
+          "cumulativeScore": 2358.0,
+          "unknowns": 497
+        },
+        {
+          "attempt": 8000,
+          "positives": 4656,
+          "cumulativeScore": 10207.0,
+          "unknowns": 789
+        }
+      ],
+      "traceSha256": "ffa2a979548084ce6e60eb84e9f1359928f842f89203a3660156933d45e7b128",
+      "wallSeconds": 11.365285041974857
+    },
+    "P-shared": {
+      "attempts": 8000,
+      "positiveScenarios": 5920,
+      "negativeScenarios": 1456,
+      "unavailableJointScore": 624,
+      "cumulativeScore": 12528.0,
+      "visitedWorkloads": 155,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 5837,
+          "unavailable": 230,
+          "positive": 1933
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1671,
+          "positive": 6079,
+          "unavailable": 250
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7769,
+          "positive": 1,
+          "unavailable": 230
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 5796,
+          "unavailable": 264,
+          "positive": 1940
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7428,
+          "unavailable": 570,
+          "positive": 2
+        }
+      },
+      "unknownAttemptStatuses": {
+        "COMPLETE": 374,
+        "PROCESS_FAILURE": 229,
+        "PARTIAL": 20,
+        "INVALID_REPORT": 1
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 669,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 11,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 7298,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 9,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 3,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 6,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 3
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3132
+        },
+        {
+          "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+          "family": "CreateQuestion + CreateTournamentAsync",
+          "allocations": 222
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 186
+        },
+        {
+          "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+          "family": "AddParticipant + FindTournament + UpdateTournament",
+          "allocations": 160
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 82,
+          "cumulativeScore": 273.0,
+          "unknowns": 12
+        },
+        {
+          "attempt": 256,
+          "positives": 193,
+          "cumulativeScore": 655.0,
+          "unknowns": 22
+        },
+        {
+          "attempt": 512,
+          "positives": 424,
+          "cumulativeScore": 1450.0,
+          "unknowns": 34
+        },
+        {
+          "attempt": 1024,
+          "positives": 867,
+          "cumulativeScore": 2924.0,
+          "unknowns": 69
+        },
+        {
+          "attempt": 2048,
+          "positives": 1692,
+          "cumulativeScore": 5465.0,
+          "unknowns": 139
+        },
+        {
+          "attempt": 4096,
+          "positives": 3216,
+          "cumulativeScore": 9545.0,
+          "unknowns": 314
+        },
+        {
+          "attempt": 8000,
+          "positives": 5920,
+          "cumulativeScore": 12528.0,
+          "unknowns": 624
+        }
+      ],
+      "traceSha256": "58bf9e06ed27d9b44a0776584c209f1c3f929090788ad64fabaef178d27e57b1",
+      "wallSeconds": 20.161840749904513
+    },
+    "S-cal": {
+      "attempts": 8000,
+      "positiveScenarios": 6351,
+      "negativeScenarios": 1323,
+      "unavailableJointScore": 326,
+      "cumulativeScore": 13769.0,
+      "visitedWorkloads": 31,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 5559,
+          "positive": 2194,
+          "unavailable": 247
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1328,
+          "positive": 6390,
+          "unavailable": 282
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7753,
+          "unavailable": 247
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 5528,
+          "unavailable": 286,
+          "positive": 2186
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7748,
+          "unavailable": 252
+        }
+      },
+      "unknownAttemptStatuses": {
+        "COMPLETE": 44,
+        "INVALID_REPORT": 1,
+        "PROCESS_FAILURE": 243,
+        "PARTIAL": 35,
+        "TIMEOUT": 3
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 693,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 2,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 7302,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 2
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3360
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 483
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 186
+        },
+        {
+          "workload": "d5f03e4faa91ae3e09350b6b331df61688b6568dfd417e1c2a85d99628d1e2ce",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament",
+          "allocations": 7
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 64,
+          "cumulativeScore": 97.0,
+          "unknowns": 8
+        },
+        {
+          "attempt": 256,
+          "positives": 133,
+          "cumulativeScore": 192.0,
+          "unknowns": 10
+        },
+        {
+          "attempt": 512,
+          "positives": 346,
+          "cumulativeScore": 441.0,
+          "unknowns": 11
+        },
+        {
+          "attempt": 1024,
+          "positives": 766,
+          "cumulativeScore": 903.0,
+          "unknowns": 14
+        },
+        {
+          "attempt": 2048,
+          "positives": 1588,
+          "cumulativeScore": 1774.0,
+          "unknowns": 23
+        },
+        {
+          "attempt": 4096,
+          "positives": 3183,
+          "cumulativeScore": 4534.0,
+          "unknowns": 68
+        },
+        {
+          "attempt": 8000,
+          "positives": 6351,
+          "cumulativeScore": 13769.0,
+          "unknowns": 326
+        }
+      ],
+      "traceSha256": "59e27cc09adc15e868c6acaccdd0807e9c080d0e1c77489a7ae37fcae3d2c107",
+      "wallSeconds": 867.247936999891
+    },
+    "SP-cal": {
+      "attempts": 8000,
+      "positiveScenarios": 5966,
+      "negativeScenarios": 1429,
+      "unavailableJointScore": 605,
+      "cumulativeScore": 12553.0,
+      "visitedWorkloads": 155,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 5832,
+          "positive": 1937,
+          "unavailable": 231
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1625,
+          "positive": 6125,
+          "unavailable": 250
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7768,
+          "unavailable": 231,
+          "positive": 1
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 5821,
+          "unavailable": 265,
+          "positive": 1914
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7447,
+          "unavailable": 552,
+          "positive": 1
+        }
+      },
+      "unknownAttemptStatuses": {
+        "PROCESS_FAILURE": 230,
+        "COMPLETE": 355,
+        "INVALID_REPORT": 1,
+        "PARTIAL": 19
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 600,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 11,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 7369,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 3,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 7,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 3,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 6
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3360
+        },
+        {
+          "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+          "family": "CreateQuestion + CreateTournamentAsync",
+          "allocations": 222
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 186
+        },
+        {
+          "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+          "family": "CreateCourseExecution + CreateQuiz",
+          "allocations": 52
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 107,
+          "cumulativeScore": 372.0,
+          "unknowns": 11
+        },
+        {
+          "attempt": 256,
+          "positives": 219,
+          "cumulativeScore": 756.0,
+          "unknowns": 18
+        },
+        {
+          "attempt": 512,
+          "positives": 449,
+          "cumulativeScore": 1555.0,
+          "unknowns": 30
+        },
+        {
+          "attempt": 1024,
+          "positives": 888,
+          "cumulativeScore": 2995.0,
+          "unknowns": 68
+        },
+        {
+          "attempt": 2048,
+          "positives": 1714,
+          "cumulativeScore": 5529.0,
+          "unknowns": 135
+        },
+        {
+          "attempt": 4096,
+          "positives": 3222,
+          "cumulativeScore": 9558.0,
+          "unknowns": 295
+        },
+        {
+          "attempt": 8000,
+          "positives": 5966,
+          "cumulativeScore": 12553.0,
+          "unknowns": 605
+        }
+      ],
+      "traceSha256": "f05dc4ee76cdb33e96b014fa4022f23bb71a86ca78ac986457587ba1604ceac1",
+      "wallSeconds": 178.94950149999931
+    },
+    "P-local": {
+      "attempts": 8000,
+      "positiveScenarios": 6109,
+      "negativeScenarios": 1212,
+      "unavailableJointScore": 679,
+      "cumulativeScore": 17710.0,
+      "visitedWorkloads": 149,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 4276,
+          "positive": 3363,
+          "unavailable": 361
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1280,
+          "positive": 6196,
+          "unavailable": 524
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7638,
+          "positive": 1,
+          "unavailable": 361
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 3804,
+          "unavailable": 447,
+          "positive": 3749
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7560,
+          "unavailable": 439,
+          "positive": 1
+        }
+      },
+      "unknownAttemptStatuses": {
+        "COMPLETE": 155,
+        "PROCESS_FAILURE": 351,
+        "PARTIAL": 163,
+        "INVALID_REPORT": 2,
+        "TIMEOUT": 8
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 3821,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 24,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 4122,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 9,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 5,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 10,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 3,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 6
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3491
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 118
+        },
+        {
+          "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+          "family": "AddParticipant + FindTournament + UpdateTournament",
+          "allocations": 34
+        },
+        {
+          "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+          "family": "CreateCourseExecution + CreateQuestion",
+          "allocations": 20
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 64,
+          "cumulativeScore": 182.0,
+          "unknowns": 9
+        },
+        {
+          "attempt": 256,
+          "positives": 176,
+          "cumulativeScore": 567.0,
+          "unknowns": 17
+        },
+        {
+          "attempt": 512,
+          "positives": 406,
+          "cumulativeScore": 1360.0,
+          "unknowns": 30
+        },
+        {
+          "attempt": 1024,
+          "positives": 851,
+          "cumulativeScore": 2853.0,
+          "unknowns": 65
+        },
+        {
+          "attempt": 2048,
+          "positives": 1680,
+          "cumulativeScore": 5409.0,
+          "unknowns": 136
+        },
+        {
+          "attempt": 4096,
+          "positives": 3224,
+          "cumulativeScore": 9555.0,
+          "unknowns": 274
+        },
+        {
+          "attempt": 8000,
+          "positives": 6109,
+          "cumulativeScore": 17710.0,
+          "unknowns": 679
+        }
+      ],
+      "traceSha256": "fc90449f256dc8b497f5e7d6e504b0e5f84fc2d1e76dbce9f295d508117c6340",
+      "wallSeconds": 24.804662249982357
+    },
+    "H0": {
+      "attempts": 8000,
+      "positiveScenarios": 6116,
+      "negativeScenarios": 1193,
+      "unavailableJointScore": 691,
+      "cumulativeScore": 17807.0,
+      "visitedWorkloads": 155,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 4233,
+          "positive": 3401,
+          "unavailable": 366
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1262,
+          "positive": 6203,
+          "unavailable": 535
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7632,
+          "positive": 2,
+          "unavailable": 366
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 3784,
+          "unavailable": 454,
+          "positive": 3762
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7555,
+          "unavailable": 444,
+          "positive": 1
+        }
+      },
+      "unknownAttemptStatuses": {
+        "COMPLETE": 156,
+        "PROCESS_FAILURE": 356,
+        "PARTIAL": 169,
+        "INVALID_REPORT": 2,
+        "TIMEOUT": 8
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 3825,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 22,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 4115,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 9,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 8,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 12,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 3,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 6
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3595
+        },
+        {
+          "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+          "family": "AddParticipant + FindTournament + UpdateTournament",
+          "allocations": 30
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 23
+        },
+        {
+          "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+          "family": "CreateCourseExecution + CreateQuestion",
+          "allocations": 20
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 76,
+          "cumulativeScore": 228.0,
+          "unknowns": 9
+        },
+        {
+          "attempt": 256,
+          "positives": 188,
+          "cumulativeScore": 619.0,
+          "unknowns": 19
+        },
+        {
+          "attempt": 512,
+          "positives": 416,
+          "cumulativeScore": 1394.0,
+          "unknowns": 33
+        },
+        {
+          "attempt": 1024,
+          "positives": 862,
+          "cumulativeScore": 2891.0,
+          "unknowns": 68
+        },
+        {
+          "attempt": 2048,
+          "positives": 1689,
+          "cumulativeScore": 5434.0,
+          "unknowns": 137
+        },
+        {
+          "attempt": 4096,
+          "positives": 3223,
+          "cumulativeScore": 9554.0,
+          "unknowns": 281
+        },
+        {
+          "attempt": 8000,
+          "positives": 6116,
+          "cumulativeScore": 17807.0,
+          "unknowns": 691
+        }
+      ],
+      "traceSha256": "8d343966dc1ad22f7216f4653f17b60b5ef2f9e4f6c787c341204e2fe9592079",
+      "wallSeconds": 28.41910891700536
+    },
+    "H1-cal": {
+      "attempts": 8000,
+      "positiveScenarios": 6152,
+      "negativeScenarios": 1180,
+      "unavailableJointScore": 668,
+      "cumulativeScore": 17833.0,
+      "visitedWorkloads": 141,
+      "criteria": {
+        "DELETED_DEPENDENCY": {
+          "zero": 4250,
+          "positive": 3385,
+          "unavailable": 365
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "zero": 1235,
+          "positive": 6234,
+          "unavailable": 531
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "zero": 7633,
+          "unavailable": 365,
+          "positive": 2
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "zero": 3767,
+          "unavailable": 453,
+          "positive": 3780
+        },
+        "LOST_COPIED_UPDATE": {
+          "zero": 7576,
+          "unavailable": 423,
+          "positive": 1
+        }
+      },
+      "unknownAttemptStatuses": {
+        "PROCESS_FAILURE": 355,
+        "COMPLETE": 137,
+        "INVALID_REPORT": 2,
+        "PARTIAL": 166,
+        "TIMEOUT": 8
+      },
+      "allocationsByRecordedRuntime": {
+        "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 3858,
+        "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 4093,
+        "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 17,
+        "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 2,
+        "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 8,
+        "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 8,
+        "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 6,
+        "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 8
+      },
+      "topWorkloads": [
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3918
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "allocations": 3563
+        },
+        {
+          "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+          "family": "AddParticipant + LeaveTournament + UpdateTournament",
+          "allocations": 121
+        },
+        {
+          "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+          "family": "AddParticipant + FindTournament + UpdateTournament",
+          "allocations": 34
+        },
+        {
+          "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+          "family": "CreateTopic + RemoveCourseExecution",
+          "allocations": 15
+        }
+      ],
+      "checkpoints": [
+        {
+          "attempt": 128,
+          "positives": 99,
+          "cumulativeScore": 335.0,
+          "unknowns": 10
+        },
+        {
+          "attempt": 256,
+          "positives": 210,
+          "cumulativeScore": 721.0,
+          "unknowns": 18
+        },
+        {
+          "attempt": 512,
+          "positives": 441,
+          "cumulativeScore": 1516.0,
+          "unknowns": 30
+        },
+        {
+          "attempt": 1024,
+          "positives": 882,
+          "cumulativeScore": 2972.0,
+          "unknowns": 67
+        },
+        {
+          "attempt": 2048,
+          "positives": 1709,
+          "cumulativeScore": 5518.0,
+          "unknowns": 135
+        },
+        {
+          "attempt": 4096,
+          "positives": 3221,
+          "cumulativeScore": 9552.0,
+          "unknowns": 301
+        },
+        {
+          "attempt": 8000,
+          "positives": 6152,
+          "cumulativeScore": 17833.0,
+          "unknowns": 668
+        }
+      ],
+      "traceSha256": "79d919fde91bf2b85e320990b223e58f600456c7805d1b8d3f4666c0ad11423e",
+      "wallSeconds": 267.6851180831436
+    }
+  },
+  "limitations": [
+    "One seed; large runs with individual criterion objectives and more seeds remain pending.",
+    "Three recorded measurement class groups; common-runtime confirmation remains pending.",
+    "Two recorded domains lack rechecked full enumeration; three earlier creation maps use prior verified batch provenance.",
+    "Cold hybrid index values differ by one floating-point unit across some workloads; initial tie sensitivity remains a diagnostic, not a calibrated all-model comparison.",
+    "Wall-clock implementation costs mix the original and equivalent sparse finite kernel; do not interpret these times as comparative algorithm performance."
+  ],
+  "evidence": {
+    "preparation": "preparation-qualification-2026-09-26.json",
+    "measurementClasses": "measurement-class-provenance-2026-09-26.json",
+    "runs": "verifiers/target/allocator-expanded-replay-full-2026-09-26",
+    "kernelEquivalence": "verifiers/target/allocator-expanded-replay-full-2026-09-26/kernel-equivalence.json",
+    "initialUncertainty": "verifiers/target/allocator-expanded-replay-full-2026-09-26/initial-uncertainty-audit.json"
+  }
+}

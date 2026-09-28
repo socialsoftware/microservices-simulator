@@ -1,0 +1,9 @@
+{
+  "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/config.json",
+  "sha256": "0a3fb0251458b6a0047f93c50d250c99ffe583a16a88c5eacdca1594fe1c1df6",
+  "overlayReceiptHash": "e4ff57ec036d8da2f434da9628321e7c406139c667869c946b5d6a8ac1a525c7",
+  "docker": {
+    "status": "UNAVAILABLE_WITHIN_10S"
+  },
+  "execution": "native-java21 functional comparison, not Docker parity/performance"
+}

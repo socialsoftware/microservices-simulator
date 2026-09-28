@@ -1,0 +1,40 @@
+{
+  "paused": {
+    "errors": [],
+    "inFlight": 0,
+    "measured": 2,
+    "sessionMeasured": 2,
+    "sessionWallSeconds": 53.45013783406466,
+    "stage": "PAUSED",
+    "total": 3,
+    "updatedAt": 1789607110.1631129,
+    "workers": 2
+  },
+  "resumed": {
+    "errors": [],
+    "inFlight": 0,
+    "measured": 3,
+    "sessionMeasured": 1,
+    "sessionWallSeconds": 35.22678766702302,
+    "stage": "COMPLETE",
+    "total": 3,
+    "updatedAt": 1789607146.192302,
+    "workers": 4
+  },
+  "finishedReceiptsUnchanged": true,
+  "command": [
+    "/opt/homebrew/opt/python@3.14/bin/python3.14",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py",
+    "run",
+    "--config",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/catalogue-live-2026-09-16/ga-config.json",
+    "--enumeration",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/catalogue-live-2026-09-16/catalogue",
+    "--control",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/ga-confirmation-2026-09-16/control/control.json",
+    "--output",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/final-name-proof",
+    "--keys",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/pause-keys.json"
+  ]
+}

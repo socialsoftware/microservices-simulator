@@ -1,0 +1,36 @@
+{
+  "sourceHashesUnchangedAfterGeneration": true,
+  "checkedAt": 1789692083.550796,
+  "generatorHash": "ba76a47598b3ff6a0ffb9ab05f62d251f11c8390d4760042273e03e2a3aa8241",
+  "files": {
+    "full/fault-scenarios.jsonl": "1e47568a26652a2d7a649e96a88e2a0267e7bdbdf63040e73690ccaf7e2fb8f8",
+    "full/copy-contracts.json": "2cb65135dc05c504ef89daac8ff858ad93a6c94c9650b010f2de16cd8dbeca88",
+    "full/scenario-catalog-manifest.json": "266af5ffc6401f051e55f1e7a94d0db591ae762d62e32776a04fd0678d24ec93",
+    "full/workloads.jsonl": "1a1419a07d7fd3b6c69a1f838eff03b800454c213ac7e71093fe813c130f4a30",
+    "full/requests.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "full/accounting.json": "f2e9c5dbd9a44d79962551bfdfc56c5b9c566046b221b646b71f436c439d9c07",
+    "full/setups.jsonl": "c66e9588f1c2cd55a9ec238a81ebe0af23514a1b1e4c144ad576ee4ed91de4f0",
+    "full/inputs.jsonl": "fdd77db8faae662dbe74fabbcbde42d95388a16bd7c311c67278e679db660123",
+    "full/sagas.jsonl": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "full/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "compressed/fault-scenarios.jsonl": "f28b466dd6df313ba49d7787f687212d5af07b7a76e32ae2b01c38ea500ef077",
+    "compressed/copy-contracts.json": "2cb65135dc05c504ef89daac8ff858ad93a6c94c9650b010f2de16cd8dbeca88",
+    "compressed/scenario-catalog-manifest.json": "9b0f623a7a1a7812e210461b3fa1149ea8c35894aaac4f303c052dd16af78745",
+    "compressed/workloads.jsonl": "18d99cc4dba47f6c5049443aa5392c019ec2ebd30f6f64ed347c13e294c46152",
+    "compressed/requests.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "compressed/accounting.json": "120e5f4e9b2ad903fa4a996e5d5e3c5d73108da29c41f34df60e5dd5a8e48f76",
+    "compressed/setups.jsonl": "c66e9588f1c2cd55a9ec238a81ebe0af23514a1b1e4c144ad576ee4ed91de4f0",
+    "compressed/inputs.jsonl": "fdd77db8faae662dbe74fabbcbde42d95388a16bd7c311c67278e679db660123",
+    "compressed/sagas.jsonl": "03c8aca141b6cefc042aa2552d4dce74e533aeaa396b211fad26104b891dda98",
+    "compressed/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f"
+  },
+  "checks": [
+    "72 canonical workload/vector pairs; no recovery truncation",
+    "6 full orders and 3 compressed orders",
+    "98 full scenarios and 40 exact retained members",
+    "identical inputs, setups and copy contracts",
+    "named fault mapping independent of bit positions",
+    "state projection retains application values and object identity",
+    "historical positive report parsing retains both residual and compensated-read evidence (parser-only check)"
+  ]
+}

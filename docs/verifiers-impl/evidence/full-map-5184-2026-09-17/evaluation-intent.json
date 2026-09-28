@@ -1,0 +1,37 @@
+{
+  "fitness": {
+    "policy": "weighted-criteria-v2",
+    "weights": {
+      "COMPENSATED_READ_EXPOSURE": 1,
+      "DELETED_DEPENDENCY": 1,
+      "FAILED_OPERATION_RESIDUAL": 1,
+      "LOST_COPIED_UPDATE": 1,
+      "UNRESOLVED_DELIVERED_EVENT": 1
+    }
+  },
+  "fullCandidateCount": 5184,
+  "phase": "MEASURE_ALL_CANDIDATES",
+  "repeatKeys": [
+    "0003df5dcff05dacb19c24c1d124513c686db036c005521fc6b84cfa56810d3f",
+    "2a4659d5fc450be761c55546155fc60f01bd4e9dbb80f9d61333eb5aeaa59a7b",
+    "564fe4c38316edc83bf5d93ee12be41b06581b3d22c97ecc8f5b3ddf3bf4906a",
+    "7fccdfbe6238410970749cbed167e900d0a034082df6bd71e8980137b0a496c2",
+    "ac88ccced589a965f947a8030327c7965cfb3e1a18a2842f1d4a09ee561d7b5b",
+    "d53a6e400ba6b9fec4d57862eb26961620ce841bf49de7374cf2d82ccebdb3ba"
+  ],
+  "repetitions": "Separate post-map qualification; not automatically run by this launcher",
+  "subsequentComparison": {
+    "feedback": "Only revealed when a candidate is selected",
+    "metrics": [
+      "positive discovery curve",
+      "available weighted score accumulation",
+      "unknown count"
+    ],
+    "seedsAndReplay": "Separate recorded-feedback step; not automatically launched",
+    "strategies": [
+      "ga-uniform-unseen",
+      "uniform-random"
+    ]
+  },
+  "workers": 3
+}

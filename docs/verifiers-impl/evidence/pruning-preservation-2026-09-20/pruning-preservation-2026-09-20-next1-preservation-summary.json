@@ -1,0 +1,2246 @@
+[
+  {
+    "label": "GetCourseExecutionById-UpdateTournament",
+    "healthyControls": true,
+    "completeExactMeasurement": true,
+    "measured": 106,
+    "pairScenarios": 98,
+    "singleScenarios": 8,
+    "pairPositive": 36,
+    "singlePositive": 2,
+    "pairUnknown": 0,
+    "uniquePairFindings": 1,
+    "uniqueSingleFindings": 1,
+    "allInitialStatesMatch": true,
+    "allMatched": true,
+    "comparisons": [
+      {
+        "pairScenario": "0d65fe1675bc7911b3761fec3ca8402f17220b4c41b856092b500ae5c8c5129c",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "5536ac67699a7a65c0ce03a965eabb61cd02f5d9023b0ef9dca6b01afd9db293",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "90f726ab658ed68d392f5964c895b3d9e3a90e934c6e64a2e3f2cfacedcbce5b",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "96fa7ae18fbc074796feb90c4bc00006995d1e96edea403d606efe4df43deba4",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "a59a70c547e42e193c31c0c6bef13befb55051e8802e09be195a1511ce67c811",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "cfea53e5d4767c6f93e829ffe4cc90a9fd1e953552dc8c1df643007befcc2636",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": []
+      },
+      {
+        "pairScenario": "04f93c87b61df6ecbe90efed107def29fb895a4186e5f941445995d19f0b1fcf",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "0824ca5553f40f74f6f3a19e0ac7184ab383ab42e1fef61c9c6118fc6186dfbd",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "0fd76a4647e628013078a1397a396cee506dafe626328237f022ba074aaf9ecf",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "101c1a1da9186d40e07c598dcf2a757bfc309bd6472ccc7b08cf12d90a4ecb89",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "14587a2bceb5dc9e9fca6065978b51dd12146cf38ccd279055b77d569e3dfded",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "1847f8f76881d870ed23009a3dc5abb9d4750a3bab297d6583f250c129039d89",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "1945de595160c2a95f5cb6d4c7aab873544e9bd3b45b7837294c31496563a1db",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "194c73898f81a20001ef3ed4eec4490689bcbd1f8506beeadc4adfc36c516537",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "1ac4769b8ff266c00c64e68c3005b25e41abaac25ca9bec3b9ad43001c699eeb",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "1ae49bb57fd8127d267f33266cd5e9609f4fe3d92fddb89bd8723d3950f6f016",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "1b3431f47f8100810e4650b8936ad48305959ce2c9c24e286e27e1acb1e967c9",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "232520b8cc90db490570109e8084ffb2139c920c89e9602cf5f16a80bae76a27",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "24e53218e0f1c04b3e7e754395051df09e9791eca7ed9c314ca1a5eef3a5f79f",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "29f3f8b03632219cc6e57660a1ba14668236332cd234c6de89e1859fe0329e20",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "2ba7029347251135516429767f96731fb435f5d0d31234b3cc9d7d75d050ad46",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "30e0166db480096c3560a5124a33347cfa5eb60e2ad5b7231e91ef0d98561e28",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "3283d59cfa15dd049105b8b32b09ddf51b3901d8296eab581a3e45e7e8b6fcef",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "32a0f54dc2777cbad49677dfeda93001462cf42c69301edec4e4ab47d3912e68",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "3369657a6181263305f459065becee9d875953405c6f1c5b8ce5cef302a6c42a",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "346d54b7911c226b653da2564c160cf291ee42d388283351c0b9ffdea939883c",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "3f1b1caa3ce90f09ef653159ffc2b73cdeabbe0c67c2280e2f8f2b6ad31273fb",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "3f5606fcb6cecb32954c1c35b2cd70bbb9738c4d26e18415e001b80b4fd5ccb6",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "40511b658a94994868ba08ae00ef30861a0fde563d35b3122a26d310d1e7f1aa",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "4176d3f0b1f6df985ea330735ff715d93666b12ab39c024baccf639d594aafd4",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "426d94369e92f81145a15235df4cfe9396cba41f1f32d441d16f0a88ced72686",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "42bbfa099116a85e708bb6aecce27a1e9facc372e84d753324d1b2b51f501ec0",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "44040190be9af8cc7ef2d2ab33394c7153880b25e7eb197e22c58d0f6713f6ea",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "44113c4311fe5346a7e816266d60b17170d3908a470b63675a95e8e85eac9f40",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "4ae52cc080a0d207a0ec358feab19ab775434ad4a396e8460b2120623236ebdc",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "4d6267963743436f0c973cb4cab6b89cde2ade32afedebf7b0afc7797a8f9bb6",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "5422ed3d8b88151d704623fdfdb121534ab4e11ae75bc7f408b7a69ab231c239",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "5609e819ee7a0a4cf290037efe6000c2df8778c8fea4b2a5e332a6a280349aaf",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "59f1f9d23d4b1d4414170df96bfe9ce7e3368497cabd31675ffd7bfaa2d03991",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "675edeb8fcc422313abeb8b8a390d8cf41502b5dc3a42c9a6cda92bea868b1da",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "6903bce98ea222e273c03f665838f5b8a2222284171e4b837f09e3a0def21cbb",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "69625fd668ce36930d44be1dd9f0bfb3dad0458eda2009fe2643f72a350bbcf3",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "69aa5ce2d8df27a30a3db8e34705e9b5070ee84979f656b80ca5e28b673250d4",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "6ac03a62f7640055bd2a02ff28d1c78308acb56d75b8c1aaef3c34ef58874310",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "6b668df8179ebc17314ac0d3b4e46bc345e712dcf4adcdac6f3877e19e76ef05",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "7032c1136899375adb24c8db02d61fdae10671b40c80934d3145ea58106c2507",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "7463d1174f5673e922d830bb871edcddc51619c9f58688d7a8c8fb41e923e963",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "77017d5883e96b2e451d9b5da56c460cf54c2190bd5ccbee2e3c1986db512473",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "7717a09b0e02a1ad6dba8377a1267dba33cafdfe6526db9a0087931fdc45f566",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "77582efab39e73490c655b7507eca240a565ca84fd4d995227455e60bb368216",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "785aa25372a10a57c1109af67347edfca4083fb1db3ec69e072fc0c501afc2cd",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "797e330df2566a937ab015a7059479924c3b22f52625e323966526916439560f",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "7f9b26b494bb4f2d02d117d2b7d9b540346947d982ad453429882bd3ffb953b0",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "84630940dc1698b6a8216c7be01495abebc0574ffe256982038309ce31b5d3d0",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "8519c057ce665455837e93822c4336198954657cee64244771b56d52b5286af5",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "85a188134c12edcbf617dc220eac1d6caaa7d7cebc35ee9e28d299c2754bb3c8",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "88f8b6bdf6ef66402d29471af1a8a4f365323ffdd49ee691c29891a1b5d31f7d",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "8905216b27b77d154fdb322a71d04eb20064b1b6d185803999d2d1d28f091f7f",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "8ae6a0b45e187d55771b97456439315405882652b1f5261355ebe38bff74d066",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "8b2078d124b7b3b45ed8ed31d33b81d5fa3a4911ce8c32aafd185f3f5d3ee3f0",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "8dff4087077ef1215f16638efe29b8a7e8a1b4f2acfd4a8e861a43ddc9502d31",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "92e5389ff383e30e076d606fe5b52ca9077e20f47f87a0e0c1e96d6aad78bbf4",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "965ac1f7278e210319308990e7b51de9c43d18b62af39fe1e80fa268a3f8f3f1",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "99c0e4dde9f5c65b97b1b286d3365b238e252c820a33f3533d63df676fb6a005",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "a1b03e6587e9a8de5bdf5d04dedd9f71e9f5aa083740abb67e198db56e66c650",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "a2fba32aa82f68eca54dd871dc308cb11936d96631c580c593c24d4420691c4d",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "a57e413c9ffd2b7ba060f4c4a76d4b758aec615d278a1842d259e1d218e9c0e2",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "aa38a1a20565930b2a8f908107f3203d48c7c171d2cdc77c3a4fbbf83d642879",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "ae03dbadeccda5b036810779d7dd13f0a02066bc5f73f6774e93033cf3b79764",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "afdceb826828a2a6c4631c98ac0db17b099cfc2b8f99e607d8c6e1b03aab5ef6",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "afe21fdf82af515c39b67617c10df422a39f71c0fef0b441810c4c8c70056983",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "b16bff8077de6af0db59c334d5aed2c6afd6668299a566bbbb7e81a8025a751a",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d6c701b1a035f156aa1e357b33cd6874a1a419b2e14286618b69dab7bd470706"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "b29595b23ca68d792fb7cb6d542c8f9dd17f60e703eb259d77219433a5d49e2c",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "b6c5fe70b41b868c8fdeecf287af218d8c5907e4e53dde042444b50013f2a7d8",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "b705584da93576b0f0f61f1b8ea2a9237ed0bb02e703ff09439deafb478907fe",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "bb4bc9fc00bf727a22752db819fb4820bc2681fc7eafd31e90e8814d305062fd",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "bf27d8f89cbffac26d25efaa6bff6db2f7243d3db7355d97ba93bd66478807d2",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "bff6f8a8ffad451c8f05205f491814ab04a28db3f80e77366cfd5530d51a8a3b",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "c2a1fc31053ad8d60af5a1020872e7a71c5d28600c035029550487d808fbaaf6",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "c2eab56f1dc1b1f29e468cacf98fc08ad273f359cd2a2fba0cac4e8ae605e806",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "cc7c4055cae163c55cafc34fea973598399bd59fb6d662324f67cdfaa61eff7c",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "cdc37d6d972b23ae943d8aec12727bcb3ef7fdf72a22d39c2c68efc11a7863fb",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "d17b30b0cb76448e6763cc74fada8d3030531640edbb18964188a14b9838744c",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d42faaab184876f4eba4496ba91de22895b508ecc9124eb23055cf0aa05d0790"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "d6e2731f3fcb1a8a76af6bab8ae10d83191dcabb793828a4a87b27117fea030e",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "dd47c1e6e577f4f64a8f1b9c85269c5449e0b4a80cca9cbd16cc176a449055d5",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "dd5a3386d8851ce27ba52f235210aa42997f8d0bbfdcc50383e4ac3a81c41fac",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "e3ec76266500da664a47c773bb9d4b74996962f1888fadcb888ac69a8c9fb55b",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "e6fa2a8d82d63b238a8c7a58a18d991903a68936c7f3f050e41b5e6a620a392e",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "a0db186c2daa617af4c67205e303354f50533bd717948408083ec6c80f2f57b4"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "updateQuizStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "e8568697c4ae0f0dae4471f0ebcba5a62774bf59af8abc15bcdaf696b43f42fd",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "e89bc0a070a7325e7b16c0cc0d29373a134ee2c81e590a113ebb3407ff880524",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "e9c6d465a45fe8dc099c55049ac37d4c125a544b89ef73e4ff953f939645ef15",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "ec738652138e8c3850fb5dc8bde85281ef802bf93cda65a25f6f9286ffb7178e",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "92778a0a58e2e06c193c2f7958f83371d4ed078de73eb567e8f5ca3854c890ca"
+          ]
+        ],
+        "findingCount": 1,
+        "score": 1,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "findQuestionsByTopicIds#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "ee289fb10a0c6993b6b99487a2f93286c2428c6c34e8587a892d6d75e248b56d",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "f2a6f368852d0ada417eb5e7efd2930bcca26ad3a5bd0860b5690a8f29942d85",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "f2bf8b53e7b67c55820b44908f197614b7cc80096b314758264c849f0c75c6ea",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "fab27e446f703ce4459a3057360f0403b45a51af13b821d7234f0e78b8eb8bd6",
+        "matchedIsolated": [
+          [
+            "45c55b820f8cab4cae06ab3646affe27e26e26b5c2682d807e310a03af361656",
+            "d756c8699de164999a93f2fc6e80e2da4a4d56afe9f8aac246cc6092c3e09436"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getOriginalTournamentStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "fd47da6a12038968d8d4cf43f206c2d385c34ecbeca6233072724034db752871",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      },
+      {
+        "pairScenario": "fecb8dee3dbb2d24bfdf436eceaab641a7919e58bfcc96779f63adbf14cb184f",
+        "matchedIsolated": [
+          [
+            "2aed4885fa00263f521c41a2315a5d2f0d6255cd096b9457e0a17c91c5edc98a",
+            "4dc3640912f36ad6b30086271aa4ce1aa789fdd0034f83b979861aa3a3fe20e9"
+          ]
+        ],
+        "findingCount": 0,
+        "score": 0,
+        "faults": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas",
+            "getCourseExecutionStep#0"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "getTopicsStep#0"
+          ]
+        ]
+      }
+    ],
+    "findingSignatures": [
+      {
+        "actions": [
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "COMPENSATION",
+            "updateTournamentStep"
+          ],
+          [
+            "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "FORWARD",
+            "updateTournamentStep"
+          ]
+        ],
+        "affectedObject": {
+          "aggregateId": 12,
+          "aggregateType": "SagaTournament"
+        },
+        "after": {
+          "applicationData": {
+            "cancelled": false,
+            "endTime": "2030-01-01T13:05",
+            "lastModifiedTime": "2030-01-01T12:00",
+            "numberOfQuestions": 2,
+            "startTime": "2030-01-01T12:05",
+            "state": "ACTIVE",
+            "tournamentCourseExecution": {
+              "courseExecutionAcronym": "TESTBLCM",
+              "courseExecutionAggregateId": 2,
+              "courseExecutionCourseId": 1,
+              "courseExecutionStatus": "ACTIVE",
+              "courseExecutionVersion": 9,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentCreator": {
+              "creatorAggregateId": 3,
+              "creatorName": "USER_NAME_1",
+              "creatorState": null,
+              "creatorUsername": "USER_USERNAME_1",
+              "creatorVersion": 5,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentParticipants": [],
+            "tournamentQuiz": {
+              "quizAggregateId": 11,
+              "quizVersion": 22,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentTopics": [
+              {
+                "state": "ACTIVE",
+                "topicAggregateId": 5,
+                "topicCourseAggregateId": null,
+                "topicName": "TOPIC_NAME_1",
+                "topicVersion": 10,
+                "tournament": {
+                  "aggregateId": 12,
+                  "aggregateType": "SagaTournament"
+                }
+              },
+              {
+                "state": "ACTIVE",
+                "topicAggregateId": 6,
+                "topicCourseAggregateId": null,
+                "topicName": "TOPIC_NAME_2",
+                "topicVersion": 11,
+                "tournament": {
+                  "aggregateId": 12,
+                  "aggregateType": "SagaTournament"
+                }
+              }
+            ]
+          },
+          "dependencies": [
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "AnonymizeStudentEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "DeleteCourseExecutionEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 5,
+              "eventType": "DeleteTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 10,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic",
+              "target": {
+                "aggregateId": 5,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 6,
+              "eventType": "DeleteTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 11,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic",
+              "target": {
+                "aggregateId": 6,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "DisenrollStudentFromCourseExecutionEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 11,
+              "eventType": "InvalidateQuizEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 22,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz",
+              "target": {
+                "aggregateId": 11,
+                "aggregateType": "SagaQuiz"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "UpdateStudentNameEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 5,
+              "eventType": "UpdateTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 10,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic",
+              "target": {
+                "aggregateId": 5,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 6,
+              "eventType": "UpdateTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 11,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic",
+              "target": {
+                "aggregateId": 6,
+                "aggregateType": "SagaTopic"
+              }
+            }
+          ],
+          "identity": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          },
+          "lifecycleState": "ACTIVE"
+        },
+        "before": {
+          "applicationData": {
+            "cancelled": false,
+            "endTime": "2030-01-01T13:05",
+            "lastModifiedTime": "2030-01-01T12:00",
+            "numberOfQuestions": 2,
+            "startTime": "2030-01-01T12:05",
+            "state": "ACTIVE",
+            "tournamentCourseExecution": {
+              "courseExecutionAcronym": "TESTBLCM",
+              "courseExecutionAggregateId": 2,
+              "courseExecutionCourseId": 1,
+              "courseExecutionStatus": "ACTIVE",
+              "courseExecutionVersion": 9,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentCreator": {
+              "creatorAggregateId": 3,
+              "creatorName": "USER_NAME_1",
+              "creatorState": null,
+              "creatorUsername": "USER_USERNAME_1",
+              "creatorVersion": 5,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentParticipants": [],
+            "tournamentQuiz": {
+              "quizAggregateId": 11,
+              "quizVersion": 22,
+              "tournament": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              }
+            },
+            "tournamentTopics": [
+              {
+                "state": "ACTIVE",
+                "topicAggregateId": 5,
+                "topicCourseAggregateId": 1,
+                "topicName": "TOPIC_NAME_1",
+                "topicVersion": 10,
+                "tournament": {
+                  "aggregateId": 12,
+                  "aggregateType": "SagaTournament"
+                }
+              },
+              {
+                "state": "ACTIVE",
+                "topicAggregateId": 6,
+                "topicCourseAggregateId": 1,
+                "topicName": "TOPIC_NAME_2",
+                "topicVersion": 11,
+                "tournament": {
+                  "aggregateId": 12,
+                  "aggregateType": "SagaTournament"
+                }
+              }
+            ]
+          },
+          "dependencies": [
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "AnonymizeStudentEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "DeleteCourseExecutionEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 5,
+              "eventType": "DeleteTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 10,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic",
+              "target": {
+                "aggregateId": 5,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 6,
+              "eventType": "DeleteTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 11,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic",
+              "target": {
+                "aggregateId": 6,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "DisenrollStudentFromCourseExecutionEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 11,
+              "eventType": "InvalidateQuizEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 22,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz",
+              "target": {
+                "aggregateId": 11,
+                "aggregateType": "SagaQuiz"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 2,
+              "eventType": "UpdateStudentNameEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 9,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName",
+              "target": {
+                "aggregateId": 2,
+                "aggregateType": "SagaExecution"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 5,
+              "eventType": "UpdateTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 10,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic",
+              "target": {
+                "aggregateId": 5,
+                "aggregateType": "SagaTopic"
+              }
+            },
+            {
+              "declaredTargetAggregateId": 6,
+              "eventType": "UpdateTopicEvent",
+              "owner": {
+                "aggregateId": 12,
+                "aggregateType": "SagaTournament"
+              },
+              "subscribedVersion": 11,
+              "subscriptionType": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic",
+              "target": {
+                "aggregateId": 6,
+                "aggregateType": "SagaTopic"
+              }
+            }
+          ],
+          "identity": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          },
+          "lifecycleState": "ACTIVE"
+        },
+        "criterion": "FAILED_OPERATION_RESIDUAL",
+        "reason": "FAILED_SAGA_LEFT_PERSISTENT_DIFFERENCE_AFTER_COMPLETED_RECOVERY",
+        "relatedObject": null
+      }
+    ]
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "label": "UpdateTournament-FindTournament",
+    "fullScenarios": 106,
+    "keptScenarios": 106,
+    "exactSubset": true
+  },
+  {
+    "label": "GetCourseExecutionById-FindTournament",
+    "fullScenarios": 12,
+    "keptScenarios": 4,
+    "exactSubset": true
+  },
+  {
+    "label": "GetCourseExecutionById-UpdateTournament",
+    "fullScenarios": 106,
+    "keptScenarios": 8,
+    "exactSubset": true
+  }
+]

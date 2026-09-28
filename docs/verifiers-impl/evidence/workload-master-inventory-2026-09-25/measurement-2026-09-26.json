@@ -1,0 +1,690 @@
+{
+  "date": "2026-09-26",
+  "baseline": {
+    "attemptStatuses": {
+      "COMPLETE": 15488,
+      "INVALID_REPORT": 2,
+      "PARTIAL": 296,
+      "PROCESS_FAILURE": 458,
+      "TIMEOUT": 11
+    },
+    "baseline96Retained": 96,
+    "conflictingCandidateKeys": 251,
+    "criteria": {
+      "COMPENSATED_READ_EXPOSURE": {
+        "positive": 4571,
+        "unavailable": 585,
+        "zero": 11099
+      },
+      "DELETED_DEPENDENCY": {
+        "positive": 4101,
+        "unavailable": 471,
+        "zero": 11683
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "positive": 11145,
+        "unavailable": 767,
+        "zero": 4343
+      },
+      "LOST_COPIED_UPDATE": {
+        "positive": 24,
+        "unavailable": 990,
+        "zero": 15241
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "positive": 3,
+        "unavailable": 471,
+        "zero": 15781
+      }
+    },
+    "distinctScenarios": 16255,
+    "duplicateReferences": 43,
+    "errors": [],
+    "familiesWithPositive": {
+      "COMPENSATED_READ_EXPOSURE": 4,
+      "DELETED_DEPENDENCY": 9,
+      "FAILED_OPERATION_RESIDUAL": 23,
+      "LOST_COPIED_UPDATE": 3,
+      "UNRESOLVED_DELIVERED_EVENT": 3
+    },
+    "joint": {
+      "positive": 11053,
+      "unavailable": 869,
+      "zero": 4333
+    },
+    "largestThreeScenarioCount": 12462,
+    "noFaultScoreStates": {
+      "positive": 10,
+      "zero": 155
+    },
+    "references": 208,
+    "runtimeGroups": {
+      "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+      "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 3,
+      "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 83,
+      "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 10,
+      "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 3,
+      "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 65
+    },
+    "sagaFamilies": 87,
+    "schemaVersion": "thesis-workload-master-inventory.v1",
+    "scope": "Locally accessible recorded reference sets with matching candidate, observation and fitness keys; all workload IDs retained, no claim of full catalogue coverage or scientific sample trimming.",
+    "workloads": 165,
+    "workloadsWithPositive": {
+      "COMPENSATED_READ_EXPOSURE": 11,
+      "DELETED_DEPENDENCY": 18,
+      "FAILED_OPERATION_RESIDUAL": 52,
+      "LOST_COPIED_UPDATE": 4,
+      "UNRESOLVED_DELIVERED_EVENT": 3
+    }
+  },
+  "measurement": {
+    "workloads": 11,
+    "scenarios": 41,
+    "joint": {
+      "negative": 33,
+      "positive": 8
+    },
+    "criteria": {
+      "DELETED_DEPENDENCY": {
+        "positive": 4,
+        "negative": 37
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "positive": 4,
+        "negative": 37
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "negative": 41
+      },
+      "COMPENSATED_READ_EXPOSURE": {
+        "negative": 41
+      },
+      "LOST_COPIED_UPDATE": {
+        "negative": 41
+      }
+    },
+    "rows": [
+      {
+        "workload": "197c97cb5af7d281357b0c054b1b2b1394bf9b4a9b72638638bf8849618170c8",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/197c97cb5af7d281357b0c054b1b2b1394bf9b4a9b72638638bf8849618170c8/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 4,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [
+          {
+            "eventId": 6,
+            "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent",
+            "publisherAggregateId": 2,
+            "publisherAggregateVersion": 33,
+            "published": true,
+            "subscriberAggregateId": 11,
+            "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.handling.QuizEventHandling",
+            "eventHandlingMethodName": "handleRemoveCourseExecutionEvents",
+            "eventHandlerClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.handling.handlers.DeleteCourseExecutionEventHandler"
+          }
+        ],
+        "joint": {
+          "negative": 2,
+          "positive": 2
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "ba47eecb83b916a965d5b2f3989da07c4b088eb4f9fd5e029385643fca16ab8e",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/ba47eecb83b916a965d5b2f3989da07c4b088eb4f9fd5e029385643fca16ab8e/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 4,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [
+          {
+            "eventId": 6,
+            "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent",
+            "publisherAggregateId": 2,
+            "publisherAggregateVersion": 33,
+            "published": true,
+            "subscriberAggregateId": 12,
+            "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
+            "eventHandlingMethodName": "handleDeleteCourseExecutionEvents",
+            "eventHandlerClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DeleteCourseExecutionEventHandler"
+          }
+        ],
+        "joint": {
+          "negative": 2,
+          "positive": 2
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "bf2a68e032fcb3ad78dab1d18fe69f1b9ea89e819ba0b2c54c61e0743121d86d",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/bf2a68e032fcb3ad78dab1d18fe69f1b9ea89e819ba0b2c54c61e0743121d86d/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 4,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [],
+        "joint": {
+          "negative": 2,
+          "positive": 2
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "f40293882dd7a84b9e2811bd9343f8dde1bc53a31ede634ed77a90e947a56cb7",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/f40293882dd7a84b9e2811bd9343f8dde1bc53a31ede634ed77a90e947a56cb7/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 4,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [
+          {
+            "eventId": 6,
+            "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent",
+            "publisherAggregateId": 2,
+            "publisherAggregateVersion": 33,
+            "published": true,
+            "subscriberAggregateId": null,
+            "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.QuizAnswerEventHandling",
+            "eventHandlingMethodName": "handleDeleteCourseExecutionEvents",
+            "eventHandlerClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.handlers.DeleteCourseExecutionEventHandler"
+          }
+        ],
+        "joint": {
+          "positive": 2,
+          "negative": 2
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 1,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "3d058267b87f166fe571b2f55c453c3d9d7066f35c9419d93ffd8abfa4874473",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/3d058267b87f166fe571b2f55c453c3d9d7066f35c9419d93ffd8abfa4874473/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 3,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [
+          {
+            "eventId": 4,
+            "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+            "publisherAggregateId": 2,
+            "publisherAggregateVersion": 26,
+            "published": true,
+            "subscriberAggregateId": 12,
+            "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
+            "eventHandlingMethodName": "handleUnenrollStudentFromCourseExecutionEvents",
+            "eventHandlerClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler"
+          }
+        ],
+        "joint": {
+          "negative": 3
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "6f3475c9c6bba754e43190d44230444852c711726e85c1bd093fb27153bbf075",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/6f3475c9c6bba754e43190d44230444852c711726e85c1bd093fb27153bbf075/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 3,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [],
+        "joint": {
+          "negative": 3
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "7722ba35fdf6b1c9324aaa704517a7d986ac820c4d3cd90631a6d07e2cf737fa",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/7722ba35fdf6b1c9324aaa704517a7d986ac820c4d3cd90631a6d07e2cf737fa/map/reference.json",
+        "diagnosticSharedSetupOnly": false,
+        "scenarios": 3,
+        "controlTerminal": "SUCCESS",
+        "controlSchedule": "EXACT",
+        "controlEvents": [
+          {
+            "eventId": 4,
+            "eventTypeFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent",
+            "publisherAggregateId": 2,
+            "publisherAggregateVersion": 26,
+            "published": true,
+            "subscriberAggregateId": null,
+            "eventHandlingClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.QuizAnswerEventHandling",
+            "eventHandlingMethodName": "handleUnenrollStudentEvent",
+            "eventHandlerClassFqn": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.notification.handling.handlers.DisenrollStudentFromCourseExecutionEventHandler"
+          }
+        ],
+        "joint": {
+          "negative": 3
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 3,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "7f851f225b98f7ed3a2e5e195828bc474b1e3fdf7fb6217fc4bcd963118df387",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/7f851f225b98f7ed3a2e5e195828bc474b1e3fdf7fb6217fc4bcd963118df387/map/reference.json",
+        "diagnosticSharedSetupOnly": true,
+        "scenarios": 4,
+        "controlTerminal": "COMPENSATED",
+        "controlSchedule": "DEVIATED",
+        "controlEvents": [],
+        "joint": {
+          "negative": 4
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "a5dcc8096fc2c447cbe860315ce25696b0f35f417eb1e0281ecee3995cf5fee8",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/a5dcc8096fc2c447cbe860315ce25696b0f35f417eb1e0281ecee3995cf5fee8/map/reference.json",
+        "diagnosticSharedSetupOnly": true,
+        "scenarios": 4,
+        "controlTerminal": "COMPENSATED",
+        "controlSchedule": "DEVIATED",
+        "controlEvents": [],
+        "joint": {
+          "negative": 4
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "b879c555238b01bf9b3591bb7d1e6862601aaaf790ca22bf21b4c4ef754d5100",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/b879c555238b01bf9b3591bb7d1e6862601aaaf790ca22bf21b4c4ef754d5100/map/reference.json",
+        "diagnosticSharedSetupOnly": true,
+        "scenarios": 4,
+        "controlTerminal": "COMPENSATED",
+        "controlSchedule": "DEVIATED",
+        "controlEvents": [],
+        "joint": {
+          "negative": 4
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      },
+      {
+        "workload": "f69576a20d51c227b1082ee450f6e28214408a053ffb0950ad5f9093f47a2e89",
+        "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/event-route-measurement-2026-09-26/measurements/f69576a20d51c227b1082ee450f6e28214408a053ffb0950ad5f9093f47a2e89/map/reference.json",
+        "diagnosticSharedSetupOnly": true,
+        "scenarios": 4,
+        "controlTerminal": "COMPENSATED",
+        "controlSchedule": "DEVIATED",
+        "controlEvents": [],
+        "joint": {
+          "negative": 4
+        },
+        "criteria": {
+          "DELETED_DEPENDENCY": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          },
+          "LOST_COPIED_UPDATE": {
+            "positive": 0,
+            "negative": 4,
+            "unavailable": 0
+          }
+        }
+      }
+    ]
+  },
+  "inventory": {
+    "attemptStatuses": {
+      "COMPLETE": 15529,
+      "INVALID_REPORT": 2,
+      "PARTIAL": 296,
+      "PROCESS_FAILURE": 458,
+      "TIMEOUT": 11
+    },
+    "baseline96Retained": 96,
+    "conflictingCandidateKeys": 251,
+    "criteria": {
+      "COMPENSATED_READ_EXPOSURE": {
+        "positive": 4571,
+        "unavailable": 585,
+        "zero": 11140
+      },
+      "DELETED_DEPENDENCY": {
+        "positive": 4105,
+        "unavailable": 471,
+        "zero": 11720
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "positive": 11149,
+        "unavailable": 767,
+        "zero": 4380
+      },
+      "LOST_COPIED_UPDATE": {
+        "positive": 24,
+        "unavailable": 990,
+        "zero": 15282
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "positive": 3,
+        "unavailable": 471,
+        "zero": 15822
+      }
+    },
+    "distinctScenarios": 16296,
+    "duplicateReferences": 43,
+    "errors": [],
+    "familiesWithPositive": {
+      "COMPENSATED_READ_EXPOSURE": 4,
+      "DELETED_DEPENDENCY": 9,
+      "FAILED_OPERATION_RESIDUAL": 23,
+      "LOST_COPIED_UPDATE": 3,
+      "UNRESOLVED_DELIVERED_EVENT": 3
+    },
+    "joint": {
+      "positive": 11061,
+      "unavailable": 869,
+      "zero": 4366
+    },
+    "largestThreeScenarioCount": 12462,
+    "noFaultScoreStates": {
+      "positive": 14,
+      "zero": 162
+    },
+    "references": 219,
+    "runtimeGroups": {
+      "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d": 7,
+      "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84": 1,
+      "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da": 3,
+      "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d": 83,
+      "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322": 10,
+      "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c": 3,
+      "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6": 65,
+      "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b": 4
+    },
+    "sagaFamilies": 87,
+    "schemaVersion": "thesis-workload-master-inventory.v1",
+    "scope": "Locally accessible recorded reference sets with matching candidate, observation and fitness keys; all workload IDs retained, no claim of full catalogue coverage or scientific sample trimming.",
+    "workloads": 176,
+    "workloadsWithPositive": {
+      "COMPENSATED_READ_EXPOSURE": 11,
+      "DELETED_DEPENDENCY": 22,
+      "FAILED_OPERATION_RESIDUAL": 56,
+      "LOST_COPIED_UPDATE": 4,
+      "UNRESOLVED_DELIVERED_EVENT": 3
+    }
+  },
+  "preparationDiagnosticWorkloads": [
+    "7f851f225b98f7ed3a2e5e195828bc474b1e3fdf7fb6217fc4bcd963118df387",
+    "a5dcc8096fc2c447cbe860315ce25696b0f35f417eb1e0281ecee3995cf5fee8",
+    "b879c555238b01bf9b3591bb7d1e6862601aaaf790ca22bf21b4c4ef754d5100",
+    "f69576a20d51c227b1082ee450f6e28214408a053ffb0950ad5f9093f47a2e89"
+  ],
+  "interpretation": "Four default shared-setup workloads omit feature preparation needed to publish DeleteCourseExecution. Retained as measured diagnostics in maximal inventory; exclude from final sample unless intentionally selecting natural failure. Seven other workloads replay the intended source preparation. No production classes or fitness criteria changed."
+}

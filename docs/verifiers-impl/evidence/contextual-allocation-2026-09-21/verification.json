@@ -1,0 +1,1273 @@
+{
+  "checks": {
+    "checks": [
+      "round-robin per-workload legacy prefix across switches",
+      "round-robin hidden-future outcomes cannot change first21 choices",
+      "round-robin identical fully exhausted endpoint and189 unique attempts",
+      "uniform per-workload legacy prefix across switches",
+      "uniform hidden-future outcomes cannot change first21 choices",
+      "uniform identical fully exhausted endpoint and189 unique attempts",
+      "adaptive-ucb per-workload legacy prefix across switches",
+      "adaptive-ucb hidden-future outcomes cannot change first21 choices",
+      "adaptive-ucb identical fully exhausted endpoint and189 unique attempts",
+      "contextual-linucb per-workload legacy prefix across switches",
+      "contextual-linucb hidden-future outcomes cannot change first21 choices",
+      "contextual-linucb identical fully exhausted endpoint and189 unique attempts",
+      "contextual-linucb-cooldown per-workload legacy prefix across switches",
+      "contextual-linucb-cooldown hidden-future outcomes cannot change first21 choices",
+      "contextual-linucb-cooldown identical fully exhausted endpoint and189 unique attempts",
+      "shared linear model inverse/coefficients agree with independent direct solution"
+    ],
+    "inverseMaxError": 1.0880185641326534e-14,
+    "thetaMaxError": 2.3203661214665772e-14
+  },
+  "legacyParity": {
+    "passed": 96,
+    "beforeSha256": "15e57588775283a929892d7ac7768699ccb8ec304411069f368403308da2ea0f",
+    "afterSha256": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+    "checks": [
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 1,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 60
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 60
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 7,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 61
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 65,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 61
+      },
+      {
+        "workload": "recovery-late-event",
+        "seed": 19,
+        "budget": 65,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 62
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 34
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 1,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 34
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 7,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 1,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 1
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 5,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 5
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 15,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 15
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "per-saga",
+        "attempts": 34
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 38,
+        "strategy": "ga",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "per-saga",
+        "attempts": 35
+      },
+      {
+        "workload": "no-event",
+        "seed": 19,
+        "budget": 38,
+        "strategy": "random",
+        "exploration": "uniform-unseen",
+        "attempts": 35
+      }
+    ]
+  },
+  "comparisons": {
+    "comparison-small": {
+      "completion": {
+        "runs": 240,
+        "endpoints": {
+          "all": {
+            "candidates": 189,
+            "positive": 38,
+            "zero": 135,
+            "unknown": 16,
+            "score": 40.0
+          },
+          "dependency": {
+            "candidates": 189,
+            "positive": 2,
+            "zero": 187,
+            "unknown": 0,
+            "score": 2.0
+          }
+        },
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "98387d6c3a58f0c3763cc938b50794e214e2374700f9544b9912d2f012cb7d22",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09"
+        },
+        "elapsedSeconds": 15.023824708070606,
+        "validation": "Every selected candidate unique and score recomputed; source hashes unchanged; full small endpoints equal. No runtime executions."
+      },
+      "inputs": [
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+          "configSha256": "34b00df08a82bdbf691476f4a5c3d351f1cc2489a7867eba0465bc7f40959170",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+          "catalogueSha256": "e145d7a18c9b843d3727c59a056f78aeb6a0578237adca271e47b0453a6fc50b",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+          "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+          "candidateCount": 36
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+          "configSha256": "65cc5a622c44108a2628c1e45739a18ad2ca1a609919b880a8632b9d4e34ccc2",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+          "catalogueSha256": "50009f046f55440f8b39b9553dae02863225b09178cd6505dfced6e357aa18bd",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+          "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+          "configSha256": "67e36f93a833eb3a5d7194e73466d421de3d6a917ac77291949baaee32c5c72e",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+          "catalogueSha256": "11f9bd87165bfdcd2ff2a85c38021c996bc3907449bce7d0ac026481f836dcfb",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+          "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+          "candidateCount": 14
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+          "configSha256": "2a8dafa422566747554c2c7d0d24ae1fcd49f4448412cd9b7c2f7d3e129a36bd",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+          "catalogueSha256": "505293cfc876701f08bc52c43fed0fa3fd3a5ac70c7f4269d50b3f1564f727f1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+          "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+          "candidateCount": 6
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+          "configSha256": "b19718e21b0a46f20dc6c5e6f17385fc07cb1a146c26b566f3bebbd9030dd854",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+          "catalogueSha256": "f55a85a55ffd9646e7c19b22e47ca1129e416496cf6b25ecb2a367d0b59b3d2f",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+          "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+          "configSha256": "72d3d55a4b82cbeda44fc56397f16fadb64dbadfa6374fb819fec315c2606600",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+          "catalogueSha256": "483b03ee32e50819b9d6c69e8981b79c0e597bfee817050417c2c2c8c9e76aa4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+          "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+          "candidateCount": 4
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+          "configSha256": "a78dcde1e5fea406f30c800c0c1c00e2849767739790bff6b233ffc2fa05871b",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+          "catalogueSha256": "8501b667160b47a8910f534bd93fa7d3b9089aa8f76c4adabc8b2ca31175e44e",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+          "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+          "candidateCount": 8
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json",
+          "configSha256": "877227a1e6fd859a06e131a485a469d523f213e573fe3dbb750bef21c097fce0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+          "catalogueSha256": "a4d38cd1ea16858dfeb3622b30cdc599aa1af1c6cb56802326501c3f35822261",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+          "referenceSha256": "2fd6ce7052376d5f2e1fa19bf0d703be78b856f064c41eb8ce646a80bb8065c4",
+          "candidateCount": 62
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+          "configSha256": "566cc756d7d2648bb9a5e808eec1efd32c31c8802d2b0ead0c9b6d825c6411a0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+          "catalogueSha256": "3980eb82e196563e820ed955ab7d2e017b776721f4bde1eb397e9fc5e363d5b4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+          "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+          "candidateCount": 35
+        }
+      ],
+      "runsSha256": "03ffb0f451ddd12da7d387d1cd42f48f24cb3f8b4b00048b88ae9418ea2e954a"
+    },
+    "comparison-mixed": {
+      "completion": {
+        "runs": 240,
+        "endpoints": {
+          "all": {
+            "candidates": 4107,
+            "positive": 3044,
+            "zero": 613,
+            "unknown": 450,
+            "score": 9180.0
+          },
+          "dependency": {
+            "candidates": 4107,
+            "positive": 1784,
+            "zero": 2105,
+            "unknown": 218,
+            "score": 1784.0
+          }
+        },
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "98387d6c3a58f0c3763cc938b50794e214e2374700f9544b9912d2f012cb7d22",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09"
+        },
+        "elapsedSeconds": 458.46503941714764,
+        "validation": "Every selected candidate unique and score recomputed; source hashes unchanged; full small endpoints equal. No runtime executions."
+      },
+      "inputs": [
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+          "configSha256": "34b00df08a82bdbf691476f4a5c3d351f1cc2489a7867eba0465bc7f40959170",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+          "catalogueSha256": "e145d7a18c9b843d3727c59a056f78aeb6a0578237adca271e47b0453a6fc50b",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+          "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+          "candidateCount": 36
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+          "configSha256": "65cc5a622c44108a2628c1e45739a18ad2ca1a609919b880a8632b9d4e34ccc2",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+          "catalogueSha256": "50009f046f55440f8b39b9553dae02863225b09178cd6505dfced6e357aa18bd",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+          "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+          "configSha256": "67e36f93a833eb3a5d7194e73466d421de3d6a917ac77291949baaee32c5c72e",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+          "catalogueSha256": "11f9bd87165bfdcd2ff2a85c38021c996bc3907449bce7d0ac026481f836dcfb",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+          "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+          "candidateCount": 14
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+          "configSha256": "2a8dafa422566747554c2c7d0d24ae1fcd49f4448412cd9b7c2f7d3e129a36bd",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+          "catalogueSha256": "505293cfc876701f08bc52c43fed0fa3fd3a5ac70c7f4269d50b3f1564f727f1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+          "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+          "candidateCount": 6
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+          "configSha256": "b19718e21b0a46f20dc6c5e6f17385fc07cb1a146c26b566f3bebbd9030dd854",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+          "catalogueSha256": "f55a85a55ffd9646e7c19b22e47ca1129e416496cf6b25ecb2a367d0b59b3d2f",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+          "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+          "configSha256": "72d3d55a4b82cbeda44fc56397f16fadb64dbadfa6374fb819fec315c2606600",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+          "catalogueSha256": "483b03ee32e50819b9d6c69e8981b79c0e597bfee817050417c2c2c8c9e76aa4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+          "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+          "candidateCount": 4
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+          "configSha256": "a78dcde1e5fea406f30c800c0c1c00e2849767739790bff6b233ffc2fa05871b",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+          "catalogueSha256": "8501b667160b47a8910f534bd93fa7d3b9089aa8f76c4adabc8b2ca31175e44e",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+          "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+          "candidateCount": 8
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json",
+          "configSha256": "877227a1e6fd859a06e131a485a469d523f213e573fe3dbb750bef21c097fce0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+          "catalogueSha256": "a4d38cd1ea16858dfeb3622b30cdc599aa1af1c6cb56802326501c3f35822261",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+          "referenceSha256": "2fd6ce7052376d5f2e1fa19bf0d703be78b856f064c41eb8ce646a80bb8065c4",
+          "candidateCount": 62
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+          "configSha256": "566cc756d7d2648bb9a5e808eec1efd32c31c8802d2b0ead0c9b6d825c6411a0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+          "catalogueSha256": "3980eb82e196563e820ed955ab7d2e017b776721f4bde1eb397e9fc5e363d5b4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+          "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+          "candidateCount": 35
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/012-join-update-leave-remove-242d3ef997/config.json",
+          "configSha256": "3397eaf0be505883314fe3862959b78845f857205e9a3e60c0e415c3bc755752",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue",
+          "catalogueSha256": "e84035d90c08c40e36ad17fa68a16c795e222716b545093826f182575d4de6d1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/012-join-update-leave-remove-242d3ef997/retry-adjusted-reference.json",
+          "referenceSha256": "160fb0b3c46fb20f95051f7819e9dbe7597aaa285ecb3ae3506849789506dc81",
+          "candidateCount": 3918
+        }
+      ],
+      "runsSha256": "46e0645872afe643b5c115704360033a2714277c8eff269c174269d23ce0c5ba"
+    },
+    "comparison-small-guarded": {
+      "completion": {
+        "runs": 60,
+        "endpoints": {
+          "all": {
+            "candidates": 189,
+            "positive": 38,
+            "zero": 135,
+            "unknown": 16,
+            "score": 40.0
+          },
+          "dependency": {
+            "candidates": 189,
+            "positive": 2,
+            "zero": 187,
+            "unknown": 0,
+            "score": 2.0
+          }
+        },
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "6295b358b99061a7e73de5884adc3f282dcfd73d376043499be1f88ad1eba135",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "6ec161b41ca1b22d7611285874b02be39a7705803478ee928f971f3eddaa45b6"
+        },
+        "elapsedSeconds": 11.903575874865055,
+        "validation": "Every selected candidate unique and score recomputed; source hashes unchanged; full small endpoints equal. No runtime executions."
+      },
+      "inputs": [
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+          "configSha256": "34b00df08a82bdbf691476f4a5c3d351f1cc2489a7867eba0465bc7f40959170",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+          "catalogueSha256": "e145d7a18c9b843d3727c59a056f78aeb6a0578237adca271e47b0453a6fc50b",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+          "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+          "candidateCount": 36
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+          "configSha256": "65cc5a622c44108a2628c1e45739a18ad2ca1a609919b880a8632b9d4e34ccc2",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+          "catalogueSha256": "50009f046f55440f8b39b9553dae02863225b09178cd6505dfced6e357aa18bd",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+          "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+          "configSha256": "67e36f93a833eb3a5d7194e73466d421de3d6a917ac77291949baaee32c5c72e",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+          "catalogueSha256": "11f9bd87165bfdcd2ff2a85c38021c996bc3907449bce7d0ac026481f836dcfb",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+          "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+          "candidateCount": 14
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+          "configSha256": "2a8dafa422566747554c2c7d0d24ae1fcd49f4448412cd9b7c2f7d3e129a36bd",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+          "catalogueSha256": "505293cfc876701f08bc52c43fed0fa3fd3a5ac70c7f4269d50b3f1564f727f1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+          "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+          "candidateCount": 6
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+          "configSha256": "b19718e21b0a46f20dc6c5e6f17385fc07cb1a146c26b566f3bebbd9030dd854",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+          "catalogueSha256": "f55a85a55ffd9646e7c19b22e47ca1129e416496cf6b25ecb2a367d0b59b3d2f",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+          "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+          "configSha256": "72d3d55a4b82cbeda44fc56397f16fadb64dbadfa6374fb819fec315c2606600",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+          "catalogueSha256": "483b03ee32e50819b9d6c69e8981b79c0e597bfee817050417c2c2c8c9e76aa4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+          "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+          "candidateCount": 4
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+          "configSha256": "a78dcde1e5fea406f30c800c0c1c00e2849767739790bff6b233ffc2fa05871b",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+          "catalogueSha256": "8501b667160b47a8910f534bd93fa7d3b9089aa8f76c4adabc8b2ca31175e44e",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+          "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+          "candidateCount": 8
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json",
+          "configSha256": "877227a1e6fd859a06e131a485a469d523f213e573fe3dbb750bef21c097fce0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+          "catalogueSha256": "a4d38cd1ea16858dfeb3622b30cdc599aa1af1c6cb56802326501c3f35822261",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+          "referenceSha256": "2fd6ce7052376d5f2e1fa19bf0d703be78b856f064c41eb8ce646a80bb8065c4",
+          "candidateCount": 62
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+          "configSha256": "566cc756d7d2648bb9a5e808eec1efd32c31c8802d2b0ead0c9b6d825c6411a0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+          "catalogueSha256": "3980eb82e196563e820ed955ab7d2e017b776721f4bde1eb397e9fc5e363d5b4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+          "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+          "candidateCount": 35
+        }
+      ],
+      "runsSha256": "5c177d853d94daee995c57afaa35b036795a4d77d19693f82e5065926de92c06"
+    },
+    "comparison-mixed-guarded": {
+      "completion": {
+        "runs": 60,
+        "endpoints": {
+          "all": {
+            "candidates": 4107,
+            "positive": 3044,
+            "zero": 613,
+            "unknown": 450,
+            "score": 9180.0
+          },
+          "dependency": {
+            "candidates": 4107,
+            "positive": 1784,
+            "zero": 2105,
+            "unknown": 218,
+            "score": 1784.0
+          }
+        },
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "6295b358b99061a7e73de5884adc3f282dcfd73d376043499be1f88ad1eba135",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "6ec161b41ca1b22d7611285874b02be39a7705803478ee928f971f3eddaa45b6"
+        },
+        "elapsedSeconds": 193.06734783411957,
+        "validation": "Every selected candidate unique and score recomputed; source hashes unchanged; full small endpoints equal. No runtime executions."
+      },
+      "inputs": [
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+          "configSha256": "34b00df08a82bdbf691476f4a5c3d351f1cc2489a7867eba0465bc7f40959170",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+          "catalogueSha256": "e145d7a18c9b843d3727c59a056f78aeb6a0578237adca271e47b0453a6fc50b",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+          "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+          "candidateCount": 36
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+          "configSha256": "65cc5a622c44108a2628c1e45739a18ad2ca1a609919b880a8632b9d4e34ccc2",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+          "catalogueSha256": "50009f046f55440f8b39b9553dae02863225b09178cd6505dfced6e357aa18bd",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+          "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+          "configSha256": "67e36f93a833eb3a5d7194e73466d421de3d6a917ac77291949baaee32c5c72e",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+          "catalogueSha256": "11f9bd87165bfdcd2ff2a85c38021c996bc3907449bce7d0ac026481f836dcfb",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+          "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+          "candidateCount": 14
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+          "configSha256": "2a8dafa422566747554c2c7d0d24ae1fcd49f4448412cd9b7c2f7d3e129a36bd",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+          "catalogueSha256": "505293cfc876701f08bc52c43fed0fa3fd3a5ac70c7f4269d50b3f1564f727f1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+          "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+          "candidateCount": 6
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+          "configSha256": "b19718e21b0a46f20dc6c5e6f17385fc07cb1a146c26b566f3bebbd9030dd854",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+          "catalogueSha256": "f55a85a55ffd9646e7c19b22e47ca1129e416496cf6b25ecb2a367d0b59b3d2f",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+          "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+          "candidateCount": 12
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+          "configSha256": "72d3d55a4b82cbeda44fc56397f16fadb64dbadfa6374fb819fec315c2606600",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+          "catalogueSha256": "483b03ee32e50819b9d6c69e8981b79c0e597bfee817050417c2c2c8c9e76aa4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+          "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+          "candidateCount": 4
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+          "configSha256": "a78dcde1e5fea406f30c800c0c1c00e2849767739790bff6b233ffc2fa05871b",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+          "catalogueSha256": "8501b667160b47a8910f534bd93fa7d3b9089aa8f76c4adabc8b2ca31175e44e",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+          "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+          "candidateCount": 8
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json",
+          "configSha256": "877227a1e6fd859a06e131a485a469d523f213e573fe3dbb750bef21c097fce0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+          "catalogueSha256": "a4d38cd1ea16858dfeb3622b30cdc599aa1af1c6cb56802326501c3f35822261",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+          "referenceSha256": "2fd6ce7052376d5f2e1fa19bf0d703be78b856f064c41eb8ce646a80bb8065c4",
+          "candidateCount": 62
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+          "configSha256": "566cc756d7d2648bb9a5e808eec1efd32c31c8802d2b0ead0c9b6d825c6411a0",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+          "catalogueSha256": "3980eb82e196563e820ed955ab7d2e017b776721f4bde1eb397e9fc5e363d5b4",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+          "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+          "candidateCount": 35
+        },
+        {
+          "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/012-join-update-leave-remove-242d3ef997/config.json",
+          "configSha256": "3397eaf0be505883314fe3862959b78845f857205e9a3e60c0e415c3bc755752",
+          "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue",
+          "catalogueSha256": "e84035d90c08c40e36ad17fa68a16c795e222716b545093826f182575d4de6d1",
+          "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/012-join-update-leave-remove-242d3ef997/retry-adjusted-reference.json",
+          "referenceSha256": "160fb0b3c46fb20f95051f7819e9dbe7597aaa285ecb3ae3506849789506dc81",
+          "candidateCount": 3918
+        }
+      ],
+      "runsSha256": "58dc7af9bd0132640cbb15dc7666c95c2d7b9a9d57f4b6a43380449eec158557"
+    }
+  }
+}

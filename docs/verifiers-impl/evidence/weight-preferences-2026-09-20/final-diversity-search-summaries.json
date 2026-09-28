@@ -1,0 +1,122 @@
+{
+  "diversity-04-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-07-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 6,
+    "unavailable": 0,
+    "count": 6,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-04-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-03-all": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 36,
+    "unavailable": 0,
+    "count": 36,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-05-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 14,
+    "unavailable": 0,
+    "count": 14,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-04-all": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-05-all": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 14,
+    "unavailable": 0,
+    "count": 14,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-07-all": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 6,
+    "unavailable": 0,
+    "count": 6,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-08-all": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-03-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 36,
+    "unavailable": 0,
+    "count": 36,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-07-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 6,
+    "unavailable": 0,
+    "count": 6,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-08-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-05-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 14,
+    "unavailable": 0,
+    "count": 14,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-08-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 12,
+    "unavailable": 0,
+    "count": 12,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "diversity-03-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 36,
+    "unavailable": 0,
+    "count": 36,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  }
+}

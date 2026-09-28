@@ -1,0 +1,8 @@
+{
+  "realAttemptsValidated": 42,
+  "allFeedbackMatchesReference": true,
+  "runtimeHashesAfterCleanup": "PASS",
+  "finalCommandPauseResume": "PASS",
+  "benchmarkAndFinalImplementationEquivalent": true,
+  "legacyCampaignUnchanged": true
+}

@@ -1,0 +1,31 @@
+{
+  "partialAttempts": 489,
+  "distinctPartialKeys": 333,
+  "classification": {
+    "disjoint_fields": 489
+  },
+  "objectTypes": {
+    "SagaTournament": 386,
+    "SagaQuiz": 103
+  },
+  "chains": {
+    "True": 489
+  },
+  "gapAttempts": 0,
+  "finalMismatchAttempts": 0,
+  "otherWriterChangesLifecycle": 64,
+  "failedFieldsStillDifferent": 489,
+  "partialWithReadUnknown": 42,
+  "readGapReasons": {
+    "INTERVENING_WRITER": 42
+  },
+  "prospectiveResidualOnlyResolutionsExcludingOtherLifecycleChanges": 387,
+  "compensationFailures": 76,
+  "distinctFailureKeys": 53,
+  "failuresWithCommittedRemovalAndDeletedTournament": 76,
+  "failureReasons": {
+    "getOldTournamentStep: Aggregate with aggregate id 12 does not exist.": 43,
+    "getOriginalTournamentStep: Aggregate with aggregate id 12 does not exist.": 30,
+    "updateTournamentStep: Aggregate with aggregate id 12 does not exist.": 3
+  }
+}

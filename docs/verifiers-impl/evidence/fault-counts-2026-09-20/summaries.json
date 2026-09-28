@@ -1,0 +1,167 @@
+{
+  "all-final": {
+    "scope": "Structural candidates; canonical no-fault/first-fault choices; supported event selections and recovery; not runtime executability",
+    "config": {
+      "exportEnabled": false,
+      "generationStrategy": "BRUTE_FORCE",
+      "catalogWriteMode": "COUNT_ONLY",
+      "includeSingles": false,
+      "maxSagaSetSize": 4,
+      "maxCatalogScenarios": 0,
+      "maxInputVariantsPerSaga": 2147483647,
+      "maxSchedulesPerInputTuple": 0,
+      "allowTypeOnlyFallback": true,
+      "inputPolicy": "RESOLVED_OR_REPLAYABLE",
+      "scheduleStrategy": "ORDER_PRESERVING_INTERLEAVING",
+      "deterministicSeed": 1234,
+      "maxGroupedSagaSetRows": 1000000,
+      "maxEventConsequencesPerWorkload": 3
+    },
+    "inputNormalization": {
+      "inputVariantsSeen": 909,
+      "inputVariantsAccepted": 819,
+      "inputVariantsDeduplicated": 0,
+      "inputVariantsExcludedByPolicy": 4,
+      "inputVariantsRejectedBySourceMode": 86,
+      "inputVariantsCapped": 0,
+      "inputSagasWithInputs": 37
+    },
+    "totals": [
+      {
+        "sagaTypes": 2,
+        "status": "COMPLETE",
+        "countedSets": 666,
+        "incompleteSets": 0,
+        "workloads": 21004894,
+        "faultScenarios": 2705719309
+      },
+      {
+        "sagaTypes": 3,
+        "status": "COMPLETE",
+        "countedSets": 7770,
+        "incompleteSets": 0,
+        "workloads": 5197269339786,
+        "faultScenarios": 128105176663158760
+      },
+      {
+        "sagaTypes": 4,
+        "status": "COMPLETE",
+        "countedSets": 66045,
+        "incompleteSets": 0,
+        "workloads": 4635657405981397848,
+        "faultScenarios": 57329019050814087908750514
+      }
+    ],
+    "cachedStructures": 18069
+  },
+  "pruned-final": {
+    "scope": "Structural candidates; canonical no-fault/first-fault choices; supported event selections and recovery; not runtime executability",
+    "config": {
+      "exportEnabled": false,
+      "generationStrategy": "INTERACTION_PRUNED",
+      "catalogWriteMode": "COUNT_ONLY",
+      "includeSingles": false,
+      "maxSagaSetSize": 4,
+      "maxCatalogScenarios": 0,
+      "maxInputVariantsPerSaga": 2147483647,
+      "maxSchedulesPerInputTuple": 0,
+      "allowTypeOnlyFallback": true,
+      "inputPolicy": "RESOLVED_OR_REPLAYABLE",
+      "scheduleStrategy": "ORDER_PRESERVING_INTERLEAVING",
+      "deterministicSeed": 1234,
+      "maxGroupedSagaSetRows": 1000000,
+      "maxEventConsequencesPerWorkload": 3
+    },
+    "inputNormalization": {
+      "inputVariantsSeen": 909,
+      "inputVariantsAccepted": 819,
+      "inputVariantsDeduplicated": 0,
+      "inputVariantsExcludedByPolicy": 4,
+      "inputVariantsRejectedBySourceMode": 86,
+      "inputVariantsCapped": 0,
+      "inputSagasWithInputs": 37
+    },
+    "totals": [
+      {
+        "sagaTypes": 2,
+        "status": "COMPLETE",
+        "countedSets": 666,
+        "incompleteSets": 0,
+        "workloads": 18029104,
+        "faultScenarios": 2605869896
+      },
+      {
+        "sagaTypes": 3,
+        "status": "COMPLETE",
+        "countedSets": 7770,
+        "incompleteSets": 0,
+        "workloads": 5135260779236,
+        "faultScenarios": 128047132345883708
+      },
+      {
+        "sagaTypes": 4,
+        "status": "COMPLETE",
+        "countedSets": 66045,
+        "incompleteSets": 0,
+        "workloads": 4624962392952718272,
+        "faultScenarios": 57327316898095778834599046
+      }
+    ],
+    "cachedStructures": 14861
+  },
+  "compressed-final": {
+    "scope": "Structural candidates; canonical no-fault/first-fault choices; supported event selections and recovery; not runtime executability",
+    "config": {
+      "exportEnabled": false,
+      "generationStrategy": "INTERACTION_PRUNED",
+      "catalogWriteMode": "COUNT_ONLY",
+      "includeSingles": false,
+      "maxSagaSetSize": 4,
+      "maxCatalogScenarios": 0,
+      "maxInputVariantsPerSaga": 2147483647,
+      "maxSchedulesPerInputTuple": 0,
+      "allowTypeOnlyFallback": true,
+      "inputPolicy": "RESOLVED_OR_REPLAYABLE",
+      "scheduleStrategy": "SEGMENT_COMPRESSED",
+      "deterministicSeed": 1234,
+      "maxGroupedSagaSetRows": 1000000,
+      "maxEventConsequencesPerWorkload": 3
+    },
+    "inputNormalization": {
+      "inputVariantsSeen": 909,
+      "inputVariantsAccepted": 819,
+      "inputVariantsDeduplicated": 0,
+      "inputVariantsExcludedByPolicy": 4,
+      "inputVariantsRejectedBySourceMode": 86,
+      "inputVariantsCapped": 0,
+      "inputSagasWithInputs": 37
+    },
+    "totals": [
+      {
+        "sagaTypes": 2,
+        "status": "COMPLETE",
+        "countedSets": 666,
+        "incompleteSets": 0,
+        "workloads": 5576751,
+        "faultScenarios": 554608026
+      },
+      {
+        "sagaTypes": 3,
+        "status": "COMPLETE",
+        "countedSets": 7770,
+        "incompleteSets": 0,
+        "workloads": 1196374861913,
+        "faultScenarios": 26262486293964824
+      },
+      {
+        "sagaTypes": 4,
+        "status": "COMPLETE",
+        "countedSets": 66045,
+        "incompleteSets": 0,
+        "workloads": 1577285295120527798,
+        "faultScenarios": 16730121248948800436260989
+      }
+    ],
+    "cachedStructures": 34264
+  }
+}

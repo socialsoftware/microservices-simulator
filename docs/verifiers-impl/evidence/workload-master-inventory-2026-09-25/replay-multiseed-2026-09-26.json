@@ -1,0 +1,2837 @@
+{
+  "status": "COMPLETE",
+  "scope": "Exploratory frozen historical replay, not common-runtime live paper validation",
+  "workloads": 172,
+  "families": 87,
+  "scenarios": 16280,
+  "runs": 210,
+  "choices": 1680000,
+  "protocol": {
+    "seeds": [
+      1,
+      11,
+      29,
+      47,
+      73
+    ],
+    "budget": 8000,
+    "profiles": [
+      "all-five",
+      "DELETED_DEPENDENCY",
+      "FAILED_OPERATION_RESIDUAL",
+      "UNRESOLVED_DELIVERED_EVENT",
+      "COMPENSATED_READ_EXPOSURE",
+      "LOST_COPIED_UPDATE"
+    ],
+    "arms": [
+      "uniform",
+      "P-shared",
+      "S-cal",
+      "SP-cal",
+      "P-local",
+      "H0",
+      "H1-cal"
+    ],
+    "totalRuns": 210,
+    "inputSha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe",
+    "runnerSourceHashes": {
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/finite_matvec.c": "3814086a88699ac436453549d1266221461bc82c219013d5a7e791d6dac687a8",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32"
+    },
+    "kernelReceiptSha256": "d5c9479c7ae85026e6cdf2baaeb196f1d3acfc3bda3fbf226c6ce00e6ec4e24d"
+  },
+  "catalogue": {
+    "all-five": {
+      "candidates": 16280,
+      "positiveScenarios": 10888,
+      "negativeScenarios": 4004,
+      "unavailableScore": 1388,
+      "totalAvailableScore": 24610.0
+    },
+    "DELETED_DEPENDENCY": {
+      "candidates": 16280,
+      "positiveScenarios": 4105,
+      "negativeScenarios": 11704,
+      "unavailableScore": 471,
+      "totalAvailableScore": 4110.0
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "candidates": 16280,
+      "positiveScenarios": 11149,
+      "negativeScenarios": 4364,
+      "unavailableScore": 767,
+      "totalAvailableScore": 14296.0
+    },
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "candidates": 16280,
+      "positiveScenarios": 3,
+      "negativeScenarios": 15806,
+      "unavailableScore": 471,
+      "totalAvailableScore": 3.0
+    },
+    "COMPENSATED_READ_EXPOSURE": {
+      "candidates": 16280,
+      "positiveScenarios": 4571,
+      "negativeScenarios": 11124,
+      "unavailableScore": 585,
+      "totalAvailableScore": 6782.0
+    },
+    "LOST_COPIED_UPDATE": {
+      "candidates": 16280,
+      "positiveScenarios": 24,
+      "negativeScenarios": 15266,
+      "unavailableScore": 990,
+      "totalAvailableScore": 24.0
+    }
+  },
+  "summary": {
+    "all-five": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 4611,
+          "min": 4602,
+          "max": 4628,
+          "sd": 11.0
+        },
+        "cumulativeScore": {
+          "mean": 10117.4,
+          "min": 10070.0,
+          "max": 10182.0,
+          "sd": 45.790828776076985
+        },
+        "unavailableScore": {
+          "mean": 772.6,
+          "min": 759,
+          "max": 787,
+          "sd": 10.502380682492898
+        },
+        "positiveWorkloads": {
+          "mean": 60,
+          "min": 60,
+          "max": 60,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 25,
+          "min": 25,
+          "max": 25,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 6045,
+          "min": 5713,
+          "max": 6199,
+          "sd": 190.9725111108926
+        },
+        "cumulativeScore": {
+          "mean": 12430.0,
+          "min": 10901.0,
+          "max": 13259.0,
+          "sd": 893.0990986447136
+        },
+        "unavailableScore": {
+          "mean": 390.4,
+          "min": 297,
+          "max": 624,
+          "sd": 134.5968053112703
+        },
+        "positiveWorkloads": {
+          "mean": 19.4,
+          "min": 15,
+          "max": 26,
+          "sd": 4.39317652729776
+        },
+        "positiveFamilies": {
+          "mean": 11.4,
+          "min": 9,
+          "max": 14,
+          "sd": 2.073644135332772
+        },
+        "visitedWorkloads": {
+          "mean": 108.4,
+          "min": 67,
+          "max": 168,
+          "sd": 53.54717546239017
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2312.6,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 6252.2,
+          "min": 6033,
+          "max": 6394,
+          "sd": 140.82684403195293
+        },
+        "cumulativeScore": {
+          "mean": 13479.6,
+          "min": 12473.0,
+          "max": 14069.0,
+          "sd": 609.0786484519056
+        },
+        "unavailableScore": {
+          "mean": 382.6,
+          "min": 321,
+          "max": 453,
+          "sd": 58.31209137048679
+        },
+        "positiveWorkloads": {
+          "mean": 11.4,
+          "min": 7,
+          "max": 17,
+          "sd": 4.03732584763727
+        },
+        "positiveFamilies": {
+          "mean": 8,
+          "min": 5,
+          "max": 11,
+          "sd": 2.5495097567963922
+        },
+        "visitedWorkloads": {
+          "mean": 51.2,
+          "min": 22,
+          "max": 75,
+          "sd": 25.232915011944222
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 3362.2,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 6204.6,
+          "min": 5960,
+          "max": 6399,
+          "sd": 162.55245307284662
+        },
+        "cumulativeScore": {
+          "mean": 16159.0,
+          "min": 12545.0,
+          "max": 18616.0,
+          "sd": 3018.933172496536
+        },
+        "unavailableScore": {
+          "mean": 641.2,
+          "min": 393,
+          "max": 811,
+          "sd": 161.08134590945036
+        },
+        "positiveWorkloads": {
+          "mean": 17.6,
+          "min": 7,
+          "max": 31,
+          "sd": 10.714476188783099
+        },
+        "positiveFamilies": {
+          "mean": 10.4,
+          "min": 5,
+          "max": 18,
+          "sd": 5.412947441089743
+        },
+        "visitedWorkloads": {
+          "mean": 93.6,
+          "min": 20,
+          "max": 172,
+          "sd": 72.35191773546849
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 6041.6,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 6096.8,
+          "min": 6040,
+          "max": 6139,
+          "sd": 39.14971264262357
+        },
+        "cumulativeScore": {
+          "mean": 16739.4,
+          "min": 15538.0,
+          "max": 17637.0,
+          "sd": 1077.4663799859372
+        },
+        "unavailableScore": {
+          "mean": 625.8,
+          "min": 510,
+          "max": 691,
+          "sd": 71.48216560793328
+        },
+        "positiveWorkloads": {
+          "mean": 38,
+          "min": 34,
+          "max": 41,
+          "sd": 2.5495097567963922
+        },
+        "positiveFamilies": {
+          "mean": 18,
+          "min": 16,
+          "max": 20,
+          "sd": 1.5811388300841898
+        },
+        "visitedWorkloads": {
+          "mean": 168.4,
+          "min": 166,
+          "max": 172,
+          "sd": 3.286335345030997
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 6622.0,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 6111.2,
+          "min": 6051,
+          "max": 6146,
+          "sd": 39.53100049328375
+        },
+        "cumulativeScore": {
+          "mean": 17116.4,
+          "min": 15904.0,
+          "max": 17837.0,
+          "sd": 945.9943445919748
+        },
+        "unavailableScore": {
+          "mean": 656.2,
+          "min": 539,
+          "max": 713,
+          "sd": 68.06394052653725
+        },
+        "positiveWorkloads": {
+          "mean": 38.4,
+          "min": 34,
+          "max": 41,
+          "sd": 2.701851217221259
+        },
+        "positiveFamilies": {
+          "mean": 18,
+          "min": 16,
+          "max": 20,
+          "sd": 1.5811388300841898
+        },
+        "visitedWorkloads": {
+          "mean": 169.6,
+          "min": 166,
+          "max": 172,
+          "sd": 3.286335345030997
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 6999.0,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 6113,
+          "min": 5993,
+          "max": 6291,
+          "sd": 116.1895003862225
+        },
+        "cumulativeScore": {
+          "mean": 16236.0,
+          "min": 12846.0,
+          "max": 18257.0,
+          "sd": 2363.8778521742615
+        },
+        "unavailableScore": {
+          "mean": 626.2,
+          "min": 397,
+          "max": 809,
+          "sd": 156.93533700221886
+        },
+        "positiveWorkloads": {
+          "mean": 35,
+          "min": 20,
+          "max": 41,
+          "sd": 8.602325267042627
+        },
+        "positiveFamilies": {
+          "mean": 16,
+          "min": 10,
+          "max": 19,
+          "sd": 3.5355339059327378
+        },
+        "visitedWorkloads": {
+          "mean": 139.2,
+          "min": 84,
+          "max": 172,
+          "sd": 38.648415232710384
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 6118.6,
+          "wins": 5,
+          "ties": 0
+        }
+      }
+    },
+    "DELETED_DEPENDENCY": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 1783.6,
+          "min": 1740,
+          "max": 1831,
+          "sd": 36.61010789385904
+        },
+        "cumulativeScore": {
+          "mean": 1788.6,
+          "min": 1745.0,
+          "max": 1836.0,
+          "sd": 36.61010789385904
+        },
+        "unavailableScore": {
+          "mean": 122.8,
+          "min": 106,
+          "max": 134,
+          "sd": 11.861703081766969
+        },
+        "positiveWorkloads": {
+          "mean": 22,
+          "min": 22,
+          "max": 22,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 3093.8,
+          "min": 2046,
+          "max": 3451,
+          "sd": 588.3461566119048
+        },
+        "cumulativeScore": {
+          "mean": 3098.0,
+          "min": 2051.0,
+          "max": 3454.0,
+          "sd": 587.8515969188142
+        },
+        "unavailableScore": {
+          "mean": 319.8,
+          "min": 230,
+          "max": 367,
+          "sd": 52.513807708068555
+        },
+        "positiveWorkloads": {
+          "mean": 17.6,
+          "min": 11,
+          "max": 22,
+          "sd": 4.560701700396552
+        },
+        "positiveFamilies": {
+          "mean": 8.6,
+          "min": 7,
+          "max": 9,
+          "sd": 0.8944271909999159
+        },
+        "visitedWorkloads": {
+          "mean": 170.8,
+          "min": 166,
+          "max": 172,
+          "sd": 2.6832815729997477
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1309.4,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 1399.2,
+          "min": 1392,
+          "max": 1410,
+          "sd": 7.328028384224504
+        },
+        "cumulativeScore": {
+          "mean": 1404.2,
+          "min": 1397.0,
+          "max": 1415.0,
+          "sd": 7.328028384224504
+        },
+        "unavailableScore": {
+          "mean": 120,
+          "min": 109,
+          "max": 126,
+          "sd": 6.48074069840786
+        },
+        "positiveWorkloads": {
+          "mean": 21,
+          "min": 21,
+          "max": 21,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 159.6,
+          "min": 159,
+          "max": 160,
+          "sd": 0.5477225575051661
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": -384.4,
+          "wins": 0,
+          "ties": 0
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 3113.6,
+          "min": 2718,
+          "max": 3361,
+          "sd": 263.59305757170466
+        },
+        "cumulativeScore": {
+          "mean": 3118.6,
+          "min": 2723.0,
+          "max": 3366.0,
+          "sd": 263.59305757170466
+        },
+        "unavailableScore": {
+          "mean": 314.8,
+          "min": 284,
+          "max": 352,
+          "sd": 28.22587465429548
+        },
+        "positiveWorkloads": {
+          "mean": 22,
+          "min": 22,
+          "max": 22,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 140.6,
+          "min": 122,
+          "max": 169,
+          "sd": 17.329166165744965
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1330.0,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 3310,
+          "min": 3288,
+          "max": 3336,
+          "sd": 22.66053838724932
+        },
+        "cumulativeScore": {
+          "mean": 3315.0,
+          "min": 3293.0,
+          "max": 3341.0,
+          "sd": 22.66053838724932
+        },
+        "unavailableScore": {
+          "mean": 321.8,
+          "min": 311,
+          "max": 332,
+          "sd": 8.927485648266257
+        },
+        "positiveWorkloads": {
+          "mean": 21.2,
+          "min": 21,
+          "max": 22,
+          "sd": 0.4472135954999579
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1526.4,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 3302.2,
+          "min": 3277,
+          "max": 3332,
+          "sd": 23.889328161335975
+        },
+        "cumulativeScore": {
+          "mean": 3307.2,
+          "min": 3282.0,
+          "max": 3337.0,
+          "sd": 23.889328161335975
+        },
+        "unavailableScore": {
+          "mean": 321.2,
+          "min": 311,
+          "max": 332,
+          "sd": 8.899438184514796
+        },
+        "positiveWorkloads": {
+          "mean": 21.2,
+          "min": 21,
+          "max": 22,
+          "sd": 0.4472135954999579
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1518.6,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 3364,
+          "min": 3339,
+          "max": 3378,
+          "sd": 16.62828914831589
+        },
+        "cumulativeScore": {
+          "mean": 3369.0,
+          "min": 3344.0,
+          "max": 3383.0,
+          "sd": 16.62828914831589
+        },
+        "unavailableScore": {
+          "mean": 333,
+          "min": 320,
+          "max": 345,
+          "sd": 9.539392014169456
+        },
+        "positiveWorkloads": {
+          "mean": 21,
+          "min": 20,
+          "max": 22,
+          "sd": 0.7071067811865476
+        },
+        "positiveFamilies": {
+          "mean": 9,
+          "min": 9,
+          "max": 9,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1580.4,
+          "wins": 5,
+          "ties": 0
+        }
+      }
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 4832.6,
+          "min": 4811,
+          "max": 4852,
+          "sd": 15.883954167649817
+        },
+        "cumulativeScore": {
+          "mean": 6217.4,
+          "min": 6191.0,
+          "max": 6230.0,
+          "sd": 15.993748778819805
+        },
+        "unavailableScore": {
+          "mean": 214.4,
+          "min": 204,
+          "max": 220,
+          "sd": 6.188699378706321
+        },
+        "positiveWorkloads": {
+          "mean": 56,
+          "min": 56,
+          "max": 56,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 23,
+          "min": 23,
+          "max": 23,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 6104.4,
+          "min": 5855,
+          "max": 6201,
+          "sd": 140.82187330098972
+        },
+        "cumulativeScore": {
+          "mean": 7543.6,
+          "min": 7123.0,
+          "max": 7683.0,
+          "sd": 235.95719950872447
+        },
+        "unavailableScore": {
+          "mean": 276.2,
+          "min": 250,
+          "max": 355,
+          "sd": 44.578021490416106
+        },
+        "positiveWorkloads": {
+          "mean": 17.8,
+          "min": 16,
+          "max": 21,
+          "sd": 2.04939015319192
+        },
+        "positiveFamilies": {
+          "mean": 10.8,
+          "min": 9,
+          "max": 12,
+          "sd": 1.3038404810405297
+        },
+        "visitedWorkloads": {
+          "mean": 97,
+          "min": 68,
+          "max": 166,
+          "sd": 43.347433603386484
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1326.2,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 6364.2,
+          "min": 6252,
+          "max": 6437,
+          "sd": 89.15548216458706
+        },
+        "cumulativeScore": {
+          "mean": 8065.2,
+          "min": 7804.0,
+          "max": 8228.0,
+          "sd": 189.45368827235853
+        },
+        "unavailableScore": {
+          "mean": 278.8,
+          "min": 268,
+          "max": 287,
+          "sd": 7.918333157931661
+        },
+        "positiveWorkloads": {
+          "mean": 10.6,
+          "min": 8,
+          "max": 14,
+          "sd": 2.792848008753788
+        },
+        "positiveFamilies": {
+          "mean": 8.4,
+          "min": 6,
+          "max": 12,
+          "sd": 2.6076809620810595
+        },
+        "visitedWorkloads": {
+          "mean": 52,
+          "min": 23,
+          "max": 86,
+          "sd": 27.358728040608906
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 1847.8,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 6465.2,
+          "min": 6395,
+          "max": 6510,
+          "sd": 47.808994969566136
+        },
+        "cumulativeScore": {
+          "mean": 9035.0,
+          "min": 8518.0,
+          "max": 9408.0,
+          "sd": 384.59459174564586
+        },
+        "unavailableScore": {
+          "mean": 472.8,
+          "min": 321,
+          "max": 567,
+          "sd": 113.5394204670783
+        },
+        "positiveWorkloads": {
+          "mean": 13.4,
+          "min": 8,
+          "max": 17,
+          "sd": 3.7815340802378072
+        },
+        "positiveFamilies": {
+          "mean": 9.2,
+          "min": 6,
+          "max": 11,
+          "sd": 1.9235384061671346
+        },
+        "visitedWorkloads": {
+          "mean": 48,
+          "min": 20,
+          "max": 96,
+          "sd": 29.80771712157776
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2817.6,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 6263.4,
+          "min": 6228,
+          "max": 6306,
+          "sd": 31.301757139176708
+        },
+        "cumulativeScore": {
+          "mean": 8847.6,
+          "min": 8181.0,
+          "max": 9089.0,
+          "sd": 375.8354693213508
+        },
+        "unavailableScore": {
+          "mean": 477.8,
+          "min": 313,
+          "max": 540,
+          "sd": 93.03601453200798
+        },
+        "positiveWorkloads": {
+          "mean": 36.4,
+          "min": 34,
+          "max": 39,
+          "sd": 1.949358868961793
+        },
+        "positiveFamilies": {
+          "mean": 17.8,
+          "min": 16,
+          "max": 19,
+          "sd": 1.3038404810405297
+        },
+        "visitedWorkloads": {
+          "mean": 167.2,
+          "min": 166,
+          "max": 172,
+          "sd": 2.6832815729997477
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2630.2,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 6263,
+          "min": 6237,
+          "max": 6304,
+          "sd": 26.59887215654077
+        },
+        "cumulativeScore": {
+          "mean": 8901.4,
+          "min": 8267.0,
+          "max": 9091.0,
+          "sd": 355.09829625048894
+        },
+        "unavailableScore": {
+          "mean": 498.2,
+          "min": 324,
+          "max": 571,
+          "sd": 99.44948466432594
+        },
+        "positiveWorkloads": {
+          "mean": 36.8,
+          "min": 34,
+          "max": 40,
+          "sd": 2.3874672772626644
+        },
+        "positiveFamilies": {
+          "mean": 17.8,
+          "min": 16,
+          "max": 19,
+          "sd": 1.3038404810405297
+        },
+        "visitedWorkloads": {
+          "mean": 168.4,
+          "min": 166,
+          "max": 172,
+          "sd": 3.286335345030997
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2684.0,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 6328,
+          "min": 6073,
+          "max": 6433,
+          "sd": 145.32377644418685
+        },
+        "cumulativeScore": {
+          "mean": 8901.6,
+          "min": 7555.0,
+          "max": 9305.0,
+          "sd": 754.7696999747671
+        },
+        "unavailableScore": {
+          "mean": 499,
+          "min": 253,
+          "max": 605,
+          "sd": 141.11520116557253
+        },
+        "positiveWorkloads": {
+          "mean": 29.2,
+          "min": 17,
+          "max": 40,
+          "sd": 9.934787365615835
+        },
+        "positiveFamilies": {
+          "mean": 14.4,
+          "min": 8,
+          "max": 19,
+          "sd": 4.722287581247038
+        },
+        "visitedWorkloads": {
+          "mean": 117.6,
+          "min": 75,
+          "max": 172,
+          "sd": 39.97249054037039
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2684.2,
+          "wins": 5,
+          "ties": 0
+        }
+      }
+    },
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 132.4,
+          "min": 128,
+          "max": 143,
+          "sd": 6.107372593840988
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 155.8,
+          "min": 110,
+          "max": 233,
+          "sd": 49.165028221287535
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 59,
+          "min": 55,
+          "max": 63,
+          "sd": 2.9154759474226504
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 171,
+          "min": 171,
+          "max": 171,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 102.8,
+          "min": 42,
+          "max": 161,
+          "sd": 42.938327866837106
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 137,
+          "min": 132,
+          "max": 152,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 137,
+          "min": 132,
+          "max": 152,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 3.0,
+          "min": 3.0,
+          "max": 3.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 137,
+          "min": 132,
+          "max": 152,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      }
+    },
+    "COMPENSATED_READ_EXPOSURE": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 1704.6,
+          "min": 1678,
+          "max": 1756,
+          "sd": 32.50846043724618
+        },
+        "cumulativeScore": {
+          "mean": 2566.0,
+          "min": 2507.0,
+          "max": 2644.0,
+          "sd": 53.3151010502653
+        },
+        "unavailableScore": {
+          "mean": 166.6,
+          "min": 153,
+          "max": 181,
+          "sd": 10.89954127475097
+        },
+        "positiveWorkloads": {
+          "mean": 11,
+          "min": 11,
+          "max": 11,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 3038.2,
+          "min": 1961,
+          "max": 3888,
+          "sd": 989.4077521426644
+        },
+        "cumulativeScore": {
+          "mean": 4702.8,
+          "min": 3255.0,
+          "max": 5951.0,
+          "sd": 1333.0900944797393
+        },
+        "unavailableScore": {
+          "mean": 376.8,
+          "min": 261,
+          "max": 466,
+          "sd": 105.08425191245357
+        },
+        "positiveWorkloads": {
+          "mean": 6.6,
+          "min": 3,
+          "max": 10,
+          "sd": 2.8809720581775866
+        },
+        "positiveFamilies": {
+          "mean": 3.4,
+          "min": 2,
+          "max": 4,
+          "sd": 0.8944271909999159
+        },
+        "visitedWorkloads": {
+          "mean": 170.8,
+          "min": 166,
+          "max": 172,
+          "sd": 2.6832815729997477
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2136.8,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 595.4,
+          "min": 579,
+          "max": 607,
+          "sd": 10.99090533122727
+        },
+        "cumulativeScore": {
+          "mean": 928.4,
+          "min": 890.0,
+          "max": 948.0,
+          "sd": 24.744696401451364
+        },
+        "unavailableScore": {
+          "mean": 67.8,
+          "min": 61,
+          "max": 72,
+          "sd": 5.019960159204453
+        },
+        "positiveWorkloads": {
+          "mean": 10,
+          "min": 10,
+          "max": 10,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 171,
+          "min": 171,
+          "max": 171,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": -1637.6,
+          "wins": 0,
+          "ties": 0
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 2900.4,
+          "min": 1921,
+          "max": 3702,
+          "sd": 895.256555407443
+        },
+        "cumulativeScore": {
+          "mean": 4579.4,
+          "min": 3215.0,
+          "max": 5691.0,
+          "sd": 1250.2189008329701
+        },
+        "unavailableScore": {
+          "mean": 356.4,
+          "min": 262,
+          "max": 459,
+          "sd": 90.74028873659154
+        },
+        "positiveWorkloads": {
+          "mean": 5.6,
+          "min": 2,
+          "max": 9,
+          "sd": 2.8809720581775866
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 1,
+          "max": 4,
+          "sd": 1.224744871391589
+        },
+        "visitedWorkloads": {
+          "mean": 160.8,
+          "min": 144,
+          "max": 172,
+          "sd": 14.463747785411636
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 2013.4,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 3724.8,
+          "min": 3540,
+          "max": 3780,
+          "sd": 103.67111458839439
+        },
+        "cumulativeScore": {
+          "mean": 5704.4,
+          "min": 5459.0,
+          "max": 5789.0,
+          "sd": 138.4947652440337
+        },
+        "unavailableScore": {
+          "mean": 445,
+          "min": 414,
+          "max": 460,
+          "sd": 17.86057109949175
+        },
+        "positiveWorkloads": {
+          "mean": 6,
+          "min": 5,
+          "max": 7,
+          "sd": 1.0
+        },
+        "positiveFamilies": {
+          "mean": 3.8,
+          "min": 3,
+          "max": 4,
+          "sd": 0.4472135954999579
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 3138.4,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 3725,
+          "min": 3540,
+          "max": 3782,
+          "sd": 103.86529738079028
+        },
+        "cumulativeScore": {
+          "mean": 5704.6,
+          "min": 5459.0,
+          "max": 5792.0,
+          "sd": 138.81030221132724
+        },
+        "unavailableScore": {
+          "mean": 444.8,
+          "min": 414,
+          "max": 460,
+          "sd": 17.81010948871455
+        },
+        "positiveWorkloads": {
+          "mean": 6,
+          "min": 5,
+          "max": 7,
+          "sd": 1.0
+        },
+        "positiveFamilies": {
+          "mean": 3.8,
+          "min": 3,
+          "max": 4,
+          "sd": 0.4472135954999579
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 3138.6,
+          "wins": 5,
+          "ties": 0
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 3759.8,
+          "min": 3566,
+          "max": 3832,
+          "sd": 112.26397463122353
+        },
+        "cumulativeScore": {
+          "mean": 5724.6,
+          "min": 5488.0,
+          "max": 5844.0,
+          "sd": 147.62045928664494
+        },
+        "unavailableScore": {
+          "mean": 451.8,
+          "min": 414,
+          "max": 472,
+          "sd": 22.807893370497855
+        },
+        "positiveWorkloads": {
+          "mean": 5.6,
+          "min": 3,
+          "max": 7,
+          "sd": 1.6733200530681511
+        },
+        "positiveFamilies": {
+          "mean": 3.4,
+          "min": 2,
+          "max": 4,
+          "sd": 0.8944271909999159
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 3158.6,
+          "wins": 5,
+          "ties": 0
+        }
+      }
+    },
+    "LOST_COPIED_UPDATE": {
+      "uniform": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 651.4,
+          "min": 647,
+          "max": 662,
+          "sd": 6.107372593840988
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-shared": {
+        "positiveScenarios": {
+          "mean": 22.4,
+          "min": 20,
+          "max": 24,
+          "sd": 2.1908902300206643
+        },
+        "cumulativeScore": {
+          "mean": 22.4,
+          "min": 20.0,
+          "max": 24.0,
+          "sd": 2.1908902300206643
+        },
+        "unavailableScore": {
+          "mean": 632,
+          "min": 574,
+          "max": 753,
+          "sd": 69.58807369082723
+        },
+        "positiveWorkloads": {
+          "mean": 3.6,
+          "min": 3,
+          "max": 4,
+          "sd": 0.5477225575051661
+        },
+        "positiveFamilies": {
+          "mean": 2.6,
+          "min": 2,
+          "max": 3,
+          "sd": 0.5477225575051661
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": -1.6,
+          "wins": 0,
+          "ties": 3
+        }
+      },
+      "S-cal": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 578,
+          "min": 574,
+          "max": 582,
+          "sd": 2.9154759474226504
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 171,
+          "min": 171,
+          "max": 171,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "SP-cal": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 629,
+          "min": 609,
+          "max": 656,
+          "sd": 18.289341158171883
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "P-local": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 656,
+          "min": 651,
+          "max": 671,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "H0": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 656,
+          "min": 651,
+          "max": 671,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      },
+      "H1-cal": {
+        "positiveScenarios": {
+          "mean": 24,
+          "min": 24,
+          "max": 24,
+          "sd": 0.0
+        },
+        "cumulativeScore": {
+          "mean": 24.0,
+          "min": 24.0,
+          "max": 24.0,
+          "sd": 0.0
+        },
+        "unavailableScore": {
+          "mean": 656,
+          "min": 651,
+          "max": 671,
+          "sd": 8.48528137423857
+        },
+        "positiveWorkloads": {
+          "mean": 4,
+          "min": 4,
+          "max": 4,
+          "sd": 0.0
+        },
+        "positiveFamilies": {
+          "mean": 3,
+          "min": 3,
+          "max": 3,
+          "sd": 0.0
+        },
+        "visitedWorkloads": {
+          "mean": 172,
+          "min": 172,
+          "max": 172,
+          "sd": 0.0
+        },
+        "pairedScoreVsUniform": {
+          "meanDelta": 0.0,
+          "wins": 0,
+          "ties": 5
+        }
+      }
+    }
+  },
+  "rareCriterionDiscovery": {
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "uniform": {
+        "allPositiveAtBySeed": {
+          "1": 770,
+          "11": 718,
+          "29": 754,
+          "47": 345,
+          "73": 1003
+        },
+        "firstPositiveAtBySeed": {
+          "1": 113,
+          "11": 257,
+          "29": 203,
+          "47": 227,
+          "73": 100
+        }
+      },
+      "P-shared": {
+        "allPositiveAtBySeed": {
+          "1": 575,
+          "11": 1401,
+          "29": 696,
+          "47": 490,
+          "73": 492
+        },
+        "firstPositiveAtBySeed": {
+          "1": 50,
+          "11": 465,
+          "29": 450,
+          "47": 337,
+          "73": 342
+        }
+      },
+      "S-cal": {
+        "allPositiveAtBySeed": {
+          "1": 251,
+          "11": 368,
+          "29": 188,
+          "47": 172,
+          "73": 251
+        },
+        "firstPositiveAtBySeed": {
+          "1": 26,
+          "11": 170,
+          "29": 75,
+          "47": 119,
+          "73": 171
+        }
+      },
+      "SP-cal": {
+        "allPositiveAtBySeed": {
+          "1": 179,
+          "11": 338,
+          "29": 181,
+          "47": 141,
+          "73": 221
+        },
+        "firstPositiveAtBySeed": {
+          "1": 29,
+          "11": 178,
+          "29": 90,
+          "47": 120,
+          "73": 180
+        }
+      },
+      "P-local": {
+        "allPositiveAtBySeed": {
+          "1": 636,
+          "11": 923,
+          "29": 583,
+          "47": 372,
+          "73": 634
+        },
+        "firstPositiveAtBySeed": {
+          "1": 47,
+          "11": 345,
+          "29": 343,
+          "47": 206,
+          "73": 346
+        }
+      },
+      "H0": {
+        "allPositiveAtBySeed": {
+          "1": 636,
+          "11": 923,
+          "29": 583,
+          "47": 372,
+          "73": 634
+        },
+        "firstPositiveAtBySeed": {
+          "1": 47,
+          "11": 345,
+          "29": 343,
+          "47": 206,
+          "73": 346
+        }
+      },
+      "H1-cal": {
+        "allPositiveAtBySeed": {
+          "1": 635,
+          "11": 866,
+          "29": 500,
+          "47": 351,
+          "73": 634
+        },
+        "firstPositiveAtBySeed": {
+          "1": 24,
+          "11": 150,
+          "29": 149,
+          "47": 100,
+          "73": 150
+        }
+      }
+    },
+    "LOST_COPIED_UPDATE": {
+      "uniform": {
+        "allPositiveAtBySeed": {
+          "1": 3751,
+          "11": 3295,
+          "29": 4190,
+          "47": 3651,
+          "73": 3777
+        },
+        "firstPositiveAtBySeed": {
+          "1": 192,
+          "11": 139,
+          "29": 553,
+          "47": 770,
+          "73": 136
+        }
+      },
+      "P-shared": {
+        "allPositiveAtBySeed": {
+          "1": 6692,
+          "11": 4699,
+          "29": null,
+          "47": 6436,
+          "73": null
+        },
+        "firstPositiveAtBySeed": {
+          "1": 176,
+          "11": 1064,
+          "29": 173,
+          "47": 608,
+          "73": 595
+        }
+      },
+      "S-cal": {
+        "allPositiveAtBySeed": {
+          "1": 3018,
+          "11": 2945,
+          "29": 3008,
+          "47": 2924,
+          "73": 2927
+        },
+        "firstPositiveAtBySeed": {
+          "1": 1310,
+          "11": 1355,
+          "29": 1548,
+          "47": 1804,
+          "73": 1697
+        }
+      },
+      "SP-cal": {
+        "allPositiveAtBySeed": {
+          "1": 3055,
+          "11": 2728,
+          "29": 2505,
+          "47": 2623,
+          "73": 2908
+        },
+        "firstPositiveAtBySeed": {
+          "1": 1307,
+          "11": 1352,
+          "29": 1389,
+          "47": 913,
+          "73": 760
+        }
+      },
+      "P-local": {
+        "allPositiveAtBySeed": {
+          "1": 2693,
+          "11": 2972,
+          "29": 3330,
+          "47": 2719,
+          "73": 3257
+        },
+        "firstPositiveAtBySeed": {
+          "1": 124,
+          "11": 728,
+          "29": 114,
+          "47": 235,
+          "73": 319
+        }
+      },
+      "H0": {
+        "allPositiveAtBySeed": {
+          "1": 2693,
+          "11": 2972,
+          "29": 3330,
+          "47": 2719,
+          "73": 3257
+        },
+        "firstPositiveAtBySeed": {
+          "1": 124,
+          "11": 728,
+          "29": 114,
+          "47": 235,
+          "73": 319
+        }
+      },
+      "H1-cal": {
+        "allPositiveAtBySeed": {
+          "1": 2713,
+          "11": 2903,
+          "29": 3204,
+          "47": 2654,
+          "73": 3278
+        },
+        "firstPositiveAtBySeed": {
+          "1": 330,
+          "11": 781,
+          "29": 376,
+          "47": 369,
+          "73": 449
+        }
+      }
+    }
+  },
+  "checks": {
+    "matchedColdStarts": true,
+    "matchedLocalGaPrefixes": true,
+    "noRepeatedMeasuredCandidates": true,
+    "allFeedbackReassessed": true,
+    "allProgressReconstructedFromPriorChoices": true
+  },
+  "aggregationSourceSha256": "c479cb599917fb5ff5cba0cb24d642d89105f341b3a6368b162866515d30ea65",
+  "aggregatePath": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-expanded-replay-qualified-2026-09-26/aggregate.json",
+  "aggregateSha256": "62b1caf5e5cb341932986e19fbb36b16e91a817907b1d4854762f73e0ab87f50",
+  "aliasDiagnostic": {
+    "structuralProfileSha256": "38e4c7103786eddb8769f698807ea95fac41b3b050eeb40a5a28082a605f06d9",
+    "workloads": [
+      {
+        "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+        "scenarios": 3360,
+        "positive": 2622,
+        "negative": 708,
+        "unavailable": 30,
+        "totalScore": 2822.0,
+        "scorePerPositive": 1.07627765064836,
+        "criterionPositiveScenarios": {
+          "DELETED_DEPENDENCY": 150,
+          "FAILED_OPERATION_RESIDUAL": 2622,
+          "UNRESOLVED_DELIVERED_EVENT": 0,
+          "COMPENSATED_READ_EXPOSURE": 0,
+          "LOST_COPIED_UPDATE": 0
+        }
+      },
+      {
+        "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "scenarios": 3918,
+        "positive": 3190,
+        "negative": 478,
+        "unavailable": 250,
+        "totalScore": 9516.0,
+        "scorePerPositive": 2.9830721003134797,
+        "criterionPositiveScenarios": {
+          "DELETED_DEPENDENCY": 1782,
+          "FAILED_OPERATION_RESIDUAL": 3222,
+          "UNRESOLVED_DELIVERED_EVENT": 0,
+          "COMPENSATED_READ_EXPOSURE": 1858,
+          "LOST_COPIED_UPDATE": 0
+        }
+      },
+      {
+        "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+        "scenarios": 5184,
+        "positive": 3979,
+        "negative": 657,
+        "unavailable": 548,
+        "totalScore": 10952.0,
+        "scorePerPositive": 2.752450364413169,
+        "criterionPositiveScenarios": {
+          "DELETED_DEPENDENCY": 2090,
+          "FAILED_OPERATION_RESIDUAL": 4047,
+          "UNRESOLVED_DELIVERED_EVENT": 0,
+          "COMPENSATED_READ_EXPOSURE": 2581,
+          "LOST_COPIED_UPDATE": 0
+        }
+      }
+    ],
+    "implication": "S-cal receives identical vectors for these workloads, so exact equal indices are broken by lexicographic workload ID while they remain active.",
+    "sourceHashes": {
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/large-012-v3-reference.json": "aa6dfe538609a7fa4119f5fac6f2277f8d5ef08c555bd7fc904221d5e1ef8dc5",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/midday-analysis/009-join-update-leave-remove-23f9768282/map/reference.json": "25cc318b8dd4a7052a031d4246c1a84ae6e8bba8ccc3d6dd7a9f79696c8e6ea3",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/map/reference.json": "86d5a93dd12df85d7fa2d8ab5db95aa26d3bdf74f4b83ce722aeeee02c0c154b"
+    },
+    "sameParticipantInputSet": true,
+    "sameSetup": true,
+    "scheduleDefinitions": [
+      {
+        "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+        "schedule": [
+          {
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getUserStep#0",
+            "faultSlot": 0
+          },
+          {
+            "id": "s2",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "addParticipantStep#0",
+            "faultSlot": 1
+          },
+          {
+            "id": "s3",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "getOldTournamentStep#0",
+            "faultSlot": 2
+          },
+          {
+            "id": "s4",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getOriginalTournamentStep#0",
+            "faultSlot": 3
+          },
+          {
+            "id": "s5",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getTopicsStep#0",
+            "faultSlot": 4
+          },
+          {
+            "id": "s6",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateTournamentStep#0",
+            "faultSlot": 5
+          },
+          {
+            "id": "s7",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "findQuestionsByTopicIds#0",
+            "faultSlot": 6
+          },
+          {
+            "id": "s8",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateQuizStep#0",
+            "faultSlot": 7
+          },
+          {
+            "id": "s9",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "getTournamentStep#0",
+            "faultSlot": 8
+          },
+          {
+            "id": "s10",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "leaveTournamentStep#0",
+            "faultSlot": 9
+          },
+          {
+            "id": "s11",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeQuizStep#0",
+            "faultSlot": 10
+          },
+          {
+            "id": "s12",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeTournamentStep#0",
+            "faultSlot": 11
+          }
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+            "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+          },
+          {
+            "id": "p2",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+            "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+          },
+          {
+            "id": "p3",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+            "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+          },
+          {
+            "id": "p4",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+          }
+        ]
+      },
+      {
+        "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "schedule": [
+          {
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getUserStep#0",
+            "faultSlot": 0
+          },
+          {
+            "id": "s2",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "addParticipantStep#0",
+            "faultSlot": 1
+          },
+          {
+            "id": "s3",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getOriginalTournamentStep#0",
+            "faultSlot": 2
+          },
+          {
+            "id": "s4",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getTopicsStep#0",
+            "faultSlot": 3
+          },
+          {
+            "id": "s5",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateTournamentStep#0",
+            "faultSlot": 4
+          },
+          {
+            "id": "s6",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "findQuestionsByTopicIds#0",
+            "faultSlot": 5
+          },
+          {
+            "id": "s7",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateQuizStep#0",
+            "faultSlot": 6
+          },
+          {
+            "id": "s8",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "getOldTournamentStep#0",
+            "faultSlot": 7
+          },
+          {
+            "id": "s9",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "getTournamentStep#0",
+            "faultSlot": 8
+          },
+          {
+            "id": "s10",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeQuizStep#0",
+            "faultSlot": 9
+          },
+          {
+            "id": "s11",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "leaveTournamentStep#0",
+            "faultSlot": 10
+          },
+          {
+            "id": "s12",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeTournamentStep#0",
+            "faultSlot": 11
+          }
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+            "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+          },
+          {
+            "id": "p2",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+            "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+          },
+          {
+            "id": "p3",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+            "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+          },
+          {
+            "id": "p4",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+          }
+        ]
+      },
+      {
+        "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+        "schedule": [
+          {
+            "id": "s1",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "getUserStep#0",
+            "faultSlot": 0
+          },
+          {
+            "id": "s2",
+            "kind": "step",
+            "participant": "p1",
+            "sagaStep": "addParticipantStep#0",
+            "faultSlot": 1
+          },
+          {
+            "id": "s3",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getOriginalTournamentStep#0",
+            "faultSlot": 2
+          },
+          {
+            "id": "s4",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "getTopicsStep#0",
+            "faultSlot": 3
+          },
+          {
+            "id": "s5",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateTournamentStep#0",
+            "faultSlot": 4
+          },
+          {
+            "id": "s6",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "findQuestionsByTopicIds#0",
+            "faultSlot": 5
+          },
+          {
+            "id": "s7",
+            "kind": "step",
+            "participant": "p4",
+            "sagaStep": "updateQuizStep#0",
+            "faultSlot": 6
+          },
+          {
+            "id": "s8",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "getOldTournamentStep#0",
+            "faultSlot": 7
+          },
+          {
+            "id": "s9",
+            "kind": "step",
+            "participant": "p2",
+            "sagaStep": "leaveTournamentStep#0",
+            "faultSlot": 8
+          },
+          {
+            "id": "s10",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "getTournamentStep#0",
+            "faultSlot": 9
+          },
+          {
+            "id": "s11",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeQuizStep#0",
+            "faultSlot": 10
+          },
+          {
+            "id": "s12",
+            "kind": "step",
+            "participant": "p3",
+            "sagaStep": "removeTournamentStep#0",
+            "faultSlot": 11
+          }
+        ],
+        "participants": [
+          {
+            "id": "p1",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas",
+            "input": "fbb5911ad96eba2fe675dbaea8fadeb10c528a461150f95ee19d2d947eb963a6"
+          },
+          {
+            "id": "p2",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas",
+            "input": "32b75abc8d07777335db4c82ade4fcac77e6597dc6c93a50dc949d0da4701828"
+          },
+          {
+            "id": "p3",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas",
+            "input": "ff6a7ed7c05994a53bb59d2da9841333af393655e96677f0047f90ef7a2b9ab8"
+          },
+          {
+            "id": "p4",
+            "saga": "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas",
+            "input": "d95c218fcdb2eb50d686743564880e42f60a547d2a683f033d56b6688bbf4bd9"
+          }
+        ]
+      }
+    ]
+  },
+  "tieControls": [
+    {
+      "scope": "Post-hoc selected alias class; one matched seed; not a primary performance arm.",
+      "profile": "all-five",
+      "seed": 1,
+      "budget": 8000,
+      "priority": [
+        "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+        "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d"
+      ],
+      "originalPriority": [
+        "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+        "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+      ],
+      "localGaPrefixesMatched": true,
+      "inputSha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe",
+      "diagnosticSourceSha256": "9de82779b303bbe2b080e22bd3e8b0ff042940b1fe8413b603026c95fbaa64d5",
+      "traceSha256": "2de145ca952c0726184ea6ba724649a09931b6923b89ccd8cedab596fa6d2571",
+      "numericKernelReceiptSha256": "d5c9479c7ae85026e6cdf2baaeb196f1d3acfc3bda3fbf226c6ce00e6ec4e24d",
+      "baseline": {
+        "positives": 6354,
+        "unknowns": 323,
+        "cumulativeScore": 13773.0
+      },
+      "reversedPriority": {
+        "positives": 6270,
+        "unknowns": 737,
+        "cumulativeScore": 18095.0
+      }
+    },
+    {
+      "scope": "Post-hoc selected alias class; one matched seed; not a primary performance arm.",
+      "profile": "DELETED_DEPENDENCY",
+      "seed": 1,
+      "budget": 8000,
+      "priority": [
+        "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+        "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d"
+      ],
+      "originalPriority": [
+        "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+        "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+        "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+      ],
+      "localGaPrefixesMatched": true,
+      "inputSha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe",
+      "diagnosticSourceSha256": "9de82779b303bbe2b080e22bd3e8b0ff042940b1fe8413b603026c95fbaa64d5",
+      "traceSha256": "895f8ed9d42fee3d199cd171e859404d3946062d4f493084a4f7817675f02bef",
+      "numericKernelReceiptSha256": "d5c9479c7ae85026e6cdf2baaeb196f1d3acfc3bda3fbf226c6ce00e6ec4e24d",
+      "baseline": {
+        "positives": 1392,
+        "unknowns": 123,
+        "cumulativeScore": 1397.0
+      },
+      "reversedPriority": {
+        "positives": 3495,
+        "unknowns": 366,
+        "cumulativeScore": 3495.0
+      }
+    }
+  ],
+  "hybridSeed29Episode": {
+    "P-local": {
+      "seed": 29,
+      "profile": "all-five",
+      "cumulativeScore": 15538.0,
+      "efChoices": 1666,
+      "firstEightEfScores": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "firstFourEfDecisionNumbers": [
+        4795,
+        4796,
+        4797,
+        6338
+      ],
+      "firstFourEfChoiceIndices": [
+        {
+          "index": 1.0,
+          "estimate": 0.0,
+          "uncertainty": 1.0
+        },
+        {
+          "index": 2.844243630299759,
+          "estimate": 1.0,
+          "uncertainty": 1.8442436302997591
+        },
+        {
+          "index": 1.2023409971657242,
+          "estimate": 0.3638148667601683,
+          "uncertainty": 0.838526130405556
+        },
+        {
+          "index": 0.9471761851317031,
+          "estimate": 0.25955865716574883,
+          "uncertainty": 0.6876175279659543
+        }
+      ]
+    },
+    "H0": {
+      "seed": 29,
+      "profile": "all-five",
+      "cumulativeScore": 15904.0,
+      "efChoices": 1912,
+      "firstEightEfScores": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "firstFourEfDecisionNumbers": [
+        4587,
+        4588,
+        4589,
+        6092
+      ],
+      "firstFourEfChoiceIndices": [
+        {
+          "index": 1.1506965563321148,
+          "estimate": 0.14551445079914568,
+          "uncertainty": 1.005182105532969
+        },
+        {
+          "index": 2.9224939927369404,
+          "estimate": 1.077549845288851,
+          "uncertainty": 1.8449441474480894
+        },
+        {
+          "index": 1.2305285498722456,
+          "estimate": 0.3917985950991369,
+          "uncertainty": 0.8387299547731087
+        },
+        {
+          "index": 0.9690064942783874,
+          "estimate": 0.28126770783268085,
+          "uncertainty": 0.6877387864457065
+        }
+      ]
+    },
+    "H1-cal": {
+      "seed": 29,
+      "profile": "all-five",
+      "cumulativeScore": 12846.0,
+      "efChoices": 131,
+      "firstEightEfScores": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "firstFourEfDecisionNumbers": [
+        4691,
+        4692,
+        4693,
+        7873
+      ],
+      "firstFourEfChoiceIndices": [
+        {
+          "index": 0.9844397334903945,
+          "estimate": 0.07499775145645593,
+          "uncertainty": 0.9094419820339386
+        },
+        {
+          "index": 2.658522997075548,
+          "estimate": 1.140864507342679,
+          "uncertainty": 1.5176584897328689
+        },
+        {
+          "index": 1.098124424337863,
+          "estimate": 0.41006060749441275,
+          "uncertainty": 0.6880638168434503
+        },
+        {
+          "index": 0.8514500833422789,
+          "estimate": 0.28809893571172185,
+          "uncertainty": 0.563351147630557
+        }
+      ]
+    },
+    "SP-cal": {
+      "seed": 29,
+      "profile": "all-five",
+      "cumulativeScore": 13188.0,
+      "efChoices": 242,
+      "firstEightEfScores": [
+        2.0,
+        0.0,
+        0.0,
+        2.0,
+        2.0,
+        3.0,
+        4.0,
+        5.0
+      ],
+      "firstFourEfDecisionNumbers": [
+        108,
+        295,
+        4310,
+        7762
+      ],
+      "firstFourEfChoiceIndices": [
+        {
+          "index": 1.1763001044849783,
+          "estimate": 0.8414945056501394,
+          "uncertainty": 0.33480559883483885
+        },
+        {
+          "index": 1.18021323559011,
+          "estimate": 0.924599087642546,
+          "uncertainty": 0.25561414794756404
+        },
+        {
+          "index": 0.9058827280197406,
+          "estimate": 0.6903432486916792,
+          "uncertainty": 0.21553947932806136
+        },
+        {
+          "index": 0.25333228349714904,
+          "estimate": 0.044637515539338,
+          "uncertainty": 0.20869476795781103
+        }
+      ]
+    }
+  },
+  "limitations": [
+    "Historical observations span different measurement/runtime groups; policies see the same frozen feedback, but common-runtime validation remains pending.",
+    "Three schedule variants of one Saga family dominate 76.5% of candidate count and 94.6% of available joint score.",
+    "The three dominant workloads have identical unordered structural feature vectors. Exact equal indices use fixed ID priority. The two seed1 post-hoc controls show sensitivity, not general performance of a new arm.",
+    "LinUCB selection is deterministic; seeds vary local GA and the uniform allocator, not tie priorities.",
+    "Cold index calibration is within shared-model and hybrid groups, not between every architecture or later confidence width. H1 also has a recorded floating-point cold near-tie.",
+    "Five seeds estimate variability only in this frozen catalogue; no independent generalization or formal significance claim.",
+    "Unmeasurable observations are charged to the budget, not labelled score-zero negatives.",
+    "Each single-criterion objective also changes GA fitness; cross-objective traces do not isolate the outer bandit alone.",
+    "No scenario is measured twice within a run; count-based scores can reward many similar positives rather than distinct defects."
+  ]
+}

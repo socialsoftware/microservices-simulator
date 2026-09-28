@@ -1,0 +1,14 @@
+{
+  "completedSearches": 900,
+  "verifiedArtifactHashes": 26,
+  "verifiedRawExecutionReports": 450,
+  "oldAssessorReplaysMatched": 202,
+  "unrelatedReassessedCategoriesUnchanged": 202,
+  "existingSeededTrajectoriesMatched": 360,
+  "independentBehavioralChecks": 24,
+  "verifierTestsPassed": 61,
+  "allocatorTestsPassedInAgentHandoff": 92,
+  "applicationExecutions": 0,
+  "newCompleteWeightedScores": 184,
+  "remainingUnknownMixed": 266
+}

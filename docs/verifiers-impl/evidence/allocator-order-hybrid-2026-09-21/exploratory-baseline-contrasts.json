@@ -1,0 +1,97 @@
+{
+  "status": "EXPLORATORY_NOT_PRIMARY_PREREGISTERED_CONTRASTS",
+  "comparisons": {
+    "three-saga": {
+      "independent": {
+        "positives": {
+          "meanDifference": 4.933333333333334,
+          "pairedBootstrap95": [
+            2.066666666666667,
+            7.666666666666667
+          ],
+          "wins": 23,
+          "ties": 0,
+          "losses": 7
+        },
+        "cumulativeScore": {
+          "meanDifference": 3.6,
+          "pairedBootstrap95": [
+            -0.6666666666666666,
+            7.833333333333333
+          ],
+          "wins": 19,
+          "ties": 1,
+          "losses": 10
+        }
+      },
+      "progress": {
+        "positives": {
+          "meanDifference": 5.133333333333334,
+          "pairedBootstrap95": [
+            1.8,
+            8.433333333333334
+          ],
+          "wins": 21,
+          "ties": 1,
+          "losses": 8
+        },
+        "cumulativeScore": {
+          "meanDifference": 11.066666666666666,
+          "pairedBootstrap95": [
+            6.699166666666668,
+            15.233333333333333
+          ],
+          "wins": 24,
+          "ties": 0,
+          "losses": 6
+        }
+      }
+    },
+    "one-two-saga": {
+      "independent": {
+        "positives": {
+          "meanDifference": 11,
+          "pairedBootstrap95": [
+            8.966666666666667,
+            12.9
+          ],
+          "wins": 29,
+          "ties": 0,
+          "losses": 1
+        },
+        "cumulativeScore": {
+          "meanDifference": 9.966666666666667,
+          "pairedBootstrap95": [
+            8.0,
+            11.8
+          ],
+          "wins": 29,
+          "ties": 0,
+          "losses": 1
+        }
+      },
+      "progress": {
+        "positives": {
+          "meanDifference": -13.566666666666666,
+          "pairedBootstrap95": [
+            -16.766666666666666,
+            -10.066666666666666
+          ],
+          "wins": 2,
+          "ties": 0,
+          "losses": 28
+        },
+        "cumulativeScore": {
+          "meanDifference": -12.833333333333334,
+          "pairedBootstrap95": [
+            -16.0,
+            -9.4
+          ],
+          "wins": 2,
+          "ties": 0,
+          "losses": 28
+        }
+      }
+    }
+  }
+}

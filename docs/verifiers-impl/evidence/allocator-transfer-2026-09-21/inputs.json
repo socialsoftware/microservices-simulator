@@ -1,0 +1,2060 @@
+{
+  "schema": "transfer-input-inventory.v1",
+  "files": {
+    "/Users/andre/meic/thesis/microservices-simulator/docs/verifiers-impl/evidence/transfer-inventory-2026-09-21/proposed-split.json": "31a0d39b7794df9fc5c67c938e3b518554e0d69dd4f2f893e2f4fa09ace0aeca",
+    "/Users/andre/meic/thesis/microservices-simulator/docs/verifiers-impl/evidence/transfer-inventory-2026-09-21/inventory.json": "cb90f077db033949794d55fa5494849dfb723d2f5194ddc389ef9e5ce3d8e52e",
+    "/Users/andre/meic/thesis/microservices-simulator/docs/verifiers-impl/evidence/transfer-inventory-2026-09-21/metadata-availability.json": "e571966501037b59defcf85dfb89d1ec2c83d271f3e02eb4bba6a0fb17eb2353",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "verifiers/target/full-map-5184-2026-09-17/catalogue/package/interactions.jsonl": "69cd479e45c4553144346999076c2b8208b7d632693bfdb221d28a91003e6c0f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/map/reference.json": "a42e472f1d0e939ec39bf2d4b8a5c58744aeba1c603d206c9239a16ae70fe25f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/config.json": "28bf7fc17ee7d6cbabde385d33c1316766ffcc147d3aa2d3b78fab8ee548fb31",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/workload.json": "3d97340f063e3fa8698571ee21a8762be654e285eed05ef4987500aae86460b2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/catalogue/domain-count.json": "cfd0be4bd896d42aed8a62eb071158aea641508498aa5b11d058849a3e9b36e6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/catalogue/requests.json": "97fdfc9e8ad81d3d125b341aef828f882b4aeb7802b841396c93a7870f7823d3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/map/reference.json": "94e45b85793b157fb614162ec260d15e84501814f1db591c192b35f5e858197f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/config.json": "82b028dc9755448c4c6e0b4060abb9137eaa4bf2c4cefc1141471327dcb86e55",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/workload.json": "fbd5f7868dfe9e48fc2d5286fa2a81c148ed42d00e203710a3ad0635beb8fb4f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/catalogue/domain-count.json": "11055e9d20d26cbbf1b0a5d581b22e8933b8553743dce4f70a2c9d20d7c9ea12",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/catalogue/requests.json": "7d7d3d34c827a9cd88d8d0ed0fe4fc3efccc4636599a850db0a851e5d82f20e7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/map/reference.json": "ff7f1ad7e3fdfe1dee5f0d2d6b79e3235a39ad313ab1976924ef35de673a5bb7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/config.json": "7585a8dd5eec4cf206f9fce7db358810a8e1ca29b4680289cd039b925e7b4f5d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/workload.json": "7974ca1ee73b1b3c4ede366eacb7827c6574681c4ce58ce38693e33e4589f7f8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/catalogue/domain-count.json": "4567b3fdafa620eae1f7e92903ed8495eac8be9542f518ae97bd4b0d8b2f9460",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/catalogue/requests.json": "e56383a6a00f3e211c996453141ed04e040161e104e32a86b143eab1dcc80273",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/map/reference.json": "a4c53cc4c277edeb97d629435affbece270ff0b729fb4c92ee7bed69f2948d43",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/config.json": "294c7023c340c0f1807c8af4667d2c39188151b94414b58c248c62929766f674",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/workload.json": "8b83e34ad1768455289b5c0dc50575e5151d347e6825924107f5e1dba0caba4a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/catalogue/domain-count.json": "1423e3f6d30ab7f4340c3ed838a6b31277b158aca7321c0b41c44e2d20fd6a67",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/catalogue/requests.json": "5defd33dfbda9b0d55f8f38e88974a762580f3d572d988fc20b5b8d6e511db7f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/map/reference.json": "2da762d71a36124e746377d0ac2faa3d9fc702d8f548ecc25e5a11cc01018ccd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/config.json": "f3a79fd7f3d2bbb81aed6f27d3156dd3aa8609e51135425195c35381138f9a4d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/workload.json": "3815586e0488c0809b07e1d060b99eafa80ccaac605823004cbba3b215b305e8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/catalogue/domain-count.json": "069a421435ab945c2cefd7d4dc9528fbabe23f1028c03292038902cc773d7b10",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/catalogue/requests.json": "a44edda8fa1eea90dae11f00fc3678e7faa9da30a57b24a49b7a08ab3f233279",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/map/reference.json": "c0d7dfd2ed7ecc043dc93b056d43966b8cde8f030433f5196ff18a2a1d88dc8e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/config.json": "c8290ae8dd3cacdda048ea4c5a25c2277b83027585217436816b51535c89ab0a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/workload.json": "079b7b70d05f723d68b762bde5954fbd87266669b8d72b8828c02a352b2f83ca",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/catalogue/domain-count.json": "8ac3cfaec10a50f5a975687b33845cf53959e57262b28d39c468e64bc6ea12a1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/catalogue/requests.json": "963d1eb4ff3546cc93d49a7aba70ffc17c2ddb28f006d76c7bf39cf13ea00bfe",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/map/reference.json": "c0c118ae0bb004a6fbd181bb62826959009859e619dd52b4ce6d38d4d66187ec",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/config.json": "f8ec2e410ef34e25fb552a0d1be249badbf54f4fd30ffc8d7066713388703bdb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/workload.json": "d4f57b27a3a858580372fe1101e9c3e44836909101f9e9a424a81ccf3ca5fd59",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/catalogue/domain-count.json": "50d41a39f9fff54ff7d0b193d45ac6ceb6e850a462594e899440695b81099ea9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/catalogue/requests.json": "ea1c870290b469150b9bfe8c3af04a91733270934317feefc9c953e2a5a978f7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/map/reference.json": "3d6d188ff0356b89f788973d6d6f924ef7607cf1bcdbb61b20f7e0031c4820dd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/config.json": "cf9cfa0f0f07ae4796f8439ad02a8145a4a03fea90abf89b9e06418950373688",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/workload.json": "acda430e7baf88e9099dafe241fbbd879297f255a964fbc237695c65fc5707a1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/catalogue/domain-count.json": "959a7eedc11965460dd0e79205f3049be273a39156caef43d15e6ff318a71525",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/catalogue/requests.json": "288f9b333b84eac995f2286695d04bf3368e20ba803c24d3a5612aae92f1f334",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/map/reference.json": "96a91ee8a86c87ddda55f6199b4b32d3701cd3d64b97da68c3b3cc2c2bfe4c8a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/config.json": "f640b5f762623cc8173f89fafc8a2ab1bb9dacc1d5cf9429e8efd9b5b7e9c8ff",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/workload.json": "00fecc991af7be935ca496e3bacec56912232c44050950e05893151c9415eac4",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/catalogue/domain-count.json": "15d22ac0e147e1ef59c9c2e31b34ee6a7d73478d21cdf61b150538c159478a58",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/catalogue/requests.json": "2fb30f5ab02b2a9f6cd8aae28205b44b15d42c2b61c363464610d5819bb7d3bd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/map/reference.json": "9040fd7c5ca34f71044248766dfdba8b01ee460663081bd0a8b461bcef43b949",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/config.json": "1fe55c42f648dee076d0ac3566b93c0e7b8023ccdfb6c8e4fc998c1b9e07083c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/workload.json": "8a38b0a5c8a46477873d8672c5d7a897c2961ca3d0aef7f85d4cd2ff8d7896f9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/catalogue/domain-count.json": "c54818c969d856cde4f5aba0d915ee5c7e0231a1b38f360d46b06f02f5aca763",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/catalogue/requests.json": "8ea2969cbdb9f288e577c1576f7b5705c77c8d3236ac003d350610dc24bf86dc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/map/reference.json": "c7ae633e2af81b4ecc39629f680580cbba031633fc17769d86fb63a16f34f11c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/config.json": "e092f7eb8067140f4df9fe7232f271a3e305aa0045b76715ef7ccb3184dac43c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/workload.json": "bfd775480fc86587dfde03ab9a514d46fe9b032dac6a77549b8b4d39bbcc3d45",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/catalogue/domain-count.json": "1979790908d86e0450374264ed63f1923089aa307f7622f0ff7038d8a7c2b593",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/catalogue/requests.json": "d39e258220ee04d6f3b9e1611443e30aca46cd1df1ca6792832708fe3ec1d56f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/pilot/reference.json": "15b184107cb2d78658781f6240943ba135b58f65fe6c77d2905b735e1e862fa8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/config.json": "abb0fe0c9e25c024be44e7e3d9d430ae1f1ecf1a946c7de6019f203f2933f53f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/workload.json": "f2b52193aa5971a7a532059b3dc59f37000a0ea6e8c010bce5b854fe9d501858",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/catalogue/domain-count.json": "d8869132eca27c5ed35d9e8cddaece057f769c6d3545dee1e802622eb61eb2e4",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/catalogue/requests.json": "42b2dd2c9aee9cbf6bd41ede8489394287762a79e58c092e7c83e86297e5dce7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/pilot/reference.json": "c8b46707817481ce76870e5c059ae70ff207beab7c90b462534ca1a1c8ec4412",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/config.json": "361eeb34c74889a984afb4f9938de2880b1fe8155a715696d2cfc3c68955299f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/workload.json": "2da6d60152590ec0be65cfc3a8a2d46b249d7bf4c029e49b1f0c5367eff34192",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/catalogue/domain-count.json": "46eb6e2a390e50febcf3b763e537efca31f1e41a1fd982320ae82b33e583b460",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/catalogue/requests.json": "e776ae44d13c5c737b576b13cab21bbf39268195610fdffcb66ab39e38cf87c5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/pilot/reference.json": "699056d7052fa416bb6057ff00b195f0a5232a88da48ec5277f5eb063d27e5a0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/config.json": "0f83a4ec335a73f2a812d30413e48bfb6ab9e7ce5d779eac67d5234d7d38fec9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/workload.json": "69c10e2fba970a9b38630328ece2b592a0b303b3fe3301e5be3e805605023e5b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/catalogue/domain-count.json": "b294566be132f8d3d4d5d838ff800fff796dff53cdcfff55cdd93b795a8b319d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/catalogue/requests.json": "e9126c6b3352b863f409dfd758ac24e8fca358328daacb62451e90347a6d7a65",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/pilot/reference.json": "b243583d4835135915f3cbdf62f3bd72891fdfd782a9de17cecf2740b36c6f4a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/config.json": "3aa269240178e7593a0f301126e9d5a962cf9a2c6612338d6ff1f8f2373fee68",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/workload.json": "bd80210eccd03eecd3a760b0cdacb97dddbdd8916f84937383dabc738a5b794f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/catalogue/domain-count.json": "ca2762559adfc461b75c44dae1087b609413fa0e55e2cbf65775e4c1ca2455de",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/catalogue/requests.json": "998b93c0caf7bb9a6a0d43cc8a159c34ff0a9eed15d025ba88bd9a521134390d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/pilot/reference.json": "107589c74a227a91cc5c0c2ab5cf0c19c7e96d356e23220a1b852f5a5242cc29",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/config.json": "370c4f66dcae1b25a586e0fdda2f489caf8af8f88ae66fd68e6062c09b0032bd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/workload.json": "9027b1903c96098eae3d2d2b8c8bfd9710f728b2c655eb3598b8976aae6236c6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/catalogue/domain-count.json": "3d545ee8a55ae93096ca16f285027d35e2b8840a912e49185ec08b7c78eadafa",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/catalogue/requests.json": "d5453145ef8ac3ca2bbaa1ff66c9e6fe79223987d8746fa383eee37fcf3ba6cf",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/pilot/reference.json": "570439dcfa0621f7fe61a7f9ee2c2400f73626972d30e7195b91d3f1c01732d2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/config.json": "472decd8bebdea97a01a4f93e932c7e236172a719d082328cc51d3b3e0620cfa",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/workload.json": "bdb00763278956b9da5777f126e629b96531743483ef2816fb3a0cb8fc695298",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/catalogue/domain-count.json": "8d94d838f4234bcc1cbe7cded49a836ff6eef814e7fb6520be4a2cb87efc39cb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/catalogue/requests.json": "48c3158cab9eea30668a355904ecc0025f7a984e286b9f2ad44d816b00210203",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/pilot/reference.json": "891d0a16a79c9fdb2092ec61e81991e0ec98193f23bfcb7ccc54ddd13e2d70cd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/config.json": "43bbf3103e4e330f29b69f346d2dedd90140dd0cad5dc57ef215e91c5224cc2e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/workload.json": "739bef696ab3812045804b2e233c05dc2242b4e5904031608478cb05e0684e6a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/catalogue/domain-count.json": "87a25cb43e7637cfa8d8d41de2c0f4a4d03aa384f326a6ed42f185723f048714",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/catalogue/requests.json": "260fca052291e9f7c5fb24846b4c2cc595f118b88764033a89afefc8213d2238",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/pilot/reference.json": "41989d243f7b82573e35c4219335e78f27f50c2b0bd02305fbca7a757739d63a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/config.json": "ce7c58f7db13dc1239e19142c0245fbbd03fbedccea6cb406533a4cc83d6fa19",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/workload.json": "292d213cf74f4ff62bece8f41f94ef5cb8f17c4dce8690c7359244cb43b92766",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/catalogue/domain-count.json": "283c7e5bc2f5c003b9b8fa8e3b60a564dcaaaed97a62e9510ba8ddd7d3dfcc28",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/catalogue/requests.json": "2b48f33f2cd8cd5a9b2b9325ec5b90efe3febba2dcff0b2be416edf639921041",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/pilot/reference.json": "a44ad7d1f677571d62478850df232959fddebcf8880096f8cec6370c3c52ff58",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/config.json": "dcb0e3a596d8a93f882205d993fbda3e05c1e88d0a65555c9c80931fb95498e0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/workload.json": "683b26e945bcf53b9c8e3b65ce1dc4fd5b1f3753868d71d6471e01150b634f8d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/catalogue/domain-count.json": "c582ad0d66c7b56d3f3aaf353488d4af307031a84c37952f82028102600e96e9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/catalogue/requests.json": "3a9300f183ae502e59c457ede881c98a5ef89014cfaaef73a188f5805422970f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/pilot/reference.json": "a089dc7abe3be4d7b2897667c55fb2cdd47c086a94f18eaf82de7627ef84f26b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/config.json": "657f557c477cd9bd0a713137038e43cc04f51c60b5fa14df72f69664664f9360",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/workload.json": "741c5ca358f0ab1a3d1c63ca2583c1734ab1bf9f88bd9149c7ab98be63336a61",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/catalogue/domain-count.json": "c7f0f33f66fc9c886597f7b935d3b6175eb78de1d8f68a1cd2211dacf49b4291",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/catalogue/requests.json": "aa4754bd1b3eb003d2773da4047a4f1bf19c1c52ff39c28d21358da1cdf37cf4",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/pilot/reference.json": "8b1e90c7f69e8236d575e9aad78c9e43034db35baac93eaba2641a31a5793030",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/config.json": "474116f1758a1acba90b8a4c231dcfc3cd16afca084f76930dbaa7570bdc8b3e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/workload.json": "d47dc46875ab6a71ac23f007fc3d49c095ea14c816dc53b8806dbf790fe8cf55",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/catalogue/domain-count.json": "b006aa4dada2deda1201e90834346b1fcab9d188f6c6a10b80a4096ba6690f7b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/catalogue/requests.json": "88febe58c7cdcb66034512a2f494a99a95dbe9ff32b2fe29b3af8eac0a10fed9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/pilot/reference.json": "b4d967c0be9e2ee2b9fa778becd0413e66d2dbddd669d2d94c4f018b62470361",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/config.json": "353e53fd21961331a7d435eb74f4d224d878e984ddfd81e746717373db7cf015",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/workload.json": "8df26a2415e5f6d885043db635596e094e0ff6b2db232b378cd262a64d62adfe",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/catalogue/domain-count.json": "09199e383669cc17fb61bda232676a6fc2b147e490f06b94cbdc021108a5fc48",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/catalogue/requests.json": "69bb30aa242049d85de886c1947eb335013ecb0ad6cd026b3067f458eacd6edd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/pilot/reference.json": "006b6234985c2238010e16304d911908a57fd63e7fd423f58a551251f560721e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/config.json": "9bc2f017110b144310e4dca102d05a91363fa879cb1df773ddd332505092ec3a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/workload.json": "c15a2410fc699300fe527946eec3e0c5c7dc033e664c55cbefda465c143636d7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/catalogue/domain-count.json": "22811af14dee602182f0b3008ace83d5af102fadbf2539641af9853bbeb74a81",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/catalogue/requests.json": "77726b19faaf6076833954456d70c3c917ad26e2a5ab561dd0018f61dab43c24",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/pilot/reference.json": "b72cf2826b114c88b4de63d7ad2dc0636dce08e2ededf9e9ffceb464d931c6eb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/config.json": "20c2b4e212fa8c51fab0667356daeefa67720141663134a19e9bf91034746ed5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/workload.json": "f8eb802e8951a8fba0516368d3e5a7d859ca97b8c236bcd1efcab2c7e0cbe67e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/catalogue/domain-count.json": "b6e5f9db229cc56160c75c3993c07e3b3800f1139199a9a546adb873d471057a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/catalogue/requests.json": "692574ca0230e54dd207683a0cc8c8911983094c5990af7ac45850ad32b4d3dd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/pilot/reference.json": "73464c1442d205f98b396b552d3acedb299cfc2e077ad640e257554e55d93e1b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/config.json": "5f40b52ed03a1dee8442be017ecbdccec54353380e576ff08a095184f72e10b9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/workload.json": "c4095fe76ff176f76587f571209cffbb138cc75fb0f0c8f8eaf7ef07a233522d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/catalogue/domain-count.json": "4e9415435680bdde7ad6a75d58435fccb2a8ae4622362e4015f4c0f975a00339",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/catalogue/requests.json": "f566be02280ead1d0c16c70b9b732920e4ffb394a0f494a6122c7a87397cbdbe",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/pilot/reference.json": "01b5dbec288151a67ba8883cb11185a9637dc3602b12160a11146124433dd7c7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/config.json": "24969d9634a6df98e497a5e7b06b7203786e8f47754d15ee62dc9305ce1bba3a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/workload.json": "9bc786c3d170f91eab5bd74d64e2a63e520173718e79db1499ddfcca140ebe98",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/catalogue/domain-count.json": "14a69b631ca463ed0ecafa209f2559d649948fffe247dee13a9fdd8ce23109de",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/catalogue/requests.json": "306d8ac1db6395a9dd5d05e14208b8e865e5a5f2eed504f5f5a7dd7bb0115cfb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/pilot/reference.json": "5bd89371be30ad1b29752c9fb5bd10ad47a4ea2ea0aa328b475516fbca391aab",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/config.json": "bb72cdebc984dc193054e65c626265e9fe540e960b7e17cfce90062524a8113a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/workload.json": "d63e47203f9b30a2fd8975c31c90ffd5b768880e27cb92e291111fa497f10539",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/catalogue/domain-count.json": "811dfa25149915b7ef7b74330e30e98c1018e3e94204f6bdfc50f2d0d430c0f5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/catalogue/requests.json": "e91cfb768f23876ed6015a242ca952446c2f9fb9206df45bf57676f5e93913d2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/pilot/reference.json": "a874ca9fad2e4a11ce4ae27db6c085331ba5efa109d0e1f85a05b3436faf8fe9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/config.json": "ceeaef869d1cac3532d7c6e79b761f259d527b1835a8778e15adea8321b7e879",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/workload.json": "7629e8c13b8a962fc727bb0490368741ea2815055b0d07e36878ee473fce1985",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/catalogue/domain-count.json": "688d7de5123760ab9dc6abf12fa61e2f991dad129214b45eba6178f7d4140809",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/catalogue/requests.json": "2b8bd07e28a721b329b34c1a032527962a444894a80d95d9262bb92346ded5a0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/pilot/reference.json": "af06b4911e3ead0c276cadd0bc1ee180cc38d2a6df0e29933b630cc9aecd317b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/config.json": "43b0c25041ca7f3949a93a204f9840f7fabb7bb339a277c601b3321a233fd961",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/workload.json": "f3c3f36a183be29455a818e4e9c4899016778d0743a4101fc8244cb382e86e51",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/catalogue/domain-count.json": "27701bb1393fa394223dddc23ef189c11ba5429dc66ddf82d5bbf72df6917f80",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/catalogue/requests.json": "32b9a06689f2fc29a5632af0ad53fa45a358da9748888c6938bb29388f3120d7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/pilot/reference.json": "ef98c314d054790ed876a2cc2eac5034a378cacc63c7da39a89354f3d79da7d0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/config.json": "0c22a9332fd11cc3351ac27cfa848a46c5376c260bb74c124c8a49b10f0837fc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/workload.json": "7816a3ae2439f990acb2273c2eb61ea022dd2b7f91ecc3e9e0edccf391c9ae57",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/catalogue/domain-count.json": "64fde124e0cf7c41fe9dd533b656d4c1398f87eb148f6a9d04c956d858202070",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/catalogue/requests.json": "d509cc721730b0eb12580d940ea2091fa18cf35fd791f4a782d4c632f9ffd23d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/pilot/reference.json": "272f0e0dc4f79fea9ff4cdc59fa8b164d1c8dedea213ef46627b44bc8935ab89",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/config.json": "e89ab40542c6c351d523034c87eaf0a69d9ee0e4773f218e5c474f93c3868e91",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/workload.json": "9da6f7398d4bcc18bdc5a263d3a1eea1863ae11f3bdf21aa9695b2a3262ecb98",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/catalogue/domain-count.json": "53fdcf7c2b83605d7f806c21b49398db3d3abd6261df88cc2bdcb5fcf2a89159",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/catalogue/requests.json": "a1f7662a0b4db11224adb854dc8f87046b62259bdc02a2355188a2af5771b2ac",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/pilot/reference.json": "4a7ed2b47990c356f6eb96a89326d23b514aa4386d51ce2cc87a23af14b01d17",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/config.json": "a3139fae4a6dc405a167e373a7111d38cf6882bee4277c0af1f0142f6214d698",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/workload.json": "f3cceb1f5c80d5c2ad62829b05384cb97b7ac6ef6c8a7e3cc4e9d835cc7ac4b1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/catalogue/domain-count.json": "24c185fa2615cd4fea3e89f07bd77451601b11c0cd114c8f1ab4b7b6b003390d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/catalogue/requests.json": "2b4ed57cbce9436e2d01e772311c33d434555d219fc58cf6e5a48040470590d8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/pilot/reference.json": "e2ce21fa61653151dc0aa552c94f64c377bb450481efbff06f317386f58025f1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/config.json": "185ca976feca60070a36346a18403dda9f4607e1e7eee49208586cf053b4679e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/workload.json": "15001a388605c74a1fde52815910d43820799c269b36ff8055c3ad074957bd57",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/catalogue/domain-count.json": "a6ec0bada7a33cdae6f110edf79065f7ad37eaaa823b11345c159f397052504a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/catalogue/requests.json": "15cf0f7ad114bfb3926ca188cb63b01d9b2fd9d1e22cc376f364a11b923d79bb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/pilot/reference.json": "5fd1622df194ef7c6610c9fe8bfdf1146bb415d23e92dd9bec72014256a8afa8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/config.json": "e8da4c13bae6cedc945e064af2b241a2c87413f2a8893a0be8eae9eaf18b82db",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/workload.json": "8e3f26a4425b67e4ba03916efffd3037ddd2fc6d27c02140e7b815535f7944a5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/catalogue/domain-count.json": "4d6a38e0d8218f0470dc31f25b6fd1351c1f156f80bff66981911cb4c18188db",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/catalogue/requests.json": "eedacba5222b5565a37bd6942eac232d051e106a859b4cda882463534a3d4730",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/pilot/reference.json": "dd188e27021168da90ed5975678a39c5b7ca45775a534a333fea4c2919aa58dc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/config.json": "7a78b536579db7161a4fb24f2350194c6036dc58bc42e41517d33c8ba1691a64",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/workload.json": "6c813896bc13d3686020347667894bd3ccc6227359b863f479d2ca901e7d00a8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/catalogue/domain-count.json": "bda8d1cc00124c6f448f84809cd2040f7f6344ba25d32ed035d7ba306d8efb12",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/catalogue/requests.json": "63ce9634d6cd869dc4778bf428791505fc134eb05f9b24adc66277c64b225ed3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/pilot/reference.json": "644bd0c03cde10686cdb2f36b23998bd75482088ed79cc30eb14c2e616de737c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/config.json": "37b0f93369f09d8147ac55a0309d45464e461992b1789c7f40ad7c5945bd275e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/workload.json": "d5aad1bdb3c25a66eacce196b11a4793b53ffcfcf7ed4fb997a6934d7aa2c31f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/catalogue/domain-count.json": "1dd752332d0b233ff0bd15705fc72647329e6547c2e137c38eb9e4b2fd435bc0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/catalogue/requests.json": "c2799c754205ff4ce3610a1f3eca95a54fe4c25099d0b665f3164583b7b4a760",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/pilot/reference.json": "cc3346a9a834d34e6b3d92b1b35226f12d93c1a4cc7c92126f11a9def146c794",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/config.json": "705aa8e4abb972a07265fc6f413c1829fcc3c9a2f77a7414526bb9a7f615da93",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/workload.json": "c50d08e7e2a3a413523c9be6343d2aaf61ea2f00698d1c0ec8eefca9b1e11f38",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/catalogue/domain-count.json": "75783d40fc9664186e19e896d41b2e355e8ef365aea0d5e8fcf4996b074692b3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/catalogue/requests.json": "25e5bdced4b3b78e8209211de50cc14975f5b6a4b528a0b937584213b6c61250",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/pilot/reference.json": "cba7bde4f5fd564374578b95c4403edab894fe2e5d6ae3eb4bd307d454b45a00",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/config.json": "056d28a51883439ad789c0da925ffd5d6606d812aca6b954bc7cb80571c97b3e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/workload.json": "51207400ed9c413582fdc31c0f39e163942f65c5e02cd6b7f255dc685735d4b2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/catalogue/domain-count.json": "c7293430b3f1fcc80f86feb3d32fe2aa4fca0e8f609d36118466232c2d2c7cba",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/catalogue/requests.json": "cf1a213c9ea24990ddec8a2ca45e398c32f5f81e5131696e7355fb3c18967d0f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/pilot/reference.json": "2733b99f8488c7ea062e7d5efdc52efc693f2e9f725453df0dacda17bc6a7baf",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/config.json": "f36d4d21c4f781a6e6b2a430e1db6fc94855ca9f0e93fa9a0456b39d6194066b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/workload.json": "dcc01eec76d003c860d4caa23f079df4b8c315485ed3a3bb3372fac0af355756",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/catalogue/domain-count.json": "b3e7721f5bc0af1c5042f3f15dab7d6834949b7f873b9dde3a510b72d73d1730",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/catalogue/requests.json": "a089f53fc6bd5e5d963cbcb6954668f97cfb36793d2d415d3b3db91704b4b8a0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/pilot/reference.json": "eae3ab65542bec12af171261f7a6837ade2db030080b813b4e889e35d77e02e2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/config.json": "83e18c5c1363f82845f664625c57a58fbdb2138f30a36f31bbba0f1180663512",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/workload.json": "4191973eea09eaef4306ab8f866483f9409d7147ad4bd61ea4cb3629ab819319",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/catalogue/domain-count.json": "cc0afd5a9b12d0934f25619c7705f36ab713a75eb708568e5e65e69cbdef91cc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/catalogue/requests.json": "8093094c99f4c6e71de229829839ad2d3f0e70f372a0a06f0b36bc3ff527be3e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/pilot/reference.json": "4fb01777f02bf7f2aee59baad042fd4c7c21c996d97239a4c9e30ec58092b7be",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/config.json": "8f47aeca27055286d281395536533913b4240e574ca0dec43e8ded0fa016683b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/workload.json": "ed281521eddb18b96c0e7ce513fe5af11096299f671327a4b0779a35eadd650e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/catalogue/domain-count.json": "5c211238d3545a09bfb4271c84a30a9fa49fdf257102079f6736c77fd1d74c82",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/catalogue/requests.json": "4569951c34a1234c8c981e190a77520f703523b157f56c9e75153a959f31fda3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/pilot/reference.json": "3782aaf74bcc4eea5ed91f89663c8e0704283597c05a887943df4efb10ad2ec6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/config.json": "46b3c5467da9552ed0d32edc22da65395cb8b3ac59891ac7ca30604272d37326",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/workload.json": "f33a5393dc8f24e1ee3b606af53be303ba04b8c2112a128d9cc2cb07bff1ab3c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/catalogue/domain-count.json": "21b4fb4512bc25c2d959d98ccfb3740e78f490be38b56239533d6d9b69f41676",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/catalogue/requests.json": "e8be8b6af785af2ce1cf4127dbb99ae4fd01dc98e23852f099bb4602b6f31897",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/pilot/reference.json": "ede5558146eb790e8f08053e9b75385ecda56d1c35416bff97663edbba918a8e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/config.json": "d34978169acd779c77449a2e12b7ec07e84fd4f1577c4133dbfdf938ac370fb8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/workload.json": "35c3c6ca6f7f4ef058a5521e808daa6b8e818fbcebfc52a562890221e27af41a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/catalogue/domain-count.json": "79651b6c8bf793d8a4f0fa482749942ed2cf86feb18f566e1b1bda6446a19d42",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/catalogue/requests.json": "78ea3449dabd7610dee2578520e545e55874aad13e1fda56368f9b8dd7d51a8a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/pilot/reference.json": "d4e620450e257cd9346389d4be342f6bba3af674da9ef6b37a4251aaf53004ac",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/config.json": "41705e9fcc5e8e8edef74874daf35e32b2b1a3e2c0a96332fc9e65a9d42f3b52",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/workload.json": "092ca26800d0fa69fbc74b09851fc6b0d287bbec848a0dbe56b33e66bb5cea09",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/catalogue/domain-count.json": "b61749b1a399ae93256220ff19803b37a2c9c61114b9afe07464b633c3c48db6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/catalogue/requests.json": "3f725b94f5cb6cce35e23f59dea748fd3a9078d8e59e047acce7e5cbd5488b6c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/pilot/reference.json": "a1253f8e043f609e3e08ce2509cf8139965488461b817beeca3d10e01c2bb643",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/config.json": "ff069a2800f5748d4ef24b3ccfdb1c21a92dfd9346c86b6ade4af94c1f8709bf",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/workload.json": "d95e7b67003737d44886ff80689eb01f85bb499554d14a43a5db685225b0b45b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/catalogue/domain-count.json": "6de661f2e53f1a2d73984c61d5e35c20c07e7f68b4175d6561468ec9ac22664d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/catalogue/requests.json": "d7293fc8f209beceab3d47bd0ee7c2aa4e86b69cf7e6f6fb97dace01ad4446ef",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/pilot/reference.json": "e4d55e6e2449bbfc45412d5796bdf837abbe67f628caf08dc86dbd7f5bbf700a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/config.json": "1802cba59fbbf56fb48d2c34b6263b031708ba4abafba0ec5b0696c1493a9899",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/workload.json": "beca5919157c46211ec7827abd196311c7f135b41c68bd2d81477ba3790f80db",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/catalogue/domain-count.json": "1b0b44d6f7e06b823fa8e036accc2fd71e79508ad667a3dd43840563f2dfd90c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/catalogue/requests.json": "990bfd6b9a83aed956977e7c77069141c9ecadbc9895a2305af3967307de27dd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/pilot/reference.json": "8f733f4d27b9bca000d63e116fa5555b029c94c848ccc64e8b5f70fccf258a28",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/config.json": "4d4ff2868319dfb14a87a0f2aa3131e55b81a99b2b9580f2bf4d3cf7e2b842da",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/workload.json": "2ccd58aacec4f7b77f736ed33630f1a95aae4d1c0ba550d6a3267a97a3ceee3a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/catalogue/domain-count.json": "fb00c1aa42fcd96122bf9ef827b2bda0521aa89e473ebd503757aa3df2e35f23",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/catalogue/requests.json": "c85fd07a0dddaf5c786e5fccf194d56eb4cbe3159d8418dab130fb4fe6298f13",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/pilot/reference.json": "9475d3928dd2535c281df14b5180837f3b83dee0cd2212fb4899ce957459914a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/config.json": "25d06c3e836055730e1f2e02692dcd32f0d0eb54f99f9916cd4ae84600c4d1b3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/workload.json": "4bbd5f73cf8fa7e6980944bb693f8c1a638ad0658cd254e6ab3ffbe4e0f5b689",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/catalogue/domain-count.json": "4f3fb1cf2f9a4a523c6471be4aa3ab082073b49bc06efb42f482c9d676c505b2",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/catalogue/requests.json": "770bdd28907e6717129150b9d452061eb410f23172b658cf69f32e8168adf37e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/pilot/reference.json": "c78fb966838f1c043a72313ebd10b007aa64c5a24d50c3db5b98f6e9b1b11dc6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/config.json": "c1121c6df99fe87eb4238dfb998b42bea4e5508cc8f3103b1fbb14f0ee8025b6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/workload.json": "3d127b1d6390ec32e9f4431ef1fd4c8b50410629fbecb60c8145e44d3128ab60",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/catalogue/domain-count.json": "d07ad0b0e2ff897ec4d20ae9ec6a67141954bc8940bd2099d91a8103b8834da9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/catalogue/requests.json": "5d46b01300d5ad7fd54f53a8819e4fcb1aa96ef4faa005db0adba29711f67493",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/pilot/reference.json": "0e4a1ed04f93d95f6046f936240fcbc9d612f74102ceed1954bf21c0c1359b81",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/config.json": "f4f6bd253370764dfa05d260fad1cb0c747687f024a77bd46b2e748111872788",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/workload.json": "71bbf71eaa5de71e98a96e0977e8dda67c0cb45cae887a5fc6125e250a2a7f60",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/catalogue/domain-count.json": "200c0815f35b79d866cebcdab6d26b14270940c323b9ffaebe450dd54d095fd1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/catalogue/requests.json": "b71c0c9dac04e3e1f240db3eff1f56bc283f7ffeeb6156adc4af795712756227",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/pilot/reference.json": "a338c5f7577c2fa77171df56da0cb42e488ab9719d20f7f0c720c42086d70e46",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/config.json": "c22c6073befe7aec1032754ef063c7814b593c419f00905f77f8c242c7bed3f9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/workload.json": "86fc0ad779400d269c0502af5b6e05fe3ad5660877ae3a7912611c8041844ebc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/catalogue/domain-count.json": "3b61bf18bbc74c88cebeaebfd79ce6b07223eb353b4b3f56df78b5e0b44778ea",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/catalogue/requests.json": "c40ba24e17d2b8ce25eaf06dbfb458c8e6f198e2f8d6a93b8b926df2c9859d6a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/pilot/reference.json": "edef309e74493dd91daf2e95d49e2f032760dce8b7d660a0155e6921282a1506",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/config.json": "a3fb301b027de5433a1a0064aecfdcc727c519300d9c13b0785489782657f76c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/workload.json": "c74e656bc21825ce73019f71a663cbe3327cc326ae69d1fe7d12175ed0fd9c89",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/catalogue/domain-count.json": "9a28000e3a590215ed307fe704e35292773139f063b6402542bc6b6cb6389cfd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/catalogue/requests.json": "fc62d6f660b3325c35f4b02ccd97374d446b658010a3a0aa73e34b1cca754192",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/pilot/reference.json": "ea1a3cc871557c6817aa4855699b8ee302cc8ab67811c8ed68dc48570c0f4039",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/config.json": "e4b42395d7af0b7a915a3b6274678f8bfd8eae263abbacbbd96d0338b5724da0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/workload.json": "3f1f00620f041cdbfbf84675bdc7bcad5f67a3b4317a7c8f20854d7e9b1d6b97",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/catalogue/domain-count.json": "d222415fab9076525995aff516dd70cf4b0e1a5d98303fee7e166f0c645e42a4",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/catalogue/requests.json": "145b672d7b99f0b6278070d3a4fb6262d641dbd5f3feec49ceccb4a0e6df9480",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/pilot/reference.json": "b2b514b93eeded031c1e58ccd3ef32774eade13ca9fee236f21f5703523fac16",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/config.json": "490f90d887753d8c7391a4c323b6d1328a677b12770383136e0e0e374835b2d5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/workload.json": "f951f1b6775c2e443c83de2a84e224c5dbfec0eb9d216a014b86d56392f6acf8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/catalogue/domain-count.json": "9438d649c6f7906c0e6147fea2cf94fd606a7d4e713f5ace3ba6e895a07141f8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/catalogue/requests.json": "029b0af15b0c71bd5491c0f98017a174e89801ac09c5bec2e2d40084302486ba",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/pilot/reference.json": "12a9305e06654a297bfc33287885e1925f98c8deeda8ac3bc5b04f0e2f15d5f0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/config.json": "2ce6444c86a9054e144d794150f59ddb7c634ec246d75e06f9a8dda103f65c4c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/workload.json": "231cfd8ff0fbc33d203c86e3c66cdc69ce44680ab445d8486b89490497399496",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/catalogue/domain-count.json": "3cdae4d264fcf241f2cb1c8f79fde1b92eb089eeb74038fb682240190479b027",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/catalogue/requests.json": "6fcf38edb744c76caca8a8005bc2adc66cc67550dd4734977cc34f6c65dd9718",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/pilot/reference.json": "7a6d6c4f667ba34c52f74dd7dd069e3d7a51788d3065c16648054e25eb09f2a3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/config.json": "cdbaa8e1dd4e7089ed6335f900ec19add35713e7c08d9df2313563dd01aa3b30",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/workload.json": "6a7d0a06080d92c5ec95b9f9908b59dd845a3edb995e00b4d3da0e7f3a085ad7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/catalogue/domain-count.json": "2620baf49c75f65804aa70f614ce87557f9e20d8ddce4f5f0dc81017e59b71b0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/catalogue/requests.json": "fec029a2053fa60588af10bece30642f595d0f5e3864ef506ed8f002da97266d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/pilot/reference.json": "887a3f3a2be0327a4289f90314de20681391681411d569a966a80b84f568f66c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/config.json": "2c4fd85b2edbd73aae1fe62670aff26c12ea17dc8f265c991bcaf32277d147af",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/workload.json": "a9747ac3f3253d6ee246ef68f116b150af63e82684d1a73ad37364410a30213a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/catalogue/domain-count.json": "32312668ad27aae9ba8391b6adbbffed91ec908a3d62dc0eb6cf8a2b6abc162a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/catalogue/requests.json": "bef3ab9db7dcb7098482531a7795839043ed94b766fd302cd88f96843e110877",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/pilot/reference.json": "95b1ad57203003830f98f6be2e897d6d21eae95bcff359c4d1e6655960c58e9b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/config.json": "1200dea247e8c64c57e379f54b58de054d5a212c3d7aaeee364ba46aa19642b6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/workload.json": "044b4ccac46ff0564325b9bff1f6f0c98bf30c1cb788382b6fd03b4c364de7bb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/catalogue/domain-count.json": "c7304c257044a0df77c9024978f49966bd9f548088a259793930f75bcc50bb56",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/catalogue/requests.json": "0b2c2aed866ee895958dfbb5e4b20ad1702606c8fba6dc272c66a3028dd29102",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/pilot/reference.json": "e889f44848eea0250c7ab4423fbaf2f664427b1fcec36ef33c5bc3f84d56ecce",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/config.json": "6eba0da7faee0d84441551388ebeef1d76ba58b2df0ba31966d85bdfcacec833",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/workload.json": "9d79c229fe7d370498502e3697e8de667f97c5a1475aefa00ce7b2109d25e26e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/catalogue/domain-count.json": "72ea0581dff4b43114ba07101ad7efb3226457b6c834ad5ba426b07e4e6046ac",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/catalogue/requests.json": "1bacdc39440ed242585fea61a6f218111c65c19b22863a1c9cf817e8edcd5101",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/pilot/reference.json": "69ee3a1551d49adc05d5faf9ae9c15dbbda05c6239f11f9190420b45205a4347",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/config.json": "b1d6dce7e509317d36efec9f44b9ba933777ff7d380de55db5083ec13bbf51a3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/workload.json": "c1092b3f39c1d0f273707774304af2d8bdf209a663d37a3a6cac966ae0c19eca",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/catalogue/domain-count.json": "26c9ccf914993a510de53f78304724a221ba7814ce03975434d5388f72fbeda8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/catalogue/requests.json": "ea51328491f8585bb40e29013953e875326388ecaa77f17dda60d76c8c94430b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/pilot/reference.json": "885237b4df25f3041c6f305a5539d987006ebcb363362b975cac4506e3be2988",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/config.json": "15c7d7b626b16ba11c0d0f353a7f5930897cbbe8ee5190383ea7aff38a998d05",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/workload.json": "c9e0163f0247f503eaca48ed1585e2d15fc054b1f042ff94e71bc5c81a78f901",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/catalogue/domain-count.json": "5afa998497b4568afe063586b16726b138ea54923ae220fd2b5f5e68d0972de6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/catalogue/requests.json": "f208962ff87fe70bd86e2b3312d186729a19d257c5da7e8a9b201acb590a0f83",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/pilot/reference.json": "26e6b1ef7785efd2d2569c097c5210cd24708711713b64ea5ca2fd989c25d64a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/config.json": "dbacaa4ffbaee7990270a4909be8d64786d861adfdbb50e082feddfc26452f96",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/workload.json": "265b3c4f072fa5f4b07a5764dff5f05ea891ab37a7b3384ec8c1458492608e20",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/catalogue/domain-count.json": "c0423b4a662a8b4f322825d1c0048e365381c535c85bd5ccde41da894bc692e6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/catalogue/requests.json": "db0e2b54581a5badf76e88a74a36c1ec1335f89b74c395fef94e2db9357917f8",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/pilot/reference.json": "badbfebcb19d98d26fe989584de54f19fe75bee0eb6cac2ab70b9be837daa2d4",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/config.json": "5eef6108ee13b6262d02381088d1192a071d832f1859cb16ade326e2abb5e8bf",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/workload.json": "cc998d1ce8a7661f36b336ade1af84a2d875e5ab91bc4f82c0a84d2a5e12d318",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/catalogue/domain-count.json": "dc689c37f9692bc8ea0fcd6ef6202875c39d8320aa6e3e590436fba1e8efbf98",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/catalogue/requests.json": "f5506bb029362ae10c26d9c0553f9fbb2cbff5ca3fd889eecfac612e348b1aec",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/pilot/reference.json": "5c83a3fc367029e0026e80cd64aa4305d86c7cb3957afd36c57e4b19410c3b31",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/config.json": "a8146ca992fff5612bbd42e8eb23ec6e00747d7d6bcc137fefa8df898aef201b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/workload.json": "067bfa85a1e00f9b6689fe0ba67840441a5884557832c5b41504a5d123b3c04a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/catalogue/domain-count.json": "fe02e4efcaadc2601b4576dfe072f965a7010fb6f40a9e1a7b6f3bca5e31b9b0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/catalogue/requests.json": "a56926cf8e2b1328d4adfad208b94a780c0f052ad5f8cc891db36acd250e3677",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/pilot/reference.json": "b952392cbe982404cf7abe486a1d68ae0142f60addc03973f9600b970ec8c5bb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/config.json": "a1568fc261a6999170046fe8aad966622e5028eeb1bcb3243649193e330aba18",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/workload.json": "173614f1cf131058184dfb32f0e7481f19d6fdef30d3844a6df62061c6534971",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/catalogue/domain-count.json": "80072830bea7ede310021689b23e31ada8ed039922f86c2e74beafcdea16fd4e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/catalogue/requests.json": "08a0745cf2cfa45a4364abcdcf83dff1039736d0ab3ed01234ac3732ec320ce1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/pilot/reference.json": "df2388315998b893472631e204beccf0c81c0d04871a4690eec0bc98a3cf194a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/config.json": "b108588ef168df9c78804930cab5c6d52d3ae8f61b0c151b2e1b3eab504565a0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/workload.json": "09f851d9f797d3fa1382a6dd6cb87098d947115e9dc201bb512b79f1f16707f3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/catalogue/domain-count.json": "3607f8ba4585db7963e9851796a8f48fbf21022bbd79251c8aca9a180bcfd288",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/catalogue/requests.json": "c01c64743b867fb9248a27832488f7b5e634637f707c041156b76e174c678ff1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/pilot/reference.json": "ffc2c4dcd4f11ef92a5e5eb6deca81a39e38dad51ee6d86d33749db54afb2501",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/config.json": "f473b39b674c16291a71dfc983ad938afc73d9b2089f2c9a594098becffafcc5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/workload.json": "93e0b03d1d4d45cc74831ccae12a2a5b2a063c53445b21742c73b7fa22583c98",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/catalogue/domain-count.json": "92fa47d3e794be54db9a177c797d638fae6891aada83b80f0f49bd7c322f4938",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/catalogue/requests.json": "882489cea76109e9cd3dda45e3a12b8e14294d0727b13971e74338a43cf17220",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/pilot/reference.json": "2788378f4d2d6fcb6f4ddce74d1160658e6f48db6e1c16b74b1df6dec9d74cf7",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/config.json": "570982b7e2b3a2791ab90d85a8624850749a200a07dc693f393abdf6c436f0e3",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/workload.json": "b657633f9ef606da19ff7466d78355c9da643caa25ba0c38c6247ed7de461e4c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/catalogue/domain-count.json": "e796cc1ff65ba5784768e01d462226938db41c33dea7ee70d20bf686a4e9f971",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/catalogue/requests.json": "6f79e533512c587250295ddf40c0efcaff22560c4bbe98d34b12274570872c7f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/pilot/reference.json": "e1b6834a8565a4de8ee22b70e5a82a14c6d6a171c0a838fc217ca00534ebf31f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/config.json": "32eef6eda4d6ca0930d5c318426e52dd1f9df7feb30e90000030501820c53820",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/workload.json": "f4cb02edcc6c6b994a1c5a8159d0403bba40d0c22586ce9f51feb8d8468b20fa",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/catalogue/domain-count.json": "131d4c6357d445ad4c099408aa72d2b88bc1d7ade3097303b748b0eca8bdcefb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/catalogue/requests.json": "d9123c50cec4e2bed2192c9d62b0172759abfe12cd2346489ea2a10fe52e5856",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/map/reference.json": "ed884b46d2283bc633f8e00fcb66140b0ca4922e88bf2d48ec7b5a86c42f775f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/config.json": "c2ada05872b4258a8c512edbf08552e3027e49877078b91450e7210430da3208",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/workload.json": "c0a6d689f719b28e9d8b961991c83c352b7a958ac73de3701e9444d75ef77c88",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/catalogue/domain-count.json": "0ed80bc44678d2ffa76581baf32a17277018e5db99687fff1a78664b9851b1f1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/catalogue/requests.json": "ca99b379781e39020c7554471200efd9c730b85c2842a9dace42a91ea42c5069",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/map/reference.json": "397f5a17eb1de7197f158b4aa688342a434138b99ee7ff9c26292b0537672b73",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/config.json": "5ed1c9cb14b5b57b05152f82cd8fb44f0fe287529a8ec80f726277d983a02658",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/workload.json": "3d28520528649fd26df30f969db021b84ea7798f1ac44cd477862331c497d1ab",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/catalogue/domain-count.json": "60211214fc85138f3e081a66aecbcb7d25f0495ca47e6a8169448b7dcd915c6c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/catalogue/requests.json": "62e68a0a74e6a542a96cc00c5875730de44d831907ddc65acbb7780410e74c7a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/map/reference.json": "148bd56c813dcdd6105391812bb214a5ad39641dd3c9c022f103328eb9beedd5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/config.json": "74b5158796a3e16e9cac92c2d2171e3f87c8aa2399e81d202c5160528c3a759e",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/workload.json": "e824362edd8469d891781a21f58ae985a8223acb738bd6b4764748b40ac0db88",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/catalogue/domain-count.json": "3c0806cff6fda193ae43299052b275ab684647fbc56ac35d647d6f501cba29b5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/catalogue/requests.json": "323fdf56498e18809422c7b4d5c1bf92c103598d40dad1a9d16f737b8de0d049",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/3d8d79c5d058/combined-reference.json": "74e7a87b857b154c6a6cfa128b91300ee3f7eb1801fb8f2c2c692a3e11d2689b",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/3d8d79c5d058/config.json": "cc08edbbc7dc87e6c3d98b2e9efdc7fdf9aab6814f899ac7f59f064388b0b6b0",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl": "90ec7a6bd7f53f4aa58fbc8a9fae924db1cca6008a65bc7f35de24fb267db644",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verification-summary.json": "04d20ae147d3b875bcd747b95cae6508ecc57b1acaac04160a88e9a73a168fcd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/diversity-results.tar.gz.verification.json": "c299c0a2adeaedabdfe00e62fdaabdf68fec4fb5a9ae84fbce4ef5c081c5381d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/a00c956cdae0/combined-reference.json": "8c30721e0ee88bbbfc163969fa5c1ca8495ee4ca1d741834ed1bca06c6cdb4db",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/a00c956cdae0/config.json": "1cc4a97357d6fd4f20cee5b4fe643125c0ed806944e2fc4e6c6eee592cb3464c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/e61e7630681d/combined-reference.json": "c3ae419b21bd10420ca36871f4448b0662bb9a532717138a7e857c75e5cddcbb",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/e61e7630681d/config.json": "9f59ffdf420e41be0fa2159c3a20bac830aa44625ffa352da81df2be2fa4aef6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-014-a381e2b36a/combined-reference.json": "ca688087c431f7ba653c41cfb4869f08c04837619017fbd95340c7e25c2d9aee",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-014-a381e2b36a/config.json": "b65f154c840b87d09a604977f7599d1faf8543edafc86918e81179ecdf3ba4e1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/domain-count.json": "c1fbd090d73c57155d41ef784321446aa9d95b1135f04c363cfd9e44f74205dc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/requests.json": "9565b171f4e10a6d149cd73351b474688c5663263634b7195aca6640d19386d1",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-016-c2e3f0a617/combined-reference.json": "6a71209fefd06148ef92fc070518c2c6d36dca1d9c4ec8a19d61aa5e52e0fc88",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-016-c2e3f0a617/config.json": "e5bf685131092e8f9428ea9f08e7b368d0e139fc1e09a0cb0310017eeddc7901",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/domain-count.json": "a2da261e8ea8a1c717d6617eeab90aaea0de1799edbda6fe3298f102892dc6cd",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/requests.json": "bad4f575e0c44e76bc7a79ab48d145728aedb0a2dff325addf6c52a133ead230",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-017-afb1774f08/combined-reference.json": "0ca9a9232407d9d868549acc16d61ebc651dbd01076505e20d94eefaaef6a2cf",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-017-afb1774f08/config.json": "d2994c009eb2d530f0ab690297978cf44d752f04713d2b11e2192f085da60ed9",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/domain-count.json": "f66cef858b3093c3e632abd29bcbe7c7d79028824d100753f7b5e54b6d8ff14c",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/requests.json": "c82c6d64aa9ea132d03997f33576fa98a9c7dd535ecd822a60b59583227f066d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-082-caa50b6545/combined-reference.json": "574ced8d628b849f4bdb3ee1dfdc1e229b9f00d670595802ce7ef0ea54ff99cc",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-082-caa50b6545/config.json": "85481cb4190dfe41676a14a683e7ac40ce1dd8d21dd2d56d87d2421b82246b19",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/domain-count.json": "ae774a19138583e998746331910ef00e3b95ec5421cbf98f0ffc082629596572",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/requests.json": "779d6d4e4c0ea228f7be68536ce75406675ee6a90b4d64526c4cc52fec01a960",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-084-95cf5833a0/combined-reference.json": "a822be07b0e4ebeca0ce954d0cc331325ff621be2f227b0454036bd911372431",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-084-95cf5833a0/config.json": "795a7aaf62008c516aa2ec9a95ffda1eb6eedb252e432f247ad836f6870bd23d",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/domain-count.json": "e788028d52c7781a6072d97006c1c38c78003a2da40e28d2549c75130853f42a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/requests.json": "e5783c81fba7fe81f4ec3de50b73e621bb831ba6890ee5e6b8064fab1a884317"
+  },
+  "interactionFiles": [
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/interactions.jsonl",
+    "verifiers/target/full-map-5184-2026-09-17/catalogue/package/interactions.jsonl"
+  ],
+  "workloads": [
+    {
+      "label": "001-join-update-67a72159f5",
+      "workload": "67a72159f5484054f5cbf5e4f555438aafbb72a9120057e13c7c9b3cefb6457e",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/workload.json",
+      "scenarios": 52,
+      "structuralProfileSha256": "416371a4f264354e60d307ecba0b0de04e784e5402637c1dd44c21997f843400",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "002-join-update-query-2f62ebc8f9",
+      "workload": "2f62ebc8f98ecebfef9ba8b6d506ddaca2376d48a852a1eea9ab98af1a6ecc17",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/workload.json",
+      "scenarios": 36,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "004-join-update-7c26d665df",
+      "workload": "7c26d665df5b33f0672bf9369d5687fa76cce5b35e5bf3f9cbe5a53dc91a8c85",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/workload.json",
+      "scenarios": 18,
+      "structuralProfileSha256": "416371a4f264354e60d307ecba0b0de04e784e5402637c1dd44c21997f843400",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "005-join-update-query-a603fd11d9",
+      "workload": "a603fd11d92f83fa04f9baa36a21658d3682eae22145e0a5ed3a575cf2805ccd",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/workload.json",
+      "scenarios": 160,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "008-join-update-query-c099f2b180",
+      "workload": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/workload.json",
+      "scenarios": 160,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "011-join-update-query-dfc87108c9",
+      "workload": "dfc87108c9dcda1501b7689e23b5d72f9ddf61494508c9f7eaef1ea163abc542",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/workload.json",
+      "scenarios": 104,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "014-join-update-query-02cf5305c1",
+      "workload": "02cf5305c1279a7ba1484e6da8766ef84c4ba8f6456254f10290faa5282cf834",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/workload.json",
+      "scenarios": 104,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "016-join-update-806b968b0f",
+      "workload": "806b968b0fe868da6804b3b18117c1e152003ba7a06242bddea2ce8d2d9f014a",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/workload.json",
+      "scenarios": 30,
+      "structuralProfileSha256": "416371a4f264354e60d307ecba0b0de04e784e5402637c1dd44c21997f843400",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "017-join-update-query-0c3d423234",
+      "workload": "0c3d4232347f0eb3ddf8c76b0fc865c3c8e2c8c8616f774613a053db147d3397",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/workload.json",
+      "scenarios": 36,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "020-join-update-query-13810131c7",
+      "workload": "13810131c7b2856e3001d431ba87426c1c09b69ecc838ef7b2f8aae7e01e745a",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/workload.json",
+      "scenarios": 160,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "022-join-update-0763c8495d",
+      "workload": "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/workload.json",
+      "scenarios": 36,
+      "structuralProfileSha256": "416371a4f264354e60d307ecba0b0de04e784e5402637c1dd44c21997f843400",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-002-8d575abe32",
+      "workload": "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "1f9179278fb6edfa3a82c576c3c537cf65a8e303710cf14b4026eee2936ee011",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-004-3a99f1c3f0",
+      "workload": "3a99f1c3f0a46577174eaaaeb9e925f5cc372925837b17dbcf56b0651a8dc05d",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "8281fa2be0f8aac7f9d2aa474e84ec47eecd2bc6937015f3854b6202ce2fb828",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-005-6a2791eeb9",
+      "workload": "6a2791eeb9c159a6e95b0db4fddb2d381bee42c023d64cb10c30d42835a247c4",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "bb493afbda32a24eb716e25468f3189eaae30c0c1d9cf521f0b8b31b30de66da",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-006-2397cf5673",
+      "workload": "2397cf5673db11a76a721f39f1c05f4146da56d9b3cdaf1adb3a71fe4ff49ea9",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/workload.json",
+      "scenarios": 9,
+      "structuralProfileSha256": "64640e1580d7b1336f6d17f52c17e49ab5edb9db012050c3e84a90b10a0d6442",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-007-a73ca1b910",
+      "workload": "a73ca1b910a33c3dc1b124a88c799157246ecb4de91fc3bbf96de8bc1bac6808",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "316e6aacb2ddf7f4d2b37df53ca5f1a1e5340ab460a4b526f402d2f7f0b1f9f1",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-012-bc41b59a13",
+      "workload": "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "4c2402085ef25176c6718812312ff844a343cf0e05216bbce80652154d27730e",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-013-93abf85cf6",
+      "workload": "93abf85cf62ec80d204fd6cea1002a1175d3ea3c6542be184294095a8a36845f",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "ca545ebbf0b6bf3745cddfa661a33d110c43e37b5d3a7e0d11fcfdaefec89b25",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-020-ed6c68a74b",
+      "workload": "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "6c228ef787c16987db7f06fc08efa15b77ac0c8156b970cbe306aa5a0decfeda",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-021-d1bebd79ca",
+      "workload": "d1bebd79ca82f9e70f65bdd0c067e129aa8899fee5beb591cc947a6e7dfac2d7",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "987bfdae1d98af240040753816ae0e76cc188811e90c174dd8eccd1532264a0b",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-022-e465b03fa9",
+      "workload": "e465b03fa9b26a1f974d1c46bc0024e121e7b20936ed575d44f0a039ffb8db6e",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "7416bd5f492f480f5f02755df9c52ae6823fcb99111014bfe63fa19e467ce06e",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-023-902e4e9ad2",
+      "workload": "902e4e9ad2c0d332501bda8fd1a990aa08fbd6eab93bd332ec9484db3a4fa98b",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/workload.json",
+      "scenarios": 12,
+      "structuralProfileSha256": "12b46e820cf03e9cf84a00096a88a13e4651b0685c94347bb650fddcba9a2b9d",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-025-d965e34a99",
+      "workload": "d965e34a99d9a9704efd9ce4c1571ff378afb5d0a2ef7837c281818ab046963d",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "d8757679dee032ead3eaf00ea92c153579feb7144536b30740cd1b7bf659e89a",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-026-c0b611e23e",
+      "workload": "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "a23f86326635bec6c0ab6c7644776e54ae0a0e91b29b02d2aab98751730b9675",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-027-0705b39ad7",
+      "workload": "0705b39ad71b92ae23e9578e248cbc2601f7dfb38bea763bcdadc86242ef4cc4",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "625b83f146a778932951b52a8efcd5d0bb85f5efa517e018870efa7e2a5d9252",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-029-05b93426b2",
+      "workload": "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "f8f7830bcd39ed075fcd05e4287413baa7fd631dfd24d4451c08aed2e3bb4fa4",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-032-377f8726fe",
+      "workload": "377f8726fe6f933146a1d678933eb1039c9dafbc9a976a8fd926ee12a18cacab",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "f7ff95f5ad0e331226ac3b4c683a76b233e3c233398c8366655df12caf4397dd",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-034-84664b24fd",
+      "workload": "84664b24fd86c4cc3ab20d22bba7e09f0719d44d9734eebdbe2dd912f380ed74",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/workload.json",
+      "scenarios": 12,
+      "structuralProfileSha256": "a8f404c1f83ddd9e05947076ee1c9cc40c04cff4290b1449deb7fe649af8ccc8",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-038-4e6973042b",
+      "workload": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "91b7588bfbdaa7a6e359d92f1b0a9cbcdfc00e18e68d99ad1c177e05138a17ab",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-042-588de51953",
+      "workload": "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "9fef11f7bd653b29f589243f4957d0b26ff6b42f541a1499f985d3c0a6db51fc",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-046-c8209081a6",
+      "workload": "c8209081a67dbabf131f950f28a27166fd1dd6a4965fc8aa5ca9169610fde1f4",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "3d52c2301b93cb024b2d2285cb68280b44645b613da33acee85c33d2259a6fa8",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-047-5736e1470f",
+      "workload": "5736e1470f45125e336601410c97facb637c8cde5df4bcb6bce598b0bcda0843",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "c70aaf798b6e099c4136b202b15c9e9d6725b501ef3df825c38bf8282e6c0cb1",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-051-4332768b3d",
+      "workload": "4332768b3d7c05c59ffddc2cdee843be1142ca49a860c27cb3b1390dda8b1ed8",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "ab871021e92f6b42c61736766c21d759c1dd09736f682d37dded4606fd8e7358",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-054-375a71fcf5",
+      "workload": "375a71fcf5f364122cd2630b31517426c09fdf1e1d709d061b5c191c49294dea",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "229b455eff6fca89e0612e07f197a872199e7ee08ac9771fbe9d9469f4d4d0d5",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-055-ab51c0283e",
+      "workload": "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "be84a785aaa66a65e439132a4dd21573ee721abf8c43c6ee59757f29c22c6950",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-056-43daecb06b",
+      "workload": "43daecb06b9a74a660248bae4179802081dc5eecad2fc5f582732ae0fe282faa",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "0d528bacc734b8eb6de44bcd6649b37571919220883fcdf8bc4a99134804d516",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-058-1dc403f4fa",
+      "workload": "1dc403f4facceacf0593664a93ba5282cdbb224b06c902c0ecac6904ccdbeeeb",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/workload.json",
+      "scenarios": 12,
+      "structuralProfileSha256": "0ba4c2b31dddac9aed3dca690253f9ab2332ca4d071b416a938d25ea4c5b6f33",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-059-c02ea4e2aa",
+      "workload": "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "11353aa4d23210f3e9c0814981e8bf1403835a4d0354278c5176b1c3dd7762b1",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-060-d9fb3b5894",
+      "workload": "d9fb3b5894d4a4cc7df9644b4c4b6887627ad118016f202d2099b8ae52670cfa",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "cc51bf2586548d27f1aaaf3310b15ed9f83018726a0f90b28e350158ba23dbf4",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-063-783024ced6",
+      "workload": "783024ced6398dc266c67d98d18677048872fbe0c78839e1d5260179a4f61ebf",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "2f9516af9796d61795c9520a1565032d3101db1cbe4a4e9d1b269528d5ab9aa4",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-066-ea782cdd59",
+      "workload": "ea782cdd59c27e105edaeb699330d4de6a7edcbdf3f7d8f81f6d5aa0e1f1012b",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "963586b7a1bd41697d121e1bad58a005261c27b69ade18aad39e9b2ed9cc3d48",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-067-78a838a869",
+      "workload": "78a838a8690707dd7c2f468bdb6cbaf46cbe00edd1b5ca516577d48c9f65330e",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "c9261edbf6a20f7308126f6fa10eabc11feeb195dd15604eb76645c67e06c222",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-068-9c4501ab67",
+      "workload": "9c4501ab67617a484ec4187781430ce1fd2158c8e176d9642de1734f0d3c30b3",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "ec91cf99885d40102c007237f57930daf1ac6e6fa756d8801c24eb4b333213b2",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-072-45eb75108b",
+      "workload": "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "1f9179278fb6edfa3a82c576c3c537cf65a8e303710cf14b4026eee2936ee011",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-073-f305554eff",
+      "workload": "f305554eff3e14d8d924979b639972912688af5635458837a5d4a5b3e2e9e497",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "8281fa2be0f8aac7f9d2aa474e84ec47eecd2bc6937015f3854b6202ce2fb828",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-074-b82f811879",
+      "workload": "b82f81187951ee557ba4c69c0016bb79df3314d78a165d7f04a9f13c22a50071",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "bb493afbda32a24eb716e25468f3189eaae30c0c1d9cf521f0b8b31b30de66da",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-075-9e4e1a4bed",
+      "workload": "9e4e1a4beda312b0b97222f6a67b822afcf17823751d8cdf2ce6b68d6fd07ff6",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/workload.json",
+      "scenarios": 9,
+      "structuralProfileSha256": "2caf9daab9560816175c4b5461b048d73d6a921dbcc859ead7533a774e13217a",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-076-698896f60d",
+      "workload": "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "ff7d882823b58296e05318b3f9ebeee1333e2fb7faf0d5e2e49bdfc5ea0ac191",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-080-32e2c0d702",
+      "workload": "32e2c0d7024e821f3c6d6aeb147f36082c215061457bfc50c5a86b469e133b84",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "67b47c7f08a17b6cd8dd0dc52cd704ced32ce4f07761ed7b1d7e124f8d095d92",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-081-a91a653a65",
+      "workload": "a91a653a65941763e18b2f89975441131edd8cc998e21e5a23c088a1ac146df4",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "7c010ff4332d472950d64563e649cbce992e6c46b85195477ecbe8ca707eafcc",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-088-1160dea937",
+      "workload": "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "6c228ef787c16987db7f06fc08efa15b77ac0c8156b970cbe306aa5a0decfeda",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-089-90a85adf74",
+      "workload": "90a85adf74b3bd13feee57f945741a412f6e0615b701399eb3caebd3388d78a4",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "c88573d333d030c30886fff1910650d71bb9dd54f146fb0b3727a742fc5aca9b",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-090-840ccecac5",
+      "workload": "840ccecac5bc2c6923d04d7e7e4ee71fc4284017012dd86e452f309907d89683",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "16f056d344f353db45f986893b79509712e19a02d7fd62c80542c1f0f18f13ce",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-093-e61b02dd89",
+      "workload": "e61b02dd89a8281e2a16a2626bfd018d1824790bce88f9449e4ecea4a93eee79",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "a23f86326635bec6c0ab6c7644776e54ae0a0e91b29b02d2aab98751730b9675",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-094-d53ab56d5d",
+      "workload": "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "c01eeb02f29738db410106224d911d97fbb34810a78275e68184117eab24753c",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-096-a2c78d5b59",
+      "workload": "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "7ca710bda4d3adbc462373c2804e0b053b08a6762b9f19078b5db61f0b1671da",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-099-a6b0e8ca89",
+      "workload": "a6b0e8ca89cc4b0fb59c0d7d8a3cb59cd2345f955bf2591aa4c65a25fb927127",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "f64e269a4e320cda9107a9c78f8de759fa86346077fe4cd6ef35c1f523de31bb",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-100-5ac65c4bcf",
+      "workload": "5ac65c4bcfbc2f91a8747e49b696f12ff2a4793ea9f44e485e52362c8486f727",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "53669df7508062c8eb5e3b6739b6bbe18b83e1b3f65fb88a3139819162864f5d",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-101-60bf9a799c",
+      "workload": "60bf9a799c48fe0d99dafc85b706796aeb6129cc28629a000f996706f681b159",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/workload.json",
+      "scenarios": 12,
+      "structuralProfileSha256": "1825928524cc58d13021a04bfa893fdb4db175837d73f256a620c693529dfb85",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-110-24e2001018",
+      "workload": "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "3d52c2301b93cb024b2d2285cb68280b44645b613da33acee85c33d2259a6fa8",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-111-09870ac257",
+      "workload": "09870ac257900e8644893185a9a25330442bc058008e2edb5a85a54447a225f5",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "c70aaf798b6e099c4136b202b15c9e9d6725b501ef3df825c38bf8282e6c0cb1",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-114-dd4d2d1e93",
+      "workload": "dd4d2d1e93bb345060fcc28733c02ef58a2f2ee99cdaa56d3115f4298f84e920",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/workload.json",
+      "scenarios": 3,
+      "structuralProfileSha256": "ab871021e92f6b42c61736766c21d759c1dd09736f682d37dded4606fd8e7358",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-116-4eaa4bbc8f",
+      "workload": "4eaa4bbc8f296c8b2bd9ae624d11e4c8a0b655c3b9123a037f2188121180bde9",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "229b455eff6fca89e0612e07f197a872199e7ee08ac9771fbe9d9469f4d4d0d5",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-117-7d186fc363",
+      "workload": "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "be84a785aaa66a65e439132a4dd21573ee721abf8c43c6ee59757f29c22c6950",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-118-618787ae61",
+      "workload": "618787ae619d95f9bc22000e2ee413ad4f8f4e44bd44c15e4d8aa9007340b6dc",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/workload.json",
+      "scenarios": 8,
+      "structuralProfileSha256": "0d528bacc734b8eb6de44bcd6649b37571919220883fcdf8bc4a99134804d516",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-121-4766967faa",
+      "workload": "4766967faab25f8a909b9b97c45dfcbf79838ae86cf23457451fbc4e8a3e8347",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/workload.json",
+      "scenarios": 4,
+      "structuralProfileSha256": "cc51bf2586548d27f1aaaf3310b15ed9f83018726a0f90b28e350158ba23dbf4",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-123-20bd521956",
+      "workload": "20bd52195677ebaadb74b87fbaba8a76c0ae00e2ec87f10fab1909904b4da6e3",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/workload.json",
+      "scenarios": 6,
+      "structuralProfileSha256": "c398953e9c8d0ea115044eb4571d156a1dd3a416bbb57a509926258beb001da5",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-125-e0cb2936b9",
+      "workload": "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "963586b7a1bd41697d121e1bad58a005261c27b69ade18aad39e9b2ed9cc3d48",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-126-aceceb6ce3",
+      "workload": "aceceb6ce351a18e37be6a67971ddd9446c5e4d05ebb655bee58f6c337af8fe8",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "c9261edbf6a20f7308126f6fa10eabc11feeb195dd15604eb76645c67e06c222",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-127-30a6109bf7",
+      "workload": "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/pilot/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/workload.json",
+      "scenarios": 2,
+      "structuralProfileSha256": "ec91cf99885d40102c007237f57930daf1ac6e6fa756d8801c24eb4b333213b2",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "query-during-update",
+      "workload": "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/workload.json",
+      "scenarios": 48,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "query-before-update",
+      "workload": "fe399af06dc303b6d816a836c5e87104724dcdb1ac6e893669bd36e548d9019a",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/workload.json",
+      "scenarios": 36,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "query-after-update",
+      "workload": "9555c4645a94910cf48dc2459dd47eabee9fd532d561666e00113e4d9440fbdf",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/map/reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/workload.json",
+      "scenarios": 72,
+      "structuralProfileSha256": "fba7e5f295dff170bf25d2dec5e576278f49be497540a6bdd38fc9d73b625f23",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "3d8d79c5d058",
+      "workload": "3d8d79c5d058b8a539089ca09da8020d531f51f6f19efa0f3caabc615cc851f7",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/3d8d79c5d058/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 26,
+      "structuralProfileSha256": "8f0747e41474def28895a9f18df4bad2d7f398fa42b235755b96401dc6819c1a",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": null,
+      "completenessBasis": "PREVIOUS_VERIFIED_CREATION_BATCH"
+    },
+    {
+      "label": "a00c956cdae0",
+      "workload": "a00c956cdae0f5288362e1b19d59970e5f332cd58cbe2e293cc15a1d041f9c08",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/a00c956cdae0/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 16,
+      "structuralProfileSha256": "14d5b10ee803bb14413943f6e40bea66bd95066beb0a4347cbe446ef1c26958a",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": null,
+      "completenessBasis": "PREVIOUS_VERIFIED_CREATION_BATCH"
+    },
+    {
+      "label": "e61e7630681d",
+      "workload": "e61e7630681dbfb09a48e991bcb6a6bba53cca4dfeb9471ba58cb38a5b1dde95",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/e61e7630681d/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 16,
+      "structuralProfileSha256": "b9907152085aa34e5db86e09131c03f2bfafb91c353068cecc101730ef952b25",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": null,
+      "completenessBasis": "PREVIOUS_VERIFIED_CREATION_BATCH"
+    },
+    {
+      "label": "breadth-014-a381e2b36a",
+      "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-014-a381e2b36a/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 38,
+      "structuralProfileSha256": "1c62d3aa0802afee858f8d65ab56c643fe1ba0b82365e8c7cfb8e2c850f65efc",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-016-c2e3f0a617",
+      "workload": "c2e3f0a617ca7e3547920a53c6e52801d83256bc40e46ab4e4a7ad7ecb28b4b8",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-016-c2e3f0a617/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 15,
+      "structuralProfileSha256": "53b3d4602fb3ed0d04dc92a52170cbf3fd387892d1183446fcd635ad265b6dab",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-017-afb1774f08",
+      "workload": "afb1774f08a3ad5d59c64a767c5658179ff9088e4d7358403d2e08a292783221",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-017-afb1774f08/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 14,
+      "structuralProfileSha256": "fff66c14af54efb574586a3088be89efceea9f64d6c9d75c56ce4172c4cf9464",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-082-caa50b6545",
+      "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-082-caa50b6545/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 36,
+      "structuralProfileSha256": "1bd6ca01216b52857c8c4949cca230a6d7dde1de6ffab7c2ed4bf04a9ebec3c3",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    },
+    {
+      "label": "breadth-084-95cf5833a0",
+      "workload": "95cf5833a03b6713b7f0784fadf42d042230112cb398787df8ea55240154d277",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-084-95cf5833a0/combined-reference.json",
+      "workloadFile": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/workloads.jsonl",
+      "scenarios": 17,
+      "structuralProfileSha256": "279a637f7e65b3296dcf15b499f3c03c6867df8fe88ce4be5f3bb2603f117c35",
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "LOST_COPIED_UPDATE": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1
+        }
+      },
+      "enumeration": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue",
+      "completenessBasis": "CANONICAL_ENUMERATION"
+    }
+  ]
+}

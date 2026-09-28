@@ -23,7 +23,7 @@ The Tournament-to-Quiz and QuizAnswer-to-Quiz experiment relationships both use 
 
 ## 3. Non-goals
 
-Full serializability, field-level causal attribution, arbitrary DTO/reference inference,
+Full serializability, general field-level causal/dependency reconstruction, arbitrary DTO/reference inference,
 LLM judgments, custom harm rules, severity weights, other transactional profiles,
 automatic extra event delivery and subsequent user-operation probes are excluded.
 Production application bug fixes and broad scenario-generation repairs are separate.
@@ -76,6 +76,24 @@ Production application bug fixes and broad scenario-generation repairs are separ
   are in RECOVERY, after the existing evidence/sole-writer/recovery checks pass. Keep its
   raw evidence and independently assess surviving active dependencies. See the
   [policy decision](../../docs/verifiers-impl/decisions/2026-09-07-recovered-creation-remnants.md).
+
+  **Approved 16 September extension:** the single-writer path above remains unchanged.
+  An existing aggregate may also be assessed when exactly one failed Saga has completed
+  recovery and the remaining writers are attributed, committed Sagas writing in FORWARD.
+  Require a continuous predecessor identity/version chain from the baseline through all
+  observed writes, strictly increasing revisions/sequences, complete comparison evidence,
+  and a matching final revision and persistent projection. Compare changed top-level
+  application fields and lifecycle between adjacent versions; treat collections as whole
+  values. The failed Saga's changed-field set (including recovery) must be disjoint from
+  all other writers' changed fields. Any lifecycle change by another writer remains
+  UNKNOWN, as do overlaps, missing evidence, multiple failed writers and event consumers.
+  Count one residual object when an exclusively changed field still differs from baseline;
+  restored exclusive fields contribute zero even if legitimate successful changes remain.
+  Record affected fields as JSON pointers and retain actions/versions. This is observed
+  change attribution, not inference of business intent or dependencies between fields.
+  Reports identify this rule as `residualAssessmentPolicy=exclusive-observed-fields-v2`;
+  absent policy metadata in retained reports denotes the previous whole-object rule.
+  See [implementation and offline qualification](../../docs/verifiers-impl/evidence/ga-coverage-diagnosis-2026-09-16/README.md).
 
 - **FR-7 — Unresolved delivered event:** Count a surviving receiver when a scheduled
   delivery of the exact event succeeded, left its normalized receiver application data

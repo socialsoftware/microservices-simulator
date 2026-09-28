@@ -1,0 +1,2477 @@
+{
+  "use": "Retrospective description; positive-workload labels are never passed to policies.",
+  "profiles": {
+    "all-five": {
+      "three-saga": {
+        "positiveWorkloads": 10,
+        "arms": {
+          "round-robin": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 11,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 5.833333333333333,
+                "cumulativeScore": 6.733333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 22,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 10.6,
+                "cumulativeScore": 12.166666666666666
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 44,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 21.066666666666666,
+                "cumulativeScore": 23.933333333333334
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 85,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 41.3,
+                "cumulativeScore": 46.7
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 184,
+                "workloadsExhausted": 3,
+                "discoveredAnyPositive": 1,
+                "positives": 100.43333333333334,
+                "cumulativeScore": 115.0
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 24,
+              "AddParticipant + FindTournament + UpdateTournament": 184,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 12,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 36
+            }
+          },
+          "uniform": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 10.066666666666666,
+                "positiveWorkloadsVisited": 6.866666666666666,
+                "choicesInPositiveWorkloads": 11,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 5.833333333333333,
+                "cumulativeScore": 6.6
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 13.566666666666666,
+                "positiveWorkloadsVisited": 9.266666666666667,
+                "choicesInPositiveWorkloads": 21.966666666666665,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 10.666666666666666,
+                "cumulativeScore": 12.1
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 14.9,
+                "positiveWorkloadsVisited": 9.933333333333334,
+                "choicesInPositiveWorkloads": 42.6,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 20.3,
+                "cumulativeScore": 23.133333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 86.1,
+                "workloadsExhausted": 0.3333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 42.733333333333334,
+                "cumulativeScore": 48.666666666666664
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 183,
+                "workloadsExhausted": 2.9,
+                "discoveredAnyPositive": 1,
+                "positives": 98.8,
+                "cumulativeScore": 113.43333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 23.833333333333332,
+              "AddParticipant + FindTournament + UpdateTournament": 183,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 11.966666666666667,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 37.2
+            }
+          },
+          "independent": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 8.7,
+                "positiveWorkloadsVisited": 5.633333333333334,
+                "choicesInPositiveWorkloads": 12.933333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 6.966666666666667,
+                "cumulativeScore": 8.0
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 14.6,
+                "positiveWorkloadsVisited": 9.633333333333333,
+                "choicesInPositiveWorkloads": 26.9,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 14.566666666666666,
+                "cumulativeScore": 16.833333333333332
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 55.96666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 32.63333333333333,
+                "cumulativeScore": 38.36666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 116.56666666666666,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 71.5,
+                "cumulativeScore": 86.43333333333334
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 239.43333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 150.4,
+                "cumulativeScore": 182.83333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 6.666666666666667,
+              "AddParticipant + FindTournament + UpdateTournament": 239.43333333333334,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 3.3,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 6.6
+            }
+          },
+          "progress": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 3.7,
+                "positiveWorkloadsVisited": 2.966666666666667,
+                "choicesInPositiveWorkloads": 14.766666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 8.833333333333334,
+                "cumulativeScore": 10.466666666666667
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 5.166666666666667,
+                "positiveWorkloadsVisited": 3.6,
+                "choicesInPositiveWorkloads": 28.966666666666665,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 17.833333333333332,
+                "cumulativeScore": 21.7
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 5.833333333333333,
+                "positiveWorkloadsVisited": 4.166666666666667,
+                "choicesInPositiveWorkloads": 60.56666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 37,
+                "cumulativeScore": 45.53333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 6.8,
+                "positiveWorkloadsVisited": 4.8,
+                "choicesInPositiveWorkloads": 123.9,
+                "workloadsExhausted": 0.5333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 71.23333333333333,
+                "cumulativeScore": 84.7
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 8.033333333333333,
+                "positiveWorkloadsVisited": 5.6,
+                "choicesInPositiveWorkloads": 251.26666666666668,
+                "workloadsExhausted": 1.2333333333333334,
+                "discoveredAnyPositive": 1,
+                "positives": 150.2,
+                "cumulativeScore": 175.36666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 3.3333333333333335,
+              "AddParticipant + FindTournament + UpdateTournament": 251.26666666666668,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 0.7,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 0.7
+            }
+          },
+          "structural": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 8,
+                "positiveWorkloadsVisited": 3.7,
+                "choicesInPositiveWorkloads": 9.633333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 5.266666666666667,
+                "cumulativeScore": 6.166666666666667
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 10.7,
+                "positiveWorkloadsVisited": 6.033333333333333,
+                "choicesInPositiveWorkloads": 24.233333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 13.333333333333334,
+                "cumulativeScore": 15.666666666666666
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 11.6,
+                "positiveWorkloadsVisited": 6.8,
+                "choicesInPositiveWorkloads": 55.56666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 32.13333333333333,
+                "cumulativeScore": 39.1
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 12.133333333333333,
+                "positiveWorkloadsVisited": 7.2,
+                "choicesInPositiveWorkloads": 118.53333333333333,
+                "workloadsExhausted": 0.3,
+                "discoveredAnyPositive": 1,
+                "positives": 67.56666666666666,
+                "cumulativeScore": 81.7
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 13.066666666666666,
+                "positiveWorkloadsVisited": 8.066666666666666,
+                "choicesInPositiveWorkloads": 245.96666666666667,
+                "workloadsExhausted": 1,
+                "discoveredAnyPositive": 1,
+                "positives": 144.73333333333332,
+                "cumulativeScore": 171.36666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 3.6666666666666665,
+              "AddParticipant + FindTournament + UpdateTournament": 245.96666666666667,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 2.2333333333333334,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 4.133333333333334
+            }
+          },
+          "order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 9.233333333333333,
+                "positiveWorkloadsVisited": 4.966666666666667,
+                "choicesInPositiveWorkloads": 10.633333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 5.533333333333333,
+                "cumulativeScore": 6.2
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 12.5,
+                "positiveWorkloadsVisited": 7.733333333333333,
+                "choicesInPositiveWorkloads": 25.433333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 13.533333333333333,
+                "cumulativeScore": 15.3
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 13.166666666666666,
+                "positiveWorkloadsVisited": 8.333333333333334,
+                "choicesInPositiveWorkloads": 56.9,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 33.7,
+                "cumulativeScore": 38.53333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 14,
+                "positiveWorkloadsVisited": 9.1,
+                "choicesInPositiveWorkloads": 120.43333333333334,
+                "workloadsExhausted": 0.06666666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 71.06666666666666,
+                "cumulativeScore": 83.46666666666667
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 14.266666666666667,
+                "positiveWorkloadsVisited": 9.266666666666667,
+                "choicesInPositiveWorkloads": 247.23333333333332,
+                "workloadsExhausted": 0.5,
+                "discoveredAnyPositive": 1,
+                "positives": 148.66666666666666,
+                "cumulativeScore": 176.13333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 3,
+              "AddParticipant + FindTournament + UpdateTournament": 247.23333333333332,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 1.9333333333333333,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 3.8333333333333335
+            }
+          },
+          "hybrid": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 10.266666666666667,
+                "positiveWorkloadsVisited": 5.866666666666666,
+                "choicesInPositiveWorkloads": 11.333333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 5.966666666666667,
+                "cumulativeScore": 6.866666666666666
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 14.866666666666667,
+                "positiveWorkloadsVisited": 9.866666666666667,
+                "choicesInPositiveWorkloads": 26.2,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 13.466666666666667,
+                "cumulativeScore": 15.666666666666666
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 54,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 31.366666666666667,
+                "cumulativeScore": 37.13333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 118,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 73.5,
+                "cumulativeScore": 88.83333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 246,
+                "workloadsExhausted": 0.06666666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 155.33333333333334,
+                "cumulativeScore": 186.43333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 4,
+              "AddParticipant + FindTournament + UpdateTournament": 246,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 2,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 4
+            }
+          },
+          "hybrid-order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 11.1,
+                "positiveWorkloadsVisited": 6.7,
+                "choicesInPositiveWorkloads": 11.6,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 6.133333333333334,
+                "cumulativeScore": 7.2
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 14.933333333333334,
+                "positiveWorkloadsVisited": 9.966666666666667,
+                "choicesInPositiveWorkloads": 26.466666666666665,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 13.466666666666667,
+                "cumulativeScore": 15.6
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 54,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 31.166666666666668,
+                "cumulativeScore": 36.86666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 118,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 73.53333333333333,
+                "cumulativeScore": 88.83333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 10,
+                "choicesInPositiveWorkloads": 246,
+                "workloadsExhausted": 0.03333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 155.33333333333334,
+                "cumulativeScore": 186.5
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 4,
+              "AddParticipant + FindTournament + UpdateTournament": 246,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 2,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 4
+            }
+          }
+        }
+      },
+      "one-two-saga": {
+        "positiveWorkloads": 12,
+        "arms": {
+          "round-robin": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 16,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 4,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7666666666666667,
+                "positives": 1.3,
+                "cumulativeScore": 1.3
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 32,
+                "positiveWorkloadsVisited": 9,
+                "choicesInPositiveWorkloads": 9,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9333333333333333,
+                "positives": 3,
+                "cumulativeScore": 3.6666666666666665
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 64,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 12,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 3.9,
+                "cumulativeScore": 4.733333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 24,
+                "workloadsExhausted": 15,
+                "discoveredAnyPositive": 1,
+                "positives": 8.433333333333334,
+                "cumulativeScore": 10.3
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 59,
+                "workloadsExhausted": 38,
+                "discoveredAnyPositive": 1,
+                "positives": 20.066666666666666,
+                "cumulativeScore": 24.466666666666665
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 5,
+              "AddParticipant + FindTournament": 11,
+              "AddParticipant + UpdateStudentName": 5,
+              "AddParticipant + UpdateTournament": 21,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 10,
+              "AddStudent + RemoveStudentFromCourseExecution": 11,
+              "AddStudent + UpdateStudentName": 10,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 10,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10,
+              "CancelTournament": 6,
+              "CreateTournament": 11,
+              "CreateTournament + GetCourseExecutionById": 5,
+              "CreateTournament + UpdateStudentName": 11,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 10,
+              "FindTournament + UpdateTournament": 6,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 5,
+              "StartQuiz": 8,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 6
+            }
+          },
+          "uniform": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.5,
+                "positiveWorkloadsVisited": 2.966666666666667,
+                "choicesInPositiveWorkloads": 3.4,
+                "workloadsExhausted": 0.23333333333333334,
+                "discoveredAnyPositive": 0.7333333333333333,
+                "positives": 1.1333333333333333,
+                "cumulativeScore": 1.4666666666666666
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 25.2,
+                "positiveWorkloadsVisited": 4.8,
+                "choicesInPositiveWorkloads": 6.233333333333333,
+                "workloadsExhausted": 1.4666666666666666,
+                "discoveredAnyPositive": 0.9333333333333333,
+                "positives": 2.1333333333333333,
+                "cumulativeScore": 2.566666666666667
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 41.1,
+                "positiveWorkloadsVisited": 7.533333333333333,
+                "choicesInPositiveWorkloads": 12.666666666666666,
+                "workloadsExhausted": 5.233333333333333,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 4.533333333333333,
+                "cumulativeScore": 5.366666666666666
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 58.1,
+                "positiveWorkloadsVisited": 10.733333333333333,
+                "choicesInPositiveWorkloads": 27.733333333333334,
+                "workloadsExhausted": 16.333333333333332,
+                "discoveredAnyPositive": 1,
+                "positives": 9.966666666666667,
+                "cumulativeScore": 12.033333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 65.7,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 61.56666666666667,
+                "workloadsExhausted": 40.2,
+                "discoveredAnyPositive": 1,
+                "positives": 21.5,
+                "cumulativeScore": 26.133333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 3.8333333333333335,
+              "AddParticipant": 5.9,
+              "AddParticipant + AnonymizeStudent": 6.033333333333333,
+              "AddParticipant + FindTournament": 10.266666666666667,
+              "AddParticipant + UpdateStudentName": 4.8,
+              "AddParticipant + UpdateTournament": 24.4,
+              "AddStudent": 5.866666666666666,
+              "AddStudent + GetCourseExecutionById": 9.366666666666667,
+              "AddStudent + RemoveStudentFromCourseExecution": 11.466666666666667,
+              "AddStudent + UpdateStudentName": 9.433333333333334,
+              "AnonymizeStudent": 5.7,
+              "AnonymizeStudent + GetCourseExecutionById": 10.7,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10.966666666666667,
+              "CancelTournament": 5.766666666666667,
+              "CreateTournament": 10.733333333333333,
+              "CreateTournament + GetCourseExecutionById": 5.333333333333333,
+              "CreateTournament + UpdateStudentName": 9.7,
+              "CreateUser": 3.8666666666666667,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 1.9333333333333333,
+              "FindQuiz": 1.9666666666666666,
+              "FindTournament": 3.966666666666667,
+              "FindTournament + RemoveTournament": 10.966666666666667,
+              "FindTournament + UpdateTournament": 6.133333333333334,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10.1,
+              "GetCourseExecutionById + UpdateStudentName": 7.533333333333333,
+              "GetCourseExecutions": 3.966666666666667,
+              "GetCourseExecutionsByUser": 1.9666666666666666,
+              "LeaveTournament": 2.966666666666667,
+              "RemoveCourseExecution": 7.5,
+              "RemoveStudentFromCourseExecution": 5.733333333333333,
+              "RemoveTournament": 7.5,
+              "SolveQuiz": 4.9,
+              "StartQuiz": 7.733333333333333,
+              "UpdateStudentName": 3.933333333333333,
+              "UpdateTournament": 5.066666666666666
+            }
+          },
+          "independent": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.266666666666667,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 5.733333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7666666666666667,
+                "positives": 1.7333333333333334,
+                "cumulativeScore": 1.7333333333333334
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 27.9,
+                "positiveWorkloadsVisited": 8.066666666666666,
+                "choicesInPositiveWorkloads": 12.166666666666666,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9333333333333333,
+                "positives": 3.6,
+                "cumulativeScore": 4.4
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 57.63333333333333,
+                "positiveWorkloadsVisited": 11.3,
+                "choicesInPositiveWorkloads": 17.666666666666668,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 5.866666666666666,
+                "cumulativeScore": 6.733333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 36.06666666666667,
+                "workloadsExhausted": 10.966666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 11.866666666666667,
+                "cumulativeScore": 13.7
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 88.5,
+                "workloadsExhausted": 37.2,
+                "discoveredAnyPositive": 1,
+                "positives": 32.733333333333334,
+                "cumulativeScore": 37.46666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 3.7666666666666666,
+              "AddParticipant + FindTournament": 8.033333333333333,
+              "AddParticipant + UpdateStudentName": 4,
+              "AddParticipant + UpdateTournament": 45.4,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 7.733333333333333,
+              "AddStudent + RemoveStudentFromCourseExecution": 7.866666666666666,
+              "AddStudent + UpdateStudentName": 7.8,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 7.666666666666667,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 7.566666666666666,
+              "CancelTournament": 6,
+              "CreateTournament": 8,
+              "CreateTournament + GetCourseExecutionById": 3.8,
+              "CreateTournament + UpdateStudentName": 7.433333333333334,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 13.966666666666667,
+              "FindTournament + UpdateTournament": 7.7,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 7.5,
+              "GetCourseExecutionById + UpdateStudentName": 7.4,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7.866666666666666,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 7.833333333333333,
+              "SolveQuiz": 3.966666666666667,
+              "StartQuiz": 7.966666666666667,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5.733333333333333
+            }
+          },
+          "progress": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 4.533333333333333,
+                "positiveWorkloadsVisited": 2.3666666666666667,
+                "choicesInPositiveWorkloads": 11.5,
+                "workloadsExhausted": 1.7666666666666666,
+                "discoveredAnyPositive": 1,
+                "positives": 3.933333333333333,
+                "cumulativeScore": 3.933333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 5.766666666666667,
+                "positiveWorkloadsVisited": 2.6333333333333333,
+                "choicesInPositiveWorkloads": 25.533333333333335,
+                "workloadsExhausted": 2.2333333333333334,
+                "discoveredAnyPositive": 1,
+                "positives": 9.666666666666666,
+                "cumulativeScore": 9.666666666666666
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 10.033333333333333,
+                "positiveWorkloadsVisited": 4.133333333333334,
+                "choicesInPositiveWorkloads": 50,
+                "workloadsExhausted": 5.366666666666666,
+                "discoveredAnyPositive": 1,
+                "positives": 18.233333333333334,
+                "cumulativeScore": 18.3
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 26.533333333333335,
+                "positiveWorkloadsVisited": 7.466666666666667,
+                "choicesInPositiveWorkloads": 74.63333333333334,
+                "workloadsExhausted": 13.033333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 27.966666666666665,
+                "cumulativeScore": 29.1
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 53.9,
+                "positiveWorkloadsVisited": 11,
+                "choicesInPositiveWorkloads": 139.63333333333333,
+                "workloadsExhausted": 23.4,
+                "discoveredAnyPositive": 1,
+                "positives": 57.3,
+                "cumulativeScore": 60.266666666666666
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 0.9333333333333333,
+              "AddParticipant": 3.7,
+              "AddParticipant + AnonymizeStudent": 0.8666666666666667,
+              "AddParticipant + FindTournament": 8.833333333333334,
+              "AddParticipant + UpdateStudentName": 2.6333333333333333,
+              "AddParticipant + UpdateTournament": 102.13333333333334,
+              "AddStudent": 3.466666666666667,
+              "AddStudent + GetCourseExecutionById": 2.7,
+              "AddStudent + RemoveStudentFromCourseExecution": 10.033333333333333,
+              "AddStudent + UpdateStudentName": 2.8333333333333335,
+              "AnonymizeStudent": 3.8,
+              "AnonymizeStudent + GetCourseExecutionById": 2.066666666666667,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 1.8333333333333333,
+              "CancelTournament": 3,
+              "CreateTournament": 11.333333333333334,
+              "CreateTournament + GetCourseExecutionById": 1,
+              "CreateTournament + UpdateStudentName": 25.433333333333334,
+              "CreateUser": 2.2666666666666666,
+              "DeactivateUser": 3,
+              "FindQuestionByAggregateId": 1.8,
+              "FindQuiz": 1.7,
+              "FindTournament": 2.033333333333333,
+              "FindTournament + RemoveTournament": 10.866666666666667,
+              "FindTournament + UpdateTournament": 12,
+              "GetCourseExecutionById": 2.466666666666667,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 1.8333333333333333,
+              "GetCourseExecutionById + UpdateStudentName": 1.6333333333333333,
+              "GetCourseExecutions": 1.2333333333333334,
+              "GetCourseExecutionsByUser": 0.6,
+              "LeaveTournament": 0.7666666666666667,
+              "RemoveCourseExecution": 4.833333333333333,
+              "RemoveStudentFromCourseExecution": 4,
+              "RemoveTournament": 3.8,
+              "SolveQuiz": 1.9333333333333333,
+              "StartQuiz": 3.7,
+              "UpdateStudentName": 2.933333333333333,
+              "UpdateTournament": 6
+            }
+          },
+          "structural": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.933333333333334,
+                "positiveWorkloadsVisited": 3.966666666666667,
+                "choicesInPositiveWorkloads": 5.033333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7,
+                "positives": 1.2333333333333334,
+                "cumulativeScore": 1.5666666666666667
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 28.033333333333335,
+                "positiveWorkloadsVisited": 5.6,
+                "choicesInPositiveWorkloads": 8.633333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7333333333333333,
+                "positives": 2.533333333333333,
+                "cumulativeScore": 3.1
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 44.3,
+                "positiveWorkloadsVisited": 9.033333333333333,
+                "choicesInPositiveWorkloads": 21.233333333333334,
+                "workloadsExhausted": 1.3333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 6.366666666666666,
+                "cumulativeScore": 7.366666666666666
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 55.56666666666667,
+                "positiveWorkloadsVisited": 11.066666666666666,
+                "choicesInPositiveWorkloads": 48.233333333333334,
+                "workloadsExhausted": 11.6,
+                "discoveredAnyPositive": 1,
+                "positives": 15.266666666666667,
+                "cumulativeScore": 18.066666666666666
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 61.666666666666664,
+                "positiveWorkloadsVisited": 11.633333333333333,
+                "choicesInPositiveWorkloads": 105.6,
+                "workloadsExhausted": 35,
+                "discoveredAnyPositive": 1,
+                "positives": 38.233333333333334,
+                "cumulativeScore": 43.56666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 3.933333333333333,
+              "AddParticipant": 3.566666666666667,
+              "AddParticipant + AnonymizeStudent": 5.466666666666667,
+              "AddParticipant + FindTournament": 5.433333333333334,
+              "AddParticipant + UpdateStudentName": 5.066666666666666,
+              "AddParticipant + UpdateTournament": 58.733333333333334,
+              "AddStudent": 3.533333333333333,
+              "AddStudent + GetCourseExecutionById": 5.3,
+              "AddStudent + RemoveStudentFromCourseExecution": 7.366666666666666,
+              "AddStudent + UpdateStudentName": 7.833333333333333,
+              "AnonymizeStudent": 5.8,
+              "AnonymizeStudent + GetCourseExecutionById": 7.366666666666666,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 7.5,
+              "CancelTournament": 4.3,
+              "CreateTournament": 5.1,
+              "CreateTournament + GetCourseExecutionById": 5.4,
+              "CreateTournament + UpdateStudentName": 6.833333333333333,
+              "CreateUser": 3.933333333333333,
+              "DeactivateUser": 3.933333333333333,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 3.533333333333333,
+              "FindTournament + RemoveTournament": 14.566666666666666,
+              "FindTournament + UpdateTournament": 10.966666666666667,
+              "GetCourseExecutionById": 2.9,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 7.4,
+              "GetCourseExecutionById + UpdateStudentName": 6.466666666666667,
+              "GetCourseExecutions": 3.933333333333333,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7.833333333333333,
+              "RemoveStudentFromCourseExecution": 5.666666666666667,
+              "RemoveTournament": 7.6,
+              "SolveQuiz": 5.5,
+              "StartQuiz": 4.4,
+              "UpdateStudentName": 3.933333333333333,
+              "UpdateTournament": 5.9
+            }
+          },
+          "order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.866666666666667,
+                "positiveWorkloadsVisited": 4.2,
+                "choicesInPositiveWorkloads": 5.333333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7,
+                "positives": 1.3666666666666667,
+                "cumulativeScore": 1.7
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 28.166666666666668,
+                "positiveWorkloadsVisited": 5.7,
+                "choicesInPositiveWorkloads": 8.6,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7333333333333333,
+                "positives": 2.5,
+                "cumulativeScore": 3.066666666666667
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 44.166666666666664,
+                "positiveWorkloadsVisited": 9.133333333333333,
+                "choicesInPositiveWorkloads": 21.3,
+                "workloadsExhausted": 0.8333333333333334,
+                "discoveredAnyPositive": 1,
+                "positives": 6.233333333333333,
+                "cumulativeScore": 7.266666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 55.833333333333336,
+                "positiveWorkloadsVisited": 10.9,
+                "choicesInPositiveWorkloads": 46.766666666666666,
+                "workloadsExhausted": 11.566666666666666,
+                "discoveredAnyPositive": 1,
+                "positives": 14.233333333333333,
+                "cumulativeScore": 16.766666666666666
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 61,
+                "positiveWorkloadsVisited": 11.733333333333333,
+                "choicesInPositiveWorkloads": 116.03333333333333,
+                "workloadsExhausted": 32.833333333333336,
+                "discoveredAnyPositive": 1,
+                "positives": 43.233333333333334,
+                "cumulativeScore": 48.36666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 3.8666666666666667,
+              "AddParticipant": 3.433333333333333,
+              "AddParticipant + AnonymizeStudent": 4.766666666666667,
+              "AddParticipant + FindTournament": 4.833333333333333,
+              "AddParticipant + UpdateStudentName": 4.5,
+              "AddParticipant + UpdateTournament": 70.36666666666666,
+              "AddStudent": 3.3,
+              "AddStudent + GetCourseExecutionById": 4.766666666666667,
+              "AddStudent + RemoveStudentFromCourseExecution": 6.433333333333334,
+              "AddStudent + UpdateStudentName": 6.933333333333334,
+              "AnonymizeStudent": 5.666666666666667,
+              "AnonymizeStudent + GetCourseExecutionById": 6.166666666666667,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 6.766666666666667,
+              "CancelTournament": 4.033333333333333,
+              "CreateTournament": 4.566666666666666,
+              "CreateTournament + GetCourseExecutionById": 4.766666666666667,
+              "CreateTournament + UpdateStudentName": 7.5,
+              "CreateUser": 3.8666666666666667,
+              "DeactivateUser": 3.8333333333333335,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 3.3,
+              "FindTournament + RemoveTournament": 14.4,
+              "FindTournament + UpdateTournament": 10.866666666666667,
+              "GetCourseExecutionById": 2.7333333333333334,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 6.766666666666667,
+              "GetCourseExecutionById + UpdateStudentName": 6.233333333333333,
+              "GetCourseExecutions": 3.8333333333333335,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7.566666666666666,
+              "RemoveStudentFromCourseExecution": 5.166666666666667,
+              "RemoveTournament": 7.266666666666667,
+              "SolveQuiz": 4.866666666666666,
+              "StartQuiz": 4.133333333333334,
+              "UpdateStudentName": 3.933333333333333,
+              "UpdateTournament": 5.566666666666666
+            }
+          },
+          "hybrid": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.933333333333334,
+                "positiveWorkloadsVisited": 4.033333333333333,
+                "choicesInPositiveWorkloads": 5.1,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7,
+                "positives": 1.3333333333333333,
+                "cumulativeScore": 1.6333333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 29.1,
+                "positiveWorkloadsVisited": 6.133333333333334,
+                "choicesInPositiveWorkloads": 9.033333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7,
+                "positives": 2.7,
+                "cumulativeScore": 3.2
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 51.2,
+                "positiveWorkloadsVisited": 10.933333333333334,
+                "choicesInPositiveWorkloads": 21.533333333333335,
+                "workloadsExhausted": 0.06666666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 6.933333333333334,
+                "cumulativeScore": 8.033333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 61.03333333333333,
+                "positiveWorkloadsVisited": 11.866666666666667,
+                "choicesInPositiveWorkloads": 31.9,
+                "workloadsExhausted": 14.466666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 9.933333333333334,
+                "cumulativeScore": 12.033333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 110.66666666666667,
+                "workloadsExhausted": 32.56666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 43.733333333333334,
+                "cumulativeScore": 47.43333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 3.066666666666667,
+              "AddParticipant + FindTournament": 6.1,
+              "AddParticipant + UpdateStudentName": 3.066666666666667,
+              "AddParticipant + UpdateTournament": 70.83333333333333,
+              "AddStudent": 5.733333333333333,
+              "AddStudent + GetCourseExecutionById": 6,
+              "AddStudent + RemoveStudentFromCourseExecution": 6.1,
+              "AddStudent + UpdateStudentName": 6.1,
+              "AnonymizeStudent": 5.9,
+              "AnonymizeStudent + GetCourseExecutionById": 6,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 6.033333333333333,
+              "CancelTournament": 5.933333333333334,
+              "CreateTournament": 6,
+              "CreateTournament + GetCourseExecutionById": 3.1,
+              "CreateTournament + UpdateStudentName": 6.066666666666666,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 11.5,
+              "FindTournament + UpdateTournament": 8,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 6.1,
+              "GetCourseExecutionById + UpdateStudentName": 6.033333333333333,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7.5,
+              "RemoveStudentFromCourseExecution": 5.933333333333334,
+              "RemoveTournament": 7.5,
+              "SolveQuiz": 3.066666666666667,
+              "StartQuiz": 6,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5.333333333333333
+            }
+          },
+          "hybrid-order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.8,
+                "positiveWorkloadsVisited": 4.2,
+                "choicesInPositiveWorkloads": 5.4,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7,
+                "positives": 1.6666666666666667,
+                "cumulativeScore": 1.9666666666666666
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 29.133333333333333,
+                "positiveWorkloadsVisited": 6.4,
+                "choicesInPositiveWorkloads": 9.266666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7666666666666667,
+                "positives": 2.6666666666666665,
+                "cumulativeScore": 3.1666666666666665
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 51.166666666666664,
+                "positiveWorkloadsVisited": 11.1,
+                "choicesInPositiveWorkloads": 21.933333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 7.266666666666667,
+                "cumulativeScore": 8.366666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 60.96666666666667,
+                "positiveWorkloadsVisited": 11.9,
+                "choicesInPositiveWorkloads": 31.933333333333334,
+                "workloadsExhausted": 14.733333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 9.933333333333334,
+                "cumulativeScore": 12.033333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 12,
+                "choicesInPositiveWorkloads": 110.66666666666667,
+                "workloadsExhausted": 32.6,
+                "discoveredAnyPositive": 1,
+                "positives": 43.733333333333334,
+                "cumulativeScore": 47.43333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 3.066666666666667,
+              "AddParticipant + FindTournament": 6.066666666666666,
+              "AddParticipant + UpdateStudentName": 3.066666666666667,
+              "AddParticipant + UpdateTournament": 70.83333333333333,
+              "AddStudent": 5.766666666666667,
+              "AddStudent + GetCourseExecutionById": 5.933333333333334,
+              "AddStudent + RemoveStudentFromCourseExecution": 6.066666666666666,
+              "AddStudent + UpdateStudentName": 6.1,
+              "AnonymizeStudent": 5.933333333333334,
+              "AnonymizeStudent + GetCourseExecutionById": 5.933333333333334,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 6.1,
+              "CancelTournament": 5.933333333333334,
+              "CreateTournament": 6,
+              "CreateTournament + GetCourseExecutionById": 3.1,
+              "CreateTournament + UpdateStudentName": 6.1,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 11.5,
+              "FindTournament + UpdateTournament": 8,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 6.1,
+              "GetCourseExecutionById + UpdateStudentName": 6.066666666666666,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7.5,
+              "RemoveStudentFromCourseExecution": 5.9,
+              "RemoveTournament": 7.5,
+              "SolveQuiz": 3.066666666666667,
+              "StartQuiz": 6.033333333333333,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5.333333333333333
+            }
+          }
+        }
+      }
+    },
+    "dependency-and-read": {
+      "three-saga": {
+        "positiveWorkloads": 6,
+        "arms": {
+          "round-robin": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 7,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.6666666666666666,
+                "positives": 0.9,
+                "cumulativeScore": 0.9
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 13,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 1.5666666666666667,
+                "cumulativeScore": 1.5666666666666667
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 26,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 2.8666666666666667,
+                "cumulativeScore": 2.8666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 51,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 5.433333333333334,
+                "cumulativeScore": 5.433333333333334
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 110,
+                "workloadsExhausted": 3,
+                "discoveredAnyPositive": 1,
+                "positives": 13.4,
+                "cumulativeScore": 13.4
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 24,
+              "AddParticipant + FindTournament + UpdateTournament": 184,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 12,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 36
+            }
+          },
+          "uniform": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 10.066666666666666,
+                "positiveWorkloadsVisited": 4.166666666666667,
+                "choicesInPositiveWorkloads": 6.766666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 0.7666666666666667,
+                "cumulativeScore": 0.7666666666666667
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 13.566666666666666,
+                "positiveWorkloadsVisited": 5.466666666666667,
+                "choicesInPositiveWorkloads": 12.866666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.7333333333333333,
+                "positives": 1.4333333333333333,
+                "cumulativeScore": 1.4333333333333333
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 14.9,
+                "positiveWorkloadsVisited": 5.933333333333334,
+                "choicesInPositiveWorkloads": 24.733333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9,
+                "positives": 2.8333333333333335,
+                "cumulativeScore": 2.8333333333333335
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 50.86666666666667,
+                "workloadsExhausted": 0.3333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 5.7,
+                "cumulativeScore": 5.7
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 111.2,
+                "workloadsExhausted": 2.9,
+                "discoveredAnyPositive": 1,
+                "positives": 13.533333333333333,
+                "cumulativeScore": 13.533333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 23.833333333333332,
+              "AddParticipant + FindTournament + UpdateTournament": 183,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 11.966666666666667,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 37.2
+            }
+          },
+          "independent": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.633333333333333,
+                "positiveWorkloadsVisited": 5.966666666666667,
+                "choicesInPositiveWorkloads": 7.333333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.6666666666666666,
+                "positives": 0.9,
+                "cumulativeScore": 0.9
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 14.5,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 1.8333333333333333,
+                "cumulativeScore": 1.8333333333333333
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 29.7,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 3.3333333333333335,
+                "cumulativeScore": 3.3333333333333335
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 61.6,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 7.4,
+                "cumulativeScore": 7.4
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 137.4,
+                "workloadsExhausted": 3,
+                "discoveredAnyPositive": 1,
+                "positives": 19.8,
+                "cumulativeScore": 19.8
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 24,
+              "AddParticipant + FindTournament + UpdateTournament": 192.43333333333334,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 12,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 27.566666666666666
+            }
+          },
+          "progress": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 4.8,
+                "positiveWorkloadsVisited": 1.9666666666666666,
+                "choicesInPositiveWorkloads": 11.3,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 1.3333333333333333,
+                "cumulativeScore": 1.3333333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 7.7,
+                "positiveWorkloadsVisited": 3.1666666666666665,
+                "choicesInPositiveWorkloads": 22.5,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 3,
+                "cumulativeScore": 3.0
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 10.033333333333333,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 48.4,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 7.3,
+                "cumulativeScore": 7.3
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 14.333333333333334,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 99.36666666666666,
+                "workloadsExhausted": 0.13333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 13.766666666666667,
+                "cumulativeScore": 13.766666666666667
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 206.2,
+                "workloadsExhausted": 1.4,
+                "discoveredAnyPositive": 1,
+                "positives": 30.533333333333335,
+                "cumulativeScore": 30.533333333333335
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 6.1,
+              "AddParticipant + FindTournament + UpdateTournament": 241.4,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 2.933333333333333,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 5.566666666666666
+            }
+          },
+          "structural": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 6.5,
+                "positiveWorkloadsVisited": 1.1333333333333333,
+                "choicesInPositiveWorkloads": 3.533333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.3333333333333333,
+                "positives": 0.5,
+                "cumulativeScore": 0.5
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 8.733333333333333,
+                "positiveWorkloadsVisited": 2.5,
+                "choicesInPositiveWorkloads": 8.133333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 1.0333333333333334,
+                "cumulativeScore": 1.0333333333333334
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 11.6,
+                "positiveWorkloadsVisited": 4.166666666666667,
+                "choicesInPositiveWorkloads": 21.933333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 2.933333333333333,
+                "cumulativeScore": 2.933333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 14.366666666666667,
+                "positiveWorkloadsVisited": 5.9,
+                "choicesInPositiveWorkloads": 58.9,
+                "workloadsExhausted": 1.4333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 8.633333333333333,
+                "cumulativeScore": 8.633333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 150,
+                "workloadsExhausted": 3.7666666666666666,
+                "discoveredAnyPositive": 1,
+                "positives": 21.333333333333332,
+                "cumulativeScore": 21.333333333333332
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 24,
+              "AddParticipant + FindTournament + UpdateTournament": 177.1,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 12,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 42.9
+            }
+          },
+          "order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 8.2,
+                "positiveWorkloadsVisited": 2.2,
+                "choicesInPositiveWorkloads": 4.233333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.36666666666666664,
+                "positives": 0.4,
+                "cumulativeScore": 0.4
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 10.933333333333334,
+                "positiveWorkloadsVisited": 4.366666666666666,
+                "choicesInPositiveWorkloads": 10.6,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 1.1,
+                "cumulativeScore": 1.1
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 14.266666666666667,
+                "positiveWorkloadsVisited": 5.666666666666667,
+                "choicesInPositiveWorkloads": 24.666666666666668,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8666666666666667,
+                "positives": 2.8333333333333335,
+                "cumulativeScore": 2.8333333333333335
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 14.933333333333334,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 61.9,
+                "workloadsExhausted": 0.36666666666666664,
+                "discoveredAnyPositive": 1,
+                "positives": 8.633333333333333,
+                "cumulativeScore": 8.633333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 153.43333333333334,
+                "workloadsExhausted": 2.533333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 20.9,
+                "cumulativeScore": 20.9
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 22.733333333333334,
+              "AddParticipant + FindTournament + UpdateTournament": 189.93333333333334,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 11.8,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 31.533333333333335
+            }
+          },
+          "hybrid": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 8.533333333333333,
+                "positiveWorkloadsVisited": 2.3,
+                "choicesInPositiveWorkloads": 4.533333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.43333333333333335,
+                "positives": 0.6333333333333333,
+                "cumulativeScore": 0.6333333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 14.866666666666667,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 13.933333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 1.7333333333333334,
+                "cumulativeScore": 1.7333333333333334
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 30.633333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 3.433333333333333,
+                "cumulativeScore": 3.433333333333333
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 70.66666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 9.833333333333334,
+                "cumulativeScore": 9.833333333333334
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 162.23333333333332,
+                "workloadsExhausted": 0.6333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 25.233333333333334,
+                "cumulativeScore": 25.233333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 20.5,
+              "AddParticipant + FindTournament + UpdateTournament": 204.4,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 10.333333333333334,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 20.766666666666666
+            }
+          },
+          "hybrid-order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 9.8,
+                "positiveWorkloadsVisited": 3.6333333333333333,
+                "choicesInPositiveWorkloads": 5.133333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.4666666666666667,
+                "positives": 0.7,
+                "cumulativeScore": 0.7
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 14.9,
+                "positiveWorkloadsVisited": 5.966666666666667,
+                "choicesInPositiveWorkloads": 13.8,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.8333333333333334,
+                "positives": 1.7,
+                "cumulativeScore": 1.7
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 30.3,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 3.3666666666666667,
+                "cumulativeScore": 3.3666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 70.96666666666667,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 1,
+                "positives": 9.9,
+                "cumulativeScore": 9.9
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 15,
+                "positiveWorkloadsVisited": 6,
+                "choicesInPositiveWorkloads": 162.16666666666666,
+                "workloadsExhausted": 0.6333333333333333,
+                "discoveredAnyPositive": 1,
+                "positives": 25.233333333333334,
+                "cumulativeScore": 25.233333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "AddParticipant + FindTournament + UpdateStudentName": 20.566666666666666,
+              "AddParticipant + FindTournament + UpdateTournament": 204.33333333333334,
+              "AddParticipant + GetCourseExecutionById + UpdateStudentName": 10.266666666666667,
+              "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 20.833333333333332
+            }
+          }
+        }
+      },
+      "one-two-saga": {
+        "positiveWorkloads": 4,
+        "arms": {
+          "round-robin": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 16,
+                "positiveWorkloadsVisited": 0,
+                "choicesInPositiveWorkloads": 0,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0,
+                "positives": 0,
+                "cumulativeScore": 0.0
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 32,
+                "positiveWorkloadsVisited": 3,
+                "choicesInPositiveWorkloads": 3,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 0.6666666666666666,
+                "cumulativeScore": 0.6666666666666666
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 64,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 4,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.6333333333333333,
+                "positives": 0.8333333333333334,
+                "cumulativeScore": 0.8333333333333334
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 8,
+                "workloadsExhausted": 15,
+                "discoveredAnyPositive": 0.9,
+                "positives": 1.8666666666666667,
+                "cumulativeScore": 1.8666666666666667
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 18,
+                "workloadsExhausted": 38,
+                "discoveredAnyPositive": 1,
+                "positives": 4.4,
+                "cumulativeScore": 4.4
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 5,
+              "AddParticipant + FindTournament": 11,
+              "AddParticipant + UpdateStudentName": 5,
+              "AddParticipant + UpdateTournament": 21,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 10,
+              "AddStudent + RemoveStudentFromCourseExecution": 11,
+              "AddStudent + UpdateStudentName": 10,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 10,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10,
+              "CancelTournament": 6,
+              "CreateTournament": 11,
+              "CreateTournament + GetCourseExecutionById": 5,
+              "CreateTournament + UpdateStudentName": 11,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 10,
+              "FindTournament + UpdateTournament": 6,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 5,
+              "StartQuiz": 8,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 6
+            }
+          },
+          "uniform": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 14.5,
+                "positiveWorkloadsVisited": 1,
+                "choicesInPositiveWorkloads": 1.2333333333333334,
+                "workloadsExhausted": 0.23333333333333334,
+                "discoveredAnyPositive": 0.26666666666666666,
+                "positives": 0.3333333333333333,
+                "cumulativeScore": 0.3333333333333333
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 25.2,
+                "positiveWorkloadsVisited": 1.6,
+                "choicesInPositiveWorkloads": 2.1333333333333333,
+                "workloadsExhausted": 1.4666666666666666,
+                "discoveredAnyPositive": 0.3333333333333333,
+                "positives": 0.43333333333333335,
+                "cumulativeScore": 0.43333333333333335
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 41.1,
+                "positiveWorkloadsVisited": 2.466666666666667,
+                "choicesInPositiveWorkloads": 4,
+                "workloadsExhausted": 5.233333333333333,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 0.8333333333333334,
+                "cumulativeScore": 0.8333333333333334
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 58.1,
+                "positiveWorkloadsVisited": 3.433333333333333,
+                "choicesInPositiveWorkloads": 8.6,
+                "workloadsExhausted": 16.333333333333332,
+                "discoveredAnyPositive": 0.9666666666666667,
+                "positives": 2.066666666666667,
+                "cumulativeScore": 2.066666666666667
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 65.7,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 18.466666666666665,
+                "workloadsExhausted": 40.2,
+                "discoveredAnyPositive": 1,
+                "positives": 4.633333333333334,
+                "cumulativeScore": 4.633333333333334
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 3.8333333333333335,
+              "AddParticipant": 5.9,
+              "AddParticipant + AnonymizeStudent": 6.033333333333333,
+              "AddParticipant + FindTournament": 10.266666666666667,
+              "AddParticipant + UpdateStudentName": 4.8,
+              "AddParticipant + UpdateTournament": 24.4,
+              "AddStudent": 5.866666666666666,
+              "AddStudent + GetCourseExecutionById": 9.366666666666667,
+              "AddStudent + RemoveStudentFromCourseExecution": 11.466666666666667,
+              "AddStudent + UpdateStudentName": 9.433333333333334,
+              "AnonymizeStudent": 5.7,
+              "AnonymizeStudent + GetCourseExecutionById": 10.7,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10.966666666666667,
+              "CancelTournament": 5.766666666666667,
+              "CreateTournament": 10.733333333333333,
+              "CreateTournament + GetCourseExecutionById": 5.333333333333333,
+              "CreateTournament + UpdateStudentName": 9.7,
+              "CreateUser": 3.8666666666666667,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 1.9333333333333333,
+              "FindQuiz": 1.9666666666666666,
+              "FindTournament": 3.966666666666667,
+              "FindTournament + RemoveTournament": 10.966666666666667,
+              "FindTournament + UpdateTournament": 6.133333333333334,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10.1,
+              "GetCourseExecutionById + UpdateStudentName": 7.533333333333333,
+              "GetCourseExecutions": 3.966666666666667,
+              "GetCourseExecutionsByUser": 1.9666666666666666,
+              "LeaveTournament": 2.966666666666667,
+              "RemoveCourseExecution": 7.5,
+              "RemoveStudentFromCourseExecution": 5.733333333333333,
+              "RemoveTournament": 7.5,
+              "SolveQuiz": 4.9,
+              "StartQuiz": 7.733333333333333,
+              "UpdateStudentName": 3.933333333333333,
+              "UpdateTournament": 5.066666666666666
+            }
+          },
+          "independent": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 16,
+                "positiveWorkloadsVisited": 0,
+                "choicesInPositiveWorkloads": 0,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0,
+                "positives": 0,
+                "cumulativeScore": 0.0
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 31.266666666666666,
+                "positiveWorkloadsVisited": 3,
+                "choicesInPositiveWorkloads": 3.7333333333333334,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 0.7333333333333333,
+                "cumulativeScore": 0.7333333333333333
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 63.1,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 4.9,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.6333333333333333,
+                "positives": 0.9,
+                "cumulativeScore": 0.9
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 10,
+                "workloadsExhausted": 13.766666666666667,
+                "discoveredAnyPositive": 0.9,
+                "positives": 2,
+                "cumulativeScore": 2.0
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 23.2,
+                "workloadsExhausted": 38.266666666666666,
+                "discoveredAnyPositive": 1,
+                "positives": 5.466666666666667,
+                "cumulativeScore": 5.466666666666667
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 5,
+              "AddParticipant + FindTournament": 10.266666666666667,
+              "AddParticipant + UpdateStudentName": 5,
+              "AddParticipant + UpdateTournament": 21,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 10,
+              "AddStudent + RemoveStudentFromCourseExecution": 10,
+              "AddStudent + UpdateStudentName": 10,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 10,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10,
+              "CancelTournament": 6,
+              "CreateTournament": 10,
+              "CreateTournament + GetCourseExecutionById": 5,
+              "CreateTournament + UpdateStudentName": 10,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 15.2,
+              "FindTournament + UpdateTournament": 5.266666666666667,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 5,
+              "StartQuiz": 8,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5.266666666666667
+            }
+          },
+          "progress": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 6,
+                "positiveWorkloadsVisited": 0,
+                "choicesInPositiveWorkloads": 0,
+                "workloadsExhausted": 2,
+                "discoveredAnyPositive": 0,
+                "positives": 0,
+                "cumulativeScore": 0.0
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 10,
+                "positiveWorkloadsVisited": 0,
+                "choicesInPositiveWorkloads": 0,
+                "workloadsExhausted": 2,
+                "discoveredAnyPositive": 0,
+                "positives": 0,
+                "cumulativeScore": 0.0
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 18.533333333333335,
+                "positiveWorkloadsVisited": 1.7666666666666666,
+                "choicesInPositiveWorkloads": 3.5,
+                "workloadsExhausted": 4.233333333333333,
+                "discoveredAnyPositive": 0.3333333333333333,
+                "positives": 0.5666666666666667,
+                "cumulativeScore": 0.5666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 46.13333333333333,
+                "positiveWorkloadsVisited": 3,
+                "choicesInPositiveWorkloads": 12.4,
+                "workloadsExhausted": 11.833333333333334,
+                "discoveredAnyPositive": 0.8,
+                "positives": 2.2666666666666666,
+                "cumulativeScore": 2.2666666666666666
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 19.866666666666667,
+                "workloadsExhausted": 37.833333333333336,
+                "discoveredAnyPositive": 1,
+                "positives": 4,
+                "cumulativeScore": 4.0
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 3,
+              "AddParticipant + FindTournament": 9.3,
+              "AddParticipant + UpdateStudentName": 3.3,
+              "AddParticipant + UpdateTournament": 45.63333333333333,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 6.166666666666667,
+              "AddStudent + RemoveStudentFromCourseExecution": 11.7,
+              "AddStudent + UpdateStudentName": 6.3,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 6.033333333333333,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 6.033333333333333,
+              "CancelTournament": 6,
+              "CreateTournament": 10.266666666666667,
+              "CreateTournament + GetCourseExecutionById": 3.033333333333333,
+              "CreateTournament + UpdateStudentName": 11.8,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 12.333333333333334,
+              "FindTournament + UpdateTournament": 12,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 6.066666666666666,
+              "GetCourseExecutionById + UpdateStudentName": 6.066666666666666,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 7,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 7.533333333333333,
+              "SolveQuiz": 3.1666666666666665,
+              "StartQuiz": 6.4,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5.866666666666666
+            }
+          },
+          "structural": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15.733333333333333,
+                "positiveWorkloadsVisited": 1,
+                "choicesInPositiveWorkloads": 1.2666666666666666,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.26666666666666666,
+                "cumulativeScore": 0.26666666666666666
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 28.4,
+                "positiveWorkloadsVisited": 1.4,
+                "choicesInPositiveWorkloads": 2.933333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.4,
+                "positives": 0.5666666666666667,
+                "cumulativeScore": 0.5666666666666667
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 45.36666666666667,
+                "positiveWorkloadsVisited": 2.566666666666667,
+                "choicesInPositiveWorkloads": 5.333333333333333,
+                "workloadsExhausted": 2.466666666666667,
+                "discoveredAnyPositive": 0.43333333333333335,
+                "positives": 0.9,
+                "cumulativeScore": 0.9
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 56.63333333333333,
+                "positiveWorkloadsVisited": 3.566666666666667,
+                "choicesInPositiveWorkloads": 15.7,
+                "workloadsExhausted": 14.333333333333334,
+                "discoveredAnyPositive": 0.8666666666666667,
+                "positives": 3.2666666666666666,
+                "cumulativeScore": 3.2666666666666666
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 62.63333333333333,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 24,
+                "workloadsExhausted": 45.166666666666664,
+                "discoveredAnyPositive": 1,
+                "positives": 6,
+                "cumulativeScore": 6.0
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 5.966666666666667,
+              "AddParticipant + AnonymizeStudent": 8.033333333333333,
+              "AddParticipant + FindTournament": 7.2,
+              "AddParticipant + UpdateStudentName": 6,
+              "AddParticipant + UpdateTournament": 7.966666666666667,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 7.1,
+              "AddStudent + RemoveStudentFromCourseExecution": 11,
+              "AddStudent + UpdateStudentName": 12,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 11.433333333333334,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 12,
+              "CancelTournament": 6,
+              "CreateTournament": 7.466666666666667,
+              "CreateTournament + GetCourseExecutionById": 8,
+              "CreateTournament + UpdateStudentName": 10.266666666666667,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 16,
+              "FindTournament + UpdateTournament": 8.566666666666666,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 11,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 8,
+              "StartQuiz": 7,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 6
+            }
+          },
+          "order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15.733333333333333,
+                "positiveWorkloadsVisited": 1,
+                "choicesInPositiveWorkloads": 1.2666666666666666,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.26666666666666666,
+                "cumulativeScore": 0.26666666666666666
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 28.566666666666666,
+                "positiveWorkloadsVisited": 1.4,
+                "choicesInPositiveWorkloads": 2.9,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.4,
+                "positives": 0.5666666666666667,
+                "cumulativeScore": 0.5666666666666667
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 46.2,
+                "positiveWorkloadsVisited": 2.566666666666667,
+                "choicesInPositiveWorkloads": 5.233333333333333,
+                "workloadsExhausted": 1.2333333333333334,
+                "discoveredAnyPositive": 0.43333333333333335,
+                "positives": 0.8666666666666667,
+                "cumulativeScore": 0.8666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 57.13333333333333,
+                "positiveWorkloadsVisited": 3.566666666666667,
+                "choicesInPositiveWorkloads": 14.9,
+                "workloadsExhausted": 13.866666666666667,
+                "discoveredAnyPositive": 0.8666666666666667,
+                "positives": 3.1666666666666665,
+                "cumulativeScore": 3.1666666666666665
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 63.36666666666667,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 24,
+                "workloadsExhausted": 43.86666666666667,
+                "discoveredAnyPositive": 1,
+                "positives": 6,
+                "cumulativeScore": 6.0
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 5.766666666666667,
+              "AddParticipant + AnonymizeStudent": 8,
+              "AddParticipant + FindTournament": 6.8,
+              "AddParticipant + UpdateStudentName": 6,
+              "AddParticipant + UpdateTournament": 10.633333333333333,
+              "AddStudent": 5.966666666666667,
+              "AddStudent + GetCourseExecutionById": 6.666666666666667,
+              "AddStudent + RemoveStudentFromCourseExecution": 10.1,
+              "AddStudent + UpdateStudentName": 12,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 11,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 11.5,
+              "CancelTournament": 6,
+              "CreateTournament": 6.966666666666667,
+              "CreateTournament + GetCourseExecutionById": 7.866666666666666,
+              "CreateTournament + UpdateStudentName": 12.6,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 16,
+              "FindTournament + UpdateTournament": 8,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10.966666666666667,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 7.5,
+              "StartQuiz": 6.666666666666667,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 6
+            }
+          },
+          "hybrid": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15.733333333333333,
+                "positiveWorkloadsVisited": 1.2333333333333334,
+                "choicesInPositiveWorkloads": 1.5,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.3,
+                "cumulativeScore": 0.3
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 31.666666666666668,
+                "positiveWorkloadsVisited": 1.5,
+                "choicesInPositiveWorkloads": 1.8333333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.3333333333333333,
+                "cumulativeScore": 0.3333333333333333
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 53.46666666666667,
+                "positiveWorkloadsVisited": 3.566666666666667,
+                "choicesInPositiveWorkloads": 5.433333333333334,
+                "workloadsExhausted": 0.03333333333333333,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 1.0666666666666667,
+                "cumulativeScore": 1.0666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 63.7,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 9.1,
+                "workloadsExhausted": 16,
+                "discoveredAnyPositive": 0.9,
+                "positives": 1.9333333333333333,
+                "cumulativeScore": 1.9333333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 23.733333333333334,
+                "workloadsExhausted": 38,
+                "discoveredAnyPositive": 1,
+                "positives": 5.733333333333333,
+                "cumulativeScore": 5.733333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 5.1,
+              "AddParticipant + FindTournament": 10,
+              "AddParticipant + UpdateStudentName": 5.133333333333334,
+              "AddParticipant + UpdateTournament": 20,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 10,
+              "AddStudent + RemoveStudentFromCourseExecution": 10,
+              "AddStudent + UpdateStudentName": 10,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 10,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10,
+              "CancelTournament": 6,
+              "CreateTournament": 10,
+              "CreateTournament + GetCourseExecutionById": 5.033333333333333,
+              "CreateTournament + UpdateStudentName": 10,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 15.733333333333333,
+              "FindTournament + UpdateTournament": 5.966666666666667,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 5.033333333333333,
+              "StartQuiz": 8,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5
+            }
+          },
+          "hybrid-order": {
+            "checkpoints": [
+              {
+                "budget": 16,
+                "workloadsVisited": 15.733333333333333,
+                "positiveWorkloadsVisited": 1.2333333333333334,
+                "choicesInPositiveWorkloads": 1.5,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.3,
+                "cumulativeScore": 0.3
+              },
+              {
+                "budget": 32,
+                "workloadsVisited": 31.666666666666668,
+                "positiveWorkloadsVisited": 1.5,
+                "choicesInPositiveWorkloads": 1.8333333333333333,
+                "workloadsExhausted": 0,
+                "discoveredAnyPositive": 0.23333333333333334,
+                "positives": 0.3333333333333333,
+                "cumulativeScore": 0.3333333333333333
+              },
+              {
+                "budget": 64,
+                "workloadsVisited": 53.06666666666667,
+                "positiveWorkloadsVisited": 3.566666666666667,
+                "choicesInPositiveWorkloads": 5.4,
+                "workloadsExhausted": 0.03333333333333333,
+                "discoveredAnyPositive": 0.5666666666666667,
+                "positives": 1.0666666666666667,
+                "cumulativeScore": 1.0666666666666667
+              },
+              {
+                "budget": 128,
+                "workloadsVisited": 63.7,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 9.1,
+                "workloadsExhausted": 16,
+                "discoveredAnyPositive": 0.9,
+                "positives": 1.9333333333333333,
+                "cumulativeScore": 1.9333333333333333
+              },
+              {
+                "budget": 256,
+                "workloadsVisited": 66,
+                "positiveWorkloadsVisited": 4,
+                "choicesInPositiveWorkloads": 23.733333333333334,
+                "workloadsExhausted": 38,
+                "discoveredAnyPositive": 1,
+                "positives": 5.733333333333333,
+                "cumulativeScore": 5.733333333333333
+              }
+            ],
+            "meanSelectionsBySagaSetAt256": {
+              "ActivateUser": 4,
+              "AddParticipant": 6,
+              "AddParticipant + AnonymizeStudent": 5.1,
+              "AddParticipant + FindTournament": 10,
+              "AddParticipant + UpdateStudentName": 5.133333333333334,
+              "AddParticipant + UpdateTournament": 20,
+              "AddStudent": 6,
+              "AddStudent + GetCourseExecutionById": 10,
+              "AddStudent + RemoveStudentFromCourseExecution": 10,
+              "AddStudent + UpdateStudentName": 10,
+              "AnonymizeStudent": 6,
+              "AnonymizeStudent + GetCourseExecutionById": 10,
+              "AnonymizeStudent + RemoveStudentFromCourseExecution": 10,
+              "CancelTournament": 6,
+              "CreateTournament": 10,
+              "CreateTournament + GetCourseExecutionById": 5.033333333333333,
+              "CreateTournament + UpdateStudentName": 10,
+              "CreateUser": 4,
+              "DeactivateUser": 4,
+              "FindQuestionByAggregateId": 2,
+              "FindQuiz": 2,
+              "FindTournament": 4,
+              "FindTournament + RemoveTournament": 15.733333333333333,
+              "FindTournament + UpdateTournament": 5.966666666666667,
+              "GetCourseExecutionById": 4,
+              "GetCourseExecutionById + RemoveStudentFromCourseExecution": 10,
+              "GetCourseExecutionById + UpdateStudentName": 8,
+              "GetCourseExecutions": 4,
+              "GetCourseExecutionsByUser": 2,
+              "LeaveTournament": 3,
+              "RemoveCourseExecution": 8,
+              "RemoveStudentFromCourseExecution": 6,
+              "RemoveTournament": 8,
+              "SolveQuiz": 5.033333333333333,
+              "StartQuiz": 8,
+              "UpdateStudentName": 4,
+              "UpdateTournament": 5
+            }
+          }
+        }
+      }
+    }
+  }
+}

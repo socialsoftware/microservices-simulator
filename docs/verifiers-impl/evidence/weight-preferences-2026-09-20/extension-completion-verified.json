@@ -1,0 +1,49 @@
+{
+  "batches": 3,
+  "workloads": 15,
+  "completeMaps": 9,
+  "distinctMapScenarios": 189,
+  "scores": {
+    "zero": 135,
+    "positive": 38,
+    "unavailable": 16
+  },
+  "attemptReportSetsVerified": 195,
+  "faultAttemptReceiptsVerified": 180,
+  "nonMapControls": 6,
+  "replayTracesVerified": 300,
+  "replayChecks": [
+    {
+      "batch": "topic-orders",
+      "profile": "no-event-all",
+      "seeds": 30,
+      "distinctCandidatesPerTrace": 35
+    },
+    {
+      "batch": "topic-orders",
+      "profile": "recovery-late-event-all",
+      "seeds": 30,
+      "distinctCandidatesPerTrace": 62
+    },
+    {
+      "batch": "late-diversity",
+      "profile": "late-02-deleted-dependency",
+      "seeds": 30,
+      "distinctCandidatesPerTrace": 8
+    },
+    {
+      "batch": "late-diversity",
+      "profile": "late-04-all",
+      "seeds": 30,
+      "distinctCandidatesPerTrace": 4
+    },
+    {
+      "batch": "late-diversity",
+      "profile": "late-02-all",
+      "seeds": 30,
+      "distinctCandidatesPerTrace": 8
+    }
+  ],
+  "storage": "Archives on proteina01 and locally; compact verified references. No raw archive expansion.",
+  "selection": "Purposive structural diversity; not an unbiased Quizzes sample."
+}

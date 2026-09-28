@@ -1,0 +1,70 @@
+{
+  "sagasWithInputs" : 37,
+  "application" : "quizzes",
+  "normalization" : {
+    "inputVariantsSeen" : 909,
+    "inputVariantsAccepted" : 819,
+    "inputVariantsDeduplicated" : 0,
+    "inputVariantsExcludedByPolicy" : 4,
+    "inputVariantsRejectedBySourceMode" : 86,
+    "inputVariantsCapped" : 0,
+    "inputSagasWithInputs" : 37
+  },
+  "scope" : "Normal step orders, 2–4 distinct Saga types, all accepted test inputs; current broad interaction pruning includes compensation/event effects. Fault vectors, recovery schedules and event placements are not expanded; executability is not established.",
+  "totals" : {
+    "2" : {
+      "allOrders" : 7197188,
+      "compressedOrders" : 620567,
+      "inputCombinations" : 311137,
+      "prunedOrders" : 5789338,
+      "sagaSets" : 666,
+      "selectedInputCombinations" : 136156,
+      "selectedSagaSets" : 316
+    },
+    "3" : {
+      "allOrders" : 886656927870,
+      "compressedOrders" : 34140339743,
+      "inputCombinations" : 72904145,
+      "prunedOrders" : 865530423236,
+      "sagaSets" : 7770,
+      "selectedInputCombinations" : 27551023,
+      "selectedSagaSets" : 3223
+    },
+    "4" : {
+      "allOrders" : 410502636680930952,
+      "compressedOrders" : 69279814207380330,
+      "inputCombinations" : 11820344542,
+      "prunedOrders" : 408865214814764684,
+      "sagaSets" : 66045,
+      "selectedInputCombinations" : 4739545978,
+      "selectedSagaSets" : 27073
+    }
+  },
+  "extraction" : {
+    "typeOnlyFootprints" : 22,
+    "sagaBlocksSeen" : 68,
+    "sagasAdapted" : 68,
+    "stepsSeen" : 134,
+    "footprintsSeen" : 229,
+    "inputTracesSeen" : 945,
+    "inputVariantsAdapted" : 909,
+    "inputVariantsDeduplicated" : 36,
+    "inputVariantsSkipped" : 0,
+    "partialTraces" : 4,
+    "unresolvedTraces" : 0,
+    "replayableTraces" : 941,
+    "sagasWithoutUsableInputs" : 31,
+    "sagasSeen" : 68,
+    "stepsAdapted" : 134,
+    "footprintsAdapted" : 229,
+    "eventConsequenceCandidatesAdapted" : 18,
+    "eventConsequenceDiagnostics" : 5,
+    "sourceSetupPlanBindings" : 794
+  },
+  "proof" : {
+    "alternativeInputChecks" : 29484,
+    "noExactInputBindings" : true,
+    "fullEnumerationChecks" : 18,
+    "accountingPairChecks" : 666
+  }
+}

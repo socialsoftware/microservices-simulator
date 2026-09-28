@@ -1,0 +1,9 @@
+{
+  "searchesVerified": 420,
+  "recordedSelections": 107520,
+  "localGAPrefixesMatched": 16069,
+  "freshStatesMatchAllArms": true,
+  "sourceHashesVerified": true,
+  "baselineRunnerSnapshotException": "Only later metadata pinning differs; exact earlier runner retained",
+  "originalEvidenceUnchanged": true
+}

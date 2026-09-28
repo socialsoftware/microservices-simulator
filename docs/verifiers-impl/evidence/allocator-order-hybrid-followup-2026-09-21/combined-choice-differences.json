@@ -1,0 +1,14 @@
+{
+  "three-saga": {
+    "differentWorkloadDecisions": 1579,
+    "differentContextHashes": 7680,
+    "differentPredictions": 7680,
+    "totalDecisions": 7680
+  },
+  "one-two-saga": {
+    "differentWorkloadDecisions": 4798,
+    "differentContextHashes": 7680,
+    "differentPredictions": 7680,
+    "totalDecisions": 7680
+  }
+}

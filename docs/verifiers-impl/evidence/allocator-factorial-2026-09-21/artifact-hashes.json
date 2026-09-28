@@ -1,0 +1,106 @@
+{
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/compare.py": {
+    "bytes": 5963,
+    "sha256": "5d6c8d2b80ec1ed3a41df7ebaea70cd3854b392d066f3a5ae1aeb60bff42527f"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/compare_v3.py": {
+    "bytes": 5848,
+    "sha256": "7815e3421a87371ae698282b523d84b8846246d1b72eef07409a3f89464c54ba"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/check_independent.py": {
+    "bytes": 5455,
+    "sha256": "af510581a61f6217c5ad13845e04b50301e6ffcb5b0f7c87d89d6f6f4738f34b"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/ReassessResiduals.java": {
+    "bytes": 2671,
+    "sha256": "8adcc0e8566fc0cccfb65a22c422071cc14b1ca45c76b64e51d2a46773b5bd46"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/build_revised_reference.py": {
+    "bytes": 5229,
+    "sha256": "6e3fd9867caca7b9dc90cf26800e473d0cf417447554c9ae25cfd4b7acd9093f"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/reassessment-manifest.json": {
+    "bytes": 138449,
+    "sha256": "25ff1545af630c57d6df62ff10ae6e2596e732e34ed4d5080721d210ec95a5af"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/reassessment-old.json": {
+    "bytes": 831040,
+    "sha256": "bbeb23ee3b60674e40fb2acbe57fd8298e583d7bdd164ac4d49dcb4a9aa088ad"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/reassessment-new.json": {
+    "bytes": 894816,
+    "sha256": "1821d79fc75a1703efa309e35034b8808e509ae4a47d8aa8c5dbe7c681ab9dd8"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/all-report-audit.json": {
+    "bytes": 1561268,
+    "sha256": "4bb08d207bee4df0677470aed237067ea2c8e2a69723e6d19cba67858c171e3c"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/all-summary.json": {
+    "bytes": 80180,
+    "sha256": "ced8689f8e7b5df87f7c3b7296f7b0335dc911dbc14dbf13aeb654670d422cd4"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/complete.json": {
+    "bytes": 1400,
+    "sha256": "94dc7cecb80df25fc7921ae460749cba17c000c29d229bb6181fef66e89d5fb8"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/inputs.json": {
+    "bytes": 22991,
+    "sha256": "afc348800dc0df527b9b506d115dbcef0c877ca9b51565cae7a5d4228adb4d8f"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/dependency-summary.json": {
+    "bytes": 77141,
+    "sha256": "1ef0ffd2b7d2472e11c168646402b2d40ffbe0dce180be7e677a7f1310d26cd5"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/status.json": {
+    "bytes": 89,
+    "sha256": "cd739f1f325a05d3a29756325fd3eb129f40c02d2e7f5aaf39f43d3b2f9e12c0"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-small/runs.jsonl": {
+    "bytes": 667050,
+    "sha256": "fb941c542d18af8bd6ba00f8c1e81c98c22e517b151a0d7a5b1368a5944612bf"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/all-summary.json": {
+    "bytes": 63219,
+    "sha256": "bcdfdc63de6b67d7a5ae0b8327cd5a60e1aba1f30a991f41e8ff05014c5155aa"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/complete.json": {
+    "bytes": 1414,
+    "sha256": "47f605aa096e4ff1d74ff6ee7cc39c572abacc81e9cae8f2609bb869f6481854"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/inputs.json": {
+    "bytes": 286499,
+    "sha256": "58112c3b49c27631cef4bc0c138d5a402f20a95c4f9957c760a908ee75c6e256"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/dependency-summary.json": {
+    "bytes": 63077,
+    "sha256": "a4f66f0396383c10cd6ddc479ba7ef3c5528f8d94894266e7249f1634ea4fe5c"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/status.json": {
+    "bytes": 88,
+    "sha256": "d0691b5ccef25966b215c83e6173f63c99d59e925ea8a9facce67a6d48a05ae2"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-mixed/runs.jsonl": {
+    "bytes": 3293359,
+    "sha256": "040cb8dc662bd4b68cfaa9decbbd0f3d1ce8c92839a7d219684289544a9e00a9"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-v3-mixed/all-summary.json": {
+    "bytes": 62912,
+    "sha256": "597bd5ec6a30efdaf6a5a1b612f4787a47cd93d0d77b8fb6f0a9fb19bfee62af"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-v3-mixed/complete.json": {
+    "bytes": 1275,
+    "sha256": "cd0a46ec1265554c62f617e9bfe107992afcb16adbbd08b0991cfa8716c8bcf0"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-v3-mixed/inputs.json": {
+    "bytes": 286191,
+    "sha256": "271e26501881bcdea06bc4e2dcb6e74aa669686b8921b05dcbd43aeef464d77e"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-v3-mixed/status.json": {
+    "bytes": 81,
+    "sha256": "f59e90f96c6776b71d1d678c9bd365de39a3e6f7c01367ce01e0f4fb85f1d7a9"
+  },
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-factorial-2026-09-21/comparison-v3-mixed/runs.jsonl": {
+    "bytes": 1655105,
+    "sha256": "8329ad52e414bf98ff9227c163a4e2b62c94fe0640154cf28eda3a43dc9c03a3"
+  }
+}

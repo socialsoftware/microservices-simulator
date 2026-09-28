@@ -1,0 +1,2735 @@
+{
+  "scope": "Alpha-only diagnostic on previously examined fixed maps; five paired seeds",
+  "cohorts": {
+    "small": {
+      "checks": {
+        "baselineComparisons": 420,
+        "coldStartsMatched": true,
+        "matchedGaCandidateAndScorePrefixes": true,
+        "seededTiesReproduced": true,
+        "unknownsNeverZeroOrUpdates": true,
+        "completeBudgets": true
+      },
+      "protocol": {
+        "scope": "Alpha-only diagnostic on previously examined frozen benchmark",
+        "baselineProtocolSeal": "8964e78d3e5e6758685beae3531030a135191d6262ec50ccfb2ace6f16399d94",
+        "baselineProtocolSha256": "d3108106a97070447f81114e6f002ac82ceb8ca6f943a1c6447053da77996330",
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/formal_replay.py": "f8f7a8319aebbac8b81bf73ac12d9875755cd6ebd296265a49120f89f7122254",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_replay.py": "e62c5197f353eff679ef8087096a260a7ef374983223aa8f4dbe2ad10ea291f4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/master_freeze.py": "d085737e53ca5f64d2c4de1ddfd7471856bd069f089a1e20747f91aaa10c6f76",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/hybrid_exploration_control.py": "26634aeb50936d43d9ae69bdd32ba9ab74c92e0b7e306f965c77660ed4de7d75"
+        },
+        "inputSha256": "6bb96ad8e7c100191deadd16baeec6cad0b368927a00d582f482a815c1f905ac",
+        "kernelSha256": "d480434639b7e4a1445278e6930fab1aef00c79f07846ff270166bd4c55c961b",
+        "baselineArms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal"
+        ],
+        "arms": [
+          "H0-cold1",
+          "H1-cold1"
+        ],
+        "parameters": {
+          "H0-cold1": {
+            "parent": "H0",
+            "exploration": 0.7071067811865475,
+            "initialBonus": 1.0
+          },
+          "H1-cold1": {
+            "parent": "H1-cal",
+            "exploration": 0.5773502691896258,
+            "initialBonus": 1.0
+          }
+        },
+        "budget": 4000,
+        "profiles": [
+          "all-five",
+          "DELETED_DEPENDENCY",
+          "FAILED_OPERATION_RESIDUAL",
+          "UNRESOLVED_DELIVERED_EVENT",
+          "COMPENSATED_READ_EXPOSURE",
+          "LOST_COPIED_UPDATE"
+        ],
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "tieRule": "seeded-near-maximum-v1",
+        "localSearch": "ga",
+        "historicalRunsReplaced": false,
+        "newMeasurementReferencesUsed": false
+      },
+      "resultSha256": "65d3edef972fdb80ad2e896010f1efbcaea264fc2c0d9af18e73c22b0d8a89a9",
+      "baselineSha256": "5fd8c6485b9414c7d710b44664aeb4aed940d299a4dbbc97b333966d8f968e8f",
+      "summaries": [
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 1600.2,
+              "after": 1607.2
+            },
+            "positives": {
+              "before": 1385.4,
+              "after": 1395.8
+            },
+            "unknowns": {
+              "before": 402.2,
+              "after": 385.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 1631.2,
+              "after": 1663.0
+            },
+            "positives": {
+              "before": 1416.4,
+              "after": 1447.4
+            },
+            "unknowns": {
+              "before": 388.2,
+              "after": 373.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 89.0,
+              "after": 89.0
+            },
+            "positives": {
+              "before": 84,
+              "after": 84
+            },
+            "unknowns": {
+              "before": 4.8,
+              "after": 4.8
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 89.0,
+              "after": 89.0
+            },
+            "positives": {
+              "before": 84,
+              "after": 84
+            },
+            "unknowns": {
+              "before": 4.8,
+              "after": 4.8
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 1498.2,
+              "after": 1534.4
+            },
+            "positives": {
+              "before": 1498.2,
+              "after": 1534.4
+            },
+            "unknowns": {
+              "before": 26.6,
+              "after": 28.6
+            }
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            0,
+            1
+          ]
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 1541.4,
+              "after": 1572.8
+            },
+            "positives": {
+              "before": 1541.4,
+              "after": 1572.8
+            },
+            "unknowns": {
+              "before": 28.2,
+              "after": 28.6
+            }
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            0,
+            1
+          ]
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 9.0,
+              "after": 9.0
+            },
+            "positives": {
+              "before": 9,
+              "after": 9
+            },
+            "unknowns": {
+              "before": 3.8,
+              "after": 3.8
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 9.0,
+              "after": 9.0
+            },
+            "positives": {
+              "before": 9,
+              "after": 9
+            },
+            "unknowns": {
+              "before": 3.8,
+              "after": 3.8
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 117.0,
+              "after": 121.4
+            },
+            "positives": {
+              "before": 117,
+              "after": 121.4
+            },
+            "unknowns": {
+              "before": 5.4,
+              "after": 5.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 119.6,
+              "after": 123.0
+            },
+            "positives": {
+              "before": 119.6,
+              "after": 123
+            },
+            "unknowns": {
+              "before": 5.4,
+              "after": 5.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            1,
+            0
+          ]
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 19.0,
+              "after": 20.8
+            },
+            "positives": {
+              "before": 19,
+              "after": 20.8
+            },
+            "unknowns": {
+              "before": 522.4,
+              "after": 522.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            4,
+            1,
+            0
+          ]
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 19.4,
+              "after": 23.4
+            },
+            "positives": {
+              "before": 19.4,
+              "after": 23.4
+            },
+            "unknowns": {
+              "before": 522.6,
+              "after": 522.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        }
+      ],
+      "pairedRows": [
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 1538.0,
+            "positives": 1350,
+            "unknowns": 399
+          },
+          "after": {
+            "score": 1563.0,
+            "positives": 1375,
+            "unknowns": 373
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 1610.0,
+            "positives": 1387,
+            "unknowns": 410
+          },
+          "after": {
+            "score": 1609.0,
+            "positives": 1389,
+            "unknowns": 408
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 1617.0,
+            "positives": 1398,
+            "unknowns": 397
+          },
+          "after": {
+            "score": 1628.0,
+            "positives": 1411,
+            "unknowns": 389
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 1611.0,
+            "positives": 1384,
+            "unknowns": 413
+          },
+          "after": {
+            "score": 1599.0,
+            "positives": 1384,
+            "unknowns": 386
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 1625.0,
+            "positives": 1408,
+            "unknowns": 392
+          },
+          "after": {
+            "score": 1637.0,
+            "positives": 1420,
+            "unknowns": 370
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 1567.0,
+            "positives": 1379,
+            "unknowns": 376
+          },
+          "after": {
+            "score": 1611.0,
+            "positives": 1417,
+            "unknowns": 372
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 1636.0,
+            "positives": 1413,
+            "unknowns": 408
+          },
+          "after": {
+            "score": 1659.0,
+            "positives": 1436,
+            "unknowns": 408
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 1633.0,
+            "positives": 1414,
+            "unknowns": 389
+          },
+          "after": {
+            "score": 1669.0,
+            "positives": 1450,
+            "unknowns": 390
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 1641.0,
+            "positives": 1414,
+            "unknowns": 397
+          },
+          "after": {
+            "score": 1679.0,
+            "positives": 1452,
+            "unknowns": 357
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 1679.0,
+            "positives": 1462,
+            "unknowns": 371
+          },
+          "after": {
+            "score": 1697.0,
+            "positives": 1482,
+            "unknowns": 340
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 89.0,
+            "positives": 84,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 1446.0,
+            "positives": 1446,
+            "unknowns": 24
+          },
+          "after": {
+            "score": 1518.0,
+            "positives": 1518,
+            "unknowns": 26
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 1558.0,
+            "positives": 1558,
+            "unknowns": 24
+          },
+          "after": {
+            "score": 1526.0,
+            "positives": 1526,
+            "unknowns": 25
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 1463.0,
+            "positives": 1463,
+            "unknowns": 28
+          },
+          "after": {
+            "score": 1545.0,
+            "positives": 1545,
+            "unknowns": 31
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 1501.0,
+            "positives": 1501,
+            "unknowns": 29
+          },
+          "after": {
+            "score": 1534.0,
+            "positives": 1534,
+            "unknowns": 30
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 1523.0,
+            "positives": 1523,
+            "unknowns": 28
+          },
+          "after": {
+            "score": 1549.0,
+            "positives": 1549,
+            "unknowns": 31
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 1539.0,
+            "positives": 1539,
+            "unknowns": 25
+          },
+          "after": {
+            "score": 1526.0,
+            "positives": 1526,
+            "unknowns": 25
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 1546.0,
+            "positives": 1546,
+            "unknowns": 25
+          },
+          "after": {
+            "score": 1604.0,
+            "positives": 1604,
+            "unknowns": 25
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 1543.0,
+            "positives": 1543,
+            "unknowns": 30
+          },
+          "after": {
+            "score": 1559.0,
+            "positives": 1559,
+            "unknowns": 31
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 1531.0,
+            "positives": 1531,
+            "unknowns": 30
+          },
+          "after": {
+            "score": 1569.0,
+            "positives": 1569,
+            "unknowns": 31
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 1548.0,
+            "positives": 1548,
+            "unknowns": 31
+          },
+          "after": {
+            "score": 1606.0,
+            "positives": 1606,
+            "unknowns": 31
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 2
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 2
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 2
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 2
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 113.0,
+            "positives": 113,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 122.0,
+            "positives": 122,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 116.0,
+            "positives": 116,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 119.0,
+            "positives": 119,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 118.0,
+            "positives": 118,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 125.0,
+            "positives": 125,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 123.0,
+            "positives": 123,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 124.0,
+            "positives": 124,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 115.0,
+            "positives": 115,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 117.0,
+            "positives": 117,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 120.0,
+            "positives": 120,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 124.0,
+            "positives": 124,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 118.0,
+            "positives": 118,
+            "unknowns": 5
+          },
+          "after": {
+            "score": 124.0,
+            "positives": 124,
+            "unknowns": 5
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 119.0,
+            "positives": 119,
+            "unknowns": 4
+          },
+          "after": {
+            "score": 125.0,
+            "positives": 125,
+            "unknowns": 4
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 124.0,
+            "positives": 124,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 124.0,
+            "positives": 124,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 117.0,
+            "positives": 117,
+            "unknowns": 6
+          },
+          "after": {
+            "score": 118.0,
+            "positives": 118,
+            "unknowns": 6
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 10.0,
+            "positives": 10,
+            "unknowns": 523
+          },
+          "after": {
+            "score": 12.0,
+            "positives": 12,
+            "unknowns": 523
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 28.0,
+            "positives": 28,
+            "unknowns": 522
+          },
+          "after": {
+            "score": 28.0,
+            "positives": 28,
+            "unknowns": 522
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 18.0,
+            "positives": 18,
+            "unknowns": 521
+          },
+          "after": {
+            "score": 22.0,
+            "positives": 22,
+            "unknowns": 521
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 21.0,
+            "positives": 21,
+            "unknowns": 523
+          },
+          "after": {
+            "score": 23.0,
+            "positives": 23,
+            "unknowns": 523
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 18.0,
+            "positives": 18,
+            "unknowns": 523
+          },
+          "after": {
+            "score": 19.0,
+            "positives": 19,
+            "unknowns": 523
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 11.0,
+            "positives": 11,
+            "unknowns": 524
+          },
+          "after": {
+            "score": 22.0,
+            "positives": 22,
+            "unknowns": 523
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 28.0,
+            "positives": 28,
+            "unknowns": 522
+          },
+          "after": {
+            "score": 29.0,
+            "positives": 29,
+            "unknowns": 522
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 19.0,
+            "positives": 19,
+            "unknowns": 521
+          },
+          "after": {
+            "score": 22.0,
+            "positives": 22,
+            "unknowns": 521
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 21.0,
+            "positives": 21,
+            "unknowns": 523
+          },
+          "after": {
+            "score": 23.0,
+            "positives": 23,
+            "unknowns": 523
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 18.0,
+            "positives": 18,
+            "unknowns": 523
+          },
+          "after": {
+            "score": 21.0,
+            "positives": 21,
+            "unknowns": 523
+          }
+        }
+      ]
+    },
+    "full": {
+      "checks": {
+        "baselineComparisons": 420,
+        "coldStartsMatched": true,
+        "matchedGaCandidateAndScorePrefixes": true,
+        "seededTiesReproduced": true,
+        "unknownsNeverZeroOrUpdates": true,
+        "completeBudgets": true
+      },
+      "protocol": {
+        "scope": "Alpha-only diagnostic on previously examined frozen benchmark",
+        "baselineProtocolSeal": "136549b552e6f4a99f549ef0db50068561bb11c0729145466d63a55b166b849a",
+        "baselineProtocolSha256": "cc83d48066f2091e57e14b358595828d8287fb5a3131e1ca2c1094e933575962",
+        "sourceHashes": {
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/formal_replay.py": "f8f7a8319aebbac8b81bf73ac12d9875755cd6ebd296265a49120f89f7122254",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_replay.py": "e62c5197f353eff679ef8087096a260a7ef374983223aa8f4dbe2ad10ea291f4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/master_freeze.py": "d085737e53ca5f64d2c4de1ddfd7471856bd069f089a1e20747f91aaa10c6f76",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32",
+          "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/hybrid_exploration_control.py": "26634aeb50936d43d9ae69bdd32ba9ab74c92e0b7e306f965c77660ed4de7d75"
+        },
+        "inputSha256": "a9cde3a1cc62b8cd93213bbf2429b384fe67b142b4f4f0e06807ae89911e5dc3",
+        "kernelSha256": "d480434639b7e4a1445278e6930fab1aef00c79f07846ff270166bd4c55c961b",
+        "baselineArms": [
+          "uniform",
+          "P-shared",
+          "S-cal",
+          "SP-cal",
+          "P-local",
+          "H0",
+          "H1-cal"
+        ],
+        "arms": [
+          "H0-cold1",
+          "H1-cold1"
+        ],
+        "parameters": {
+          "H0-cold1": {
+            "parent": "H0",
+            "exploration": 0.7071067811865475,
+            "initialBonus": 1.0
+          },
+          "H1-cold1": {
+            "parent": "H1-cal",
+            "exploration": 0.5773502691896258,
+            "initialBonus": 1.0
+          }
+        },
+        "budget": 8000,
+        "profiles": [
+          "all-five",
+          "DELETED_DEPENDENCY",
+          "FAILED_OPERATION_RESIDUAL",
+          "UNRESOLVED_DELIVERED_EVENT",
+          "COMPENSATED_READ_EXPOSURE",
+          "LOST_COPIED_UPDATE"
+        ],
+        "seeds": [
+          1,
+          11,
+          29,
+          47,
+          73
+        ],
+        "tieRule": "seeded-near-maximum-v1",
+        "localSearch": "ga",
+        "historicalRunsReplaced": false,
+        "newMeasurementReferencesUsed": false
+      },
+      "resultSha256": "84416b4f04633248015e8e648398411218a2a2dd01da3609f11b4cea109aa82b",
+      "baselineSha256": "35630f1e174844e5f04c3a8f7c21964ef7def41e1826a83c870e9f8744c1e66a",
+      "summaries": [
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 16373.8,
+              "after": 13619.6
+            },
+            "positives": {
+              "before": 5917,
+              "after": 5993.6
+            },
+            "unknowns": {
+              "before": 647.8,
+              "after": 452.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            1,
+            0,
+            4
+          ]
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 16065.0,
+              "after": 15387.8
+            },
+            "positives": {
+              "before": 6044.4,
+              "after": 5978.2
+            },
+            "unknowns": {
+              "before": 620.6,
+              "after": 593
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            0,
+            5
+          ]
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 3071.8,
+              "after": 3244.2
+            },
+            "positives": {
+              "before": 3066.8,
+              "after": 3239.2
+            },
+            "unknowns": {
+              "before": 279.8,
+              "after": 312.8
+            }
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 3202.6,
+              "after": 3294.4
+            },
+            "positives": {
+              "before": 3197.6,
+              "after": 3289.8
+            },
+            "unknowns": {
+              "before": 301.4,
+              "after": 327
+            }
+          },
+          "scoreWinsTiesLosses": [
+            5,
+            0,
+            0
+          ]
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 8695.0,
+              "after": 8066.4
+            },
+            "positives": {
+              "before": 6126.2,
+              "after": 6150.8
+            },
+            "unknowns": {
+              "before": 509,
+              "after": 377.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            0,
+            5
+          ]
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 8831.8,
+              "after": 8720.8
+            },
+            "positives": {
+              "before": 6268.6,
+              "after": 6348.6
+            },
+            "unknowns": {
+              "before": 496,
+              "after": 461.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 9.0,
+              "after": 9.0
+            },
+            "positives": {
+              "before": 9,
+              "after": 9
+            },
+            "unknowns": {
+              "before": 56.2,
+              "after": 56.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 9.0,
+              "after": 9.0
+            },
+            "positives": {
+              "before": 9,
+              "after": 9
+            },
+            "unknowns": {
+              "before": 56.2,
+              "after": 56.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 5389.8,
+              "after": 5380.0
+            },
+            "positives": {
+              "before": 3499.2,
+              "after": 3527
+            },
+            "unknowns": {
+              "before": 411.8,
+              "after": 418.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            3,
+            0,
+            2
+          ]
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 5440.2,
+              "after": 5431.2
+            },
+            "positives": {
+              "before": 3559.6,
+              "after": 3567
+            },
+            "unknowns": {
+              "before": 422.6,
+              "after": 423.4
+            }
+          },
+          "scoreWinsTiesLosses": [
+            2,
+            0,
+            3
+          ]
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "means": {
+            "score": {
+              "before": 32.0,
+              "after": 32.0
+            },
+            "positives": {
+              "before": 32,
+              "after": 32
+            },
+            "unknowns": {
+              "before": 575.2,
+              "after": 575.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "means": {
+            "score": {
+              "before": 32.0,
+              "after": 32.0
+            },
+            "positives": {
+              "before": 32,
+              "after": 32
+            },
+            "unknowns": {
+              "before": 575.2,
+              "after": 575.2
+            }
+          },
+          "scoreWinsTiesLosses": [
+            0,
+            5,
+            0
+          ]
+        }
+      ],
+      "pairedRows": [
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 17200.0,
+            "positives": 5897,
+            "unknowns": 654
+          },
+          "after": {
+            "score": 12446.0,
+            "positives": 5841,
+            "unknowns": 341
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 16725.0,
+            "positives": 5913,
+            "unknowns": 729
+          },
+          "after": {
+            "score": 12864.0,
+            "positives": 6145,
+            "unknowns": 520
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 15046.0,
+            "positives": 5905,
+            "unknowns": 501
+          },
+          "after": {
+            "score": 12502.0,
+            "positives": 5916,
+            "unknowns": 350
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 17477.0,
+            "positives": 6056,
+            "unknowns": 735
+          },
+          "after": {
+            "score": 17776.0,
+            "positives": 6170,
+            "unknowns": 727
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 15421.0,
+            "positives": 5814,
+            "unknowns": 620
+          },
+          "after": {
+            "score": 12510.0,
+            "positives": 5896,
+            "unknowns": 323
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 17640.0,
+            "positives": 6095,
+            "unknowns": 653
+          },
+          "after": {
+            "score": 17627.0,
+            "positives": 6157,
+            "unknowns": 639
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 18267.0,
+            "positives": 6279,
+            "unknowns": 712
+          },
+          "after": {
+            "score": 18248.0,
+            "positives": 6291,
+            "unknowns": 700
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 12411.0,
+            "positives": 5791,
+            "unknowns": 386
+          },
+          "after": {
+            "score": 12158.0,
+            "positives": 5553,
+            "unknowns": 396
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 17776.0,
+            "positives": 6146,
+            "unknowns": 811
+          },
+          "after": {
+            "score": 16271.0,
+            "positives": 5879,
+            "unknowns": 755
+          }
+        },
+        {
+          "profile": "all-five",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 14231.0,
+            "positives": 5911,
+            "unknowns": 541
+          },
+          "after": {
+            "score": 12635.0,
+            "positives": 6011,
+            "unknowns": 475
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 3013.0,
+            "positives": 3008,
+            "unknowns": 281
+          },
+          "after": {
+            "score": 3261.0,
+            "positives": 3256,
+            "unknowns": 326
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 3077.0,
+            "positives": 3072,
+            "unknowns": 285
+          },
+          "after": {
+            "score": 3205.0,
+            "positives": 3200,
+            "unknowns": 309
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 3099.0,
+            "positives": 3094,
+            "unknowns": 284
+          },
+          "after": {
+            "score": 3290.0,
+            "positives": 3285,
+            "unknowns": 304
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 3100.0,
+            "positives": 3095,
+            "unknowns": 268
+          },
+          "after": {
+            "score": 3212.0,
+            "positives": 3207,
+            "unknowns": 306
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 3070.0,
+            "positives": 3065,
+            "unknowns": 281
+          },
+          "after": {
+            "score": 3253.0,
+            "positives": 3248,
+            "unknowns": 319
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 3177.0,
+            "positives": 3172,
+            "unknowns": 306
+          },
+          "after": {
+            "score": 3309.0,
+            "positives": 3304,
+            "unknowns": 343
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 3196.0,
+            "positives": 3191,
+            "unknowns": 306
+          },
+          "after": {
+            "score": 3250.0,
+            "positives": 3245,
+            "unknowns": 317
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 3221.0,
+            "positives": 3216,
+            "unknowns": 300
+          },
+          "after": {
+            "score": 3342.0,
+            "positives": 3338,
+            "unknowns": 320
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 3232.0,
+            "positives": 3227,
+            "unknowns": 290
+          },
+          "after": {
+            "score": 3249.0,
+            "positives": 3244,
+            "unknowns": 322
+          }
+        },
+        {
+          "profile": "DELETED_DEPENDENCY",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 3187.0,
+            "positives": 3182,
+            "unknowns": 305
+          },
+          "after": {
+            "score": 3322.0,
+            "positives": 3318,
+            "unknowns": 333
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 8799.0,
+            "positives": 6093,
+            "unknowns": 486
+          },
+          "after": {
+            "score": 7671.0,
+            "positives": 6006,
+            "unknowns": 268
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 8738.0,
+            "positives": 6058,
+            "unknowns": 603
+          },
+          "after": {
+            "score": 7840.0,
+            "positives": 6219,
+            "unknowns": 445
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 7844.0,
+            "positives": 5993,
+            "unknowns": 293
+          },
+          "after": {
+            "score": 7363.0,
+            "positives": 5883,
+            "unknowns": 249
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 8994.0,
+            "positives": 6211,
+            "unknowns": 593
+          },
+          "after": {
+            "score": 8952.0,
+            "positives": 6190,
+            "unknowns": 591
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 9100.0,
+            "positives": 6276,
+            "unknowns": 570
+          },
+          "after": {
+            "score": 8506.0,
+            "positives": 6456,
+            "unknowns": 333
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 9091.0,
+            "positives": 6310,
+            "unknowns": 508
+          },
+          "after": {
+            "score": 8157.0,
+            "positives": 6338,
+            "unknowns": 286
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 9177.0,
+            "positives": 6367,
+            "unknowns": 547
+          },
+          "after": {
+            "score": 9271.0,
+            "positives": 6450,
+            "unknowns": 549
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 7343.0,
+            "positives": 5866,
+            "unknowns": 248
+          },
+          "after": {
+            "score": 7631.0,
+            "positives": 6149,
+            "unknowns": 252
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 9261.0,
+            "positives": 6400,
+            "unknowns": 566
+          },
+          "after": {
+            "score": 9250.0,
+            "positives": 6398,
+            "unknowns": 608
+          }
+        },
+        {
+          "profile": "FAILED_OPERATION_RESIDUAL",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 9287.0,
+            "positives": 6400,
+            "unknowns": 611
+          },
+          "after": {
+            "score": 9295.0,
+            "positives": 6408,
+            "unknowns": 611
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 49
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 49
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 62
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 62
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 57
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 57
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 50
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 50
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 63
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 63
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 49
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 49
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 62
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 62
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 57
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 57
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 50
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 50
+          }
+        },
+        {
+          "profile": "UNRESOLVED_DELIVERED_EVENT",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 63
+          },
+          "after": {
+            "score": 9.0,
+            "positives": 9,
+            "unknowns": 63
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 5470.0,
+            "positives": 3568,
+            "unknowns": 433
+          },
+          "after": {
+            "score": 5534.0,
+            "positives": 3592,
+            "unknowns": 445
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 5529.0,
+            "positives": 3589,
+            "unknowns": 416
+          },
+          "after": {
+            "score": 5532.0,
+            "positives": 3581,
+            "unknowns": 416
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 4932.0,
+            "positives": 3151,
+            "unknowns": 362
+          },
+          "after": {
+            "score": 4860.0,
+            "positives": 3110,
+            "unknowns": 354
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 5526.0,
+            "positives": 3601,
+            "unknowns": 423
+          },
+          "after": {
+            "score": 5304.0,
+            "positives": 3643,
+            "unknowns": 434
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 5492.0,
+            "positives": 3587,
+            "unknowns": 425
+          },
+          "after": {
+            "score": 5670.0,
+            "positives": 3709,
+            "unknowns": 442
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 5665.0,
+            "positives": 3685,
+            "unknowns": 455
+          },
+          "after": {
+            "score": 5663.0,
+            "positives": 3684,
+            "unknowns": 455
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 5535.0,
+            "positives": 3583,
+            "unknowns": 416
+          },
+          "after": {
+            "score": 5686.0,
+            "positives": 3697,
+            "unknowns": 434
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 4971.0,
+            "positives": 3187,
+            "unknowns": 365
+          },
+          "after": {
+            "score": 4913.0,
+            "positives": 3148,
+            "unknowns": 360
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 5361.0,
+            "positives": 3635,
+            "unknowns": 435
+          },
+          "after": {
+            "score": 5224.0,
+            "positives": 3597,
+            "unknowns": 426
+          }
+        },
+        {
+          "profile": "COMPENSATED_READ_EXPOSURE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 5669.0,
+            "positives": 3708,
+            "unknowns": 442
+          },
+          "after": {
+            "score": 5670.0,
+            "positives": 3709,
+            "unknowns": 442
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 1,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 568
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 568
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 11,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 581
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 581
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 29,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 576
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 576
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 47,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 569
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 569
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H0-cold1",
+          "parent": "H0",
+          "seed": 73,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 582
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 582
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 1,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 568
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 568
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 11,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 581
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 581
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 29,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 576
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 576
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 47,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 569
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 569
+          }
+        },
+        {
+          "profile": "LOST_COPIED_UPDATE",
+          "arm": "H1-cold1",
+          "parent": "H1-cal",
+          "seed": 73,
+          "before": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 582
+          },
+          "after": {
+            "score": 32.0,
+            "positives": 32,
+            "unknowns": 582
+          }
+        }
+      ]
+    }
+  }
+}

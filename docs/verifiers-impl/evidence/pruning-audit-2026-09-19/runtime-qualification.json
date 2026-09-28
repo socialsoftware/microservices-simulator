@@ -1,0 +1,334 @@
+{
+  "scope": "Native Java21 qualification; fixed frozen campaign runtime hashes checked; current pruning build generates pair packages. Joined package reuses original 2026-09-16 source-derived triple. No application/scoring changes. Not Docker timing/parity evidence.",
+  "attempts": [
+    {
+      "label": "joined",
+      "attempt": "attempt-00",
+      "scenario": "49909fe55d4d933cc6c09a70f804c49841b5597c7a110a277ea54e8f94edee32",
+      "workload": "b9cadedadcab970f16fc34504edff17f81e539429e706437e6431e70df71d64a",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "PARTIAL",
+      "readGaps": [
+        {
+          "afterOrder": 10,
+          "stage": "ASSESSMENT",
+          "subject": "0c74600e-a651-4e80-8cf8-aca70894cc58:call:10",
+          "reason": "PRODUCER_ACTION_UNPROVEN"
+        }
+      ],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "COMPLETED"
+      ],
+      "seconds": 8.330768823623657,
+      "finalTournament": {
+        "cancelled": false,
+        "endTime": "2030-01-01T13:05",
+        "lastModifiedTime": "2030-01-01T12:00",
+        "numberOfQuestions": 2,
+        "startTime": "2030-01-01T12:05",
+        "state": "ACTIVE",
+        "tournamentCourseExecution": {
+          "courseExecutionAcronym": "TESTBLCM",
+          "courseExecutionAggregateId": 2,
+          "courseExecutionCourseId": 1,
+          "courseExecutionStatus": "ACTIVE",
+          "courseExecutionVersion": 26,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentCreator": {
+          "creatorAggregateId": 3,
+          "creatorName": "USER_NAME_1",
+          "creatorState": null,
+          "creatorUsername": "USER_USERNAME_1",
+          "creatorVersion": 5,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentParticipants": [
+          {
+            "enrollTime": "2030-01-01T12:00",
+            "participantAggregateId": 4,
+            "participantAnswer": {
+              "answered": false,
+              "numberOfAnswered": 0,
+              "numberOfCorrect": 0,
+              "quizAnswerAggregateId": null,
+              "quizAnswerVersion": 0,
+              "tournamentParticipant": {
+                "persistentReference": {
+                  "levels": 1,
+                  "kind": "OWNED_ANCESTOR"
+                }
+              }
+            },
+            "participantName": "UpdatedName",
+            "participantUsername": "USER_USERNAME_2",
+            "participantVersion": 8,
+            "state": "ACTIVE",
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          }
+        ],
+        "tournamentQuiz": {
+          "quizAggregateId": 11,
+          "quizVersion": 22,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentTopics": [
+          {
+            "state": "ACTIVE",
+            "topicAggregateId": 5,
+            "topicCourseAggregateId": 1,
+            "topicName": "TOPIC_NAME_1",
+            "topicVersion": 10,
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          },
+          {
+            "state": "ACTIVE",
+            "topicAggregateId": 6,
+            "topicCourseAggregateId": 1,
+            "topicName": "TOPIC_NAME_2",
+            "topicVersion": 11,
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "joined",
+      "attempt": "attempt-01",
+      "scenario": "611cbaf8e9704e80bf1aa710600ef1947eafd18a1ab64c2ddb383ebb29154294",
+      "workload": "f4c1ba31f2a618a5f6bb20519413df21c8dde0f825c89a051496484f7099ee38",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "COMPLETED"
+      ],
+      "seconds": 8.201184034347534,
+      "finalTournament": {
+        "cancelled": false,
+        "endTime": "2030-01-01T13:05",
+        "lastModifiedTime": "2030-01-01T12:00",
+        "numberOfQuestions": 2,
+        "startTime": "2030-01-01T12:05",
+        "state": "ACTIVE",
+        "tournamentCourseExecution": {
+          "courseExecutionAcronym": "TESTBLCM",
+          "courseExecutionAggregateId": 2,
+          "courseExecutionCourseId": 1,
+          "courseExecutionStatus": "ACTIVE",
+          "courseExecutionVersion": 26,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentCreator": {
+          "creatorAggregateId": 3,
+          "creatorName": "USER_NAME_1",
+          "creatorState": null,
+          "creatorUsername": "USER_USERNAME_1",
+          "creatorVersion": 5,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentParticipants": [
+          {
+            "enrollTime": "2030-01-01T12:00",
+            "participantAggregateId": 4,
+            "participantAnswer": {
+              "answered": false,
+              "numberOfAnswered": 0,
+              "numberOfCorrect": 0,
+              "quizAnswerAggregateId": null,
+              "quizAnswerVersion": 0,
+              "tournamentParticipant": {
+                "persistentReference": {
+                  "levels": 1,
+                  "kind": "OWNED_ANCESTOR"
+                }
+              }
+            },
+            "participantName": "UpdatedName",
+            "participantUsername": "USER_USERNAME_2",
+            "participantVersion": 8,
+            "state": "ACTIVE",
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          }
+        ],
+        "tournamentQuiz": {
+          "quizAggregateId": 11,
+          "quizVersion": 22,
+          "tournament": {
+            "aggregateId": 12,
+            "aggregateType": "SagaTournament"
+          }
+        },
+        "tournamentTopics": [
+          {
+            "state": "ACTIVE",
+            "topicAggregateId": 5,
+            "topicCourseAggregateId": 1,
+            "topicName": "TOPIC_NAME_1",
+            "topicVersion": 10,
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          },
+          {
+            "state": "ACTIVE",
+            "topicAggregateId": 6,
+            "topicCourseAggregateId": 1,
+            "topicName": "TOPIC_NAME_2",
+            "topicVersion": 11,
+            "tournament": {
+              "aggregateId": 12,
+              "aggregateType": "SagaTournament"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "label": "original",
+      "attempt": "attempt-00",
+      "scenario": "64a90e083962adaf0dfa9692e1352d2e920cac345b66a659838e815f73b7b27f",
+      "workload": "7acf30acceebef7a69a483ac7e51f3b25c7bf7c77cafb02c629501e14ab45352",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "seconds": 6.658758878707886
+    },
+    {
+      "label": "original",
+      "attempt": "attempt-01",
+      "scenario": "ed84a25f9e31a7d70c9f337bc2f85666e7bf5ff0f5053308843aaf9805c8e470",
+      "workload": "4b70555fc9bde55f2b40670b034ceb726e1db84904b3a315a028224542de8aab",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "seconds": 7.102681875228882
+    },
+    {
+      "label": "receiver-ready",
+      "attempt": "attempt-00",
+      "scenario": "9229421ed2e158664901adee92a1200d39ce558972c14ff79f1f13339a34fee7",
+      "workload": "654fb1723e368eb3a5deb5df916124c99d063ba491c608e650681add174a7519",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "seconds": 6.738629102706909
+    },
+    {
+      "label": "receiver-ready",
+      "attempt": "attempt-01",
+      "scenario": "9fccf9b6f66dd73e5e843de8e0a159e36310b001f30f1739dd1d91c0261a083f",
+      "workload": "3693b36a186213bcce24287c4caf6129aba20550780a5d122846c2b3ffb22abe",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [
+        "NO_ELIGIBLE_SUBSCRIBER"
+      ],
+      "seconds": 8.2554190158844
+    },
+    {
+      "label": "unrelated",
+      "attempt": "attempt-00",
+      "scenario": "034719ad8b37870909c5eea4a593cd91c51fe8f803f843dc20d3f62d544ba2a2",
+      "workload": "7c8708062ab6f82c719c5712b64338ad3fe124e557d4e8d88b0d58280d6c1a0b",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [],
+      "seconds": 7.9474570751190186
+    },
+    {
+      "label": "unrelated",
+      "attempt": "attempt-01",
+      "scenario": "2fe89c420d2aa96ed3f072927a16eb8987d6d6faa74d10a4751e4ecfcaeb8ec8",
+      "workload": "29ad03a952388f3867a9d711c5c567387299f8ffedc015df656941deecf208a5",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "persistentScore": 0,
+      "readCount": 0,
+      "readCoverage": "COMPLETE_WITHIN_SCOPE",
+      "readGaps": [],
+      "lostUpdateCount": 0,
+      "lostUpdateCoverage": "COMPLETE_WITHIN_SCOPE",
+      "events": [],
+      "seconds": 8.099505186080933
+    }
+  ],
+  "total": 8,
+  "successfulExact": 8,
+  "incompleteReadCoverage": 1,
+  "noFaultOnly": true
+}

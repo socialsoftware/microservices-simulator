@@ -1,0 +1,34 @@
+Standard Commons Logging discovery in action with spring-jcl: please remove commons-logging.jar from classpath in order to avoid potential conflicts
+[ERROR] Tests run: 24, Failures: 1, Errors: 0, Skipped: 0, Time elapsed: 2.407 s <<< FAILURE! -- in pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.CopiedUpdateSessionSpec
+[ERROR] pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.CopiedUpdateSessionSpec.returning an intentionally changed in-command copy preserves existing coverage -- Time elapsed: 0.056 s <<< FAILURE!
+Condition not satisfied:
+
+trace.gaps.empty
+|     |    |
+|     |    false
+|     [CHANGED_TRANSPORTED_COPY]
+[contracts:[[sourceType:com.example.dummyapp.inferredcopy.CardInput, targetType:com.example.dummyapp.inferredcopy.StoredCard, sourceKey:aggregateId, targetKey:reference, fields:[aggregateId:reference, caption:heading]]], events:[[order:0, kind:COMMAND_INPUT, data:[command:java.lang.Object, writer:null, values:[:]]], [order:1, kind:RESPONSE, data:[call:0, writer:null, command:java.lang.Object, values:[$.cards[aggregateId=1]:[type:com.example.dummyapp.inferredcopy.CardInput, values:[aggregateId:1, caption:old], readOrder:null, copyOrders:[]]]]], [order:2, kind:COMMAND_INPUT, data:[command:com.example.dummyapp.inferredcopy.Envelope, writer:null, values:[$.cards[aggregateId=1]:[type:com.example.dummyapp.inferredcopy.CardInput, values:[aggregateId:1, caption:old], readOrder:1, copyOrders:[]]]]], [order:3, kind:TRANSPORT_LINK, data:[call:2, path:$.cards[aggregateId=1], cloned:false, readOrder:1]], [order:4, kind:CONSTRUCTOR_COPY, data:[call:2, sagaConstruction:false, readOrder:1, readWriter:null, readPath:$.cards[aggregateId=1], transportLinkOrders:[3], targetType:com.example.dummyapp.inferredcopy.StoredCard, sourceType:com.example.dummyapp.inferredcopy.CardInput, keyField:reference, key:1, values:[reference:1, heading:old], writer:null]], [order:5, kind:RESPONSE, data:[call:2, writer:null, command:com.example.dummyapp.inferredcopy.Envelope, values:[$.cards[reference=1]:[type:com.example.dummyapp.inferredcopy.StoredCard, values:[heading:intentional replacement, reference:1], readOrder:null, copyOrders:[4]]]]]], gaps:[CHANGED_TRANSPORTED_COPY], gapContexts:[[reason:CHANGED_TRANSPORTED_COPY, hook:BEGIN, order:5, command:null, commandDepth:0, sourceType:com.example.dummyapp.inferredcopy.StoredCard, sourceOriginOrder:null, targetType:null, location:null, crossThread:false, writer:null]], gapContextsTruncated:false]
+
+	at pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.executor.CopiedUpdateSessionSpec.returning an intentionally changed in-command copy preserves existing coverage(CopiedUpdateSessionSpec.groovy:171)
+
+[ERROR] Failures: 
+[ERROR]   CopiedUpdateSessionSpec.returning an intentionally changed in-command copy preserves existing coverage:171 Condition not satisfied:
+
+trace.gaps.empty
+|     |    |
+|     |    false
+|     [CHANGED_TRANSPORTED_COPY]
+[contracts:[[sourceType:com.example.dummyapp.inferredcopy.CardInput, targetType:com.example.dummyapp.inferredcopy.StoredCard, sourceKey:aggregateId, targetKey:reference, fields:[aggregateId:reference, caption:heading]]], events:[[order:0, kind:COMMAND_INPUT, data:[command:java.lang.Object, writer:null, values:[:]]], [order:1, kind:RESPONSE, data:[call:0, writer:null, command:java.lang.Object, values:[$.cards[aggregateId=1]:[type:com.example.dummyapp.inferredcopy.CardInput, values:[aggregateId:1, caption:old], readOrder:null, copyOrders:[]]]]], [order:2, kind:COMMAND_INPUT, data:[command:com.example.dummyapp.inferredcopy.Envelope, writer:null, values:[$.cards[aggregateId=1]:[type:com.example.dummyapp.inferredcopy.CardInput, values:[aggregateId:1, caption:old], readOrder:1, copyOrders:[]]]]], [order:3, kind:TRANSPORT_LINK, data:[call:2, path:$.cards[aggregateId=1], cloned:false, readOrder:1]], [order:4, kind:CONSTRUCTOR_COPY, data:[call:2, sagaConstruction:false, readOrder:1, readWriter:null, readPath:$.cards[aggregateId=1], transportLinkOrders:[3], targetType:com.example.dummyapp.inferredcopy.StoredCard, sourceType:com.example.dummyapp.inferredcopy.CardInput, keyField:reference, key:1, values:[reference:1, heading:old], writer:null]], [order:5, kind:RESPONSE, data:[call:2, writer:null, command:com.example.dummyapp.inferredcopy.Envelope, values:[$.cards[reference=1]:[type:com.example.dummyapp.inferredcopy.StoredCard, values:[heading:intentional replacement, reference:1], readOrder:null, copyOrders:[4]]]]]], gaps:[CHANGED_TRANSPORTED_COPY], gapContexts:[[reason:CHANGED_TRANSPORTED_COPY, hook:BEGIN, order:5, command:null, commandDepth:0, sourceType:com.example.dummyapp.inferredcopy.StoredCard, sourceOriginOrder:null, targetType:null, location:null, crossThread:false, writer:null]], gapContextsTruncated:false]
+
+[ERROR] Tests run: 24, Failures: 1, Errors: 0, Skipped: 0
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-surefire-plugin:3.5.4:test (default-test) on project verifiers: There are test failures.
+[ERROR] 
+[ERROR] See /Users/andre/meic/thesis/microservices-simulator/verifiers/target/surefire-reports for the individual test results.
+[ERROR] See dump files (if any exist) [date].dump, [date]-jvmRun[N].dump and [date].dumpstream.
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

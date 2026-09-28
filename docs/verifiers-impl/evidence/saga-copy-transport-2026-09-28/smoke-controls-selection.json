@@ -1,0 +1,197 @@
+[
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "step": "s4"
+        },
+        {
+          "event": "e1"
+        },
+        {
+          "event": "e2"
+        },
+        {
+          "step": "s5"
+        }
+      ],
+      "aliases": [
+        "d960362aa875ba03efd0bb0fbedfe135699e019d9c304887bea698ea7a6c3b94"
+      ],
+      "faultVector": "00000",
+      "id": "d960362aa875ba03efd0bb0fbedfe135699e019d9c304887bea698ea7a6c3b94",
+      "key": "b856a287d83ac88a0a06b79c0f406f1e620ef7ae92ba89aee67fe81170194658",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/attempt-019",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "2f1e846720515a7302f8be68f2ca2b5a75e92a8c27e2f729b2b8f37b1737bd12",
+      "execution-report.impact-v2.json": "548032a5bd37a69b1d1f2d53454b86c5074ecceec0bb373126bc0fab5fdce533",
+      "execution-report.impact.json": "cc3f31dc517bcde51c8b7e3051029ce99a478652e44d1e8cdf23aa631fcbf4c7",
+      "execution-report.json": "79bdd229a08f7cb7e6d7f117820915df761d8fdc2b48a0383e4999b42b4f6f25",
+      "execution-report.saga-read-exposure.json": "f3a4009e257039779f7f036c36e4ac8c2b4f347865bbff6a7b033f085f3ed677",
+      "replay.json": "610f3d62502b67b14b44a506e2c6ce015ee882b9d9052401e02cb2d843ea0676"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+    "referenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+    "residualReasons": [],
+    "runtimeHash": "610f3d62502b67b14b44a506e2c6ce015ee882b9d9052401e02cb2d843ea0676",
+    "status": "COMPLETE",
+    "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+  },
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "step": "s4"
+        },
+        {
+          "step": "s5"
+        },
+        {
+          "step": "s6"
+        },
+        {
+          "step": "s7"
+        },
+        {
+          "step": "s8"
+        }
+      ],
+      "aliases": [
+        "2c447d3828f12dbf4f326c99c061518bee666b725f572ea60f2a1a50d000181d"
+      ],
+      "faultVector": "00000000",
+      "id": "2c447d3828f12dbf4f326c99c061518bee666b725f572ea60f2a1a50d000181d",
+      "key": "53c646583c77894aab7634783eb27a38996d2f1528678ac9681ef5817889decd",
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    },
+    "family": "CreateCourseExecution + CreateQuestion",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/attempt-036",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "24e93a7003bcbd7140dd924ea77692b28d764a1567656127fcb35699286a33e3",
+      "execution-report.impact-v2.json": "0b740b0bc99600b5209e4560cefbb8e68c8cab3fcf677fc1b91393b54c5286ed",
+      "execution-report.impact.json": "4afea28d3cc9ed79497f96a79820d1ab4d0af52755d626258a12b2d0d1b853ea",
+      "execution-report.json": "1c3f3a86d81a1c5d70061dbf58177689cf1c49324e8e5d27d6fd46eb1e518584",
+      "execution-report.saga-read-exposure.json": "1285c7609b581833b4e110c4459987acafe678e208f9894f0ef75d4faf6b533e",
+      "replay.json": "df0b0ab830f09bd5fc8852d3f6f6f635a7c90da4dfd0dfc2b98bb6cb801d8caf"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+    "referenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+    "residualReasons": [],
+    "runtimeHash": "df0b0ab830f09bd5fc8852d3f6f6f635a7c90da4dfd0dfc2b98bb6cb801d8caf",
+    "status": "COMPLETE",
+    "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+  },
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "step": "s4"
+        },
+        {
+          "event": "e1"
+        },
+        {
+          "event": "e2"
+        }
+      ],
+      "aliases": [
+        "64d21d24dc360c3cd8c230a182760fe429eb6f84bad32bdc8ef77d39d468afa4"
+      ],
+      "faultVector": "0000",
+      "id": "64d21d24dc360c3cd8c230a182760fe429eb6f84bad32bdc8ef77d39d468afa4",
+      "key": "3c0dc1ea0cc25a74dd18c99e6f1fa34a042466b97574c4f72d942e4a2d7dc397",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    "family": "CreateTopic + UpdateTopic",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/attempt-005",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "04f6c9026802905896f3b19bcc7bc0fc9dcb144d512f03a90e6a60439643ccf5",
+      "execution-report.impact-v2.json": "a73bb98dfb4f18038108cee9b4732bdd44ddf7b73d6d015a34187d2570feb978",
+      "execution-report.impact.json": "41dfe312aa8d24210ca78166e47f86431b7e81bd5357f225a9eb7757f5fff0d2",
+      "execution-report.json": "d8b7acee3738a4f69dbeaf8e28d1f454ad3ba17966604fde6e7f3ef08f553677",
+      "execution-report.saga-read-exposure.json": "64e3ba7d366b28b4309e39082c468cdfe2f11e3dd700d44f0ddfbc3d0c472b86",
+      "replay.json": "ada917e3aa150f170758149a0e1ffadbf1c38817588d3e658cd0e93d0c8fa503"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+    "referenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+    "residualReasons": [],
+    "runtimeHash": "ada917e3aa150f170758149a0e1ffadbf1c38817588d3e658cd0e93d0c8fa503",
+    "status": "COMPLETE",
+    "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+  }
+]

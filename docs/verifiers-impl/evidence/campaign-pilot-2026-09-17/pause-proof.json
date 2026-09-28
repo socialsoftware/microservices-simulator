@@ -1,0 +1,25 @@
+{
+  "firstReceiptUnchanged": true,
+  "paused": {
+    "errors": [],
+    "inFlight": 0,
+    "measured": 1,
+    "sessionMeasured": 1,
+    "sessionWallSeconds": 19.004350250121206,
+    "stage": "PAUSED",
+    "total": 3,
+    "updatedAt": 1789606281.4706051,
+    "workers": 1
+  },
+  "resumed": {
+    "errors": [],
+    "inFlight": 0,
+    "measured": 3,
+    "sessionMeasured": 2,
+    "sessionWallSeconds": 39.87459233403206,
+    "stage": "COMPLETE",
+    "total": 3,
+    "updatedAt": 1789606322.057031,
+    "workers": 2
+  }
+}

@@ -1,5 +1,12 @@
 # Implement potential-impact assessment
 
+The original milestones below are historical. The approved 16 September exclusive-field
+extension follows the [bounded direct brief and qualification](../../docs/verifiers-impl/evidence/ga-coverage-diagnosis-2026-09-16/README.md):
+extend only the pure assessor/report evidence, add generic Spock controls, then reassess
+the retained 3,000 attempts separately. Preserve the single-writer rule, incomplete-read
+outcomes, recovery behavior and original search evidence. No application or instrumentation
+changes, new worktree, adaptive search run, or automatic commit are part of that extension.
+
 Status: M0/M1/M2 implemented and qualified in `/Users/andre/meic/thesis/microservices-simulator-impact-v2`
 on `codex/potential-impact-v2`. No commits or merge are authorized.
 

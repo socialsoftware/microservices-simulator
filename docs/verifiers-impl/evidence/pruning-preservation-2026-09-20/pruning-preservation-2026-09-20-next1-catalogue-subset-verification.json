@@ -1,0 +1,8 @@
+[
+  {
+    "label": "GetCourseExecutionById-UpdateTournament",
+    "fullScenarios": 106,
+    "keptScenarios": 8,
+    "exactSubset": true
+  }
+]

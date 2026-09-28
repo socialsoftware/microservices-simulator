@@ -1,0 +1,523 @@
+{
+  "batch": "final-diversity",
+  "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+  "archiveBytes": 300712077,
+  "attemptReportSetsVerified": 83,
+  "receiptsVerified": 75,
+  "workloads": [
+    {
+      "name": "diversity-03",
+      "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+      "family": [
+        "AnonymizeStudent",
+        "GetCourseExecutionById",
+        "RemoveStudentFromCourseExecution"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "candidates": 36,
+      "scores": {
+        "zero": 36
+      },
+      "positiveComponents": {},
+      "positiveComponentsRegardlessOfOverallAvailability": {},
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json"
+    },
+    {
+      "name": "diversity-04",
+      "workload": "b7547fba9da3acb6db5a21c91630c7065ff2a1613ae3b6762678d0862ff5eb47",
+      "family": [
+        "UpdateStudentName",
+        "AddParticipant",
+        "FindTournament"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "candidates": 12,
+      "scores": {
+        "zero": 12
+      },
+      "positiveComponents": {},
+      "positiveComponentsRegardlessOfOverallAvailability": {},
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json"
+    },
+    {
+      "name": "diversity-02",
+      "workload": "9e536156e4c1227c51731d3e1063b0d46f80c20b594b9c8121571ff6aac6a09c",
+      "family": [
+        "AnonymizeStudent",
+        "CreateTournament"
+      ],
+      "stage": "CONTROL_REJECTED",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "DEVIATED",
+        "terminalStatus": "PARTIAL_COMPENSATED"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": 0.0,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          }
+        },
+        "fitnessUnavailableReasons": []
+      }
+    },
+    {
+      "name": "diversity-01",
+      "workload": "255b194829305c6817aec9b5c74bd262b8c0def1745c40e492365fcfc5f004e3",
+      "family": [
+        "RemoveCourseExecution",
+        "CreateQuiz"
+      ],
+      "stage": "CONTROL_REJECTED",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": null,
+              "coverage": "INCOMPLETE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": null,
+          "fitnessUnavailableReasons": [
+            "LOST_COPIED_UPDATE_INCOMPLETE"
+          ]
+        },
+        "scheduleConformance": "DEVIATED",
+        "terminalStatus": "PARTIAL_COMPENSATED"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": null,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 0,
+            "count": null,
+            "coverage": "INCOMPLETE"
+          }
+        },
+        "fitnessUnavailableReasons": [
+          "LOST_COPIED_UPDATE_INCOMPLETE"
+        ]
+      }
+    },
+    {
+      "name": "diversity-05",
+      "workload": "b120c708f91a669ae494010f1dd89f8cea006235fef20ce080a1a8f6464f1c19",
+      "family": [
+        "AnonymizeStudent",
+        "AddParticipant"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "candidates": 14,
+      "scores": {
+        "zero": 14
+      },
+      "positiveComponents": {},
+      "positiveComponentsRegardlessOfOverallAvailability": {},
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json"
+    },
+    {
+      "name": "diversity-06",
+      "workload": "dde14cb0264dcf2d17d915dccbc838bdc5a022db27d2a138ef671901c6e4522e",
+      "family": [
+        "RemoveStudentFromCourseExecution",
+        "UpdateStudentName"
+      ],
+      "stage": "CONTROL_REJECTED",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "DEVIATED",
+        "terminalStatus": "PARTIAL_COMPENSATED"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "retainedAttempts": 1,
+      "controlAssessment": {
+        "fitnessScore": 0.0,
+        "fitnessComponents": {
+          "DELETED_DEPENDENCY": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "FAILED_OPERATION_RESIDUAL": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "UNRESOLVED_DELIVERED_EVENT": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE"
+          },
+          "COMPENSATED_READ_EXPOSURE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          },
+          "LOST_COPIED_UPDATE": {
+            "observedCount": 0,
+            "count": 0,
+            "coverage": "COMPLETE_WITHIN_SCOPE"
+          }
+        },
+        "fitnessUnavailableReasons": []
+      }
+    },
+    {
+      "name": "diversity-07",
+      "workload": "80035030dbe47e1698ad58cca614aa78c0b61822e0f87366aa6910d8eb91c7f8",
+      "family": [
+        "AddStudent",
+        "UpdateStudentName"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "candidates": 6,
+      "scores": {
+        "zero": 6
+      },
+      "positiveComponents": {},
+      "positiveComponentsRegardlessOfOverallAvailability": {},
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json"
+    },
+    {
+      "name": "diversity-08",
+      "workload": "00b13b9fff688e5ad5de966f01e0fce8893522fa1bf6ea60e27a1d65ed23db4f",
+      "family": [
+        "GetCourseExecutionById",
+        "UpdateStudentName",
+        "AddParticipant"
+      ],
+      "stage": "COMPLETE",
+      "control": {
+        "fitness": {
+          "fitnessComponents": {
+            "COMPENSATED_READ_EXPOSURE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "DELETED_DEPENDENCY": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "FAILED_OPERATION_RESIDUAL": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            },
+            "LOST_COPIED_UPDATE": {
+              "count": 0,
+              "coverage": "COMPLETE_WITHIN_SCOPE",
+              "observedCount": 0
+            },
+            "UNRESOLVED_DELIVERED_EVENT": {
+              "count": 0,
+              "coverage": "COMPLETE",
+              "observedCount": 0
+            }
+          },
+          "fitnessScore": 0.0,
+          "fitnessUnavailableReasons": []
+        },
+        "scheduleConformance": "EXACT",
+        "terminalStatus": "SUCCESS"
+      },
+      "archiveSha256": "ae9973becc6a1e7dcce475de65840e05fff2ba95f8df62a2dd536f2b225a808f",
+      "candidates": 12,
+      "scores": {
+        "zero": 12
+      },
+      "positiveComponents": {},
+      "positiveComponentsRegardlessOfOverallAvailability": {},
+      "lostUpdateWitnesses": [],
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json"
+    }
+  ],
+  "scope": "Structurally selected extension; retained controls and complete/partial maps; fixed runtime and qualified event-origin assessor."
+}

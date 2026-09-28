@@ -1,0 +1,274 @@
+{
+  "runtime": "native Java21; frozen dependencies and final read-assessor overlay",
+  "distinctScenarios": 10,
+  "attempts": [
+    {
+      "label": "joined-final",
+      "scenario": "49909fe55d4d933cc6c09a70f804c49841b5597c7a110a277ea54e8f94edee32",
+      "workload": "b9cadedadcab970f16fc34504edff17f81e539429e706437e6431e70df71d64a",
+      "vector": "0000",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/joined-final/attempt-00/receipt.json",
+      "receiptHash": "42b38305c580c0a61e82ce603d309beae4a3a87fc7b85f6f8622b72f7af9a77f"
+    },
+    {
+      "label": "joined-final",
+      "scenario": "611cbaf8e9704e80bf1aa710600ef1947eafd18a1ab64c2ddb383ebb29154294",
+      "workload": "f4c1ba31f2a618a5f6bb20519413df21c8dde0f825c89a051496484f7099ee38",
+      "vector": "0000",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/joined-final/attempt-01/receipt.json",
+      "receiptHash": "005f8623338db3a4a32bfef43cb23ec99f1b1f87b4096be35b826cfcf151d28a"
+    },
+    {
+      "label": "prepared-pair-final",
+      "scenario": "593b3bc339c554c0558dbe0d00c3feab98e5a4a80c88322b8f6a09b7b3fab252",
+      "workload": "740845b6267fa347ba0f1ea09a1549a94827be76732aa679178bf4c6b5248acc",
+      "vector": "00",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-final/attempt-00/receipt.json",
+      "receiptHash": "4b540399e6d22ebe333ceea8e62117c25105ec9bc93170e3e82cccfd245ef54e"
+    },
+    {
+      "label": "prepared-pair-final",
+      "scenario": "b38ca38092b8769ff2c33b2f2e80fdebc047cd4a5be3ec56eeb6f44153307427",
+      "workload": "5c2149d5c220fb9c687c05f1009f32e2a8c71d9d453ff8d7d4ccdca3c96010cf",
+      "vector": "00",
+      "terminal": "SUCCESS",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-final/attempt-01/receipt.json",
+      "receiptHash": "1dbfbf3ba1706e493ba8b29e7d9a45c0a8d702aa5cee95f9491ae8fa57e8c65d"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "586351f3b8591c59299a130eb1a8d8736aea2fd0e949e3c0df91099b7eaf66e9",
+      "workload": "740845b6267fa347ba0f1ea09a1549a94827be76732aa679178bf4c6b5248acc",
+      "vector": "01",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-00/receipt.json",
+      "receiptHash": "c8bae6ba2fe8805e5b414a01fe4dadf1ba524264de6269b53810c713c9246a15"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "6a117be19299b47fa915947a4bb091d09a33a51bc2194e0361ad972c862ec776",
+      "workload": "740845b6267fa347ba0f1ea09a1549a94827be76732aa679178bf4c6b5248acc",
+      "vector": "11",
+      "terminal": "COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "MASKED_BY_TRIGGER_FAULT",
+          "receiver": null
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-01/receipt.json",
+      "receiptHash": "ab56479edfe6c7f11e9957bbc6d9d0fc46cf2b45d0b07ca59b150e690fa678b9"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "879a8050b44751626076f149620ccb9881f73b73ed6d62658a9a234dd0dfd710",
+      "workload": "5c2149d5c220fb9c687c05f1009f32e2a8c71d9d453ff8d7d4ccdca3c96010cf",
+      "vector": "11",
+      "terminal": "COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "MASKED_BY_TRIGGER_FAULT",
+          "receiver": null
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-02/receipt.json",
+      "receiptHash": "922364e83dc8acbd49bdbe711258c61636e2d63b0f4708b957ae05e357f268e3"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "91c53a48a655b9dc54bce88e922b43e835514bb8cd88dcd0407ec1d0d9efa268",
+      "workload": "5c2149d5c220fb9c687c05f1009f32e2a8c71d9d453ff8d7d4ccdca3c96010cf",
+      "vector": "01",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "COMPLETED",
+          "receiver": 12
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-03/receipt.json",
+      "receiptHash": "a91f52c09795643e31a3c5ad146808a2a68139abf178f7a129be1f969f6726bd"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "abbd30a4b00a4f94b852ddc738628af026b7424647b4a4746dd1b926bb4e0514",
+      "workload": "740845b6267fa347ba0f1ea09a1549a94827be76732aa679178bf4c6b5248acc",
+      "vector": "10",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "MASKED_BY_TRIGGER_FAULT",
+          "receiver": null
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-04/receipt.json",
+      "receiptHash": "b6c62b3f2961d323f6f1dc6dc08f89419f24f5c3f23dddb8e8e4d3e17d8e5063"
+    },
+    {
+      "label": "prepared-pair-faults-final",
+      "scenario": "d29130f2767dc4de1cd7ad5b4cb5c85ee57dfb49ab3caa4c561f41251ad44923",
+      "workload": "5c2149d5c220fb9c687c05f1009f32e2a8c71d9d453ff8d7d4ccdca3c96010cf",
+      "vector": "10",
+      "terminal": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT",
+      "fiveCounts": [
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "events": [
+        {
+          "status": "MASKED_BY_TRIGGER_FAULT",
+          "receiver": null
+        }
+      ],
+      "receipt": "verifiers/target/event-read-attribution-2026-09-19/prepared-pair-faults-final/attempt-05/receipt.json",
+      "receiptHash": "4b7ac83fa136c5cabbf70e2f706526c6123dfff210cb2e2115116d3ea2d7003c"
+    }
+  ],
+  "allHashesVerified": true,
+  "pairPlanIdsEqual": 16,
+  "counts": {
+    "scope": "Input combinations of distinct Saga types; no scheduling, event placements, faults or executable-case claim",
+    "inputs": 819,
+    "sagaTypes": 37,
+    "totals": {
+      "2": {
+        "allSets": 666,
+        "currentTuples": 136156,
+        "forwardOnlySets": 248,
+        "allTuples": 311137,
+        "forwardOnlyTuples": 123701,
+        "currentSets": 316
+      },
+      "3": {
+        "allSets": 7770,
+        "currentTuples": 27551023,
+        "forwardOnlySets": 2216,
+        "allTuples": 72904145,
+        "forwardOnlyTuples": 23120980,
+        "currentSets": 3223
+      },
+      "4": {
+        "allSets": 66045,
+        "currentTuples": 4739545978,
+        "forwardOnlySets": 17612,
+        "allTuples": 11820344542,
+        "forwardOnlyTuples": 3800560014,
+        "currentSets": 27073
+      }
+    }
+  },
+  "tests": {
+    "verifiers": 293,
+    "quizzes": 2,
+    "failures": 0
+  }
+}

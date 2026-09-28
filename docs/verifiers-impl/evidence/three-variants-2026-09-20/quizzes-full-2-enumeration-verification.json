@@ -1,0 +1,113 @@
+[ {
+  "stratum" : "2/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.AnonymizeUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 6,
+  "compressedOrders" : 6,
+  "anchorOrders" : 6,
+  "passed" : true
+}, {
+  "stratum" : "2/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 28,
+  "compressedOrders" : 2,
+  "anchorOrders" : 2,
+  "passed" : true
+}, {
+  "stratum" : "2/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 210,
+  "compressedOrders" : 3,
+  "anchorOrders" : 3,
+  "passed" : true
+}, {
+  "stratum" : "2/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 210,
+  "compressedOrders" : 6,
+  "anchorOrders" : 6,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.CreateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 60,
+  "compressedOrders" : 12,
+  "anchorOrders" : 12,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.sagas.CreateTopicFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 30,
+  "compressedOrders" : 30,
+  "anchorOrders" : 30,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 210,
+  "compressedOrders" : 60,
+  "anchorOrders" : 60,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 420,
+  "compressedOrders" : 30,
+  "anchorOrders" : 30,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 4620,
+  "compressedOrders" : 90,
+  "anchorOrders" : 90,
+  "passed" : true
+}, {
+  "stratum" : "3/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 4620,
+  "compressedOrders" : 30,
+  "anchorOrders" : 30,
+  "passed" : true
+}, {
+  "stratum" : "4/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.DeleteExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.DisenrollStudentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 630,
+  "compressedOrders" : 630,
+  "anchorOrders" : 630,
+  "passed" : true
+}, {
+  "stratum" : "4/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.course.coordination.sagas.CreateCourseFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.CreateExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.EnrollStudentInExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.CreateUserFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 420,
+  "compressedOrders" : 420,
+  "anchorOrders" : 420,
+  "passed" : true
+}, {
+  "stratum" : "4/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.execution.coordination.sagas.UpdateExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 18900,
+  "compressedOrders" : 18900,
+  "anchorOrders" : 18900,
+  "passed" : true
+}, {
+  "stratum" : "4/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.ActivateUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.AnonymizeUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.DeleteUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzesfull2.microservices.user.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "fullOrders" : 2520,
+  "compressedOrders" : 2520,
+  "anchorOrders" : 2520,
+  "passed" : true
+} ]

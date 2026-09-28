@@ -1,0 +1,18 @@
+{
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "450f7824a7f77e4f6c00f14290fb0354aabedee3f01fe01e25328f598d29cbe5",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "7562eefc22425b54fab55767678f1326865ded79bf9c12cd9163f41e162de82d",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/analysis.json": "4e8ac64eece73e8c4ab563652f4e4dad1181742af726b47197ad4dd5a0315a32",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/cache-cleanup.json": "66ae153969188a121a5cddbd59a123274fa7a148cf39b2bfb784216cb138add3",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/compact-copies.py": "7f07587cfceea6d05606056a96824c1dc312a753546c1c44dc7ed5aeeeb568b8",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/compacted-copies.jsonl": "64fe5563cfc2b8cc83d07127d5e2e520f74a730080d6ba6a28eb2fbbd8d1f859",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/compaction.json": "55b9780b9bfd232add123002fda48afc5b882de449e75f2db14419e2ad9d358e",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/final-name-proof.json": "c1fd1264aedc0fe5f59090e04e46f4e146600b9cd74e860417c1e40f17dfc1cc",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/final-name-proof.py": "3ab9758153884c9d6e222ba5d9dac6a44978b9565cb80c497cf2bcefefcef3fd",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/keys.json": "bb812dcc442709e53b0446f6c245c9d0e7b2eca390bcbc76a8d7ed09fbf42def",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/orphan-proof.json": "93f1ab8e0a44bbe121c5cd3976333b98a2fd0e927f03310c139ea41b53eac5e1",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/pause-proof.json": "df8b0067f186301f0fe76c8a5af3c701815db2809d575aa02c55908377d7d2dd",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/pilot-protocol.json": "b2d6e7f9cf0968f3298e66567c1bf178781d2e4db482beeed659a05f5d591af5",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/pilot.py": "1e2eaccd3bd42a0991185a160f0a1590dc8398d9e231b6c01e6ff4b9a126c78e",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/tests.log": "366d23c0cbefb4f5131b98cbac02c06e2d3a723bda7cd05fbd3b8c9b5e9ab4f8",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/validation.json": "9f07b5653ffa03003fb9473e77dd56a022ac9e336521426b13e088b5c2756c91"
+}

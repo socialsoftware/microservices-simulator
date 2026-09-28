@@ -1,0 +1,88 @@
+sagaFamily,workloads,scenarios,jointPositive,jointUnavailable,DELETED_DEPENDENCYPositive,FAILED_OPERATION_RESIDUALPositive,UNRESOLVED_DELIVERED_EVENTPositive,COMPENSATED_READ_EXPOSUREPositive,LOST_COPIED_UPDATEPositive
+ActivateUser,2,4,0,0,0,0,0,0,0
+AddParticipant,2,6,0,0,0,0,0,0,0
+AddParticipant + AddStudent,1,9,0,0,0,0,0,0,0
+AddParticipant + AnonymizeStudent,2,28,0,0,0,0,0,0,0
+AddParticipant + FindTournament,5,30,0,0,0,0,0,0,0
+AddParticipant + FindTournament + UpdateStudentName,3,36,0,0,0,0,0,0,0
+AddParticipant + FindTournament + UpdateTournament,10,916,516,0,0,516,0,76,0
+AddParticipant + GetCourseExecutionById + UpdateStudentName,2,24,0,0,0,0,0,0,0
+AddParticipant + LeaveTournament + RemoveTournament,1,72,29,2,29,29,0,0,0
+AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament,3,12462,9791,828,4022,9891,0,4439,0
+AddParticipant + LeaveTournament + UpdateTournament,1,186,112,2,0,114,0,52,0
+AddParticipant + SolveQuiz,1,24,0,0,0,0,0,0,0
+AddParticipant + SolveQuizAsync,1,24,0,0,0,0,0,0,0
+AddParticipant + UpdateStudentName,2,12,0,0,0,0,0,0,0
+AddParticipant + UpdateTournament,4,136,64,0,0,64,0,0,0
+AddParticipantAsync + FindTournament,1,6,0,0,0,0,0,0,0
+AddStudent,2,6,0,0,0,0,0,0,0
+AddStudent + CreateCourseExecution,1,20,0,0,0,0,0,0,0
+AddStudent + CreateUser,1,6,0,0,0,0,0,0,0
+AddStudent + GetCourseExecutionById,3,18,0,0,0,0,0,0,0
+AddStudent + GetCourseExecutions,1,6,0,0,0,0,0,0,0
+AddStudent + GetCourseExecutionsByUser,1,6,0,0,0,0,0,0,0
+AddStudent + RemoveCourseExecution,1,29,15,0,0,15,0,0,0
+AddStudent + RemoveStudentFromCourseExecution,4,36,0,0,0,0,0,0,0
+AddStudent + UpdateStudentName,4,24,0,0,0,0,0,0,0
+AnonymizeStudent,4,12,0,0,0,0,0,0,0
+AnonymizeStudent + CreateQuiz,1,24,0,0,0,0,0,0,0
+AnonymizeStudent + GetCourseExecutionById,3,24,0,0,0,0,0,0,0
+AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution,3,110,0,0,0,0,0,0,0
+AnonymizeStudent + RemoveStudentFromCourseExecution,2,32,0,0,0,0,0,0,0
+AnonymizeStudent + SolveQuiz,1,84,0,4,0,0,0,0,0
+AnonymizeStudent + UpdateStudentName,1,6,0,0,0,0,0,0,0
+CancelTournament,2,6,0,0,0,0,0,0,0
+CancelTournament + FindTournament,1,6,0,0,0,0,0,0,0
+CreateCourseExecution + CreateQuestion,1,125,47,0,0,47,0,0,0
+CreateCourseExecution + CreateQuiz,1,52,0,0,0,0,0,0,0
+CreateCourseExecution + CreateTopic,1,37,0,0,0,0,0,0,0
+CreateCourseExecution + GetCourseExecutionsByUser,1,10,0,0,0,0,0,0,0
+CreateCourseExecution + RemoveStudentFromCourseExecution,1,32,0,0,0,0,0,0,0
+CreateQuestion + CreateTournamentAsync,1,222,117,0,0,117,0,0,0
+CreateQuiz + RemoveStudentFromCourseExecution,1,26,0,0,0,0,0,0,0
+CreateTopic + RemoveCourseExecution,1,26,10,0,0,10,0,0,0
+CreateTopic + UpdateTopic,1,17,0,0,0,0,0,0,0
+CreateTournament,2,16,0,0,0,0,0,0,0
+CreateTournament + FindQuiz,1,16,0,0,0,0,0,0,0
+CreateTournament + GetCourseExecutionById,2,32,0,0,0,0,0,0,0
+CreateTournament + UpdateStudentName,3,74,0,0,0,0,0,0,0
+CreateTournament + UpdateTopic,1,78,0,0,0,0,0,0,0
+CreateUser,2,4,0,0,0,0,0,0,0
+CreateUser + StartQuiz,1,10,0,0,0,0,0,0,0
+DeactivateUser,2,4,0,0,0,0,0,0,0
+DeleteTopic,3,9,3,0,3,0,1,0,0
+FindQuestionByAggregateId,1,2,0,0,0,0,0,0,0
+FindQuestionByAggregateId + UpdateQuestion,1,8,1,1,0,0,1,0,0
+FindQuestionByAggregateId + UpdateQuestionTopicsAsync,1,10,0,0,0,0,0,0,0
+FindQuiz,1,2,0,0,0,0,0,0,0
+FindQuiz + FindTournament + UpdateTournament,1,24,12,0,0,12,0,0,0
+FindQuiz + RemoveTournament,1,8,2,0,2,2,0,0,0
+FindQuiz + UpdateTopic + UpdateTournament,2,292,142,0,0,140,0,0,14
+FindQuiz + UpdateTournament,1,12,4,0,0,4,0,0,0
+FindTournament,2,4,0,0,0,0,0,0,0
+FindTournament + LeaveTournament,1,6,0,0,0,0,0,0,0
+FindTournament + RemoveTournament,4,32,8,0,8,8,0,0,0
+FindTournament + SolveQuiz,1,16,0,0,0,0,0,0,0
+FindTournament + UpdateTopic + UpdateTournament,1,82,26,8,0,26,0,0,4
+FindTournament + UpdateTournament,3,44,12,0,0,12,0,4,0
+GetCourseExecutionById,2,4,0,0,0,0,0,0,0
+GetCourseExecutionById + RemoveStudentFromCourseExecution,3,20,0,0,0,0,0,0,0
+GetCourseExecutionById + UpdateStudentName,3,12,0,0,0,0,0,0,0
+GetCourseExecutions,2,4,0,0,0,0,0,0,0
+GetCourseExecutions + RemoveCourseExecution,1,8,2,0,0,2,0,0,0
+GetCourseExecutionsByUser,1,2,0,0,0,0,0,0,0
+LeaveTournament,1,3,0,0,0,0,0,0,0
+LeaveTournament + UpdateTournament,1,33,13,0,0,13,0,0,0
+RemoveCourseExecution,13,52,15,0,6,9,0,0,0
+RemoveQuestion,1,4,1,1,1,0,0,0,0
+RemoveStudentFromCourseExecution,7,21,0,0,0,0,0,0,0
+RemoveStudentFromCourseExecution + UpdateStudentName,1,6,0,0,0,0,0,0,0
+RemoveTournament,2,8,2,0,2,2,0,0,0
+RemoveTournament + UpdateTournament,1,71,34,0,32,34,0,0,0
+SolveQuiz,1,8,0,0,0,0,0,0,0
+SolveQuiz + UpdateStudentName,1,38,0,1,0,0,0,0,0
+StartQuiz,2,8,0,0,0,0,0,0,0
+UpdateQuestion,1,3,1,0,0,0,1,0,0
+UpdateStudentName,2,4,0,0,0,0,0,0,0
+UpdateTopic + UpdateTournament,5,219,80,22,0,80,0,0,6
+UpdateTournament,1,6,2,0,0,2,0,0,0

@@ -1,0 +1,6 @@
+{
+  "historicalMetadataAttemptsReceiptVerifiedAndMatched": 3704,
+  "newAttemptsPreviouslyReportVerifiedAndMatched": 214,
+  "totalUniqueCandidateKeys": 3918,
+  "archiveProvenance": "Historical raw report hashes verified in earlier archive analyses; this joins transferred metadata receipts to the final reference, does not reread old host-only raw reports."
+}

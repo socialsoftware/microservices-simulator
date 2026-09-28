@@ -1,0 +1,2476 @@
+{
+  "schemaVersion" : "microservices-simulator.scenario-impact-v2-assessment.v1",
+  "executionAttemptId" : "df46d455-d379-473e-9dfe-34e3e6dd48ed",
+  "packageManifestPath" : "/out/package/scenario-catalog-manifest.json",
+  "workloadPlanId" : "fee5623a44cb206f59dab19213024545b895b1a2d2ecefbe546cfd91845df505",
+  "faultScenarioId" : "3aded9efd887c8895da39c226ae756ff644e54ce132f607704c1dff5b87ed9cf",
+  "executionTerminalStatus" : "SUCCESS",
+  "scheduleConformance" : "EXACT",
+  "assessmentStatus" : "COMPLETE",
+  "collectionStatus" : "OBSERVED",
+  "horizon" : "FINAL_SCHEDULED_ACTION",
+  "completeScore" : 2,
+  "observedAffectedObjectCount" : 2,
+  "categoryResults" : [ {
+    "category" : "DELETED_DEPENDENCY",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 6,
+    "candidates" : [ {
+      "aggregate" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 10
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "eventId" : null
+    }, {
+      "aggregate" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "eventId" : null
+    } ],
+    "positiveObjectCount" : 2,
+    "findings" : [ {
+      "category" : "DELETED_DEPENDENCY",
+      "reason" : "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+      "affectedObject" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "relatedObject" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "eventId" : null,
+      "actionIds" : [ "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77" ],
+      "versions" : [ 10, 24 ]
+    }, {
+      "category" : "DELETED_DEPENDENCY",
+      "reason" : "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+      "affectedObject" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "relatedObject" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "eventId" : null,
+      "actionIds" : [ "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77" ],
+      "versions" : [ 10, 24 ]
+    }, {
+      "category" : "DELETED_DEPENDENCY",
+      "reason" : "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+      "affectedObject" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "relatedObject" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "eventId" : null,
+      "actionIds" : [ "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77" ],
+      "versions" : [ 10, 24 ]
+    }, {
+      "category" : "DELETED_DEPENDENCY",
+      "reason" : "ACTIVE_SOURCE_DEPENDS_ON_TARGET_DELETED_DURING_ATTEMPT",
+      "affectedObject" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "relatedObject" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "eventId" : null,
+      "actionIds" : [ "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77" ],
+      "versions" : [ 10, 24 ]
+    } ],
+    "unknownReasons" : [ ]
+  }, {
+    "category" : "FAILED_OPERATION_RESIDUAL",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 0,
+    "candidates" : [ ],
+    "positiveObjectCount" : 0,
+    "findings" : [ ],
+    "unknownReasons" : [ ]
+  }, {
+    "category" : "UNRESOLVED_DELIVERED_EVENT",
+    "coverageStatus" : "COMPLETE",
+    "candidateCount" : 1,
+    "candidates" : [ {
+      "aggregate" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "eventId" : 4
+    } ],
+    "positiveObjectCount" : 1,
+    "findings" : [ {
+      "category" : "UNRESOLVED_DELIVERED_EVENT",
+      "reason" : "DELIVERED_EVENT_LEFT_RECEIVER_UNCHANGED_AND_ELIGIBLE_AT_HORIZON",
+      "affectedObject" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "relatedObject" : null,
+      "eventId" : 4,
+      "actionIds" : [ "80e8e5cf319f8f9b4f0739bca56c5c155d3c6d47cd95a3aca9e4ea38f66586bc" ],
+      "versions" : [ 23 ]
+    } ],
+    "unknownReasons" : [ ]
+  } ],
+  "baseline" : [ {
+    "identity" : {
+      "aggregateType" : "SagaCourse",
+      "aggregateId" : 1
+    },
+    "version" : 21,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse",
+    "frameworkMetadata" : {
+      "rowId" : 18,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "predecessorVersion" : 18,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "courseExecutionCount" : 1,
+      "courseQuestionCount" : 3,
+      "name" : "BLCM",
+      "state" : "ACTIVE",
+      "type" : "TECNICO"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 2
+    },
+    "version" : 9,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 9,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "predecessorVersion" : 6,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "TESTBLCM",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 1,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2030-01-01T13:25",
+      "state" : "ACTIVE",
+      "students" : [ {
+        "active" : true,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "USER_NAME_1",
+        "state" : "ACTIVE",
+        "userAggregateId" : 3,
+        "userVersion" : 5,
+        "username" : "USER_USERNAME_1"
+      }, {
+        "active" : true,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "USER_NAME_2",
+        "state" : "ACTIVE",
+        "userAggregateId" : 4,
+        "userVersion" : 8,
+        "username" : "USER_USERNAME_2"
+      } ]
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "target" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "declaredTargetAggregateId" : 3,
+      "subscribedVersion" : 5,
+      "eventType" : "DeleteUserEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.subscribe.CourseExecutionSubscribesRemoveUser"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "target" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 8,
+      "eventType" : "DeleteUserEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.subscribe.CourseExecutionSubscribesRemoveUser"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 8
+    },
+    "version" : 13,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 13,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content One",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Two",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 3,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 5,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 10
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 9
+    },
+    "version" : 16,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 15,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content Two",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option Three",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Four",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 15,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 6,
+        "topicName" : "TOPIC_NAME_2",
+        "topicVersion" : 11
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title Two"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 10
+    },
+    "version" : 19,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 17,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content Three",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Three",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 18,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 7,
+        "topicName" : "TOPIC_NAME_3",
+        "topicVersion" : 12
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title Three"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 10
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 7
+      },
+      "declaredTargetAggregateId" : 7,
+      "subscribedVersion" : 12,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 10
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 7
+      },
+      "declaredTargetAggregateId" : 7,
+      "subscribedVersion" : 12,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuiz",
+      "aggregateId" : 11
+    },
+    "version" : 22,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz",
+    "frameworkMetadata" : {
+      "rowId" : 19,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "availableDate" : "2030-01-01T12:05",
+      "conclusionDate" : "2030-01-01T13:05",
+      "creationDate" : "2030-01-01T12:00",
+      "lastModifiedTime" : "2030-01-01T12:00",
+      "quizCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 9,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        }
+      },
+      "quizQuestions" : [ {
+        "content" : "Content One",
+        "questionAggregateId" : 8,
+        "questionVersion" : 13,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title One"
+      }, {
+        "content" : "Content Two",
+        "questionAggregateId" : 9,
+        "questionVersion" : 16,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title Two"
+      } ],
+      "quizType" : "GENERATED",
+      "resultsDate" : "2030-01-01T13:05",
+      "state" : "ACTIVE",
+      "title" : "Generated Quiz Title"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "declaredTargetAggregateId" : 8,
+      "subscribedVersion" : 13,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "declaredTargetAggregateId" : 9,
+      "subscribedVersion" : 16,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "declaredTargetAggregateId" : 8,
+      "subscribedVersion" : 13,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "declaredTargetAggregateId" : 9,
+      "subscribedVersion" : 16,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 5
+    },
+    "version" : 10,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 10,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_1",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 6
+    },
+    "version" : 11,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 11,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_2",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 7
+    },
+    "version" : 12,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 12,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_3",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTournament",
+      "aggregateId" : 12
+    },
+    "version" : 23,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+    "frameworkMetadata" : {
+      "rowId" : 20,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "cancelled" : false,
+      "endTime" : "2030-01-01T13:05",
+      "lastModifiedTime" : "2030-01-01T12:00",
+      "numberOfQuestions" : 2,
+      "startTime" : "2030-01-01T12:05",
+      "state" : "ACTIVE",
+      "tournamentCourseExecution" : {
+        "courseExecutionAcronym" : "TESTBLCM",
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionCourseId" : 1,
+        "courseExecutionStatus" : "ACTIVE",
+        "courseExecutionVersion" : 9,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentCreator" : {
+        "creatorAggregateId" : 3,
+        "creatorName" : "USER_NAME_1",
+        "creatorState" : null,
+        "creatorUsername" : "USER_USERNAME_1",
+        "creatorVersion" : 5,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentParticipants" : [ ],
+      "tournamentQuiz" : {
+        "quizAggregateId" : 11,
+        "quizVersion" : 22,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentTopics" : [ {
+        "state" : "ACTIVE",
+        "topicAggregateId" : 5,
+        "topicCourseAggregateId" : 1,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 10,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      }, {
+        "state" : "ACTIVE",
+        "topicAggregateId" : 6,
+        "topicCourseAggregateId" : 1,
+        "topicName" : "TOPIC_NAME_2",
+        "topicVersion" : 11,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      } ]
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "AnonymizeStudentEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "declaredTargetAggregateId" : 11,
+      "subscribedVersion" : 22,
+      "eventType" : "InvalidateQuizEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "UpdateStudentNameEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 3
+    },
+    "version" : 5,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 5,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "predecessorVersion" : 4,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_1",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_1"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 4
+    },
+    "version" : 8,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 8,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 4
+      },
+      "predecessorVersion" : 7,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_2",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_2"
+    },
+    "dependencies" : [ ]
+  } ],
+  "finalState" : [ {
+    "identity" : {
+      "aggregateType" : "SagaCourse",
+      "aggregateId" : 1
+    },
+    "version" : 21,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.sagas.SagaCourse",
+    "frameworkMetadata" : {
+      "rowId" : 18,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaCourse",
+        "aggregateId" : 1
+      },
+      "predecessorVersion" : 18,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "courseExecutionCount" : 1,
+      "courseQuestionCount" : 3,
+      "name" : "BLCM",
+      "state" : "ACTIVE",
+      "type" : "TECNICO"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaExecution",
+      "aggregateId" : 2
+    },
+    "version" : 9,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.sagas.SagaExecution",
+    "frameworkMetadata" : {
+      "rowId" : 9,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "predecessorVersion" : 6,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "academicTerm" : "2022/2023",
+      "acronym" : "TESTBLCM",
+      "courseExecutionCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 1,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "BLCM",
+        "type" : "TECNICO"
+      },
+      "endDate" : "2030-01-01T13:25",
+      "state" : "ACTIVE",
+      "students" : [ {
+        "active" : true,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "USER_NAME_1",
+        "state" : "ACTIVE",
+        "userAggregateId" : 3,
+        "userVersion" : 5,
+        "username" : "USER_USERNAME_1"
+      }, {
+        "active" : true,
+        "execution" : {
+          "aggregateId" : 2,
+          "aggregateType" : "SagaExecution"
+        },
+        "name" : "USER_NAME_2",
+        "state" : "ACTIVE",
+        "userAggregateId" : 4,
+        "userVersion" : 8,
+        "username" : "USER_USERNAME_2"
+      } ]
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "target" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "declaredTargetAggregateId" : 3,
+      "subscribedVersion" : 5,
+      "eventType" : "DeleteUserEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.subscribe.CourseExecutionSubscribesRemoveUser"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "target" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 4
+      },
+      "declaredTargetAggregateId" : 4,
+      "subscribedVersion" : 8,
+      "eventType" : "DeleteUserEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.notification.subscribe.CourseExecutionSubscribesRemoveUser"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 8
+    },
+    "version" : 13,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 13,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content One",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Two",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 3,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 8,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 5,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 10
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title One"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 9
+    },
+    "version" : 16,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 15,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content Two",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option Three",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Four",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 15,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 9,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 6,
+        "topicName" : "TOPIC_NAME_2",
+        "topicVersion" : 11
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title Two"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuestion",
+      "aggregateId" : 10
+    },
+    "version" : 19,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.sagas.SagaQuestion",
+    "frameworkMetadata" : {
+      "rowId" : 17,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "content" : "Content Three",
+      "creationDate" : "2030-01-01T12:00",
+      "options" : [ {
+        "content" : "Option One",
+        "correct" : true,
+        "optionKey" : 1,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 1
+      }, {
+        "content" : "Option Three",
+        "correct" : false,
+        "optionKey" : 2,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "sequence" : 2
+      } ],
+      "questionCourse" : {
+        "courseAggregateId" : 1,
+        "courseName" : "BLCM",
+        "courseVersion" : 18,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        }
+      },
+      "questionTopics" : [ {
+        "courseAggregateId" : 1,
+        "question" : {
+          "aggregateId" : 10,
+          "aggregateType" : "SagaQuestion"
+        },
+        "state" : null,
+        "topicAggregateId" : 7,
+        "topicName" : "TOPIC_NAME_3",
+        "topicVersion" : 12
+      } ],
+      "state" : "ACTIVE",
+      "title" : "Title Three"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 10
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 7
+      },
+      "declaredTargetAggregateId" : 7,
+      "subscribedVersion" : 12,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 10
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 7
+      },
+      "declaredTargetAggregateId" : 7,
+      "subscribedVersion" : 12,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.notification.subscribe.QuestionSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaQuiz",
+      "aggregateId" : 11
+    },
+    "version" : 22,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.SagaQuiz",
+    "frameworkMetadata" : {
+      "rowId" : 19,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "availableDate" : "2030-01-01T12:05",
+      "conclusionDate" : "2030-01-01T13:05",
+      "creationDate" : "2030-01-01T12:00",
+      "lastModifiedTime" : "2030-01-01T12:00",
+      "quizCourseExecution" : {
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionVersion" : 9,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        }
+      },
+      "quizQuestions" : [ {
+        "content" : "Content One",
+        "questionAggregateId" : 8,
+        "questionVersion" : 13,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title One"
+      }, {
+        "content" : "Content Two",
+        "questionAggregateId" : 9,
+        "questionVersion" : 16,
+        "quiz" : {
+          "aggregateId" : 11,
+          "aggregateType" : "SagaQuiz"
+        },
+        "sequence" : null,
+        "state" : "ACTIVE",
+        "title" : "Title Two"
+      } ],
+      "quizType" : "GENERATED",
+      "resultsDate" : "2030-01-01T13:05",
+      "state" : "ACTIVE",
+      "title" : "Generated Quiz Title"
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "declaredTargetAggregateId" : 8,
+      "subscribedVersion" : 13,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "declaredTargetAggregateId" : 9,
+      "subscribedVersion" : 16,
+      "eventType" : "DeleteQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesDeleteQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 8
+      },
+      "declaredTargetAggregateId" : 8,
+      "subscribedVersion" : 13,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "target" : {
+        "aggregateType" : "SagaQuestion",
+        "aggregateId" : 9
+      },
+      "declaredTargetAggregateId" : 9,
+      "subscribedVersion" : 16,
+      "eventType" : "UpdateQuestionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.notification.subscribe.QuizSubscribesUpdateQuestion"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 5
+    },
+    "version" : 24,
+    "lifecycleState" : "DELETED",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 21,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "predecessorVersion" : 10,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_1",
+      "state" : "DELETED",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 5,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 6
+    },
+    "version" : 11,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 11,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_2",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 6,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTopic",
+      "aggregateId" : 7
+    },
+    "version" : 12,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+    "frameworkMetadata" : {
+      "rowId" : 12,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "name" : "TOPIC_NAME_3",
+      "state" : "ACTIVE",
+      "topicCourse" : {
+        "courseAggregateId" : 1,
+        "courseVersion" : 3,
+        "topic" : {
+          "aggregateId" : 7,
+          "aggregateType" : "SagaTopic"
+        }
+      }
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaTournament",
+      "aggregateId" : 12
+    },
+    "version" : 23,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+    "frameworkMetadata" : {
+      "rowId" : 20,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : null,
+      "predecessorVersion" : null,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "cancelled" : false,
+      "endTime" : "2030-01-01T13:05",
+      "lastModifiedTime" : "2030-01-01T12:00",
+      "numberOfQuestions" : 2,
+      "startTime" : "2030-01-01T12:05",
+      "state" : "ACTIVE",
+      "tournamentCourseExecution" : {
+        "courseExecutionAcronym" : "TESTBLCM",
+        "courseExecutionAggregateId" : 2,
+        "courseExecutionCourseId" : 1,
+        "courseExecutionStatus" : "ACTIVE",
+        "courseExecutionVersion" : 9,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentCreator" : {
+        "creatorAggregateId" : 3,
+        "creatorName" : "USER_NAME_1",
+        "creatorState" : null,
+        "creatorUsername" : "USER_USERNAME_1",
+        "creatorVersion" : 5,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentParticipants" : [ ],
+      "tournamentQuiz" : {
+        "quizAggregateId" : 11,
+        "quizVersion" : 22,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      },
+      "tournamentTopics" : [ {
+        "state" : "ACTIVE",
+        "topicAggregateId" : 5,
+        "topicCourseAggregateId" : 1,
+        "topicName" : "TOPIC_NAME_1",
+        "topicVersion" : 10,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      }, {
+        "state" : "ACTIVE",
+        "topicAggregateId" : 6,
+        "topicCourseAggregateId" : 1,
+        "topicName" : "TOPIC_NAME_2",
+        "topicVersion" : 11,
+        "tournament" : {
+          "aggregateId" : 12,
+          "aggregateType" : "SagaTournament"
+        }
+      } ]
+    },
+    "dependencies" : [ {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "AnonymizeStudentEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DeleteCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "DeleteTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaQuiz",
+        "aggregateId" : 11
+      },
+      "declaredTargetAggregateId" : 11,
+      "subscribedVersion" : 22,
+      "eventType" : "InvalidateQuizEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaExecution",
+        "aggregateId" : 2
+      },
+      "declaredTargetAggregateId" : 2,
+      "subscribedVersion" : 9,
+      "eventType" : "UpdateStudentNameEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "declaredTargetAggregateId" : 5,
+      "subscribedVersion" : 10,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+    }, {
+      "owner" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "target" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 6
+      },
+      "declaredTargetAggregateId" : 6,
+      "subscribedVersion" : 11,
+      "eventType" : "UpdateTopicEvent",
+      "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+    } ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 3
+    },
+    "version" : 5,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 5,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 3
+      },
+      "predecessorVersion" : 4,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_1",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_1"
+    },
+    "dependencies" : [ ]
+  }, {
+    "identity" : {
+      "aggregateType" : "SagaUser",
+      "aggregateId" : 4
+    },
+    "version" : 8,
+    "lifecycleState" : "ACTIVE",
+    "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.aggregate.sagas.SagaUser",
+    "frameworkMetadata" : {
+      "rowId" : 8,
+      "creationTimestamp" : "2030-01-01T12:00",
+      "predecessorIdentity" : {
+        "aggregateType" : "SagaUser",
+        "aggregateId" : 4
+      },
+      "predecessorVersion" : 7,
+      "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+      "semanticLockState" : "NOT_IN_SAGA"
+    },
+    "applicationData" : {
+      "active" : true,
+      "name" : "USER_NAME_2",
+      "role" : "STUDENT",
+      "state" : "ACTIVE",
+      "username" : "USER_USERNAME_2"
+    },
+    "dependencies" : [ ]
+  } ],
+  "committedWrites" : [ {
+    "sequence" : 1,
+    "aggregate" : {
+      "identity" : {
+        "aggregateType" : "SagaTopic",
+        "aggregateId" : 5
+      },
+      "version" : 24,
+      "lifecycleState" : "DELETED",
+      "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.SagaTopic",
+      "frameworkMetadata" : {
+        "rowId" : 21,
+        "creationTimestamp" : "2030-01-01T12:00",
+        "predecessorIdentity" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "predecessorVersion" : 10,
+        "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.sagas.states.TopicSagaState$1",
+        "semanticLockState" : "READ_TOPIC"
+      },
+      "applicationData" : {
+        "name" : "TOPIC_NAME_1",
+        "state" : "DELETED",
+        "topicCourse" : {
+          "courseAggregateId" : 1,
+          "courseVersion" : 3,
+          "topic" : {
+            "aggregateId" : 5,
+            "aggregateType" : "SagaTopic"
+          }
+        }
+      },
+      "dependencies" : [ ]
+    },
+    "writer" : {
+      "kind" : "SAGA",
+      "executionAttemptId" : "df46d455-d379-473e-9dfe-34e3e6dd48ed",
+      "workloadPlanId" : "fee5623a44cb206f59dab19213024545b895b1a2d2ecefbe546cfd91845df505",
+      "sagaInstanceId" : "p1",
+      "actionId" : "82d593bdac05f516a044ba660ffe4eb1865e2d13537f4bf9da55149e9bf14b77",
+      "phase" : "FORWARD",
+      "functionalityName" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.DeleteTopicFunctionalitySagas",
+      "stepName" : "deleteTopicStep",
+      "eventId" : null
+    }
+  } ],
+  "eventDeliveries" : [ {
+    "sequence" : 2,
+    "eventId" : 4,
+    "eventType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteTopicEvent",
+    "publisherAggregateId" : 5,
+    "publisherAggregateVersion" : 25,
+    "receiverBefore" : {
+      "identity" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "version" : 23,
+      "lifecycleState" : "ACTIVE",
+      "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+      "frameworkMetadata" : {
+        "rowId" : 20,
+        "creationTimestamp" : "2030-01-01T12:00",
+        "predecessorIdentity" : null,
+        "predecessorVersion" : null,
+        "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+        "semanticLockState" : "NOT_IN_SAGA"
+      },
+      "applicationData" : {
+        "cancelled" : false,
+        "endTime" : "2030-01-01T13:05",
+        "lastModifiedTime" : "2030-01-01T12:00",
+        "numberOfQuestions" : 2,
+        "startTime" : "2030-01-01T12:05",
+        "state" : "ACTIVE",
+        "tournamentCourseExecution" : {
+          "courseExecutionAcronym" : "TESTBLCM",
+          "courseExecutionAggregateId" : 2,
+          "courseExecutionCourseId" : 1,
+          "courseExecutionStatus" : "ACTIVE",
+          "courseExecutionVersion" : 9,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentCreator" : {
+          "creatorAggregateId" : 3,
+          "creatorName" : "USER_NAME_1",
+          "creatorState" : null,
+          "creatorUsername" : "USER_USERNAME_1",
+          "creatorVersion" : 5,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentParticipants" : [ ],
+        "tournamentQuiz" : {
+          "quizAggregateId" : 11,
+          "quizVersion" : 22,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentTopics" : [ {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 5,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_1",
+          "topicVersion" : 10,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        }, {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 6,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_2",
+          "topicVersion" : 11,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        } ]
+      },
+      "dependencies" : [ {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "AnonymizeStudentEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DeleteCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaQuiz",
+          "aggregateId" : 11
+        },
+        "declaredTargetAggregateId" : 11,
+        "subscribedVersion" : 22,
+        "eventType" : "InvalidateQuizEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "UpdateStudentNameEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      } ]
+    },
+    "receiverAfter" : {
+      "identity" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "version" : 23,
+      "lifecycleState" : "ACTIVE",
+      "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+      "frameworkMetadata" : {
+        "rowId" : 20,
+        "creationTimestamp" : "2030-01-01T12:00",
+        "predecessorIdentity" : null,
+        "predecessorVersion" : null,
+        "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+        "semanticLockState" : "NOT_IN_SAGA"
+      },
+      "applicationData" : {
+        "cancelled" : false,
+        "endTime" : "2030-01-01T13:05",
+        "lastModifiedTime" : "2030-01-01T12:00",
+        "numberOfQuestions" : 2,
+        "startTime" : "2030-01-01T12:05",
+        "state" : "ACTIVE",
+        "tournamentCourseExecution" : {
+          "courseExecutionAcronym" : "TESTBLCM",
+          "courseExecutionAggregateId" : 2,
+          "courseExecutionCourseId" : 1,
+          "courseExecutionStatus" : "ACTIVE",
+          "courseExecutionVersion" : 9,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentCreator" : {
+          "creatorAggregateId" : 3,
+          "creatorName" : "USER_NAME_1",
+          "creatorState" : null,
+          "creatorUsername" : "USER_USERNAME_1",
+          "creatorVersion" : 5,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentParticipants" : [ ],
+        "tournamentQuiz" : {
+          "quizAggregateId" : 11,
+          "quizVersion" : 22,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentTopics" : [ {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 5,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_1",
+          "topicVersion" : 10,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        }, {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 6,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_2",
+          "topicVersion" : 11,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        } ]
+      },
+      "dependencies" : [ {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "AnonymizeStudentEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DeleteCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaQuiz",
+          "aggregateId" : 11
+        },
+        "declaredTargetAggregateId" : 11,
+        "subscribedVersion" : 22,
+        "eventType" : "InvalidateQuizEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "UpdateStudentNameEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      } ]
+    },
+    "eligibleBefore" : true,
+    "eligibleAfter" : true,
+    "receiverFinal" : {
+      "identity" : {
+        "aggregateType" : "SagaTournament",
+        "aggregateId" : 12
+      },
+      "version" : 23,
+      "lifecycleState" : "ACTIVE",
+      "runtimeType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.SagaTournament",
+      "frameworkMetadata" : {
+        "rowId" : 20,
+        "creationTimestamp" : "2030-01-01T12:00",
+        "predecessorIdentity" : null,
+        "predecessorVersion" : null,
+        "semanticLockType" : "pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState$1",
+        "semanticLockState" : "NOT_IN_SAGA"
+      },
+      "applicationData" : {
+        "cancelled" : false,
+        "endTime" : "2030-01-01T13:05",
+        "lastModifiedTime" : "2030-01-01T12:00",
+        "numberOfQuestions" : 2,
+        "startTime" : "2030-01-01T12:05",
+        "state" : "ACTIVE",
+        "tournamentCourseExecution" : {
+          "courseExecutionAcronym" : "TESTBLCM",
+          "courseExecutionAggregateId" : 2,
+          "courseExecutionCourseId" : 1,
+          "courseExecutionStatus" : "ACTIVE",
+          "courseExecutionVersion" : 9,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentCreator" : {
+          "creatorAggregateId" : 3,
+          "creatorName" : "USER_NAME_1",
+          "creatorState" : null,
+          "creatorUsername" : "USER_USERNAME_1",
+          "creatorVersion" : 5,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentParticipants" : [ ],
+        "tournamentQuiz" : {
+          "quizAggregateId" : 11,
+          "quizVersion" : 22,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        },
+        "tournamentTopics" : [ {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 5,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_1",
+          "topicVersion" : 10,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        }, {
+          "state" : "ACTIVE",
+          "topicAggregateId" : 6,
+          "topicCourseAggregateId" : 1,
+          "topicName" : "TOPIC_NAME_2",
+          "topicVersion" : 11,
+          "tournament" : {
+            "aggregateId" : 12,
+            "aggregateType" : "SagaTournament"
+          }
+        } ]
+      },
+      "dependencies" : [ {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "AnonymizeStudentEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesAnonymizeStudent"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DeleteCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "DeleteTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDeleteTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "DisenrollStudentFromCourseExecutionEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesDisenrollStudentFromCourseExecution"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaQuiz",
+          "aggregateId" : 11
+        },
+        "declaredTargetAggregateId" : 11,
+        "subscribedVersion" : 22,
+        "eventType" : "InvalidateQuizEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesInvalidateQuiz"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaExecution",
+          "aggregateId" : 2
+        },
+        "declaredTargetAggregateId" : 2,
+        "subscribedVersion" : 9,
+        "eventType" : "UpdateStudentNameEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateStudentName"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 5
+        },
+        "declaredTargetAggregateId" : 5,
+        "subscribedVersion" : 10,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      }, {
+        "owner" : {
+          "aggregateType" : "SagaTournament",
+          "aggregateId" : 12
+        },
+        "target" : {
+          "aggregateType" : "SagaTopic",
+          "aggregateId" : 6
+        },
+        "declaredTargetAggregateId" : 6,
+        "subscribedVersion" : 11,
+        "eventType" : "UpdateTopicEvent",
+        "subscriptionType" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.subscribe.TournamentSubscribesUpdateTopic"
+      } ]
+    },
+    "eligibleAtHorizon" : true,
+    "writer" : {
+      "kind" : "EVENT_CONSUMER",
+      "executionAttemptId" : "df46d455-d379-473e-9dfe-34e3e6dd48ed",
+      "workloadPlanId" : "fee5623a44cb206f59dab19213024545b895b1a2d2ecefbe546cfd91845df505",
+      "sagaInstanceId" : "p1",
+      "actionId" : "80e8e5cf319f8f9b4f0739bca56c5c155d3c6d47cd95a3aca9e4ea38f66586bc",
+      "phase" : "EVENT",
+      "functionalityName" : "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.notification.handling.TournamentEventHandling",
+      "stepName" : "handleDeleteTopicEvents",
+      "eventId" : 4
+    }
+  } ],
+  "coverageGaps" : [ ],
+  "residualAssessmentPolicy" : "exclusive-keyed-list-fields-v4"
+}

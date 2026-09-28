@@ -1,0 +1,23 @@
+{
+  "interactionFiles": [
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-017-afb1774f08/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-016-c2e3f0a617/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-014-a381e2b36a/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-082-caa50b6545/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-overnight-v2-2026-09-19/breadth-084-95cf5833a0/catalogue/package/interactions.jsonl",
+    "verifiers/target/cluster-proteina01-2026-09-20/metadata/verifiers/target/cluster-extended/012-join-update-leave-remove-242d3ef997/catalogue/package/interactions.jsonl",
+    "verifiers/target/full-map-5184-2026-09-17/catalogue/package/interactions.jsonl"
+  ],
+  "knownInteractionIds": 1515,
+  "missingByWorkload": {}
+}

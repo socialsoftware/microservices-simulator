@@ -1,0 +1,10 @@
+{
+  "candidate": "ca8fdb19b4a60d643cfffcf0b058dcf983ce7d0788588c2a1bbf411988a6194d",
+  "family": "CreateCourseExecution + CreateQuestion",
+  "status": "PROCESS_FAILURE",
+  "cause": "Mockito inline ByteBuddy initialization: could not self-attach to current VM using external process, before application startup.",
+  "classification": "UNAVAILABLE",
+  "retry": false,
+  "log": "verifiers/target/saga-copy-transport-2026-09-28-final/ca8fdb19b4a60d643cfffcf0b058dcf983ce7d0788588c2a1bbf411988a6194d/attempt-002.log",
+  "logSha256": "063efebe533ae82a21657c9fee733cc5ce7f75d82d4ba53720f19375bfcc895c"
+}

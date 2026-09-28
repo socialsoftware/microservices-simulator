@@ -1,0 +1,4754 @@
+{
+  "scope": "Post-hoc implementation and trajectory audit, not a new policy comparison. Policies and recorded outcomes were not changed.",
+  "checks": {
+    "focusedTestsPassed": 33,
+    "selectedContextsAndPrioritiesReconstructed": 4500,
+    "maxPriorityDifference": 0.0
+  },
+  "coldStart": [
+    {
+      "arm": "P-shared",
+      "coldBonus": 1.0,
+      "exploration": 1.0,
+      "dimensions": null
+    },
+    {
+      "arm": "S-cal",
+      "coldBonus": 1.0,
+      "exploration": 0.7071067811865475,
+      "dimensions": null
+    },
+    {
+      "arm": "SP-cal",
+      "coldBonus": 1.0,
+      "exploration": 0.7071067811865475,
+      "dimensions": null
+    },
+    {
+      "arm": "P-local",
+      "coldBonus": 1.0,
+      "exploration": 1.0,
+      "dimensions": null
+    },
+    {
+      "arm": "H0",
+      "coldBonus": 1.4142135623730951,
+      "exploration": 1.0,
+      "dimensions": 1
+    },
+    {
+      "arm": "H1-cal",
+      "coldBonus": 1.414213562373095,
+      "exploration": 0.816496580927726,
+      "dimensions": 22
+    }
+  ],
+  "localProgressTransitions": [
+    {
+      "observedReward": 0.0,
+      "before": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "after": {
+        "index": 1.2297746456210363,
+        "estimate": 0.0,
+        "uncertainty": 1.2297746456210363
+      },
+      "unvisited": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      }
+    },
+    {
+      "observedReward": null,
+      "before": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "after": {
+        "index": 1.4185717038670782,
+        "estimate": 0.0,
+        "uncertainty": 1.4185717038670782
+      },
+      "unvisited": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      }
+    },
+    {
+      "observedReward": 1.0,
+      "before": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "after": {
+        "index": 2.235611039090368,
+        "estimate": 0.5,
+        "uncertainty": 1.7356110390903676
+      },
+      "unvisited": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      }
+    }
+  ],
+  "criterionConcentrationWithoutGiants": {
+    "DELETED_DEPENDENCY": {
+      "positive": 84,
+      "score": 89.0,
+      "withUpdateTournamentScore": 32.0,
+      "withUpdateTournamentPositive": 32,
+      "positiveFamilies": [
+        "AddParticipant + LeaveTournament + RemoveTournament",
+        "DeleteTopic",
+        "FindQuiz + RemoveTournament",
+        "FindTournament + RemoveTournament",
+        "RemoveCourseExecution",
+        "RemoveQuestion",
+        "RemoveTournament",
+        "RemoveTournament + UpdateTournament"
+      ]
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "positive": 1804,
+      "score": 1804.0,
+      "withUpdateTournamentScore": 1555.0,
+      "withUpdateTournamentPositive": 1555,
+      "positiveFamilies": [
+        "AddParticipant + FindTournament + UpdateTournament",
+        "AddParticipant + LeaveTournament + RemoveTournament",
+        "AddParticipant + LeaveTournament + UpdateTournament",
+        "AddParticipant + UpdateTournament",
+        "AddStudent + RemoveCourseExecution",
+        "CreateCourseExecution + CreateQuestion",
+        "CreateQuestion + CreateTournamentAsync",
+        "CreateTopic + RemoveCourseExecution",
+        "FindQuiz + FindTournament + UpdateTournament",
+        "FindQuiz + RemoveTournament",
+        "FindQuiz + UpdateTopic + UpdateTournament",
+        "FindQuiz + UpdateTournament",
+        "FindTournament + RemoveTournament",
+        "FindTournament + UpdateTopic + UpdateTournament",
+        "FindTournament + UpdateTournament",
+        "GetCourseExecutions + RemoveCourseExecution",
+        "LeaveTournament + UpdateTournament",
+        "RemoveCourseExecution",
+        "RemoveTournament",
+        "RemoveTournament + UpdateTournament",
+        "UpdateTopic + UpdateTournament",
+        "UpdateTournament"
+      ]
+    },
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "positive": 9,
+      "score": 9.0,
+      "withUpdateTournamentScore": 0,
+      "withUpdateTournamentPositive": 0,
+      "positiveFamilies": [
+        "DeleteTopic",
+        "FindQuestionByAggregateId + UpdateQuestion",
+        "UpdateQuestion"
+      ]
+    },
+    "COMPENSATED_READ_EXPOSURE": {
+      "positive": 132,
+      "score": 132.0,
+      "withUpdateTournamentScore": 132.0,
+      "withUpdateTournamentPositive": 132,
+      "positiveFamilies": [
+        "AddParticipant + FindTournament + UpdateTournament",
+        "AddParticipant + LeaveTournament + UpdateTournament",
+        "FindTournament + UpdateTournament"
+      ]
+    },
+    "LOST_COPIED_UPDATE": {
+      "positive": 32,
+      "score": 32.0,
+      "withUpdateTournamentScore": 32.0,
+      "withUpdateTournamentPositive": 32,
+      "positiveFamilies": [
+        "FindQuiz + UpdateTopic + UpdateTournament",
+        "FindTournament + UpdateTopic + UpdateTournament",
+        "UpdateTopic + UpdateTournament"
+      ]
+    }
+  },
+  "sourceFiles": {
+    "verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+    "verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+    "verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+    "verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+    "verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+    "verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a"
+  },
+  "traceFiles": {
+    "verifiers/target/allocator-formal-small-2026-09-28/all-five-S-cal-seed1-budget4000.json.gz": "9fab9a5b17846bb83e87fad6d287199c068cb06e321d0c36ad21ea345827ad8e",
+    "verifiers/target/allocator-formal-small-2026-09-28/all-five-P-local-seed1-budget4000.json.gz": "987721c368864fb7536850f6c7abfdb4cfa9afcde924e2fc22f0162a5eac0d75",
+    "verifiers/target/allocator-formal-small-2026-09-28/all-five-H1-cal-seed1-budget4000.json.gz": "5f941df9e0270fc94a592cf02665812f3e133d03c5a6227c1c459f13d94b1d83",
+    "verifiers/target/allocator-formal-full-2026-09-28/all-five-S-cal-seed1-budget8000.json.gz": "6172b9e562848f9c73a26e58ab569e60a9b0aeb54671f024db329fd01e423348",
+    "verifiers/target/allocator-formal-full-2026-09-28/all-five-P-local-seed1-budget8000.json.gz": "90ab4d7055f3b43ac538a20f61891ca26c939d5bfb5ad7b496748532aae66d8f",
+    "verifiers/target/allocator-formal-full-2026-09-28/all-five-H1-cal-seed1-budget8000.json.gz": "b3296218ea2a6773f7785e63d93167e4a82a872c14876d1a33254a4b26bbb03d"
+  },
+  "cases": [
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 1,
+      "family": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "choices": 1,
+      "score": 0,
+      "firstChoice": 404,
+      "firstPositiveChoice": null,
+      "perWorkload": [
+        {
+          "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+          "candidateCount": 40,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+          "candidateCount": 40,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+          "candidateCount": 38,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+          "candidateCount": 40,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "candidateCount": 36,
+          "allocations": 1,
+          "knownScores": 1,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 1,
+          "populationSize": 1,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+          "candidateCount": 38,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 1,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 1,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 1,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 1,
+      "family": "FindQuiz + UpdateTopic + UpdateTournament",
+      "choices": 1212,
+      "score": 568.0,
+      "firstChoice": 1449,
+      "firstPositiveChoice": 2112,
+      "perWorkload": [
+        {
+          "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+          "candidateCount": 116,
+          "allocations": 116,
+          "knownScores": 116,
+          "unknowns": 0,
+          "positiveDiscoveries": 38,
+          "cumulativeScore": 38.0,
+          "bestScore": 1.0,
+          "seenCandidates": 116,
+          "populationSize": 8,
+          "duplicateProposals": 87
+        },
+        {
+          "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+          "candidateCount": 90,
+          "allocations": 90,
+          "knownScores": 90,
+          "unknowns": 0,
+          "positiveDiscoveries": 34,
+          "cumulativeScore": 34.0,
+          "bestScore": 1.0,
+          "seenCandidates": 90,
+          "populationSize": 8,
+          "duplicateProposals": 65
+        },
+        {
+          "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+          "candidateCount": 108,
+          "allocations": 108,
+          "knownScores": 108,
+          "unknowns": 0,
+          "positiveDiscoveries": 42,
+          "cumulativeScore": 46.0,
+          "bestScore": 2.0,
+          "seenCandidates": 108,
+          "populationSize": 8,
+          "duplicateProposals": 83
+        },
+        {
+          "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+          "candidateCount": 82,
+          "allocations": 82,
+          "knownScores": 82,
+          "unknowns": 0,
+          "positiveDiscoveries": 32,
+          "cumulativeScore": 32.0,
+          "bestScore": 1.0,
+          "seenCandidates": 82,
+          "populationSize": 8,
+          "duplicateProposals": 61
+        },
+        {
+          "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+          "candidateCount": 160,
+          "allocations": 160,
+          "knownScores": 160,
+          "unknowns": 0,
+          "positiveDiscoveries": 80,
+          "cumulativeScore": 80.0,
+          "bestScore": 1.0,
+          "seenCandidates": 160,
+          "populationSize": 8,
+          "duplicateProposals": 122
+        },
+        {
+          "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "candidateCount": 114,
+          "allocations": 114,
+          "knownScores": 114,
+          "unknowns": 0,
+          "positiveDiscoveries": 30,
+          "cumulativeScore": 30.0,
+          "bestScore": 1.0,
+          "seenCandidates": 114,
+          "populationSize": 8,
+          "duplicateProposals": 90
+        },
+        {
+          "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+          "candidateCount": 112,
+          "allocations": 112,
+          "knownScores": 112,
+          "unknowns": 0,
+          "positiveDiscoveries": 50,
+          "cumulativeScore": 50.0,
+          "bestScore": 1.0,
+          "seenCandidates": 112,
+          "populationSize": 8,
+          "duplicateProposals": 86
+        },
+        {
+          "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+          "candidateCount": 176,
+          "allocations": 176,
+          "knownScores": 176,
+          "unknowns": 0,
+          "positiveDiscoveries": 104,
+          "cumulativeScore": 116.0,
+          "bestScore": 2.0,
+          "seenCandidates": 176,
+          "populationSize": 8,
+          "duplicateProposals": 136
+        },
+        {
+          "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+          "candidateCount": 76,
+          "allocations": 76,
+          "knownScores": 76,
+          "unknowns": 0,
+          "positiveDiscoveries": 40,
+          "cumulativeScore": 40.0,
+          "bestScore": 1.0,
+          "seenCandidates": 76,
+          "populationSize": 8,
+          "duplicateProposals": 50
+        },
+        {
+          "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "candidateCount": 178,
+          "allocations": 178,
+          "knownScores": 178,
+          "unknowns": 0,
+          "positiveDiscoveries": 102,
+          "cumulativeScore": 102.0,
+          "bestScore": 1.0,
+          "seenCandidates": 178,
+          "populationSize": 8,
+          "duplicateProposals": 127
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 0,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 4,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 1212,
+          "score": 568.0
+        }
+      ]
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 1,
+      "family": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "choices": 44,
+      "score": 0,
+      "firstChoice": 28,
+      "firstPositiveChoice": null,
+      "perWorkload": [
+        {
+          "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+          "candidateCount": 38,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+          "candidateCount": 38,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 22,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 22,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 44,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 1,
+      "family": "FindQuiz + UpdateTopic + UpdateTournament",
+      "choices": 803,
+      "score": 413.0,
+      "firstChoice": 82,
+      "firstPositiveChoice": 82,
+      "perWorkload": [
+        {
+          "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+          "candidateCount": 116,
+          "allocations": 78,
+          "knownScores": 78,
+          "unknowns": 0,
+          "positiveDiscoveries": 33,
+          "cumulativeScore": 33.0,
+          "bestScore": 1.0,
+          "seenCandidates": 78,
+          "populationSize": 8,
+          "duplicateProposals": 53
+        },
+        {
+          "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+          "candidateCount": 90,
+          "allocations": 53,
+          "knownScores": 53,
+          "unknowns": 0,
+          "positiveDiscoveries": 21,
+          "cumulativeScore": 21.0,
+          "bestScore": 1.0,
+          "seenCandidates": 53,
+          "populationSize": 8,
+          "duplicateProposals": 32
+        },
+        {
+          "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+          "candidateCount": 108,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+          "candidateCount": 82,
+          "allocations": 7,
+          "knownScores": 7,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 7,
+          "populationSize": 7,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+          "candidateCount": 160,
+          "allocations": 160,
+          "knownScores": 160,
+          "unknowns": 0,
+          "positiveDiscoveries": 80,
+          "cumulativeScore": 80.0,
+          "bestScore": 1.0,
+          "seenCandidates": 160,
+          "populationSize": 8,
+          "duplicateProposals": 122
+        },
+        {
+          "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "candidateCount": 114,
+          "allocations": 43,
+          "knownScores": 43,
+          "unknowns": 0,
+          "positiveDiscoveries": 16,
+          "cumulativeScore": 16.0,
+          "bestScore": 1.0,
+          "seenCandidates": 43,
+          "populationSize": 8,
+          "duplicateProposals": 25
+        },
+        {
+          "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+          "candidateCount": 112,
+          "allocations": 100,
+          "knownScores": 100,
+          "unknowns": 0,
+          "positiveDiscoveries": 44,
+          "cumulativeScore": 44.0,
+          "bestScore": 1.0,
+          "seenCandidates": 100,
+          "populationSize": 8,
+          "duplicateProposals": 75
+        },
+        {
+          "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+          "candidateCount": 176,
+          "allocations": 176,
+          "knownScores": 176,
+          "unknowns": 0,
+          "positiveDiscoveries": 104,
+          "cumulativeScore": 116.0,
+          "bestScore": 2.0,
+          "seenCandidates": 176,
+          "populationSize": 8,
+          "duplicateProposals": 136
+        },
+        {
+          "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+          "candidateCount": 76,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "candidateCount": 178,
+          "allocations": 178,
+          "knownScores": 178,
+          "unknowns": 0,
+          "positiveDiscoveries": 102,
+          "cumulativeScore": 102.0,
+          "bestScore": 1.0,
+          "seenCandidates": 178,
+          "populationSize": 8,
+          "duplicateProposals": 127
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 57,
+          "score": 31.0
+        },
+        {
+          "budget": 2000,
+          "choices": 151,
+          "score": 82.0
+        },
+        {
+          "budget": 4000,
+          "choices": 803,
+          "score": 413.0
+        }
+      ]
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 1,
+      "family": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "choices": 44,
+      "score": 0,
+      "firstChoice": 113,
+      "firstPositiveChoice": null,
+      "perWorkload": [
+        {
+          "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+          "candidateCount": 38,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+          "candidateCount": 40,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+          "candidateCount": 38,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+          "candidateCount": 36,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 12,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 22,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 44,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 1,
+      "family": "FindQuiz + UpdateTopic + UpdateTournament",
+      "choices": 834,
+      "score": 424.0,
+      "firstChoice": 34,
+      "firstPositiveChoice": 198,
+      "perWorkload": [
+        {
+          "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+          "candidateCount": 116,
+          "allocations": 94,
+          "knownScores": 94,
+          "unknowns": 0,
+          "positiveDiscoveries": 38,
+          "cumulativeScore": 38.0,
+          "bestScore": 1.0,
+          "seenCandidates": 94,
+          "populationSize": 8,
+          "duplicateProposals": 66
+        },
+        {
+          "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+          "candidateCount": 90,
+          "allocations": 55,
+          "knownScores": 55,
+          "unknowns": 0,
+          "positiveDiscoveries": 21,
+          "cumulativeScore": 21.0,
+          "bestScore": 1.0,
+          "seenCandidates": 55,
+          "populationSize": 8,
+          "duplicateProposals": 34
+        },
+        {
+          "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+          "candidateCount": 108,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+          "candidateCount": 82,
+          "allocations": 7,
+          "knownScores": 7,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 7,
+          "populationSize": 7,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+          "candidateCount": 160,
+          "allocations": 160,
+          "knownScores": 160,
+          "unknowns": 0,
+          "positiveDiscoveries": 80,
+          "cumulativeScore": 80.0,
+          "bestScore": 1.0,
+          "seenCandidates": 160,
+          "populationSize": 8,
+          "duplicateProposals": 122
+        },
+        {
+          "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "candidateCount": 114,
+          "allocations": 44,
+          "knownScores": 44,
+          "unknowns": 0,
+          "positiveDiscoveries": 16,
+          "cumulativeScore": 16.0,
+          "bestScore": 1.0,
+          "seenCandidates": 44,
+          "populationSize": 8,
+          "duplicateProposals": 26
+        },
+        {
+          "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+          "candidateCount": 112,
+          "allocations": 112,
+          "knownScores": 112,
+          "unknowns": 0,
+          "positiveDiscoveries": 50,
+          "cumulativeScore": 50.0,
+          "bestScore": 1.0,
+          "seenCandidates": 112,
+          "populationSize": 8,
+          "duplicateProposals": 86
+        },
+        {
+          "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+          "candidateCount": 176,
+          "allocations": 176,
+          "knownScores": 176,
+          "unknowns": 0,
+          "positiveDiscoveries": 104,
+          "cumulativeScore": 116.0,
+          "bestScore": 2.0,
+          "seenCandidates": 176,
+          "populationSize": 8,
+          "duplicateProposals": 136
+        },
+        {
+          "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+          "candidateCount": 76,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "candidateCount": 178,
+          "allocations": 178,
+          "knownScores": 178,
+          "unknowns": 0,
+          "positiveDiscoveries": 102,
+          "cumulativeScore": 102.0,
+          "bestScore": 1.0,
+          "seenCandidates": 178,
+          "populationSize": 8,
+          "duplicateProposals": 127
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 71,
+          "score": 39.0
+        },
+        {
+          "budget": 2000,
+          "choices": 293,
+          "score": 179.0
+        },
+        {
+          "budget": 4000,
+          "choices": 834,
+          "score": 424.0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 1,
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "choices": 7762,
+      "score": 15208.0,
+      "firstChoice": 65,
+      "firstPositiveChoice": 66,
+      "perWorkload": [
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "candidateCount": 3360,
+          "allocations": 2589,
+          "knownScores": 2565,
+          "unknowns": 24,
+          "positiveDiscoveries": 2070,
+          "cumulativeScore": 2236.0,
+          "bestScore": 3.0,
+          "seenCandidates": 2589,
+          "populationSize": 8,
+          "duplicateProposals": 1823
+        },
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "candidateCount": 3918,
+          "allocations": 2581,
+          "knownScores": 2418,
+          "unknowns": 163,
+          "positiveDiscoveries": 2155,
+          "cumulativeScore": 6773.0,
+          "bestScore": 5.0,
+          "seenCandidates": 2581,
+          "populationSize": 8,
+          "duplicateProposals": 1723
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "candidateCount": 5184,
+          "allocations": 2592,
+          "knownScores": 2351,
+          "unknowns": 241,
+          "positiveDiscoveries": 2099,
+          "cumulativeScore": 6199.0,
+          "bestScore": 5.0,
+          "seenCandidates": 2592,
+          "populationSize": 8,
+          "duplicateProposals": 1729
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 762,
+          "score": 1669.0
+        },
+        {
+          "budget": 2000,
+          "choices": 1762,
+          "score": 3860.0
+        },
+        {
+          "budget": 4000,
+          "choices": 3762,
+          "score": 7870.0
+        },
+        {
+          "budget": 8000,
+          "choices": 7762,
+          "score": 15208.0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 1,
+      "family": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "choices": 18,
+      "score": 0,
+      "firstChoice": 52,
+      "firstPositiveChoice": null,
+      "perWorkload": [
+        {
+          "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+          "candidateCount": 36,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+          "candidateCount": 36,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+          "candidateCount": 40,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+          "candidateCount": 40,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+          "candidateCount": 36,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+          "candidateCount": 38,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+          "candidateCount": 40,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "candidateCount": 36,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+          "candidateCount": 38,
+          "allocations": 0,
+          "knownScores": 0,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": null,
+          "seenCandidates": 0,
+          "populationSize": 0,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+          "candidateCount": 36,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+          "candidateCount": 36,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 18,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 18,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 18,
+          "score": 0
+        },
+        {
+          "budget": 8000,
+          "choices": 18,
+          "score": 0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 1,
+      "family": "FindQuiz + UpdateTopic + UpdateTournament",
+      "choices": 37,
+      "score": 14.0,
+      "firstChoice": 21,
+      "firstPositiveChoice": 21,
+      "perWorkload": [
+        {
+          "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+          "candidateCount": 116,
+          "allocations": 3,
+          "knownScores": 3,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 3,
+          "populationSize": 3,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+          "candidateCount": 90,
+          "allocations": 5,
+          "knownScores": 5,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 5,
+          "populationSize": 5,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+          "candidateCount": 108,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+          "candidateCount": 82,
+          "allocations": 3,
+          "knownScores": 3,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 3,
+          "populationSize": 3,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+          "candidateCount": 160,
+          "allocations": 3,
+          "knownScores": 3,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 3,
+          "populationSize": 3,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "candidateCount": 114,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+          "candidateCount": 112,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+          "candidateCount": 176,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+          "candidateCount": 76,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "candidateCount": 178,
+          "allocations": 9,
+          "knownScores": 9,
+          "unknowns": 0,
+          "positiveDiscoveries": 5,
+          "cumulativeScore": 5.0,
+          "bestScore": 1.0,
+          "seenCandidates": 9,
+          "populationSize": 8,
+          "duplicateProposals": 1
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 37,
+          "score": 14.0
+        },
+        {
+          "budget": 2000,
+          "choices": 37,
+          "score": 14.0
+        },
+        {
+          "budget": 4000,
+          "choices": 37,
+          "score": 14.0
+        },
+        {
+          "budget": 8000,
+          "choices": 37,
+          "score": 14.0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 1,
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "choices": 7106,
+      "score": 16899.0,
+      "firstChoice": 409,
+      "firstPositiveChoice": 409,
+      "perWorkload": [
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "candidateCount": 3360,
+          "allocations": 11,
+          "knownScores": 11,
+          "unknowns": 0,
+          "positiveDiscoveries": 7,
+          "cumulativeScore": 8.0,
+          "bestScore": 2.0,
+          "seenCandidates": 11,
+          "populationSize": 8,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "candidateCount": 3918,
+          "allocations": 3918,
+          "knownScores": 3668,
+          "unknowns": 250,
+          "positiveDiscoveries": 3190,
+          "cumulativeScore": 9516.0,
+          "bestScore": 5.0,
+          "seenCandidates": 3918,
+          "populationSize": 8,
+          "duplicateProposals": 2981
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "candidateCount": 5184,
+          "allocations": 3177,
+          "knownScores": 2862,
+          "unknowns": 315,
+          "positiveDiscoveries": 2529,
+          "cumulativeScore": 7375.0,
+          "bestScore": 5.0,
+          "seenCandidates": 3177,
+          "populationSize": 8,
+          "duplicateProposals": 2209
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 248,
+          "score": 737.0
+        },
+        {
+          "budget": 2000,
+          "choices": 1248,
+          "score": 3589.0
+        },
+        {
+          "budget": 4000,
+          "choices": 3248,
+          "score": 8225.0
+        },
+        {
+          "budget": 8000,
+          "choices": 7106,
+          "score": 16899.0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 1,
+      "family": "FindQuiz + UpdateTopic + UpdateTournament",
+      "choices": 28,
+      "score": 10.0,
+      "firstChoice": 83,
+      "firstPositiveChoice": 4093,
+      "perWorkload": [
+        {
+          "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+          "candidateCount": 116,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+          "candidateCount": 90,
+          "allocations": 5,
+          "knownScores": 5,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 5,
+          "populationSize": 5,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+          "candidateCount": 108,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+          "candidateCount": 82,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+          "candidateCount": 160,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "candidateCount": 114,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+          "candidateCount": 112,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+          "candidateCount": 176,
+          "allocations": 4,
+          "knownScores": 4,
+          "unknowns": 0,
+          "positiveDiscoveries": 2,
+          "cumulativeScore": 2.0,
+          "bestScore": 1.0,
+          "seenCandidates": 4,
+          "populationSize": 4,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+          "candidateCount": 76,
+          "allocations": 2,
+          "knownScores": 2,
+          "unknowns": 0,
+          "positiveDiscoveries": 0,
+          "cumulativeScore": 0.0,
+          "bestScore": 0.0,
+          "seenCandidates": 2,
+          "populationSize": 2,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "candidateCount": 178,
+          "allocations": 3,
+          "knownScores": 3,
+          "unknowns": 0,
+          "positiveDiscoveries": 1,
+          "cumulativeScore": 1.0,
+          "bestScore": 1.0,
+          "seenCandidates": 3,
+          "populationSize": 3,
+          "duplicateProposals": 0
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 1,
+          "score": 0
+        },
+        {
+          "budget": 2000,
+          "choices": 1,
+          "score": 0
+        },
+        {
+          "budget": 4000,
+          "choices": 1,
+          "score": 0
+        },
+        {
+          "budget": 8000,
+          "choices": 28,
+          "score": 10.0
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 1,
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "choices": 7377,
+      "score": 17417.0,
+      "firstChoice": 105,
+      "firstPositiveChoice": 105,
+      "perWorkload": [
+        {
+          "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+          "candidateCount": 3360,
+          "allocations": 11,
+          "knownScores": 11,
+          "unknowns": 0,
+          "positiveDiscoveries": 7,
+          "cumulativeScore": 8.0,
+          "bestScore": 2.0,
+          "seenCandidates": 11,
+          "populationSize": 8,
+          "duplicateProposals": 0
+        },
+        {
+          "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "candidateCount": 3918,
+          "allocations": 3918,
+          "knownScores": 3668,
+          "unknowns": 250,
+          "positiveDiscoveries": 3190,
+          "cumulativeScore": 9516.0,
+          "bestScore": 5.0,
+          "seenCandidates": 3918,
+          "populationSize": 8,
+          "duplicateProposals": 2981
+        },
+        {
+          "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+          "candidateCount": 5184,
+          "allocations": 3448,
+          "knownScores": 3108,
+          "unknowns": 340,
+          "positiveDiscoveries": 2733,
+          "cumulativeScore": 7893.0,
+          "bestScore": 5.0,
+          "seenCandidates": 3448,
+          "populationSize": 8,
+          "duplicateProposals": 2441
+        }
+      ],
+      "checkpoints": [
+        {
+          "budget": 1000,
+          "choices": 896,
+          "score": 2688.0
+        },
+        {
+          "budget": 2000,
+          "choices": 1896,
+          "score": 5204.0
+        },
+        {
+          "budget": 4000,
+          "choices": 3896,
+          "score": 9465.0
+        },
+        {
+          "budget": 8000,
+          "choices": 7377,
+          "score": 17417.0
+        }
+      ]
+    }
+  ],
+  "unknownStreaks": [
+    {
+      "cohort": "small",
+      "arm": "P-shared",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 830,
+      "toDecision": 1017,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.27626172030907703,
+        "estimate": 0.009809181509142811,
+        "uncertainty": 0.2664525387999342
+      },
+      "lastPriority": {
+        "index": 0.32766632830658154,
+        "estimate": 0.020165593850599305,
+        "uncertainty": 0.30750073445598225
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-shared",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 147,
+      "toDecision": 336,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.4391861683070819,
+        "estimate": 0.017897428545129865,
+        "uncertainty": 0.421288739761952
+      },
+      "lastPriority": {
+        "index": 0.48684540913259056,
+        "estimate": 0.023318743094571243,
+        "uncertainty": 0.4635266660380193
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-shared",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 769,
+      "toDecision": 915,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.3845854778534453,
+        "estimate": -0.09997208113563005,
+        "uncertainty": 0.4845575589890754
+      },
+      "lastPriority": {
+        "index": 0.40427909155551245,
+        "estimate": -0.09669542617477245,
+        "uncertainty": 0.5009745177302849
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-shared",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 2783,
+      "toDecision": 2872,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.1518932123605352,
+        "estimate": -0.10947454346996321,
+        "uncertainty": 0.2613677558304984
+      },
+      "lastPriority": {
+        "index": 0.15380709127203318,
+        "estimate": -0.11050555976356596,
+        "uncertainty": 0.26431265103559914
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-shared",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 264,
+      "toDecision": 415,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.3145867615294521,
+        "estimate": 0.13406618789494,
+        "uncertainty": 0.18052057363451207
+      },
+      "lastPriority": {
+        "index": 0.4019373596150034,
+        "estimate": -0.08801020434000008,
+        "uncertainty": 0.48994756395500344
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 1632,
+      "toDecision": 1819,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.48063786176061346,
+        "estimate": 0.012173238663056198,
+        "uncertainty": 0.46846462309755726
+      },
+      "lastPriority": {
+        "index": 0.48063786176061346,
+        "estimate": 0.012173238663056198,
+        "uncertainty": 0.46846462309755726
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 406,
+      "toDecision": 595,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.4910005021110605,
+        "estimate": 0.022549578098316623,
+        "uncertainty": 0.46845092401274385
+      },
+      "lastPriority": {
+        "index": 0.4910005021110605,
+        "estimate": 0.022549578098316623,
+        "uncertainty": 0.46845092401274385
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 1715,
+      "toDecision": 1861,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.4903555074979468,
+        "estimate": 0.021847711556414205,
+        "uncertainty": 0.46850779594153263
+      },
+      "lastPriority": {
+        "index": 0.4903555074979468,
+        "estimate": 0.021847711556414205,
+        "uncertainty": 0.46850779594153263
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 1775,
+      "toDecision": 1864,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.5046162354364508,
+        "estimate": 0.036600064223565425,
+        "uncertainty": 0.4680161712128854
+      },
+      "lastPriority": {
+        "index": 0.5046162354364508,
+        "estimate": 0.036600064223565425,
+        "uncertainty": 0.4680161712128854
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 35,
+      "toDecision": 186,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6811097994822274,
+        "estimate": 0.0188430186870486,
+        "uncertainty": 0.6622667807951788
+      },
+      "lastPriority": {
+        "index": 0.6811097994822274,
+        "estimate": 0.0188430186870486,
+        "uncertainty": 0.6622667807951788
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "SP-cal",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 1325,
+      "toDecision": 1512,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.4408814697237019,
+        "estimate": -0.04301556923889335,
+        "uncertainty": 0.4838970389625952
+      },
+      "lastPriority": {
+        "index": 0.535172059518215,
+        "estimate": 0.03958577736220958,
+        "uncertainty": 0.4955862821560055
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "SP-cal",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 197,
+      "toDecision": 386,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6325707590720335,
+        "estimate": 0.12565502079823496,
+        "uncertainty": 0.5069157382737985
+      },
+      "lastPriority": {
+        "index": 0.7385134004564178,
+        "estimate": 0.18387466593524693,
+        "uncertainty": 0.5546387345211709
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "SP-cal",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 282,
+      "toDecision": 428,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.4975543089788058,
+        "estimate": -0.004173423858414876,
+        "uncertainty": 0.5017277328372207
+      },
+      "lastPriority": {
+        "index": 0.5362297469057805,
+        "estimate": 0.008227926134340483,
+        "uncertainty": 0.52800182077144
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "SP-cal",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 378,
+      "toDecision": 467,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6753358402375479,
+        "estimate": 0.1674301359539433,
+        "uncertainty": 0.5079057042836046
+      },
+      "lastPriority": {
+        "index": 0.6993511785943071,
+        "estimate": 0.18674906943656303,
+        "uncertainty": 0.5126021091577441
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "SP-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 34,
+      "toDecision": 185,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6998482909786852,
+        "estimate": 0.03693138550895111,
+        "uncertainty": 0.662916905469734
+      },
+      "lastPriority": {
+        "index": 0.9406137184186852,
+        "estimate": -0.05854659952983052,
+        "uncertainty": 0.9991603179485158
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 1780,
+      "toDecision": 1967,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8130415057526733,
+        "estimate": 0.0,
+        "uncertainty": 0.8130415057526733
+      },
+      "lastPriority": {
+        "index": 1.0012190548148876,
+        "estimate": 0.0,
+        "uncertainty": 1.0012190548148876
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 1472,
+      "toDecision": 1661,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8375112031897136,
+        "estimate": 0.0,
+        "uncertainty": 0.8375112031897136
+      },
+      "lastPriority": {
+        "index": 0.9222221929889923,
+        "estimate": 0.0,
+        "uncertainty": 0.9222221929889923
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 1490,
+      "toDecision": 1636,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8456205303733257,
+        "estimate": 0.0,
+        "uncertainty": 0.8456205303733257
+      },
+      "lastPriority": {
+        "index": 0.8973945735787152,
+        "estimate": 0.0,
+        "uncertainty": 0.8973945735787152
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 1535,
+      "toDecision": 1624,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8555339451272924,
+        "estimate": 0.0,
+        "uncertainty": 0.8555339451272924
+      },
+      "lastPriority": {
+        "index": 0.8722002506645447,
+        "estimate": 0.0,
+        "uncertainty": 0.8722002506645447
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "P-local",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 909,
+      "toDecision": 1060,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "lastPriority": {
+        "index": 1.7034971718825258,
+        "estimate": 0.0,
+        "uncertainty": 1.7034971718825258
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H0",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 1539,
+      "toDecision": 1726,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8529605685821426,
+        "estimate": 0.039557039491294466,
+        "uncertainty": 0.8134035290908481
+      },
+      "lastPriority": {
+        "index": 1.029652553780556,
+        "estimate": 0.028283187057279554,
+        "uncertainty": 1.0013693667232766
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H0",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 1441,
+      "toDecision": 1630,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8672772991871426,
+        "estimate": 0.02949310030421146,
+        "uncertainty": 0.8377841988829311
+      },
+      "lastPriority": {
+        "index": 0.9463083810624042,
+        "estimate": 0.023923057363633062,
+        "uncertainty": 0.9223853236987711
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H0",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 1437,
+      "toDecision": 1583,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.8813648368488984,
+        "estimate": 0.035495481477154256,
+        "uncertainty": 0.8458693553717441
+      },
+      "lastPriority": {
+        "index": 0.928353600620002,
+        "estimate": 0.03078267765342843,
+        "uncertainty": 0.8975709229665736
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H0",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 1421,
+      "toDecision": 1510,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.886533291294594,
+        "estimate": 0.03077945683027881,
+        "uncertainty": 0.8557538344643152
+      },
+      "lastPriority": {
+        "index": 0.9016118493508841,
+        "estimate": 0.02921724655845991,
+        "uncertainty": 0.8723946027924242
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H0",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 822,
+      "toDecision": 973,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1084723649931316,
+        "estimate": 0.10552699469884402,
+        "uncertainty": 1.0029453702942877
+      },
+      "lastPriority": {
+        "index": 1.8107548476283315,
+        "estimate": 0.10552699469884402,
+        "uncertainty": 1.7052278529294875
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 2048,
+      "toDecision": 2235,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7248531866841349,
+        "estimate": 0.02671129068374497,
+        "uncertainty": 0.6981418960003899
+      },
+      "lastPriority": {
+        "index": 0.8510677323476913,
+        "estimate": 0.019098507893038612,
+        "uncertainty": 0.8319692244546527
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 11,
+      "length": 190,
+      "fromDecision": 1838,
+      "toDecision": 2027,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7334795753057348,
+        "estimate": 0.023090340937999696,
+        "uncertainty": 0.7103892343677352
+      },
+      "lastPriority": {
+        "index": 0.7877313298559381,
+        "estimate": 0.0187295179247986,
+        "uncertainty": 0.7690018119311395
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 1683,
+      "toDecision": 1829,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7455428770002126,
+        "estimate": 0.03073453902830471,
+        "uncertainty": 0.7148083379719079
+      },
+      "lastPriority": {
+        "index": 0.7767375542506042,
+        "estimate": 0.02665385475455366,
+        "uncertainty": 0.7500836994960506
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 47,
+      "length": 90,
+      "fromDecision": 1856,
+      "toDecision": 1945,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7467501871720719,
+        "estimate": 0.02638131903289985,
+        "uncertainty": 0.720368868139172
+      },
+      "lastPriority": {
+        "index": 0.7565228319175801,
+        "estimate": 0.025042336093578293,
+        "uncertainty": 0.7314804958240018
+      }
+    },
+    {
+      "cohort": "small",
+      "arm": "H1-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 47,
+      "toDecision": 198,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1508386770629493,
+        "estimate": 0.027563208179866096,
+        "uncertainty": 1.1232754688830833
+      },
+      "lastPriority": {
+        "index": 1.618060883564006,
+        "estimate": 0.027563208179866096,
+        "uncertainty": 1.59049767538414
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-shared",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 1303,
+      "toDecision": 1490,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.23233199828927315,
+        "estimate": 0.030288460287406546,
+        "uncertainty": 0.20204353800186658
+      },
+      "lastPriority": {
+        "index": 0.3091121127652647,
+        "estimate": 0.07471422202524115,
+        "uncertainty": 0.23439789074002354
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-shared",
+      "seed": 11,
+      "length": 23,
+      "fromDecision": 4853,
+      "toDecision": 4875,
+      "workload": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "family": "CreateCourseExecution + CreateQuiz",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.26437589539395756,
+        "estimate": 0.037353467306936464,
+        "uncertainty": 0.2270224280870211
+      },
+      "lastPriority": {
+        "index": 0.33028062830498073,
+        "estimate": 0.059012262645128974,
+        "uncertainty": 0.27126836565985174
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-shared",
+      "seed": 29,
+      "length": 147,
+      "fromDecision": 284,
+      "toDecision": 430,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.887536789788454,
+        "estimate": 0.18572384507779818,
+        "uncertainty": 0.7018129447106558
+      },
+      "lastPriority": {
+        "index": 0.8973769868479843,
+        "estimate": 0.15627245218314836,
+        "uncertainty": 0.741104534664836
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-shared",
+      "seed": 47,
+      "length": 53,
+      "fromDecision": 565,
+      "toDecision": 617,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "family": "CreateCourseExecution + CreateQuestion",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.2941128695810802,
+        "estimate": 0.0039413359006264075,
+        "uncertainty": 0.2901715336804538
+      },
+      "lastPriority": {
+        "index": 0.30850146008339085,
+        "estimate": 0.002822438618499155,
+        "uncertainty": 0.3056790214648917
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-shared",
+      "seed": 73,
+      "length": 3,
+      "fromDecision": 1149,
+      "toDecision": 1151,
+      "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 3.194524744018795,
+        "estimate": 3.160248833356491,
+        "uncertainty": 0.034275910662303746
+      },
+      "lastPriority": {
+        "index": 3.198329198820354,
+        "estimate": 3.163855712135737,
+        "uncertainty": 0.034473486684617166
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 1,
+      "length": 3,
+      "fromDecision": 7170,
+      "toDecision": 7172,
+      "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 2.1100163253488566,
+        "estimate": 2.1012789332461543,
+        "uncertainty": 0.00873739210270241
+      },
+      "lastPriority": {
+        "index": 2.1100163253488566,
+        "estimate": 2.1012789332461543,
+        "uncertainty": 0.00873739210270241
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 11,
+      "length": 23,
+      "fromDecision": 52,
+      "toDecision": 74,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6814847357471263,
+        "estimate": 0.018791043386396665,
+        "uncertainty": 0.6626936923607296
+      },
+      "lastPriority": {
+        "index": 0.6814847357471263,
+        "estimate": 0.018791043386396665,
+        "uncertainty": 0.6626936923607296
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 29,
+      "length": 32,
+      "fromDecision": 31,
+      "toDecision": 62,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6972689854715178,
+        "estimate": 0.03800527357872442,
+        "uncertainty": 0.6592637118927934
+      },
+      "lastPriority": {
+        "index": 0.6972689854715178,
+        "estimate": 0.03800527357872442,
+        "uncertainty": 0.6592637118927934
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 47,
+      "length": 75,
+      "fromDecision": 39,
+      "toDecision": 113,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6617072315315226,
+        "estimate": 0.0,
+        "uncertainty": 0.6617072315315226
+      },
+      "lastPriority": {
+        "index": 0.6617072315315226,
+        "estimate": 0.0,
+        "uncertainty": 0.6617072315315226
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "S-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 36,
+      "toDecision": 187,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.6835251180123942,
+        "estimate": 0.019307183478126835,
+        "uncertainty": 0.6642179345342674
+      },
+      "lastPriority": {
+        "index": 0.6835251180123942,
+        "estimate": 0.019307183478126835,
+        "uncertainty": 0.6642179345342674
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "SP-cal",
+      "seed": 1,
+      "length": 188,
+      "fromDecision": 4174,
+      "toDecision": 4361,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.33348182549143623,
+        "estimate": -0.15311584376009932,
+        "uncertainty": 0.4865976692515356
+      },
+      "lastPriority": {
+        "index": 0.9919831823584426,
+        "estimate": 0.48137995030984004,
+        "uncertainty": 0.5106032320486026
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "SP-cal",
+      "seed": 11,
+      "length": 23,
+      "fromDecision": 29,
+      "toDecision": 51,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7674903573589194,
+        "estimate": 0.10076178406572249,
+        "uncertainty": 0.6667285732931969
+      },
+      "lastPriority": {
+        "index": 1.1752702229064358,
+        "estimate": 0.07661846547730244,
+        "uncertainty": 1.0986517574291335
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "SP-cal",
+      "seed": 29,
+      "length": 27,
+      "fromDecision": 87,
+      "toDecision": 113,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7734634251006858,
+        "estimate": -0.044085139197612824,
+        "uncertainty": 0.8175485642982986
+      },
+      "lastPriority": {
+        "index": 0.7833810970508414,
+        "estimate": -0.10866323212401732,
+        "uncertainty": 0.8920443291748587
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "SP-cal",
+      "seed": 47,
+      "length": 4,
+      "fromDecision": 6124,
+      "toDecision": 6127,
+      "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+      "family": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 2.581406486613701,
+        "estimate": 2.566060064872272,
+        "uncertainty": 0.01534642174142932
+      },
+      "lastPriority": {
+        "index": 2.580117745619926,
+        "estimate": 2.5642756073612003,
+        "uncertainty": 0.01584213825872562
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "SP-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 61,
+      "toDecision": 212,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 0.7157906383912174,
+        "estimate": 0.06558906689162444,
+        "uncertainty": 0.6502015714995929
+      },
+      "lastPriority": {
+        "index": 0.8435190076638346,
+        "estimate": -0.04048400797486358,
+        "uncertainty": 0.8840030156386982
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 1,
+      "length": 18,
+      "fromDecision": 435,
+      "toDecision": 452,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "family": "CreateCourseExecution + CreateQuestion",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.2297746456210363,
+        "estimate": 0.0,
+        "uncertainty": 1.2297746456210363
+      },
+      "lastPriority": {
+        "index": 1.3690696363675092,
+        "estimate": 0.0,
+        "uncertainty": 1.3690696363675092
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 11,
+      "length": 22,
+      "fromDecision": 5832,
+      "toDecision": 5853,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "family": "CreateCourseExecution + CreateQuestion",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "lastPriority": {
+        "index": 1.5888284184149344,
+        "estimate": 0.0,
+        "uncertainty": 1.5888284184149344
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 29,
+      "length": 35,
+      "fromDecision": 5067,
+      "toDecision": 5101,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "lastPriority": {
+        "index": 1.629517964977969,
+        "estimate": 0.0,
+        "uncertainty": 1.629517964977969
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 47,
+      "length": 8,
+      "fromDecision": 5480,
+      "toDecision": 5487,
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "family": "CreateCourseExecution + CreateTopic",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "lastPriority": {
+        "index": 1.4892205269125784,
+        "estimate": 0.0,
+        "uncertainty": 1.4892205269125784
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "P-local",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 5293,
+      "toDecision": 5444,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0,
+        "estimate": 0.0,
+        "uncertainty": 1.0
+      },
+      "lastPriority": {
+        "index": 1.7034971718825258,
+        "estimate": 0.0,
+        "uncertainty": 1.7034971718825258
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H0",
+      "seed": 1,
+      "length": 17,
+      "fromDecision": 4705,
+      "toDecision": 4721,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "family": "CreateCourseExecution + CreateQuestion",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0788906513831689,
+        "estimate": 0.05842961267967977,
+        "uncertainty": 1.0204610387034891
+      },
+      "lastPriority": {
+        "index": 1.427988812106732,
+        "estimate": 0.05842961267967977,
+        "uncertainty": 1.3695591994270522
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H0",
+      "seed": 11,
+      "length": 22,
+      "fromDecision": 5644,
+      "toDecision": 5665,
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "family": "CreateCourseExecution + CreateQuestion",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.0926858701657172,
+        "estimate": 0.08682088902244159,
+        "uncertainty": 1.0058649811432756
+      },
+      "lastPriority": {
+        "index": 1.6793472164196572,
+        "estimate": 0.08682088902244159,
+        "uncertainty": 1.5925263273972157
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H0",
+      "seed": 29,
+      "length": 35,
+      "fromDecision": 4904,
+      "toDecision": 4938,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1266121433912104,
+        "estimate": 0.12392118287343654,
+        "uncertainty": 1.0026909605177738
+      },
+      "lastPriority": {
+        "index": 1.7550919159636296,
+        "estimate": 0.12392118287343654,
+        "uncertainty": 1.631170733090193
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H0",
+      "seed": 47,
+      "length": 8,
+      "fromDecision": 5451,
+      "toDecision": 5458,
+      "workload": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "family": "CreateCourseExecution + CreateTopic",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1105467272303677,
+        "estimate": 0.10269272294412347,
+        "uncertainty": 1.0078540042862443
+      },
+      "lastPriority": {
+        "index": 1.59719848463713,
+        "estimate": 0.10269272294412347,
+        "uncertainty": 1.4945057616930066
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H0",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 4505,
+      "toDecision": 4656,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.131613579965239,
+        "estimate": 0.1270805410789342,
+        "uncertainty": 1.0045330388863047
+      },
+      "lastPriority": {
+        "index": 1.8332426789855043,
+        "estimate": 0.1270805410789342,
+        "uncertainty": 1.7061621379065701
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 1,
+      "length": 14,
+      "fromDecision": 4213,
+      "toDecision": 4226,
+      "workload": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "family": "CreateTopic + RemoveCourseExecution",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1732686927452232,
+        "estimate": 0.12819729044792982,
+        "uncertainty": 1.0450714022972933
+      },
+      "lastPriority": {
+        "index": 1.5474650144281457,
+        "estimate": 0.12819729044792982,
+        "uncertainty": 1.4192677239802158
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 11,
+      "length": 23,
+      "fromDecision": 72,
+      "toDecision": 94,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1727295271883393,
+        "estimate": 0.04167770510145969,
+        "uncertainty": 1.1310518220868797
+      },
+      "lastPriority": {
+        "index": 1.5597236231919618,
+        "estimate": 0.04167770510145969,
+        "uncertainty": 1.5180459180905022
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 29,
+      "length": 35,
+      "fromDecision": 63,
+      "toDecision": 97,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.18243684579607,
+        "estimate": 0.06168470038932873,
+        "uncertainty": 1.120752145406741
+      },
+      "lastPriority": {
+        "index": 1.5977959930884529,
+        "estimate": 0.06168470038932873,
+        "uncertainty": 1.536111292699124
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 47,
+      "length": 75,
+      "fromDecision": 31,
+      "toDecision": 105,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1322331216027524,
+        "estimate": 0.0,
+        "uncertainty": 1.1322331216027524
+      },
+      "lastPriority": {
+        "index": 1.5784642230606907,
+        "estimate": 0.0,
+        "uncertainty": 1.5784642230606907
+      }
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 73,
+      "length": 152,
+      "fromDecision": 40,
+      "toDecision": 191,
+      "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "family": "CreateQuestion + CreateTournamentAsync",
+      "anyModelUpdate": false,
+      "firstPriority": {
+        "index": 1.1602913424256134,
+        "estimate": 0.031803230980461124,
+        "uncertainty": 1.1284881114451522
+      },
+      "lastPriority": {
+        "index": 1.625986562370201,
+        "estimate": 0.031803230980461124,
+        "uncertainty": 1.5941833313897398
+      }
+    }
+  ],
+  "findings": [
+    {
+      "kind": "design-choice",
+      "claim": "S/P/SP/P-local cold uncertainty is 1; H0/H1 is sqrt(2). Calibration matches within declared pairs, not across all architectures."
+    },
+    {
+      "kind": "design-choice",
+      "claim": "Progress is six cumulative summaries. The allocation coordinate is n/(n+8); there is no recent-return window, remaining-catalogue fraction or GA population diversity input."
+    },
+    {
+      "kind": "demonstrated-behaviour",
+      "claim": "A first zero reward can increase P-local uncertainty from 1 to 1.22977 because the next progress vector activates previously unobserved coordinates; a missing reward raises it to 1.41857 without a model update."
+    },
+    {
+      "kind": "demonstrated-behaviour",
+      "claim": "Adaptive policies exhibit long same-workload unavailable-feedback streaks. Retaining unknown labels is correct; current allocation has no common availability/backoff mechanism."
+    },
+    {
+      "kind": "model-assumption",
+      "claim": "SP uses one additive linear structure-plus-progress model. It has no structure-by-progress product terms. Hybrid progress coefficients are independent for each workload."
+    },
+    {
+      "kind": "model-assumption",
+      "claim": "S assigns the same prediction and uncertainty to identical structural vectors, regardless of individual workloads previous outcomes. Ordinary order and concrete inputs are absent from the feature representation."
+    },
+    {
+      "kind": "valid-scope-with-limit",
+      "claim": "Saga and aggregate names, Saga pairs, interaction identities and event routes are categorical feature labels. They do not carry natural-language semantics or hidden outcomes. Their effect does not establish transfer to unseen applications."
+    },
+    {
+      "kind": "comparison-gap",
+      "claim": "The formal seven-arm matrix does not include AdaptiveUcbPolicy, the existing independent running-mean UCB baseline. P-local is a seven-coordinate per-workload regression, not that simpler baseline."
+    },
+    {
+      "kind": "objective-scope",
+      "claim": "The uniform baseline selects active workloads uniformly and retains the same local GA. Reward counts configured impact, not family diversity, independent defects, or wall-clock efficiency."
+    },
+    {
+      "kind": "measurement-scope",
+      "claim": "Frozen historical maps retain different measurement provenance. Replay audits selection and learning against those labels, not common-runtime reproducibility."
+    }
+  ],
+  "reconstructions": [
+    {
+      "cohort": "small",
+      "arm": "S-cal",
+      "seed": 1,
+      "checkedDecisions": 4000,
+      "maximumPriorityDifference": 0.0,
+      "snapshots": [
+        {
+          "beforeDecision": 1,
+          "chosen": "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2",
+          "chosenFamily": "AddStudent + UpdateStudentName",
+          "chosenPriority": {
+            "index": 1.0,
+            "estimate": 0.0,
+            "uncertainty": 1.0
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 0,
+                "index": 0.9999999999999998,
+                "estimate": 0.0,
+                "uncertainty": 0.9999999999999998
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 1.0,
+                "estimate": 0.0,
+                "uncertainty": 1.0
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": []
+          }
+        },
+        {
+          "beforeDecision": 404,
+          "chosen": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "chosenFamily": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+          "chosenPriority": {
+            "index": 0.6443740230377883,
+            "estimate": 0.08871836487299742,
+            "uncertainty": 0.5556556581647909
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 0.6202513459157053,
+                "estimate": 0.05243801672429763,
+                "uncertainty": 0.5678133291914077
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 0.6202513459157053,
+                "estimate": 0.05243801672429763,
+                "uncertainty": 0.5678133291914077
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 0.621030879114844,
+                "estimate": 0.0502331542387909,
+                "uncertainty": 0.5707977248760531
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 0.5991438748424502,
+                "estimate": 0.04833211644186458,
+                "uncertainty": 0.5508117584005856
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 0.621030879114844,
+                "estimate": 0.0502331542387909,
+                "uncertainty": 0.5707977248760531
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 0.6074563922284378,
+                "estimate": 0.05125496514402458,
+                "uncertainty": 0.5562014270844132
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 0.621030879114844,
+                "estimate": 0.0502331542387909,
+                "uncertainty": 0.5707977248760531
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 0,
+                "index": 0.6443740230377883,
+                "estimate": 0.08871836487299742,
+                "uncertainty": 0.5556556581647909
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 0.6202513459157053,
+                "estimate": 0.05243801672429763,
+                "uncertainty": 0.5678133291914077
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 0.6202513459157053,
+                "estimate": 0.05243801672429763,
+                "uncertainty": 0.5678133291914077
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 0.621030879114844,
+                "estimate": 0.0502331542387909,
+                "uncertainty": 0.5707977248760531
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 0.6060344032353091,
+                "estimate": 0.20737740001094568,
+                "uncertainty": 0.3986570032243634
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 0.6060344032353091,
+                "estimate": 0.20737740001094568,
+                "uncertainty": 0.3986570032243634
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 0,
+                "index": 0.6060344032353091,
+                "estimate": 0.20737740001094568,
+                "uncertainty": 0.3986570032243634
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 0.5868981291160629,
+                "estimate": 0.1256506358164317,
+                "uncertainty": 0.4612474932996311
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": []
+          }
+        },
+        {
+          "beforeDecision": 500,
+          "chosen": "af094b4a2b29d4d732da71c44da940ede3ed6cb5fe57708e27d63496d3991991",
+          "chosenFamily": "RemoveTournament + UpdateTournament",
+          "chosenPriority": {
+            "index": 1.0894701335343784,
+            "estimate": 0.995102600061067,
+            "uncertainty": 0.09436753347331141
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 0.5185286356585548,
+                "estimate": 0.03533983064117527,
+                "uncertainty": 0.48318880501737954
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 0.5185286356585548,
+                "estimate": 0.03533983064117527,
+                "uncertainty": 0.48318880501737954
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 0.5231758220355173,
+                "estimate": 0.03346486752177752,
+                "uncertainty": 0.48971095451373975
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 0.501855975966821,
+                "estimate": 0.030986851827576534,
+                "uncertainty": 0.4708691241392445
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 0.5231758220355173,
+                "estimate": 0.03346486752177752,
+                "uncertainty": 0.48971095451373975
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 0.5062110031665807,
+                "estimate": 0.03379771486225395,
+                "uncertainty": 0.47241328830432683
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 0.5231758220355173,
+                "estimate": 0.03346486752177752,
+                "uncertainty": 0.48971095451373975
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 1,
+                "index": 0.50625532505444,
+                "estimate": 0.06988714497837209,
+                "uncertainty": 0.436368180076068
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 0.5185286356585548,
+                "estimate": 0.03533983064117527,
+                "uncertainty": 0.48318880501737954
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 0.5185286356585548,
+                "estimate": 0.03533983064117527,
+                "uncertainty": 0.48318880501737954
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 0.5231758220355173,
+                "estimate": 0.03346486752177752,
+                "uncertainty": 0.48971095451373975
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 0.568977563395058,
+                "estimate": 0.17795479183932877,
+                "uncertainty": 0.3910227715557293
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 0.568977563395058,
+                "estimate": 0.17795479183932877,
+                "uncertainty": 0.3910227715557293
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 0,
+                "index": 0.568977563395058,
+                "estimate": 0.17795479183932877,
+                "uncertainty": 0.3910227715557293
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 0.5571514067116976,
+                "estimate": 0.10035973563874703,
+                "uncertainty": 0.45679167107295054
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": []
+          }
+        },
+        {
+          "beforeDecision": 2000,
+          "chosen": "ea738480ea71878555cc18f49f8e081c802543d498189beff6b30468e2ac8ec4",
+          "chosenFamily": "DeleteTopic",
+          "chosenPriority": {
+            "index": 0.6673608386208265,
+            "estimate": 0.34188218526833797,
+            "uncertainty": 0.3254786533524885
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 0.40653967512057176,
+                "estimate": 0.07502423786608604,
+                "uncertainty": 0.33151543725448573
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 0.39341243252827895,
+                "estimate": 0.07192497115665382,
+                "uncertainty": 0.32148746137162515
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 0.35146842242721765,
+                "estimate": 0.02846935294248969,
+                "uncertainty": 0.32299906948472795
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 0.3722789967531427,
+                "estimate": 0.03160317247596945,
+                "uncertainty": 0.34067582427717324
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 0.35146842242721765,
+                "estimate": 0.02846935294248969,
+                "uncertainty": 0.32299906948472795
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 0.4204732694782089,
+                "estimate": 0.07638356279161118,
+                "uncertainty": 0.3440897066865977
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 0.35146842242721765,
+                "estimate": 0.02846935294248969,
+                "uncertainty": 0.32299906948472795
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 1,
+                "index": 0.3122101552902549,
+                "estimate": -0.021972408645741372,
+                "uncertainty": 0.33418256393599627
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 0.40653967512057176,
+                "estimate": 0.07502423786608604,
+                "uncertainty": 0.33151543725448573
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 0.39341243252827895,
+                "estimate": 0.07192497115665382,
+                "uncertainty": 0.32148746137162515
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 0.35146842242721765,
+                "estimate": 0.02846935294248969,
+                "uncertainty": 0.32299906948472795
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 0.4273536420538364,
+                "estimate": 0.14562596360602656,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 1,
+                "index": 0.4273536420538342,
+                "estimate": 0.14562596360602437,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 1,
+                "index": 0.4273536420538364,
+                "estimate": 0.14562596360602656,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 0.33468256782270656,
+                "estimate": 0.06577405303157438,
+                "uncertainty": 0.26890851479113215
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 0.4273536420538364,
+                "estimate": 0.14562596360602656,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 0.4273536420538342,
+                "estimate": 0.14562596360602437,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 2,
+                "index": 0.33468256782270656,
+                "estimate": 0.06577405303157438,
+                "uncertainty": 0.26890851479113215
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 0.4273536420538364,
+                "estimate": 0.14562596360602656,
+                "uncertainty": 0.2817276784478098
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 0,
+                "index": 0.33468256782270656,
+                "estimate": 0.06577405303157438,
+                "uncertainty": 0.26890851479113215
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 0.4273536420538342,
+                "estimate": 0.14562596360602437,
+                "uncertainty": 0.2817276784478098
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": []
+          }
+        },
+        {
+          "beforeDecision": 4000,
+          "chosen": "d211755051397091e31c148c593b90c2a8a1e132d88b79fbad7724116e8e58a6",
+          "chosenFamily": "UpdateStudentName",
+          "chosenPriority": {
+            "index": 0.3624161947410632,
+            "estimate": 0.048190880055414005,
+            "uncertainty": 0.3142253146856492
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 0.34470447116316133,
+                "estimate": 0.05067393583825431,
+                "uncertainty": 0.294030535324907
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 0.3359683209636596,
+                "estimate": 0.0488692373319243,
+                "uncertainty": 0.2870990836317353
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 0.29311003331760654,
+                "estimate": 0.0019867236397510275,
+                "uncertainty": 0.2911233096778555
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 0.3019505303308838,
+                "estimate": -0.00022648871950535997,
+                "uncertainty": 0.3021770190503892
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 0.29311003331760654,
+                "estimate": 0.0019867236397510275,
+                "uncertainty": 0.2911233096778555
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 0.3484947758916341,
+                "estimate": 0.04711505838651687,
+                "uncertainty": 0.3013797175051172
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 0.29311003331760654,
+                "estimate": 0.0019867236397510275,
+                "uncertainty": 0.2911233096778555
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 1,
+                "index": 0.281098256918674,
+                "estimate": -0.024302612850984208,
+                "uncertainty": 0.30540086976965825
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 0.34470447116316133,
+                "estimate": 0.05067393583825431,
+                "uncertainty": 0.294030535324907
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 0.3359683209636596,
+                "estimate": 0.0488692373319243,
+                "uncertainty": 0.2870990836317353
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 0.29311003331760654,
+                "estimate": 0.0019867236397510275,
+                "uncertainty": 0.2911233096778555
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 116,
+                "index": 0.5213117820998752,
+                "estimate": 0.49421646850077855,
+                "uncertainty": 0.02709531359909658
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 90,
+                "index": 0.46954027182541724,
+                "estimate": 0.4380538230039366,
+                "uncertainty": 0.031486448821480655
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 108,
+                "index": 0.5213117820998752,
+                "estimate": 0.49421646850077855,
+                "uncertainty": 0.02709531359909658
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 82,
+                "index": 0.4951521975279981,
+                "estimate": 0.4557288689004008,
+                "uncertainty": 0.039423328627597315
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 160,
+                "index": 0.5213117820998752,
+                "estimate": 0.49421646850077855,
+                "uncertainty": 0.02709531359909658
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 114,
+                "index": 0.46954027182541724,
+                "estimate": 0.4380538230039366,
+                "uncertainty": 0.031486448821480655
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 112,
+                "index": 0.4951521975279981,
+                "estimate": 0.4557288689004008,
+                "uncertainty": 0.039423328627597315
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 176,
+                "index": 0.5213117820998752,
+                "estimate": 0.49421646850077855,
+                "uncertainty": 0.02709531359909658
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 76,
+                "index": 0.4951521975279981,
+                "estimate": 0.4557288689004008,
+                "uncertainty": 0.039423328627597315
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 178,
+                "index": 0.46954027182541724,
+                "estimate": 0.4380538230039366,
+                "uncertainty": 0.031486448821480655
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": []
+          }
+        }
+      ],
+      "crossWorkloadUpdateEffects": [
+        {
+          "decision": 404,
+          "family": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+          "selected": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+          "score": 0.0,
+          "unvisitedOtherBefore": {
+            "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+            "previousChoices": 0,
+            "index": 0.6202513459157053,
+            "estimate": 0.05243801672429763,
+            "uncertainty": 0.5678133291914077
+          },
+          "unvisitedOtherAfter": {
+            "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+            "previousChoices": 0,
+            "index": 0.5064778121836692,
+            "estimate": 0.023054644059366056,
+            "uncertainty": 0.48342316812430314
+          }
+        },
+        {
+          "decision": 2112,
+          "family": "FindQuiz + UpdateTopic + UpdateTournament",
+          "selected": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "score": 1.0,
+          "unvisitedOtherBefore": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.40103573462210795,
+            "estimate": 0.12106493224802316,
+            "uncertainty": 0.2799708023740848
+          },
+          "unvisitedOtherAfter": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.43994321629911726,
+            "estimate": 0.162249612447423,
+            "uncertainty": 0.2776936038516943
+          }
+        },
+        {
+          "decision": 2114,
+          "family": "FindQuiz + UpdateTopic + UpdateTournament",
+          "selected": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+          "score": 1.0,
+          "unvisitedOtherBefore": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.4282859177005762,
+            "estimate": 0.1523385544567833,
+            "uncertainty": 0.27594736324379293
+          },
+          "unvisitedOtherAfter": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.4559720267370161,
+            "estimate": 0.1814063329671638,
+            "uncertainty": 0.2745656937698523
+          }
+        },
+        {
+          "decision": 2115,
+          "family": "FindQuiz + UpdateTopic + UpdateTournament",
+          "selected": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+          "score": 1.0,
+          "unvisitedOtherBefore": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.4559720267370161,
+            "estimate": 0.1814063329671638,
+            "uncertainty": 0.2745656937698523
+          },
+          "unvisitedOtherAfter": {
+            "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+            "previousChoices": 0,
+            "index": 0.47831795741597194,
+            "estimate": 0.20487277975719959,
+            "uncertainty": 0.27344517765877235
+          }
+        }
+      ]
+    },
+    {
+      "cohort": "full",
+      "arm": "H1-cal",
+      "seed": 1,
+      "checkedDecisions": 500,
+      "maximumPriorityDifference": 0.0,
+      "snapshots": [
+        {
+          "beforeDecision": 1,
+          "chosen": "68b24729a0425c889e3574feda2c472e49f63403454a671c37c93526cdc0bab0",
+          "chosenFamily": "AddParticipant + AnonymizeStudent",
+          "chosenPriority": {
+            "index": 1.4142135623730951,
+            "estimate": 0.0,
+            "uncertainty": 1.4142135623730951
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": [
+              {
+                "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              },
+              {
+                "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+                "previousChoices": 0,
+                "index": 1.414213562373095,
+                "estimate": 0.0,
+                "uncertainty": 1.414213562373095
+              }
+            ]
+          }
+        },
+        {
+          "beforeDecision": 404,
+          "chosen": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "chosenFamily": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "chosenPriority": {
+            "index": 3.2552817426311926,
+            "estimate": 3.1981351744687396,
+            "uncertainty": 0.05714656816245315
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 1.2472037632589035,
+                "estimate": 0.20329174286861973,
+                "uncertainty": 1.0439120203902839
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 1.2472037632589035,
+                "estimate": 0.20329174286861973,
+                "uncertainty": 1.0439120203902839
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 1.2327338935094125,
+                "estimate": 0.19299434820153866,
+                "uncertainty": 1.039739545307874
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 1.2486060686522342,
+                "estimate": 0.20480261016660645,
+                "uncertainty": 1.0438034584856277
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 1.2327338935094125,
+                "estimate": 0.19299434820153866,
+                "uncertainty": 1.039739545307874
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 1.2573627821211233,
+                "estimate": 0.21064024640739135,
+                "uncertainty": 1.046722535713732
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 1.2327338935094125,
+                "estimate": 0.19299434820153866,
+                "uncertainty": 1.039739545307874
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 0,
+                "index": 1.2883502803382316,
+                "estimate": 0.2275764287841185,
+                "uncertainty": 1.0607738515541132
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 1.2472037632589035,
+                "estimate": 0.20329174286861973,
+                "uncertainty": 1.0439120203902839
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 1.2472037632589035,
+                "estimate": 0.20329174286861973,
+                "uncertainty": 1.0439120203902839
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 1.2327338935094125,
+                "estimate": 0.19299434820153866,
+                "uncertainty": 1.039739545307874
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 1.2169840819337192,
+                "estimate": 0.23751046880079607,
+                "uncertainty": 0.9794736131329231
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 1.2403331171083638,
+                "estimate": 0.24873357368722884,
+                "uncertainty": 0.9915995434211349
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 1.2169840819337192,
+                "estimate": 0.23751046880079607,
+                "uncertainty": 0.9794736131329231
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 1.2545173883114535,
+                "estimate": 0.2799171815403951,
+                "uncertainty": 0.9746002067710584
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 1.2169840819337192,
+                "estimate": 0.23751046880079607,
+                "uncertainty": 0.9794736131329231
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 1.2403331171083638,
+                "estimate": 0.24873357368722884,
+                "uncertainty": 0.9915995434211349
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 1.2545173883114535,
+                "estimate": 0.2799171815403951,
+                "uncertainty": 0.9746002067710584
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 1.2169840819337192,
+                "estimate": 0.23751046880079607,
+                "uncertainty": 0.9794736131329231
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 1,
+                "index": 1.1787199573832314,
+                "estimate": 0.13995859077019754,
+                "uncertainty": 1.038761366613034
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 1.2403331171083638,
+                "estimate": 0.24873357368722884,
+                "uncertainty": 0.9915995434211349
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": [
+              {
+                "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+                "previousChoices": 5,
+                "index": 1.3761520067322546,
+                "estimate": 0.9461592483413,
+                "uncertainty": 0.42999275839095463
+              },
+              {
+                "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+                "previousChoices": 292,
+                "index": 3.2552817426311926,
+                "estimate": 3.1981351744687396,
+                "uncertainty": 0.05714656816245315
+              },
+              {
+                "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+                "previousChoices": 2,
+                "index": 1.0452353546630235,
+                "estimate": 0.37240241962921267,
+                "uncertainty": 0.6728329350338108
+              }
+            ]
+          }
+        },
+        {
+          "beforeDecision": 500,
+          "chosen": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+          "chosenFamily": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+          "chosenPriority": {
+            "index": 3.3234790310568427,
+            "estimate": 3.2752759189682132,
+            "uncertainty": 0.04820311208862953
+          },
+          "probes": {
+            "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": [
+              {
+                "workload": "0031d0f657b6db14b8e00e65a4e26836c8fd660181e3feffdecb38f0e55a2a89",
+                "previousChoices": 0,
+                "index": 1.2490572138029776,
+                "estimate": 0.20514546395242844,
+                "uncertainty": 1.0439117498505492
+              },
+              {
+                "workload": "5cab7ea9b8628b99ec710c7b1462b3db3cfe3d22e980ee59db1244e06309e375",
+                "previousChoices": 0,
+                "index": 1.2490572138029776,
+                "estimate": 0.20514546395242844,
+                "uncertainty": 1.0439117498505492
+              },
+              {
+                "workload": "6aed484267a614206e8149f922bbcf7efb6177b5459f60710a39ffeffd23b16d",
+                "previousChoices": 0,
+                "index": 1.2345083152635217,
+                "estimate": 0.19476901890853873,
+                "uncertainty": 1.039739296354983
+              },
+              {
+                "workload": "871533719baaa0411434c81bb28e78d28958bfc8f24b0f9eddd3de3509b285df",
+                "previousChoices": 0,
+                "index": 1.2505104850310877,
+                "estimate": 0.20670731220027028,
+                "uncertainty": 1.0438031728308175
+              },
+              {
+                "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+                "previousChoices": 0,
+                "index": 1.2345083152635217,
+                "estimate": 0.19476901890853873,
+                "uncertainty": 1.039739296354983
+              },
+              {
+                "workload": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+                "previousChoices": 0,
+                "index": 1.2592971302615206,
+                "estimate": 0.21257488843172176,
+                "uncertainty": 1.0467222418297988
+              },
+              {
+                "workload": "af80e127c87885e31849d29b6d301698dda4cfb4c4254de05e09b4c2f5cb8fc0",
+                "previousChoices": 0,
+                "index": 1.2345083152635217,
+                "estimate": 0.19476901890853873,
+                "uncertainty": 1.039739296354983
+              },
+              {
+                "workload": "c27a15b4e1e0f9824ae965088a115454a0fcfb3ca1ec700c9dcd89937219b507",
+                "previousChoices": 0,
+                "index": 1.2906761006319842,
+                "estimate": 0.2299026683464127,
+                "uncertainty": 1.0607734322855715
+              },
+              {
+                "workload": "c9937bcf322cb272c1170f5e0eb8d81950853c09cfab05dfd456f1266d19a3e0",
+                "previousChoices": 0,
+                "index": 1.2490572138029776,
+                "estimate": 0.20514546395242844,
+                "uncertainty": 1.0439117498505492
+              },
+              {
+                "workload": "ca7b8fa84e22f5bb6dbc3398224664ad1d5dc808770d06e6a5fa213f8129240e",
+                "previousChoices": 0,
+                "index": 1.2490572138029776,
+                "estimate": 0.20514546395242844,
+                "uncertainty": 1.0439117498505492
+              },
+              {
+                "workload": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+                "previousChoices": 0,
+                "index": 1.2345083152635217,
+                "estimate": 0.19476901890853873,
+                "uncertainty": 1.039739296354983
+              }
+            ],
+            "FindQuiz + UpdateTopic + UpdateTournament": [
+              {
+                "workload": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+                "previousChoices": 0,
+                "index": 1.2174844193621819,
+                "estimate": 0.23801082723682965,
+                "uncertainty": 0.9794735921253522
+              },
+              {
+                "workload": "1012fe2023736a678edf02623269a5bb3207db4b0c13321489849e5f770d3acb",
+                "previousChoices": 0,
+                "index": 1.2408544236361392,
+                "estimate": 0.24925490274150183,
+                "uncertainty": 0.9915995208946374
+              },
+              {
+                "workload": "140847223309bd68d3366e455a924fb5c489fbfe53ed11c12ac5d706c14dcabf",
+                "previousChoices": 0,
+                "index": 1.2174844193621819,
+                "estimate": 0.23801082723682965,
+                "uncertainty": 0.9794735921253522
+              },
+              {
+                "workload": "22351202140624d29285234cbd71aac9d2e68866108735f6aaf4a3b34440e1d0",
+                "previousChoices": 0,
+                "index": 1.2553306279956569,
+                "estimate": 0.28073047700431947,
+                "uncertainty": 0.9746001509913375
+              },
+              {
+                "workload": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+                "previousChoices": 0,
+                "index": 1.2174844193621819,
+                "estimate": 0.23801082723682965,
+                "uncertainty": 0.9794735921253522
+              },
+              {
+                "workload": "500d58b71b1589ddb7c3f0890a816ed5f7257d76a1d91c7e5222cfbf1b242555",
+                "previousChoices": 0,
+                "index": 1.2408544236361392,
+                "estimate": 0.24925490274150183,
+                "uncertainty": 0.9915995208946374
+              },
+              {
+                "workload": "6026f9e7d3edecc14c11d58a28825d09714127127c8ca48a208af57838e5744a",
+                "previousChoices": 0,
+                "index": 1.2553306279956569,
+                "estimate": 0.28073047700431947,
+                "uncertainty": 0.9746001509913375
+              },
+              {
+                "workload": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+                "previousChoices": 0,
+                "index": 1.2174844193621819,
+                "estimate": 0.23801082723682965,
+                "uncertainty": 0.9794735921253522
+              },
+              {
+                "workload": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+                "previousChoices": 1,
+                "index": 1.1791265920316,
+                "estimate": 0.14036523850215973,
+                "uncertainty": 1.0387613535294404
+              },
+              {
+                "workload": "eb4721fd90d1b4b6e574ba97308a5c84ea4f8d43b247e059ba5160fa08167e1a",
+                "previousChoices": 0,
+                "index": 1.2408544236361392,
+                "estimate": 0.24925490274150183,
+                "uncertainty": 0.9915995208946374
+              }
+            ],
+            "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament": [
+              {
+                "workload": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+                "previousChoices": 5,
+                "index": 1.3766448804338662,
+                "estimate": 0.9466521684835452,
+                "uncertainty": 0.4299927119503211
+              },
+              {
+                "workload": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+                "previousChoices": 388,
+                "index": 3.3234790310568427,
+                "estimate": 3.2752759189682132,
+                "uncertainty": 0.04820311208862953
+              },
+              {
+                "workload": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+                "previousChoices": 2,
+                "index": 1.0469276652590844,
+                "estimate": 0.3740950802016657,
+                "uncertainty": 0.6728325850574186
+              }
+            ]
+          }
+        }
+      ],
+      "crossWorkloadUpdateEffects": []
+    }
+  ],
+  "coldStartProbeWorkloadCount": 2,
+  "coefficientCounts": {
+    "withoutThreeGiants": {
+      "P-shared": 7,
+      "S-cal": 156,
+      "SP-cal": 162,
+      "P-local": 2191,
+      "H0": 2192,
+      "H1-cal": 2347
+    },
+    "complete": {
+      "P-shared": 7,
+      "S-cal": 156,
+      "SP-cal": 162,
+      "P-local": 2212,
+      "H0": 2213,
+      "H1-cal": 2368
+    }
+  },
+  "coefficientCountCaveat": "These count allocated coefficients, not statistically independent effective degrees of freedom. Collinearity and ridge regularization affect effective capacity.",
+  "missingFeedbackCaseDiagnosis": {
+    "scope": "Read-only diagnosis of retained observations and current source. No rescoring, execution or behavior change.",
+    "workload": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+    "family": "CreateQuestion + CreateTournamentAsync",
+    "completeExecutions": 222,
+    "lostCopiedUpdateCoverage": {
+      "INCOMPLETE": 220,
+      "COMPLETE_WITHIN_SCOPE": 2
+    },
+    "seed1SmallAllFive": {
+      "eachAdaptiveArmHasConsecutiveUnknowns": 188,
+      "structureDecisions": [
+        1632,
+        1819
+      ],
+      "gapOccurrencesWithin188": {
+        "UNSUPPORTED_CONCURRENT_THREAD": 186,
+        "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto": 184,
+        "MISSING_INPUT_ORIGIN:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto": 92,
+        "MISSING_INPUT_ORIGIN:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto": 92,
+        "MISSING_INPUT_ORIGIN:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.TopicDto": 18
+      }
+    },
+    "explanation": "The fifth criterion lacks concurrent command/copy provenance. The current CopiedUpdateSession.active method still marks hooks from a non-owner thread unsupported and returns without recording the normal row. Four other criteria are available for all 222 observations; historical reference fitness enabled four criteria, whereas the formal all-five replay requires the fifth too.",
+    "recoveryAssessment": "A score-only rescan cannot restore omitted provenance. Complete assessment of asynchronous paths needs scoped observer support and fresh representative execution; no claim that every missing-origin case requires the same fix.",
+    "sources": {
+      "verifiers/target/allocator-local-pilot-2026-09-23/family-104-map-four-v11/reference.json": "82f9cf36a7fce6a64aa31cc3e9bdc341becff8e8591328d36b60fda2077aa27a",
+      "verifiers/target/allocator-formal-small-2026-09-28/all-five-S-cal-seed1-budget4000.json.gz": "9fab9a5b17846bb83e87fad6d287199c068cb06e321d0c36ad21ea345827ad8e",
+      "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/copiedupdate/CopiedUpdateSession.java": "a54811d1b579771a0cbe91857d2ab9e2fbe2ee94710bcc88ead6d0bd14dc8c73"
+    }
+  }
+}

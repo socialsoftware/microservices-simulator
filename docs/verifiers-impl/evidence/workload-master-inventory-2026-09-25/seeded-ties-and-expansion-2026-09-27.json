@@ -1,0 +1,150 @@
+{
+  "date": "2026-09-27",
+  "purpose": "Prospective common tie rule and unexecuted sample expansion; smoke checks are not allocator rankings.",
+  "tieSmoke": {
+    "runs": 21,
+    "choices": 5376,
+    "protocol": {
+      "inputSha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe",
+      "source": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-expanded-replay-qualified-2026-09-26",
+      "sourceHashes": {
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_replay.py": "e62c5197f353eff679ef8087096a260a7ef374983223aa8f4dbe2ad10ea291f4",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/seeded_ties.py": "58100ba07e73939fc93bdb371b27de6e1e1e2c77b71e42f98dd21d543883cf5a",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+        "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32"
+      },
+      "seeds": [
+        1,
+        11,
+        29
+      ],
+      "arms": [
+        "uniform",
+        "P-shared",
+        "S-cal",
+        "SP-cal",
+        "P-local",
+        "H0",
+        "H1-cal"
+      ],
+      "budget": 256,
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1,
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "LOST_COPIED_UPDATE": 1
+        }
+      },
+      "localSearch": "ga",
+      "tieRule": "seeded-near-maximum-v1",
+      "tieRelativeTolerance": 1e-12,
+      "tieAbsoluteTolerance": 1e-12,
+      "kernelSha256": "d480434639b7e4a1445278e6930fab1aef00c79f07846ff270166bd4c55c961b",
+      "historicalRunsReplaced": false
+    },
+    "checks": {
+      "seededTieDrawsReproduced": true,
+      "coldStatesMatched": true,
+      "localGaPrefixesMatched": true,
+      "noRepeatedCandidates": true
+    },
+    "kernelProof": [
+      {
+        "arm": "uniform",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "P-shared",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "S-cal",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "SP-cal",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "P-local",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "H0",
+        "exactDecisions": 32
+      },
+      {
+        "arm": "H1-cal",
+        "exactDecisions": 32
+      }
+    ],
+    "resultsPath": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-seeded-tie-check-2026-09-27/results.json",
+    "resultsSha256": "c3737e43b8a418657abeb56c676d2b26320931151ba9af2cf9d61fae0b0e5971",
+    "unitTestsPassed": 4
+  },
+  "expansion": {
+    "status": "PREPARED_NOT_EXECUTED",
+    "workloads": 146,
+    "families": 23,
+    "currentSmallerMeasuredScenarios": 3818,
+    "analogueEstimatedAddedScenarios": 2999,
+    "admission": "Each schedule requires its own setup preflight, valid scored no-fault control, uncapped complete catalogue and preserved execution/measurement outcomes. Positive controls are allowed; unknowns are not negatives.",
+    "selectionRule": "Up to eight generated schedules per family, ranked by SHA256 of fixed selection seed and workload ID; no result scores used.",
+    "selectionSeed": "paper-small-expansion-2026-09-27"
+  },
+  "expansionIntegrity": {
+    "configAndPackageHashesVerified": true,
+    "setupModes": {
+      "RETAINED_EXPLICIT_FIXTURE": 137,
+      "QUALIFIED_MATCHING_INPUT_FIXTURE": 9
+    },
+    "plan": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/workload-sample-expansion-2026-09-27/plan.json",
+    "planSha256": "784be57cbd246fc5a59be1ef96ff76040fd171cb57f14881a1e9813141f73076",
+    "estimatedSmallerScenarios": 6817,
+    "estimatedFullScenarios": 19279,
+    "newScenariosExecuted": 0
+  }
+}

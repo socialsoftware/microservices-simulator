@@ -1,0 +1,2495 @@
+{
+  "workloads": 172,
+  "families": 87,
+  "scenarios": 16280,
+  "excludedPreparationDiagnostics": [
+    "7f851f225b98f7ed3a2e5e195828bc474b1e3fdf7fb6217fc4bcd963118df387",
+    "a5dcc8096fc2c447cbe860315ce25696b0f35f417eb1e0281ecee3995cf5fee8",
+    "b879c555238b01bf9b3591bb7d1e6862601aaaf790ca22bf21b4c4ef754d5100",
+    "f69576a20d51c227b1082ee450f6e28214408a053ffb0950ad5f9093f47a2e89"
+  ],
+  "inventorySnapshot": "workloads.jsonl",
+  "frozenInputs": {
+    "path": "verifiers/target/allocator-expanded-replay-qualified-2026-09-26/inputs.json",
+    "sha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe"
+  },
+  "criteria": {
+    "all-five": {
+      "scenarios": 16280,
+      "positive": 10888,
+      "negative": 4004,
+      "unavailable": 1388,
+      "positiveWorkloads": 60,
+      "positiveFamilies": 25,
+      "totalAvailableScore": 24610.0
+    },
+    "DELETED_DEPENDENCY": {
+      "scenarios": 16280,
+      "positive": 4105,
+      "negative": 11704,
+      "unavailable": 471,
+      "positiveWorkloads": 22,
+      "positiveFamilies": 9,
+      "totalAvailableScore": 4110.0
+    },
+    "FAILED_OPERATION_RESIDUAL": {
+      "scenarios": 16280,
+      "positive": 11149,
+      "negative": 4364,
+      "unavailable": 767,
+      "positiveWorkloads": 56,
+      "positiveFamilies": 23,
+      "totalAvailableScore": 14296.0
+    },
+    "UNRESOLVED_DELIVERED_EVENT": {
+      "scenarios": 16280,
+      "positive": 3,
+      "negative": 15806,
+      "unavailable": 471,
+      "positiveWorkloads": 3,
+      "positiveFamilies": 3,
+      "totalAvailableScore": 3.0
+    },
+    "COMPENSATED_READ_EXPOSURE": {
+      "scenarios": 16280,
+      "positive": 4571,
+      "negative": 11124,
+      "unavailable": 585,
+      "positiveWorkloads": 11,
+      "positiveFamilies": 4,
+      "totalAvailableScore": 6782.0
+    },
+    "LOST_COPIED_UPDATE": {
+      "scenarios": 16280,
+      "positive": 24,
+      "negative": 15266,
+      "unavailable": 990,
+      "positiveWorkloads": 4,
+      "positiveFamilies": 3,
+      "totalAvailableScore": 24.0
+    }
+  },
+  "selectedWorkloads": [
+    {
+      "id": "00060b7a29fec12e4f93751722fbce293b4fc334fcc9487f1ed6abd67f07ea81",
+      "sagaFamily": "AddStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 9,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-04-map-v2/reference.json",
+      "referenceSha256": "cc316f805d245fb00591164e7bc8bf754c48bca13461ff5db1efc81246f7b879",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-04-map-v2/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "00b13b9fff688e5ad5de966f01e0fce8893522fa1bf6ea60e27a1d65ed23db4f",
+      "sagaFamily": "AddParticipant + GetCourseExecutionById + UpdateStudentName",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+      "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "02cf5305c1279a7ba1484e6da8766ef84c4ba8f6456254f10290faa5282cf834",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 104,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/map/reference.json",
+      "referenceSha256": "c0c118ae0bb004a6fbd181bb62826959009859e619dd52b4ce6d38d4d66187ec",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/014-join-update-query-02cf5305c1/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/05b93426b215/reference.json",
+      "referenceSha256": "3acfaeb3e6bf33ab999c6a3d59d5fa34d47a3233f3ad817def3eab5811fbd005",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/05b93426b215/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "0705b39ad71b92ae23e9578e248cbc2601f7dfb38bea763bcdadc86242ef4cc4",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/pilot/reference.json",
+      "referenceSha256": "b72cf2826b114c88b4de63d7ad2dc0636dce08e2ededf9e9ffceb464d931c6eb",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-027-0705b39ad7/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311",
+      "sagaFamily": "AddParticipant + UpdateTournament",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/map/reference.json",
+      "referenceSha256": "c7ae633e2af81b4ecc39629f680580cbba031633fc17769d86fb63a16f34f11c",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/022-join-update-0763c8495d/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "08d3e836ab00f670ca83c02b5cae2960f23bba143ef162fe0a8e2a88d3f3d772",
+      "sagaFamily": "FindQuiz + UpdateTopic + UpdateTournament",
+      "scenarios": 116,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/story-stale-map/reference.json",
+      "referenceSha256": "799ed8cec31d2d5db748025185a22a5a43aa2a782892784e6dc17f61ee0e7392",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/story-stale-map/protocol.json",
+        "hashCount": 4892,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "09012cdb7635d5e9fa5f0c805077456689fb1174382f68f45041eb91171a8bf7",
+      "sagaFamily": "UpdateTopic + UpdateTournament",
+      "scenarios": 44,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/combined-reference.json",
+      "referenceSha256": "6ab3c3d9506ee33bd54e0b85905c71a29468d4e22359c4005ffbb6afdaf813c9",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-continuation-2026-09-20/topic/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "09870ac257900e8644893185a9a25330442bc058008e2edb5a85a54447a225f5",
+      "sagaFamily": "AddParticipant + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/pilot/reference.json",
+      "referenceSha256": "69ee3a1551d49adc05d5faf9ae9c15dbbda05c6239f11f9190420b45205a4347",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-111-09870ac257/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "0a132ec30d36238c867b67e0759f57b685c50ee8b368b59cf6a44ed213e80ad9",
+      "sagaFamily": "GetCourseExecutionById + UpdateStudentName",
+      "scenarios": 4,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-29-map-v8/reference.json",
+      "referenceSha256": "04ff3c11e7f4b25e617fddbf0316b53c1b755ae8ae102a1483711c93557c11dd",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-29-map-v8/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "0c3d4232347f0eb3ddf8c76b0fc865c3c8e2c8c8616f774613a053db147d3397",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/map/reference.json",
+      "referenceSha256": "96a91ee8a86c87ddda55f6199b4b32d3701cd3d64b97da68c3b3cc2c2bfe4c8a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/017-join-update-query-0c3d423234/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "0ca37ecce15891c8d57bb974ec3675ebcca2e71362a6cd7ea5eea1e52809843f",
+      "sagaFamily": "AddParticipant + SolveQuizAsync",
+      "scenarios": 24,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-124-map-four-v11/reference.json",
+      "referenceSha256": "64f5c4ad71c00c8377c4aa5e65a99973e9e75c286bf2591eb02fe2545264694f",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-124-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82",
+      "sagaFamily": "GetCourseExecutionById",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/1160dea937ac/reference.json",
+      "referenceSha256": "a20e50423a9ff36e290abef8d2042da921e41fa150b66045d49384ef98073d00",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/1160dea937ac/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "13810131c7b2856e3001d431ba87426c1c09b69ecc838ef7b2f8aae7e01e745a",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 160,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/map/reference.json",
+      "referenceSha256": "9040fd7c5ca34f71044248766dfdba8b01ee460663081bd0a8b461bcef43b949",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/020-join-update-query-13810131c7/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "147817000972dcda3e5fdc2d62b0b9e6a53081ab4a043cd9a8e65629516a3a5d",
+      "sagaFamily": "DeleteTopic",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/delete-topic-question-map/reference.json",
+      "referenceSha256": "c74b33e57c0d9bd5e0d934c7d642ed3c323133362ebae5e73622b07c7e1891ba",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/delete-topic-question-map/protocol.json",
+        "hashCount": 4902,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "153bb3a50919f64f48b485dbcc10e186edd7f20ca11425118e686037a27cda5b",
+      "sagaFamily": "CreateTournament + UpdateStudentName",
+      "scenarios": 32,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-18-map-v5/reference.json",
+      "referenceSha256": "8a9a643d7d225a8cfee5a22984dc9054649859423dc7732f2261249d27f99d8a",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-18-map-v5/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "16ee32182dbcb47f1785e27a17cd875bd3b5c1db459e00cfc726892e081628ed",
+      "sagaFamily": "FindQuiz + FindTournament + UpdateTournament",
+      "scenarios": 24,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/family-144-map/reference.json",
+      "referenceSha256": "0d2d1dd403b71c873cbf2b7b1f0c8e375ffe47eafb4db8ec33f0c7cb0161a001",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/family-144-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "197c97cb5af7d281357b0c054b1b2b1394bf9b4a9b72638638bf8849618170c8",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/197c97cb5af7d281357b0c054b1b2b1394bf9b4a9b72638638bf8849618170c8/map/reference.json",
+      "referenceSha256": "5272aa5b8575a90489c69d201d8dbc7b39e03728d5784e4308a64ad1e3d80efe",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/197c97cb5af7d281357b0c054b1b2b1394bf9b4a9b72638638bf8849618170c8/map/protocol.json",
+        "hashCount": 4911,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+      "sagaFamily": "UpdateTopic + UpdateTournament",
+      "scenarios": 62,
+      "reference": "verifiers/target/allocator-factorial-2026-09-21/recovery-late-event-v3-reference.json",
+      "referenceSha256": "f25e60eaf1af368d53f5a9838b3a97c0973217a7e7770d494011be0630b60d7c",
+      "runtime": {
+        "config": null,
+        "hashCount": null,
+        "image": null,
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322",
+        "signatureSource": "docs/verifiers-impl/evidence/transfer-inventory-2026-09-21/inventory.json"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "1dc35a9ae89ebde6102ec779f40c1dd1aa501e64c466fba4ccd74419707a21cf",
+      "sagaFamily": "AnonymizeStudent",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-search-2026-09-24/anonymize-single/route1-map/reference.json",
+      "referenceSha256": "5001ecf3fa1c4d24abf68e80f6cd7935902a6913bc12d158ad166f76b97cfd93",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/anonymize-single/route1-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "1dc403f4facceacf0593664a93ba5282cdbb224b06c902c0ecac6904ccdbeeeb",
+      "sagaFamily": "FindTournament + UpdateTournament",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/pilot/reference.json",
+      "referenceSha256": "644bd0c03cde10686cdb2f36b23998bd75482088ed79cc30eb14c2e616de737c",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-058-1dc403f4fa/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "1e1a0b294d7639be2a52eca0cb8eecc6cfa06a55c1900b808d0684a6ececd5e6",
+      "sagaFamily": "FindTournament + LeaveTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/event-question-normal-2026-09-24/failing-baseline-map/reference.json",
+      "referenceSha256": "e77eb961edb53525f13238b124e7e28ebec5eb78782403507d17409b7082f0c1",
+      "runtime": {
+        "config": "verifiers/target/event-question-normal-2026-09-24/failing-baseline-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "20bd52195677ebaadb74b87fbaba8a76c0ae00e2ec87f10fab1909904b4da6e3",
+      "sagaFamily": "UpdateTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/pilot/reference.json",
+      "referenceSha256": "df2388315998b893472631e204beccf0c81c0d04871a4690eec0bc98a3cf194a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-123-20bd521956/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "22e785bc8ae74cc1f4160e8dd0ea764675d8e06baa141ad56952bc3c3ed428d8",
+      "sagaFamily": "UpdateQuestion",
+      "scenarios": 3,
+      "reference": "verifiers/target/event-question-normal-2026-09-24/event-map/reference.json",
+      "referenceSha256": "b42a1ef4c8bd470105092d6642718d44bd8bcdeb5c82958fed829ec33ce25313",
+      "runtime": {
+        "config": "verifiers/target/event-question-normal-2026-09-24/event-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "2397cf5673db11a76a721f39f1c05f4146da56d9b3cdaf1adb3a71fe4ff49ea9",
+      "sagaFamily": "AddStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 9,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/pilot/reference.json",
+      "referenceSha256": "b243583d4835135915f3cbdf62f3bd72891fdfd782a9de17cecf2740b36c6f4a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-006-2397cf5673/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+      "sagaFamily": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "scenarios": 3360,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/midday-analysis/009-join-update-leave-remove-23f9768282/map/reference.json",
+      "referenceSha256": "25cc318b8dd4a7052a031d4246c1a84ae6e8bba8ccc3d6dd7a9f79696c8e6ea3",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/midday-analysis/009-join-update-leave-remove-23f9768282/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+      "sagaFamily": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "scenarios": 3918,
+      "reference": "verifiers/target/allocator-factorial-2026-09-21/large-012-v3-reference.json",
+      "referenceSha256": "aa6dfe538609a7fa4119f5fac6f2277f8d5ef08c555bd7fc904221d5e1ef8dc5",
+      "runtime": {
+        "config": null,
+        "hashCount": null,
+        "image": null,
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d",
+        "signatureSource": "docs/verifiers-impl/evidence/transfer-inventory-2026-09-21/inventory.json"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e",
+      "sagaFamily": "AddParticipant",
+      "scenarios": 3,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/24e200101865/reference.json",
+      "referenceSha256": "bfcbcad172f304f0910107574f031d4639d7f63778aa896960b530ea8d4ea4f6",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/24e200101865/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "275d81af0796a8f8b380dd51f975561a0dbfa68d33211845121c299fa91b4513",
+      "sagaFamily": "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 8,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-78-map-v9/reference.json",
+      "referenceSha256": "7e41dd971b283e229e4df94aa2ca682c5adf5005f481ad6ebdc0b78ce38a3e41",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-78-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "282d37a3a0d9a0e37b2e97af97e46ae354b5834074fcc013038c75fe9e4379de",
+      "sagaFamily": "RemoveQuestion",
+      "scenarios": 4,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/remove-question-map-safe/reference.json",
+      "referenceSha256": "8de1e94c1894b01c284ed49e054b7609bf9616a04f9ff2e635fe75256f1e64e6",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/remove-question-map-safe/protocol.json",
+        "hashCount": 4904,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "7a438753f04670a70ea1ab414bb597a4ff905a813a6a8ede9bbad716ed2b1c84"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "28a7d8f7aa486539bce0115d4fa142e34eb499d99476f736f7d07fa9d7d7f57f",
+      "sagaFamily": "SolveQuiz + UpdateStudentName",
+      "scenarios": 38,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-102-map-v9/reference.json",
+      "referenceSha256": "ef9b5f7ddbaee073addaa4609ed1f27b4f84fbc2047574c7145f35daae4a47b1",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-102-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71",
+      "sagaFamily": "CreateQuiz + RemoveStudentFromCourseExecution",
+      "scenarios": 26,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+      "referenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "2b4b0d635e762dbc8ee9dabbe866a790982f168c4b39e6780b2b7dfd3e97409f",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/workload-search-2026-09-24/remove-execution-answer-single/route1-map/reference.json",
+      "referenceSha256": "e22b1925d8de9d982401fe0bfee11b7ad00b33d318746b55ff3c71938cf3be8c",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/remove-execution-answer-single/route1-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "2f62ebc8f98ecebfef9ba8b6d506ddaca2376d48a852a1eea9ab98af1a6ecc17",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/map/reference.json",
+      "referenceSha256": "94e45b85793b157fb614162ec260d15e84501814f1db591c192b35f5e858197f",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/002-join-update-query-2f62ebc8f9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "sagaFamily": "DeactivateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/pilot/reference.json",
+      "referenceSha256": "e1b6834a8565a4de8ee22b70e5a82a14c6d6a171c0a838fc217ca00534ebf31f",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-127-30a6109bf7/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "32e2c0d7024e821f3c6d6aeb147f36082c215061457bfc50c5a86b469e133b84",
+      "sagaFamily": "AnonymizeStudent",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/pilot/reference.json",
+      "referenceSha256": "9475d3928dd2535c281df14b5180837f3b83dee0cd2212fb4899ce957459914a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-080-32e2c0d702/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "333d50ad51a7ff6d7713cf81e2d570eeb66e20c83a74c03586cd8ea1578e43d3",
+      "sagaFamily": "AddStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 9,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-26-map-v8/reference.json",
+      "referenceSha256": "21e21d314e65c45b2db93b3e4106155c545aac6ff17abcbbefd5edbf5840ae16",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-26-map-v8/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "375a71fcf5f364122cd2630b31517426c09fdf1e1d709d061b5c191c49294dea",
+      "sagaFamily": "CreateTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/pilot/reference.json",
+      "referenceSha256": "e2ce21fa61653151dc0aa552c94f64c377bb450481efbff06f317386f58025f1",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-054-375a71fcf5/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "377f8726fe6f933146a1d678933eb1039c9dafbc9a976a8fd926ee12a18cacab",
+      "sagaFamily": "UpdateStudentName",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/pilot/reference.json",
+      "referenceSha256": "01b5dbec288151a67ba8883cb11185a9637dc3602b12160a11146124433dd7c7",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-032-377f8726fe/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "3a3c00711029b8070f7e3b243251d3904cfe04df8d99561623ee3926ba51f749",
+      "sagaFamily": "AddStudent + CreateUser",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-10-map-v2/reference.json",
+      "referenceSha256": "c17eda420db51997661bc99291933fd14e1b506153de590ae233817d343f6802",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-10-map-v2/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "3a99f1c3f0a46577174eaaaeb9e925f5cc372925837b17dbcf56b0651a8dc05d",
+      "sagaFamily": "AddStudent",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/pilot/reference.json",
+      "referenceSha256": "c8b46707817481ce76870e5c059ae70ff207beab7c90b462534ca1a1c8ec4412",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-004-3a99f1c3f0/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "3cee8a0bb0b3a6dbe7a7fc378190c8dc26e1635dda796586a2ac1175896e32dd",
+      "sagaFamily": "CancelTournament + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-129-map-v9/reference.json",
+      "referenceSha256": "123b18603a7af438b07037bb3f97cc275df1422e06dc9f0f508d3ec6b84bdf8c",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-129-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "3d058267b87f166fe571b2f55c453c3d9d7066f35c9419d93ffd8abfa4874473",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/measurements/3d058267b87f166fe571b2f55c453c3d9d7066f35c9419d93ffd8abfa4874473/map/reference.json",
+      "referenceSha256": "acbc613322250239b8eeb00b8c99f255e15acd20f60dd94470e4bbe57447d5b6",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/measurements/3d058267b87f166fe571b2f55c453c3d9d7066f35c9419d93ffd8abfa4874473/map/protocol.json",
+        "hashCount": 4910,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "3d8d79c5d058b8a539089ca09da8020d531f51f6f19efa0f3caabc615cc851f7",
+      "sagaFamily": "CreateTournament + UpdateStudentName",
+      "scenarios": 26,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/3d8d79c5d058/combined-reference.json",
+      "referenceSha256": "74e7a87b857b154c6a6cfa128b91300ee3f7eb1801fb8f2c2c692a3e11d2689b",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/3d8d79c5d058/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "4332768b3d7c05c59ffddc2cdee843be1142ca49a860c27cb3b1390dda8b1ed8",
+      "sagaFamily": "CancelTournament",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/pilot/reference.json",
+      "referenceSha256": "4a7ed2b47990c356f6eb96a89326d23b514aa4386d51ce2cc87a23af14b01d17",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-051-4332768b3d/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "43daecb06b9a74a660248bae4179802081dc5eecad2fc5f582732ae0fe282faa",
+      "sagaFamily": "FindTournament + RemoveTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/pilot/reference.json",
+      "referenceSha256": "dd188e27021168da90ed5975678a39c5b7ca45775a534a333fea4c2919aa58dc",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-056-43daecb06b/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7",
+      "sagaFamily": "StartQuiz",
+      "scenarios": 4,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/45eb75108b99/reference.json",
+      "referenceSha256": "d0cb232fb8bcfaaff5b4208eca46217d55616b0c97a75bb4b6c702bc627fa450",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/45eb75108b99/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "466b26c436b7830f06688ec0110199f2b5c50bfd7ccae3d0c2eaf7d00e26154b",
+      "sagaFamily": "AnonymizeStudent + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-60-map-v9/reference.json",
+      "referenceSha256": "780428ca6cb009041d3541482a392df09d34bf3c2adf50663e8d25965504b61f",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-60-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "4766967faab25f8a909b9b97c45dfcbf79838ae86cf23457451fbc4e8a3e8347",
+      "sagaFamily": "RemoveTournament",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/pilot/reference.json",
+      "referenceSha256": "b952392cbe982404cf7abe486a1d68ae0142f60addc03973f9600b970ec8c5bb",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-121-4766967faa/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82",
+      "sagaFamily": "CreateTopic + UpdateTopic",
+      "scenarios": 17,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+      "referenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "4d36f10b68efc977d9495444fdf2f181b1df64b788d474c897b0e98f33ab2f7e",
+      "sagaFamily": "UpdateTopic + UpdateTournament",
+      "scenarios": 35,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+      "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "sagaFamily": "FindQuestionByAggregateId",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/4e6973042bbe/reference.json",
+      "referenceSha256": "245ac38d0b5ace67b718cbfe1efb714eabde50fbb27b97a1fbbac18c23ea70da",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/4e6973042bbe/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "4eaa4bbc8f296c8b2bd9ae624d11e4c8a0b655c3b9123a037f2188121180bde9",
+      "sagaFamily": "CreateTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/pilot/reference.json",
+      "referenceSha256": "26e6b1ef7785efd2d2569c097c5210cd24708711713b64ea5ca2fd989c25d64a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-116-4eaa4bbc8f/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "506b56cb24df8cbf227c41c1772df2165b4d7296327c253c9873ae7ab7321def",
+      "sagaFamily": "FindQuiz + RemoveTournament",
+      "scenarios": 8,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/506b56cb24df/reference.json",
+      "referenceSha256": "f8dde975afa9650930f6d61d46c839e184993cc5cab988baa065bf0d367ffeb0",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/506b56cb24df/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "50f10adc88c17e271fe70babe11d8d9a80534eba04c4c5beb24a408ffa37fdd7",
+      "sagaFamily": "UpdateTopic + UpdateTournament",
+      "scenarios": 41,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-14-map-v4/reference.json",
+      "referenceSha256": "91fb75ecb1168588ce719a80066b7e076cc12a67e1848f717561ff981c06445d",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-14-map-v4/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "56cfea865c00496352e19d36ed23db020be7a2e000763aa8e598d761e4112cef",
+      "sagaFamily": "LeaveTournament + UpdateTournament",
+      "scenarios": 33,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/56cfea865c00/reference.json",
+      "referenceSha256": "bb40881a6b329f34e439c22404084d62b6bc098b49f14f9ba62d12a7abeff7f7",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/56cfea865c00/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "57360802e76015509fcd98e7fc32c8a1034d85352afeedc5441b7a82b092a373",
+      "sagaFamily": "CreateUser + StartQuiz",
+      "scenarios": 10,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-48-map-v9/reference.json",
+      "referenceSha256": "a6f3b8731edc091658b14f59daf16cb534c2499a12eaa26aa7c9cbda9d0d1c0e",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-48-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "5736e1470f45125e336601410c97facb637c8cde5df4bcb6bce598b0bcda0843",
+      "sagaFamily": "AddParticipant + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/pilot/reference.json",
+      "referenceSha256": "272f0e0dc4f79fea9ff4cdc59fa8b164d1c8dedea213ef46627b44bc8935ab89",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-047-5736e1470f/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2",
+      "sagaFamily": "FindQuiz",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/588de51953ee/reference.json",
+      "referenceSha256": "9a180c146fb1f50c5aef986d8c03a4c96ef2c9febe3b5e2d65477db1cb5a2cf5",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/588de51953ee/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "5ac65c4bcfbc2f91a8747e49b696f12ff2a4793ea9f44e485e52362c8486f727",
+      "sagaFamily": "AddParticipant + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/pilot/reference.json",
+      "referenceSha256": "887a3f3a2be0327a4289f90314de20681391681411d569a966a80b84f568f66c",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-100-5ac65c4bcf/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "5c0b7d9b15098d9482a2f40dfc12e5c202e894e2129325c09357dc811d4d6bbc",
+      "sagaFamily": "CreateCourseExecution + CreateTopic",
+      "scenarios": 37,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-74-map-four-v11/reference.json",
+      "referenceSha256": "71fea2701ffa33c5dc60f068a9501958db218d4599f52835d5eb8c969755019c",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-74-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "5cebe5046b8865a0d3bbbefe78c828758ac9e7fae6b1a1e3c748f1b20998a6a7",
+      "sagaFamily": "GetCourseExecutions + RemoveCourseExecution",
+      "scenarios": 8,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-87-map-v9/reference.json",
+      "referenceSha256": "1b25be29be10ab8b2accc63fff20643c904916ac84f21ec90420575ea314eef4",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-87-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "60bf9a799c48fe0d99dafc85b706796aeb6129cc28629a000f996706f681b159",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateStudentName",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/pilot/reference.json",
+      "referenceSha256": "95b1ad57203003830f98f6be2e897d6d21eae95bcff359c4d1e6655960c58e9b",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-101-60bf9a799c/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "618787ae619d95f9bc22000e2ee413ad4f8f4e44bd44c15e4d8aa9007340b6dc",
+      "sagaFamily": "FindTournament + RemoveTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/pilot/reference.json",
+      "referenceSha256": "5c83a3fc367029e0026e80cd64aa4305d86c7cb3957afd36c57e4b19410c3b31",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-118-618787ae61/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "631519b6267c37fa7dac46f9b72e03f8c7da3c251da27b86281eb0e1a1d36f3e",
+      "sagaFamily": "RemoveStudentFromCourseExecution + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-94-map-v9/reference.json",
+      "referenceSha256": "44e977c3dcae4dae3f4868fe64b7c5342df73780cdc3e410658539c3f6bcd8b5",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-94-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "63799c6abca418040aefde68cf4e517046372dbf8ca5c964078a7a35e7bfd604",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/workload-search-2026-09-24/remove-execution-answer-single/route0-map/reference.json",
+      "referenceSha256": "fe8e2ba3cd01e0a3ce6080bd943c90067dac53d3785778eb835f123f4bb61b78",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/remove-execution-answer-single/route0-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "67a72159f5484054f5cbf5e4f555438aafbb72a9120057e13c7c9b3cefb6457e",
+      "sagaFamily": "AddParticipant + UpdateTournament",
+      "scenarios": 52,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/map/reference.json",
+      "referenceSha256": "a42e472f1d0e939ec39bf2d4b8a5c58744aeba1c603d206c9239a16ae70fe25f",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/001-join-update-67a72159f5/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "67fdbe34106951e99cfe30676dd99848f67998813f7a4330ea55d8037548b583",
+      "sagaFamily": "CreateQuestion + CreateTournamentAsync",
+      "scenarios": 222,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-104-map-four-v11/reference.json",
+      "referenceSha256": "82f9cf36a7fce6a64aa31cc3e9bdc341becff8e8591328d36b60fda2077aa27a",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-104-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2",
+      "sagaFamily": "AddStudent + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/pilot/reference.json",
+      "referenceSha256": "8f733f4d27b9bca000d63e116fa5555b029c94c848ccc64e8b5f70fccf258a28",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-076-698896f60d/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b",
+      "sagaFamily": "CreateCourseExecution + CreateQuestion",
+      "scenarios": 125,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+      "referenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6a2791eeb9c159a6e95b0db4fddb2d381bee42c023d64cb10c30d42835a247c4",
+      "sagaFamily": "AddStudent + GetCourseExecutionById",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/pilot/reference.json",
+      "referenceSha256": "699056d7052fa416bb6057ff00b195f0a5232a88da48ec5277f5eb063d27e5a0",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-005-6a2791eeb9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6b1ffc5570e420e15a2c36e66befb260fa5a2fa04a56ecad628f4a1e13c7a500",
+      "sagaFamily": "AddStudent + GetCourseExecutions",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-52-map-v9/reference.json",
+      "referenceSha256": "3c2d70988cd85bb7de911fae770009fe0801ffe47f270e4275673126391af374",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-52-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6d70d90b5c54ead3539ab2c423f6c52759ede7e1a1d227bd4cc55f7fd73c0f6b",
+      "sagaFamily": "FindQuiz + UpdateTopic + UpdateTournament",
+      "scenarios": 176,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/tournament-event-overwrite-map-safe/reference.json",
+      "referenceSha256": "1e44cc37520dbce04e7194dc08be05cd8c1d337c77568f26ccf28f010e250840",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/tournament-event-overwrite-map-safe/protocol.json",
+        "hashCount": 4892,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6e2476982e82ed01d8992465f96f244d00d5b643aeb7e5c528812dbe2a2ad19d",
+      "sagaFamily": "FindQuiz + UpdateTournament",
+      "scenarios": 12,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-114-map-v9/reference.json",
+      "referenceSha256": "0c7248cbfa4d16a643bd806f16b5956d5dce55dabb84f82df0f91d5384ea881f",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-114-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "6f3475c9c6bba754e43190d44230444852c711726e85c1bd093fb27153bbf075",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/measurements/6f3475c9c6bba754e43190d44230444852c711726e85c1bd093fb27153bbf075/map/reference.json",
+      "referenceSha256": "83403331245b3c56dee372ef072eb363c701a63f404efaac700b95c85c56ae46",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/measurements/6f3475c9c6bba754e43190d44230444852c711726e85c1bd093fb27153bbf075/map/protocol.json",
+        "hashCount": 4910,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "72e1e0e20896789c2433135fcfdc3904a4276e05ac5235c31e7b17d88a8d70a5",
+      "sagaFamily": "FindQuestionByAggregateId + UpdateQuestionTopicsAsync",
+      "scenarios": 10,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-107-map-four-v11/reference.json",
+      "referenceSha256": "ca8c29c3fb03fe4443cae5aa71a66be58daf822cd33cc5437633e7bc74999a16",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-107-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+      "sagaFamily": "AddParticipant + LeaveTournament + UpdateTournament",
+      "scenarios": 186,
+      "reference": "verifiers/target/exhaustive-reference-2026-09-16/reference.json",
+      "referenceSha256": "2af5f231362676143b9a5a6a6b9f7b63f451ace72896e30b5c6e30d1449b82c1",
+      "runtime": {
+        "config": "verifiers/target/exhaustive-reference-2026-09-16/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7722ba35fdf6b1c9324aaa704517a7d986ac820c4d3cd90631a6d07e2cf737fa",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/measurements/7722ba35fdf6b1c9324aaa704517a7d986ac820c4d3cd90631a6d07e2cf737fa/map/reference.json",
+      "referenceSha256": "d24d5bdf7b3028366f6d36576715155d094ddad4af77a742e524e64e3650d7b9",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/measurements/7722ba35fdf6b1c9324aaa704517a7d986ac820c4d3cd90631a6d07e2cf737fa/map/protocol.json",
+        "hashCount": 4910,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "5a4f3f7add85a1ecd1636a4111e604e2446c697d131baa79e4de166b683e266d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "783024ced6398dc266c67d98d18677048872fbe0c78839e1d5260179a4f61ebf",
+      "sagaFamily": "SolveQuiz",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/pilot/reference.json",
+      "referenceSha256": "2733b99f8488c7ea062e7d5efdc52efc693f2e9f725453df0dacda17bc6a7baf",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-063-783024ced6/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "78a838a8690707dd7c2f468bdb6cbaf46cbe00edd1b5ca516577d48c9f65330e",
+      "sagaFamily": "CreateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/pilot/reference.json",
+      "referenceSha256": "4fb01777f02bf7f2aee59baad042fd4c7c21c996d97239a4c9e30ec58092b7be",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-067-78a838a869/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "791371d46b741a6b82cfa85707f91ba068d3cc2c6fdba1263425d03be9118196",
+      "sagaFamily": "AnonymizeStudent + CreateQuiz",
+      "scenarios": 24,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-61-map-four-v11/reference.json",
+      "referenceSha256": "f7ca1b2d3ad9f394061d65e88f1269ce2a92e3ca20f2bf34955e2464fba1c6de",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-61-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7c26d665df5b33f0672bf9369d5687fa76cce5b35e5bf3f9cbe5a53dc91a8c85",
+      "sagaFamily": "AddParticipant + UpdateTournament",
+      "scenarios": 18,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/map/reference.json",
+      "referenceSha256": "ff7f1ad7e3fdfe1dee5f0d2d6b79e3235a39ad313ab1976924ef35de673a5bb7",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/004-join-update-7c26d665df/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7ccdfedb7cbf7735fcd7b6c9c1ff1124fdc11895ef8004f126d21ca20f6c01e2",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-search-2026-09-24/remove-student-single/route1-map/reference.json",
+      "referenceSha256": "52f885b56bf87202f1ab458ddfdc155f4c634d190a62e9bab22a58fdcadd6bde",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/remove-student-single/route1-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037",
+      "sagaFamily": "FindTournament",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/7d186fc36392/reference.json",
+      "referenceSha256": "7c2e97d7d65e75d0316e42a01e9ae235714b67a29c75e243aa746831c2a71a0a",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/7d186fc36392/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7d1ba58828b3fff6f090a0a9c964a50f6acf7e02c4942d7da1e84d4a53404275",
+      "sagaFamily": "UpdateTopic + UpdateTournament",
+      "scenarios": 37,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-03-map-v2/reference.json",
+      "referenceSha256": "8e387bd4a6e799d24a9c962f9f6b86896a657670c48bd9374209ef8bd9f0b40a",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-03-map-v2/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7d9a0c208910390d7c4ae8c09cdbcfc8e7d1e156f87312b26b3e18d965c3904e",
+      "sagaFamily": "FindTournament + UpdateTournament",
+      "scenarios": 16,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-133-map-v9/reference.json",
+      "referenceSha256": "d8a579adadf712387fc0ff45b8f5c2bd02cc9e5fe5a27e8c1ee915e9db43d3ef",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-133-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "7f0bae50eaed03a4f8bac6243a99a613a8fb6fccd47085db94900cdb0f03ba52",
+      "sagaFamily": "AddParticipant + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-122-map-v9/reference.json",
+      "referenceSha256": "d7c0edc72079c1ebe8f4a62acf63019c3baab4db50dacbf4e5992819445afe9e",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-122-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "80035030dbe47e1698ad58cca614aa78c0b61822e0f87366aa6910d8eb91c7f8",
+      "sagaFamily": "AddStudent + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+      "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "806b968b0fe868da6804b3b18117c1e152003ba7a06242bddea2ce8d2d9f014a",
+      "sagaFamily": "AddParticipant + UpdateTournament",
+      "scenarios": 30,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/map/reference.json",
+      "referenceSha256": "3d6d188ff0356b89f788973d6d6f924ef7607cf1bcdbb61b20f7e0031c4820dd",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/016-join-update-806b968b0f/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "8283158a0e7b1854e686b061226a6afaf0ef105b3d873c5e3fc766bf7973243f",
+      "sagaFamily": "CreateCourseExecution + CreateQuiz",
+      "scenarios": 52,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-73-map-four-v11/reference.json",
+      "referenceSha256": "1a04acb319a2ad1d7151cce89ef9bc02962eedfab682d40ec8f55301b701ff02",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-73-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "840ccecac5bc2c6923d04d7e7e4ee71fc4284017012dd86e452f309907d89683",
+      "sagaFamily": "GetCourseExecutionById + UpdateStudentName",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/pilot/reference.json",
+      "referenceSha256": "edef309e74493dd91daf2e95d49e2f032760dce8b7d660a0155e6921282a1506",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-090-840ccecac5/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "84664b24fd86c4cc3ab20d22bba7e09f0719d44d9734eebdbe2dd912f380ed74",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateStudentName",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/pilot/reference.json",
+      "referenceSha256": "5bd89371be30ad1b29752c9fb5bd10ad47a4ea2ea0aa328b475516fbca391aab",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-034-84664b24fd/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+      "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324",
+      "sagaFamily": "StartQuiz",
+      "scenarios": 4,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/8d575abe3225/reference.json",
+      "referenceSha256": "52cc2950c92026ad52927839d78b131d4c067d9b6fb3a52e52538e30144737ca",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/8d575abe3225/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "8d7ab6e2d1aefe7448749b9e2124ef8bcb9083c0dbf2f98da145bae665fb0348",
+      "sagaFamily": "FindTournament + UpdateTournament",
+      "scenarios": 16,
+      "reference": "verifiers/target/workload-search-2026-09-24/pilot40-source-snapshot/family-205-complete-map/reference.json",
+      "referenceSha256": "55508be317b1514349193c73abd023952850dc4d2328fb672d971adb25a82ba3",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/pilot40-source-snapshot/family-205-complete-map/config.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "902e4e9ad2c0d332501bda8fd1a990aa08fbd6eab93bd332ec9484db3a4fa98b",
+      "sagaFamily": "AddParticipant + GetCourseExecutionById + UpdateStudentName",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/pilot/reference.json",
+      "referenceSha256": "8b1e90c7f69e8236d575e9aad78c9e43034db35baac93eaba2641a31a5793030",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-023-902e4e9ad2/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "903e4c167ad9a3efc12a690c051cb087bea834c34c03ad8817a547a9bfea79fb",
+      "sagaFamily": "AddParticipant + SolveQuiz",
+      "scenarios": 24,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-125-map-v9/reference.json",
+      "referenceSha256": "5cfc2038ee278d9dc292f778f66908a74250573c32d9f24270031568d12836f6",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-125-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "90a85adf74b3bd13feee57f945741a412f6e0615b701399eb3caebd3388d78a4",
+      "sagaFamily": "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/pilot/reference.json",
+      "referenceSha256": "a338c5f7577c2fa77171df56da0cb42e488ab9719d20f7f0c720c42086d70e46",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-089-90a85adf74/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "91bec3ed3f18d0646251d66d41f758df70f7d8b8a7260d4dce3e01bce628386f",
+      "sagaFamily": "AddStudent + GetCourseExecutionsByUser",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-51-map-four-v11/reference.json",
+      "referenceSha256": "ba678b6c42b26208c2588ba7be249ce5d86a7a1e0211247872222214b7fbcb3c",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-51-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "93abf85cf62ec80d204fd6cea1002a1175d3ea3c6542be184294095a8a36845f",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/pilot/reference.json",
+      "referenceSha256": "891d0a16a79c9fdb2092ec61e81991e0ec98193f23bfcb7ccc54ddd13e2d70cd",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-013-93abf85cf6/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "9541faaf6fcc4e7172d4f59370e5beee785388b2e2d6a6aacdfcd17c0af2f4d0",
+      "sagaFamily": "FindTournament + SolveQuiz",
+      "scenarios": 16,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-132-map-v9/reference.json",
+      "referenceSha256": "8d4bb986c37ba076712e2a0562fee8e3f7c09656d9df35e042fb46912a5c5256",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-132-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "9555c4645a94910cf48dc2459dd47eabee9fd532d561666e00113e4d9440fbdf",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 72,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/map/reference.json",
+      "referenceSha256": "148bd56c813dcdd6105391812bb214a5ad39641dd3c9c022f103328eb9beedd5",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-after-update/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "95b30ae8d8591e9cde5de3e0f38a41f3fe4bc08b0398bfa0b85fabd1cfc66df1",
+      "sagaFamily": "FindQuestionByAggregateId + UpdateQuestion",
+      "scenarios": 8,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/event-question-read-map/reference.json",
+      "referenceSha256": "33310b915b46d88557f1f67f67eeef13d7e18ca95057fd4fd1b3942917bba552",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/event-question-read-map/protocol.json",
+        "hashCount": 4892,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "b1d8ad8526edcbb3de08a05d0b1fe2cc44e3300f7d1a05653a7b1c03c38da01c"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "95cf5833a03b6713b7f0784fadf42d042230112cb398787df8ea55240154d277",
+      "sagaFamily": "AnonymizeStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 17,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-084-95cf5833a0/combined-reference.json",
+      "referenceSha256": "a822be07b0e4ebeca0ce954d0cc331325ff621be2f227b0454036bd911372431",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-084-95cf5833a0/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "9c4501ab67617a484ec4187781430ce1fd2158c8e176d9642de1734f0d3c30b3",
+      "sagaFamily": "DeactivateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/pilot/reference.json",
+      "referenceSha256": "3782aaf74bcc4eea5ed91f89663c8e0704283597c05a887943df4efb10ad2ec6",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-068-9c4501ab67/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "9d0ea88a26dc2a191c01ce3520c6d50b69a5c38f86b8af63ebcf25f3e6fdba54",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById",
+      "scenarios": 8,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-17-map-v5/reference.json",
+      "referenceSha256": "edf7aa24a62a487a88553134cbc76292dea86a6845f98bdf65043155848c1de0",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-17-map-v5/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "9e4e1a4beda312b0b97222f6a67b822afcf17823751d8cdf2ce6b68d6fd07ff6",
+      "sagaFamily": "AddStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 9,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/pilot/reference.json",
+      "referenceSha256": "e4d55e6e2449bbfc45412d5796bdf837abbe67f628caf08dc86dbd7f5bbf700a",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-075-9e4e1a4bed/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a00c956cdae0f5288362e1b19d59970e5f332cd58cbe2e293cc15a1d041f9c08",
+      "sagaFamily": "CreateTournament + GetCourseExecutionById",
+      "scenarios": 16,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/a00c956cdae0/combined-reference.json",
+      "referenceSha256": "8c30721e0ee88bbbfc163969fa5c1ca8495ee4ca1d741834ed1bca06c6cdb4db",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/a00c956cdae0/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/a2c78d5b591a/reference.json",
+      "referenceSha256": "be4a522ce0a677331ff8156068860eba04e9c7708dbdea950d0450a0922287d2",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/a2c78d5b591a/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 48,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/map/reference.json",
+      "referenceSha256": "ed884b46d2283bc633f8e00fcb66140b0ca4922e88bf2d48ec7b5a86c42f775f",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-during-update/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 38,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-014-a381e2b36a/combined-reference.json",
+      "referenceSha256": "ca688087c431f7ba653c41cfb4869f08c04837619017fbd95340c7e25c2d9aee",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-014-a381e2b36a/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a407a2ab87f689761512d66e8f056f60ebed8973e56d721949a2fc3dcd60de9a",
+      "sagaFamily": "AddParticipantAsync + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-120-map-four-v11/reference.json",
+      "referenceSha256": "33571b9046e5d4f6f4fe0c684092e42d17d021f984f89c4b6c110a08e991cbb4",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-120-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a4ea1353f450eeecc10ca02a4ff4f61ce0ce1c6c566635ef3892228e4586cd3a",
+      "sagaFamily": "FindTournament + RemoveTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-01-map-v2/reference.json",
+      "referenceSha256": "53078d49734bbf629cbe33557c843e79616572ed1cbe76d78a8b48c9fc235e90",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-01-map-v2/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a603fd11d92f83fa04f9baa36a21658d3682eae22145e0a5ed3a575cf2805ccd",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 160,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/map/reference.json",
+      "referenceSha256": "a4c53cc4c277edeb97d629435affbece270ff0b729fb4c92ee7bed69f2948d43",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/005-join-update-query-a603fd11d9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a6b0e8ca89cc4b0fb59c0d7d8a3cb59cd2345f955bf2591aa4c65a25fb927127",
+      "sagaFamily": "UpdateStudentName",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/pilot/reference.json",
+      "referenceSha256": "7a6d6c4f667ba34c52f74dd7dd069e3d7a51788d3065c16648054e25eb09f2a3",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-099-a6b0e8ca89/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a73ca1b910a33c3dc1b124a88c799157246ecb4de91fc3bbf96de8bc1bac6808",
+      "sagaFamily": "AddStudent + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/pilot/reference.json",
+      "referenceSha256": "107589c74a227a91cc5c0c2ab5cf0c19c7e96d356e23220a1b852f5a5242cc29",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-007-a73ca1b910/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a91a653a65941763e18b2f89975441131edd8cc998e21e5a23c088a1ac146df4",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/pilot/reference.json",
+      "referenceSha256": "c78fb966838f1c043a72313ebd10b007aa64c5a24d50c3db5b98f6e9b1b11dc6",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-081-a91a653a65/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "a98059ab10b580a559ab1c12d057013090bd2b5b0c55df3f109ae570cab891e4",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+      "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94",
+      "sagaFamily": "FindTournament",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ab51c0283e08/reference.json",
+      "referenceSha256": "74b8540e867e7f3c5343459a865d612ee1fcc90bc559eae9b04da0404daee0ab",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ab51c0283e08/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ac14e6f61404afbd4fdd342b0206513366e5496fe56b847d7d2fafe8c913075c",
+      "sagaFamily": "FindTournament + RemoveTournament",
+      "scenarios": 8,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+      "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "aceceb6ce351a18e37be6a67971ddd9446c5e4d05ebb655bee58f6c337af8fe8",
+      "sagaFamily": "CreateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/pilot/reference.json",
+      "referenceSha256": "2788378f4d2d6fcb6f4ddce74d1160658e6f48db6e1c16b74b1df6dec9d74cf7",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-126-aceceb6ce3/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "af094b4a2b29d4d732da71c44da940ede3ed6cb5fe57708e27d63496d3991991",
+      "sagaFamily": "RemoveTournament + UpdateTournament",
+      "scenarios": 71,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/family-138-map/reference.json",
+      "referenceSha256": "5077649cb0e771ae3a0a08560def3f484e1c1160a5fd966cd166a813beab4e9c",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/family-138-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "afb1774f08a3ad5d59c64a767c5658179ff9088e4d7358403d2e08a292783221",
+      "sagaFamily": "AddParticipant + AnonymizeStudent",
+      "scenarios": 14,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-017-afb1774f08/combined-reference.json",
+      "referenceSha256": "0ca9a9232407d9d868549acc16d61ebc651dbd01076505e20d94eefaaef6a2cf",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-017-afb1774f08/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "b120c708f91a669ae494010f1dd89f8cea006235fef20ce080a1a8f6464f1c19",
+      "sagaFamily": "AddParticipant + AnonymizeStudent",
+      "scenarios": 14,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+      "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "b6b321b373f91dc4a3c83265364e34968fc3c88d3bbaa187ec7b92511f42b41c",
+      "sagaFamily": "AddParticipant + FindTournament",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-02-map-v2/reference.json",
+      "referenceSha256": "870daeafd257cd2e211de23cf03cfac39b685eafe4640ab4075370d75a316fdd",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-02-map-v2/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "b7547fba9da3acb6db5a21c91630c7065ff2a1613ae3b6762678d0862ff5eb47",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateStudentName",
+      "scenarios": 12,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+      "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+        "hashCount": 3395,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "b177f1850ea34a516fa6db7e18616444773350def99bf26ec371dd4a9b6d7322"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "b82f81187951ee557ba4c69c0016bb79df3314d78a165d7f04a9f13c22a50071",
+      "sagaFamily": "AddStudent + GetCourseExecutionById",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/pilot/reference.json",
+      "referenceSha256": "a1253f8e043f609e3e08ce2509cf8139965488461b817beeca3d10e01c2bb643",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-074-b82f811879/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ba47eecb83b916a965d5b2f3989da07c4b088eb4f9fd5e029385643fca16ab8e",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/ba47eecb83b916a965d5b2f3989da07c4b088eb4f9fd5e029385643fca16ab8e/map/reference.json",
+      "referenceSha256": "679c1882b51b4a330c3a557694804b7ceee95ec0887eee42b772f64a5e7e45a0",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/ba47eecb83b916a965d5b2f3989da07c4b088eb4f9fd5e029385643fca16ab8e/map/protocol.json",
+        "hashCount": 4911,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19",
+      "sagaFamily": "AnonymizeStudent",
+      "scenarios": 3,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/bc41b59a13bd/reference.json",
+      "referenceSha256": "8f0c05802ad62b547910b9e5f3db1fd7deaac793b03a5fa504d5560291cf4e1b",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/bc41b59a13bd/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "bf2a68e032fcb3ad78dab1d18fe69f1b9ea89e819ba0b2c54c61e0743121d86d",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/bf2a68e032fcb3ad78dab1d18fe69f1b9ea89e819ba0b2c54c61e0743121d86d/map/reference.json",
+      "referenceSha256": "afc4482c0a55a7e1df79911b4c5d36ec313037a7138656257b7628372c748389",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/bf2a68e032fcb3ad78dab1d18fe69f1b9ea89e819ba0b2c54c61e0743121d86d/map/protocol.json",
+        "hashCount": 4911,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c0168801556b693599b4bf4c383851028b6c05544643705ccff9701c7183a065",
+      "sagaFamily": "AnonymizeStudent",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-search-2026-09-24/anonymize-single/route0-map/reference.json",
+      "referenceSha256": "54a98f530ebd222dfb1a43d49b1660baa2be8f3dea020f6e96d05d2529e96ef6",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/anonymize-single/route0-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "sagaFamily": "LeaveTournament",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/pilot/reference.json",
+      "referenceSha256": "cc3346a9a834d34e6b3d92b1b35226f12d93c1a4cc7c92126f11a9def146c794",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-059-c02ea4e2aa/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 160,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/map/reference.json",
+      "referenceSha256": "2da762d71a36124e746377d0ac2faa3d9fc702d8f548ecc25e5a11cc01018ccd",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/008-join-update-query-c099f2b180/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f",
+      "sagaFamily": "GetCourseExecutions",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/c0b611e23ef8/reference.json",
+      "referenceSha256": "56614847c62f4e4b3bfbc9f9a2368deda429d97a700bbe8f4b1975e02cfdaf8a",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/c0b611e23ef8/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c2e3f0a617ca7e3547920a53c6e52801d83256bc40e46ab4e4a7ad7ecb28b4b8",
+      "sagaFamily": "AnonymizeStudent + RemoveStudentFromCourseExecution",
+      "scenarios": 15,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-016-c2e3f0a617/combined-reference.json",
+      "referenceSha256": "6a71209fefd06148ef92fc070518c2c6d36dca1d9c4ec8a19d61aa5e52e0fc88",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-016-c2e3f0a617/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c47bff3cf3ce46fc5ab70356b8a4fad77bb2b7140bac59ef10c105d38807651c",
+      "sagaFamily": "CreateTournament + UpdateTopic",
+      "scenarios": 78,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-118-map-v9/reference.json",
+      "referenceSha256": "bf33f75ff47f05bf92c09ec111e20d424ec95aa3d026c1e0d4e56819670bd594",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-118-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c65088dd0e654e9b1e9220a10d02b71c399253246ecd67fdbe61a097be87a5b0",
+      "sagaFamily": "CreateTournament + GetCourseExecutionById",
+      "scenarios": 16,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-31-map-v8/reference.json",
+      "referenceSha256": "b9fd7cd68583834e43959b75a8ac2eb5afd96306ee24388e8a10e0774ead5acc",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-31-map-v8/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c8209081a67dbabf131f950f28a27166fd1dd6a4965fc8aa5ca9169610fde1f4",
+      "sagaFamily": "AddParticipant",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/pilot/reference.json",
+      "referenceSha256": "ef98c314d054790ed876a2cc2eac5034a378cacc63c7da39a89354f3d79da7d0",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-046-c8209081a6/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c841667b44c900058493fe31404960b7658c24837024ccf939368373289c2388",
+      "sagaFamily": "CreateTournament + FindQuiz",
+      "scenarios": 16,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/family-111-map/reference.json",
+      "referenceSha256": "99c41619aea93a296c5ad8cb40017eec0a888d9e73f94e99669e486c1fe163cb",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/family-111-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c92276d2906f16f37f4c628af01a74d7530b6a453ef9443e017bfa3fa78151b7",
+      "sagaFamily": "AddStudent + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-54-map-v9/reference.json",
+      "referenceSha256": "2e2de397dab65df76c7d19a58dfae1912166569362d2376e9272dc3115a68ce5",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-54-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "c98fc9c011d2cdaeb8ddae7c40544ba62dad0e18ae479abea257bee572e98fce",
+      "sagaFamily": "AddStudent + RemoveCourseExecution",
+      "scenarios": 29,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/family-53-map/reference.json",
+      "referenceSha256": "e0078ed6b05b6b01bf7ea448f374cec68b9a5ac862173f09b4cd3a5cd0f94f2d",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/family-53-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51",
+      "sagaFamily": "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-082-caa50b6545/combined-reference.json",
+      "referenceSha256": "574ced8d628b849f4bdb3ee1dfdc1e229b9f00d670595802ce7ef0ea54ff99cc",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-finish-2026-09-20/breadth-082-caa50b6545/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ce427ae079ab850c0ea99559aefa8445b1eb29ff5756da9d82f253d9ae0fcb07",
+      "sagaFamily": "AddStudent + CreateCourseExecution",
+      "scenarios": 20,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-49-map-v9/reference.json",
+      "referenceSha256": "dc80f5c73a5decdf46160c352fc401f0b693a8e44b933282e9de52c93c22d8a2",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-49-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d1bebd79ca82f9e70f65bdd0c067e129aa8899fee5beb591cc947a6e7dfac2d7",
+      "sagaFamily": "GetCourseExecutionById + RemoveStudentFromCourseExecution",
+      "scenarios": 6,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/pilot/reference.json",
+      "referenceSha256": "a44ad7d1f677571d62478850df232959fddebcf8880096f8cec6370c3c52ff58",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-021-d1bebd79ca/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/d53ab56d5d78/reference.json",
+      "referenceSha256": "6c777b34524e9b6ea71543deff5224a577e0c6f5e2e53614ef6544504e0a28af",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/d53ab56d5d78/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d5f03e4faa91ae3e09350b6b331df61688b6568dfd417e1c2a85d99628d1e2ce",
+      "sagaFamily": "AddParticipant + LeaveTournament + RemoveTournament",
+      "scenarios": 72,
+      "reference": "verifiers/target/ga-confirmation-2026-09-16/reference/reference.json",
+      "referenceSha256": "004e4376b206c75c7cb11015600c61365b092e83134a02d8b7a0dcdb086ff7b7",
+      "runtime": {
+        "config": "verifiers/target/ga-confirmation-2026-09-16/reference/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d7967a02b0e5821fa84eba6b540709f1e49998f13fb2bc65ce81a3179fc9c952",
+      "sagaFamily": "AnonymizeStudent + SolveQuiz",
+      "scenarios": 84,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-66-map-v9/reference.json",
+      "referenceSha256": "c07a806fbafe75caa428bd32532924cdd32adfce10fb00b9de8cb515b504c049",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-66-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d965e34a99d9a9704efd9ce4c1571ff378afb5d0a2ef7837c281818ab046963d",
+      "sagaFamily": "GetCourseExecutionsByUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/pilot/reference.json",
+      "referenceSha256": "b4d967c0be9e2ee2b9fa778becd0413e66d2dbddd669d2d94c4f018b62470361",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-025-d965e34a99/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "d9fb3b5894d4a4cc7df9644b4c4b6887627ad118016f202d2099b8ae52670cfa",
+      "sagaFamily": "RemoveTournament",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/pilot/reference.json",
+      "referenceSha256": "cba7bde4f5fd564374578b95c4403edab894fe2e5d6ae3eb4bd307d454b45a00",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-060-d9fb3b5894/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "dd4d2d1e93bb345060fcc28733c02ef58a2f2ee99cdaa56d3115f4298f84e920",
+      "sagaFamily": "CancelTournament",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/pilot/reference.json",
+      "referenceSha256": "885237b4df25f3041c6f305a5539d987006ebcb363362b975cac4506e3be2988",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-114-dd4d2d1e93/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ddeed2620b53172cf71669489d9c8aef9ee874d012104a565128087a1d03d0de",
+      "sagaFamily": "AddStudent + GetCourseExecutionById",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-50-map-v9/reference.json",
+      "referenceSha256": "7fac6b0eab5e2de7024e7be280504a1752bc0b9f2318a6569534944c517a1746",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-50-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "dfc87108c9dcda1501b7689e23b5d72f9ddf61494508c9f7eaef1ea163abc542",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 104,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/map/reference.json",
+      "referenceSha256": "c0d7dfd2ed7ecc043dc93b056d43966b8cde8f030433f5196ff18a2a1d88dc8e",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/011-join-update-query-dfc87108c9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e0922cb0b08ae50bd4188ec16571fa77dd68d0f33d65d76ec4fa6ce60763aa29",
+      "sagaFamily": "CreateCourseExecution + GetCourseExecutionsByUser",
+      "scenarios": 10,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-70-map-four-v11/reference.json",
+      "referenceSha256": "3aeda644f3dff2726fd4f508abb883072ebb63956b4f0957e6a7545eecfb09da",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-70-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "sagaFamily": "ActivateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/pilot/reference.json",
+      "referenceSha256": "ffc2c4dcd4f11ef92a5e5eb6deca81a39e38dad51ee6d86d33749db54afb2501",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-125-e0cb2936b9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e37e5c6c572fc1b0cee60d2133371229dc99d134601bfac7e9c252d0a0afd9e0",
+      "sagaFamily": "CreateCourseExecution + RemoveStudentFromCourseExecution",
+      "scenarios": 32,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-71-map-v9/reference.json",
+      "referenceSha256": "be9224fdc346f3ac35d3fe785e39fe6dfa30ee087828e1b701eb0832d69c7c31",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-71-map-v9/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e465b03fa9b26a1f974d1c46bc0024e121e7b20936ed575d44f0a039ffb8db6e",
+      "sagaFamily": "GetCourseExecutionById + UpdateStudentName",
+      "scenarios": 4,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/pilot/reference.json",
+      "referenceSha256": "a089dc7abe3be4d7b2897667c55fb2cdd47c086a94f18eaf82de7627ef84f26b",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-022-e465b03fa9/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e61b02dd89a8281e2a16a2626bfd018d1824790bce88f9449e4ecea4a93eee79",
+      "sagaFamily": "GetCourseExecutions",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/pilot/reference.json",
+      "referenceSha256": "ea1a3cc871557c6817aa4855699b8ee302cc8ab67811c8ed68dc48570c0f4039",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-093-e61b02dd89/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e61e7630681dbfb09a48e991bcb6a6bba53cca4dfeb9471ba58cb38a5b1dde95",
+      "sagaFamily": "CreateTournament + UpdateStudentName",
+      "scenarios": 16,
+      "reference": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/e61e7630681d/combined-reference.json",
+      "referenceSha256": "c3ae419b21bd10420ca36871f4448b0662bb9a532717138a7e857c75e5cddcbb",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-diversity-2026-09-20/e61e7630681d/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "e77b5a81bd6ca0746ba1aa4a7dd624d52de1a53f442dec9a46defb780dceb57e",
+      "sagaFamily": "FindTournament + UpdateTopic + UpdateTournament",
+      "scenarios": 82,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-140-map-v10/reference.json",
+      "referenceSha256": "b225b9cc2bcf400f5285147e0dfa02b67f5eb9cf74f702c09d2f191bdb68b44e",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-140-map-v10/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ea738480ea71878555cc18f49f8e081c802543d498189beff6b30468e2ac8ec4",
+      "sagaFamily": "DeleteTopic",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/delete-topic-no-event-map/reference.json",
+      "referenceSha256": "ffca8262041684d595586427cb7402e61c4d6a47eed4f629e8c318b3ae4967ba",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/delete-topic-no-event-map/protocol.json",
+        "hashCount": 4902,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ea782cdd59c27e105edaeb699330d4de6a7edcbdf3f7d8f81f6d5aa0e1f1012b",
+      "sagaFamily": "ActivateUser",
+      "scenarios": 2,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/pilot/reference.json",
+      "referenceSha256": "eae3ab65542bec12af171261f7a6837ade2db030080b813b4e889e35d77e02e2",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-066-ea782cdd59/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ead0cdf7590b04bb46decb5764d31527232c9cc5ed36d921ed038ad039506f68",
+      "sagaFamily": "AddParticipant + FindTournament",
+      "scenarios": 6,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ead0cdf7590b/reference.json",
+      "referenceSha256": "f524090b1976c0b74ad4abbdab0c4efdc7a3c6ba6372ff5514f95f6b957e2965",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ead0cdf7590b/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "eca316cce415ca5e79dbcfe08d1872201bd5216c2faa5cc7846358eb121998b9",
+      "sagaFamily": "AddParticipant + UpdateStudentName",
+      "scenarios": 6,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-16-map-v5/reference.json",
+      "referenceSha256": "fcab41b5fdfb62f5b238febec2aac9390100ef52b6c078a172b82fa70868dcce",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-16-map-v5/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff",
+      "sagaFamily": "GetCourseExecutionById",
+      "scenarios": 2,
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ed6c68a74b24/reference.json",
+      "referenceSha256": "05774ffbac4227bf543d4a2719171206543876b7820a0089c9889ae04a65ff45",
+      "runtime": {
+        "signature": "d667559e503283f89b8655a1bd484fbb635ad91c0e1a08859f04f1a45cb34838",
+        "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ed6c68a74b24/config.json",
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "hashCount": 4927
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "edf68c816c6ce7e815f89c06c528233f717f599fe39bdabaf6d1b6f2de3c0369",
+      "sagaFamily": "CreateTopic + RemoveCourseExecution",
+      "scenarios": 26,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-92-map-four-v11/reference.json",
+      "referenceSha256": "d043ff648bccec33c7a7196cf93d9cda4ef512e138d350c7feb6c70e40632f53",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-92-map-four-v11/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a",
+      "sagaFamily": "AddParticipant + LeaveTournament + RemoveTournament + UpdateTournament",
+      "scenarios": 5184,
+      "reference": "verifiers/target/full-map-5184-2026-09-17/map/reference.json",
+      "referenceSha256": "86d5a93dd12df85d7fa2d8ab5db95aa26d3bdf74f4b83ce722aeeee02c0c154b",
+      "runtime": {
+        "config": "verifiers/target/full-map-5184-2026-09-17/map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "f1c59464141700389fa00d544ac76e43075b6367820ba882834aed3c52ecfb2c",
+      "sagaFamily": "AddParticipant + AddStudent",
+      "scenarios": 9,
+      "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-41-map-v8/reference.json",
+      "referenceSha256": "1b6128a2368fe163448ecef8412d349cc496c5d15fe069ae3ac803500af456e0",
+      "runtime": {
+        "config": "verifiers/target/allocator-local-pilot-2026-09-23/family-41-map-v8/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "f24c5fe4d435e1b973eab36d45fda695d21828ff02b9b9951308b309eaf4d045",
+      "sagaFamily": "RemoveStudentFromCourseExecution",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-search-2026-09-24/remove-student-single/route0-map/reference.json",
+      "referenceSha256": "3fd690acd41975a86b8fb41ddaffd84ec1fa825001f87e9654410b7819991769",
+      "runtime": {
+        "config": "verifiers/target/workload-search-2026-09-24/remove-student-single/route0-map/protocol.json",
+        "hashCount": 3376,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "ca369a93e7157a22e2d792ec6cd215d87f78cca403ce63cca6953f27c19803c6"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "f305554eff3e14d8d924979b639972912688af5635458837a5d4a5b3e2e9e497",
+      "sagaFamily": "AddStudent",
+      "scenarios": 3,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/pilot/reference.json",
+      "referenceSha256": "d4e620450e257cd9346389d4be342f6bba3af674da9ef6b37a4251aaf53004ac",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-073-f305554eff/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "f40293882dd7a84b9e2811bd9343f8dde1bc53a31ede634ed77a90e947a56cb7",
+      "sagaFamily": "RemoveCourseExecution",
+      "scenarios": 4,
+      "reference": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/f40293882dd7a84b9e2811bd9343f8dde1bc53a31ede634ed77a90e947a56cb7/map/reference.json",
+      "referenceSha256": "d84079dfcead213b26c7ae822a7c31f5e4d5693c176a6f77999f673075d64777",
+      "runtime": {
+        "config": "verifiers/target/event-route-measurement-2026-09-26/feature-preparation/measurements/f40293882dd7a84b9e2811bd9343f8dde1bc53a31ede634ed77a90e947a56cb7/map/protocol.json",
+        "hashCount": 4911,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "f55518ac46b7b9d84dab1c029d62adc936082e36650003f82d70e2dffd68560b"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "fe399af06dc303b6d816a836c5e87104724dcdb1ac6e893669bd36e548d9019a",
+      "sagaFamily": "AddParticipant + FindTournament + UpdateTournament",
+      "scenarios": 36,
+      "reference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/map/reference.json",
+      "referenceSha256": "397f5a17eb1de7197f158b4aa688342a434138b99ee7ff9c26292b0537672b73",
+      "runtime": {
+        "config": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/query-before-update/config.json",
+        "hashCount": 3376,
+        "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+        "signature": "8a661eab3bd3fbdab5caad8602eae7be6e8839595458f1dfb6c5903d2d13520d"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    },
+    {
+      "id": "fee5623a44cb206f59dab19213024545b895b1a2d2ecefbe546cfd91845df505",
+      "sagaFamily": "DeleteTopic",
+      "scenarios": 3,
+      "reference": "verifiers/target/workload-expansion-2026-09-25/delete-topic-tournament-map/reference.json",
+      "referenceSha256": "c2ed13273f3d6e4b7ce3f1c2e014a2d87a743fcbdcdf2cd1afdbe849c271b5f7",
+      "runtime": {
+        "config": "verifiers/target/workload-expansion-2026-09-25/delete-topic-tournament-map/protocol.json",
+        "hashCount": 4902,
+        "image": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+        "signature": "861da08df4f40e1ece99e26c675c56d74efc5b11aaadeed51ddce66ecbf334da"
+      },
+      "admission": "RECORDED_BENCHMARK_ADMITTED"
+    }
+  ],
+  "limits": [
+    "Recorded historical benchmark; older runtime/measurement groups have not been harmonized.",
+    "Component scores require valid coverage; a joint unavailable score can coexist with a valid individual criterion."
+  ],
+  "historicalJointScoreDifference": {
+    "newlyUnavailableScenarios": 519,
+    "previouslyPositive": 173,
+    "previouslyNegative": 346,
+    "reason": "LOST_COPIED_UPDATE previously had weight zero in those historical references; five equally weighted criteria require its complete coverage.",
+    "measurementChanged": false
+  }
+}

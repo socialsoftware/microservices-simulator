@@ -1,0 +1,39 @@
+{
+  "sources": {
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/accounting/FaultScenarioStructureCounter.java": "8aaf236a85fe147d35da52e6319b22a251e880e9896188a71a62e7def4751dd8",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/accounting/FaultScenarioCountService.java": "e2e74ccffcf1be662cac80091ddd56bc77fc6d52f4292eeac48864a743dbeddc",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/accounting/FaultScenarioCountWriter.java": "67f906af4e4aeec64eacc2cc44603659bea9ab3157b389c6e31ffee75ca4aafe",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/RecoveryScheduleGenerator.java": "03f67b8875b395868e0e500a8a5a06b5e7ca7d5e662ded3703633c8fb487e834",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/ScenarioGeneratorApplication.java": "414d33c1f0eeca4a450705f68804cb1cd15b94394172033e49a7d3f90f1747e7",
+    "verifiers/src/main/resources/application.yaml": "67af143fe8d1d78be2998526b1f1abb1c3c0433cd5f08811d264bd4660f4dda4",
+    "verifiers/experiments/generation-comparison/CountFaultScenarios.java": "2439420f32f2ed3ceca2b0f373d0ba551bcc5889d3a7dc4b4a044e95a35abb28",
+    "verifiers/experiments/generation-comparison/VerifyFaultCounts.java": "680fa473925e958828d583bac3c3692592fa408ffa8398097cfa46e205ccc160",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/scenario/accounting/FaultScenarioStructureCounterSpec.groovy": "cf548465852f35822de3230e070622dc729b25078670ae653b3da8c9b6d32e30",
+    "verifiers/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/ScenarioGeneratorApplicationSpec.groovy": "188a09a63f10b99cf18d3a167fe76654b0f36bcd2ea09edb2fa1ee28212517b0"
+  },
+  "tests": {
+    "scenario.accounting.FaultScenarioStructureCounterSpec": {
+      "tests": "13",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "time": "1.657"
+    },
+    "scenario.RecoveryScheduleGeneratorSpec": {
+      "tests": "14",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "time": "0.127"
+    },
+    "ScenarioGeneratorApplicationSpec": {
+      "tests": "3",
+      "errors": "0",
+      "failures": "0",
+      "skipped": "0",
+      "time": "6.146"
+    }
+  },
+  "applicationSpecScope": "count* only; not whole class",
+  "runtime": "Java 21; no Docker runtime changes"
+}

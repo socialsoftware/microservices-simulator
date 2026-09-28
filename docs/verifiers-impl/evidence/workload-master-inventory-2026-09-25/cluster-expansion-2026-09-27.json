@@ -1,0 +1,331 @@
+{
+  "asOfUtc": "2026-09-28T09:53:12.865698+00:00",
+  "status": "CLOSED_AFTER_RESUME_WITH_TWO_UNAVAILABLE_CONTROLS",
+  "booking": {
+    "id": "96v3g118ha2aabkopqkpurn8kc",
+    "host": "proteina07",
+    "mode": "SHARED",
+    "startLisbon": "2026-09-27T21:34:00+01:00",
+    "endLisbon": "2026-09-28T04:00:00+01:00",
+    "userAuthorized": true,
+    "state": "RUNNING_EIGHT_WORKERS",
+    "vm": {
+      "name": "andre-expansion-2026-09-27",
+      "cpus": 32,
+      "memoryMiB": 49152
+    },
+    "workers": 8,
+    "workerChoice": "User explicitly fixed eight workers on fallback host",
+    "bundle": "../cluster-vitamina01-expansion-2026-09-27/expansion-bundle.tar.gz",
+    "remoteBase": "/home/andremmsilva/thesis-expansion-2026-09-27",
+    "guard": {
+      "stopLisbon": "2026-09-28T03:20:00+01:00",
+      "haltBeforeLisbon": "2026-09-28T03:50:00+01:00",
+      "backupToHost": true,
+      "script": "guard.py"
+    }
+  },
+  "cancelledBooking": {
+    "machine": "vitamina01",
+    "id": "n32nmg0r2g1m9fg82frg4o8l28",
+    "reason": "SSH unreachable directly and via headnode",
+    "cancellationAndFallbackApproved": true
+  },
+  "preparedWorkloads": 146,
+  "familiesReceivingAdditionalSchedules": 23,
+  "newFamiliesClaimed": 0,
+  "workers": 8,
+  "pilot": {
+    "stage": "PILOT_COMPLETE",
+    "workers": 8,
+    "workloadStages": {
+      "CONTROL_READY": 7,
+      "FAILED": 1,
+      "QUEUED": 138
+    },
+    "qualifiedControls": 7,
+    "positiveControls": 0,
+    "cataloguedScenarios": 0,
+    "measuredScenarios": 0,
+    "inFlightMapAttempts": 0,
+    "errors": [
+      {
+        "workload": "139d2d4a58098d78435943cb67ce81b932c584bd2b6bed91f75e09f6b6b672d8",
+        "family": "AddParticipant + SolveQuizAsync",
+        "stage": "FAILED",
+        "error": "Require valid measured no-fault control with complete enabled score"
+      }
+    ]
+  },
+  "currentProgress": {
+    "stage": "RUNNING",
+    "workers": 8,
+    "workloadStages": {
+      "MEASURING": 7,
+      "FAILED": 1,
+      "CONTROL": 1,
+      "QUEUED": 137
+    },
+    "qualifiedControls": 7,
+    "positiveControls": 0,
+    "cataloguedScenarios": 65,
+    "measuredScenarios": 3,
+    "inFlightMapAttempts": 7,
+    "errors": [
+      {
+        "workload": "139d2d4a58098d78435943cb67ce81b932c584bd2b6bed91f75e09f6b6b672d8",
+        "family": "AddParticipant + SolveQuizAsync",
+        "stage": "FAILED",
+        "error": "Require valid measured no-fault control with complete enabled score"
+      }
+    ]
+  },
+  "deployment": {
+    "transferredFilesVerified": 6597,
+    "runtimeFilesVerified": 4927,
+    "originalImage": "sha256:0aab59d58bfe4f83e6bee2a4002a913dcbc26d861acee5f0327c053f12918282",
+    "image": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+    "platform": "linux/amd64",
+    "historicalLinuxImage": "sha256:3b5f7c15b1a16d3fdf09e6883cde602e4a5406cf5bdf6b251b8ac5c510219311",
+    "matchesHistoricalLinuxImage": true,
+    "admission": "Each schedule requires its own setup preflight, valid scored no-fault control, uncapped complete catalogue and preserved execution/measurement outcomes. Positive controls are allowed; unknowns are not negatives.",
+    "workloads": 146
+  },
+  "planSha256": "784be57cbd246fc5a59be1ef96ff76040fd171cb57f14881a1e9813141f73076",
+  "localRunnerDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina07-expansion-2026-09-27",
+  "runnerHashes": {
+    "Vagrantfile": "05ec13f6dd305b5bd8726bb2496a2b20653ac1911415e25f70b7f1060f9316f1",
+    "deploy.py": "1992f3641a10b020a269a13982d975e06a33374f4e2457a95e5d00f05b4a8e53",
+    "campaign.py": "5e8fd935579be731c6e603cee0094b0dab82a3b95a7eb7763244bd946d2a6ddd",
+    "guard.py": "2b3a80da7e0cb92892444666b6bba67707e01b39d5438ce0f624c0c3d978af4a",
+    "launch.py": "3a525b49cdddd179469469fc76320a62b583f8ed8a2dc0fc7601aaa0ca7dcb62",
+    "snapshot.py": "c0da067ae55a6ab95cad5e329d8c5578785804d429e48458b82e7cc58a9a03f2",
+    "summarize.py": "0f45b888e14672a1d5b7dcce0cef5e840ec17677bae27932bd06320d91979a05"
+  },
+  "remoteResults": "/home/vagrant/thesis/verifiers/target/expansion-results-2026-09-27",
+  "remoteFinalSummary": "new-maps-summary.json",
+  "remoteHostArchive": "/home/andremmsilva/thesis-expansion-2026-09-27/expansion-results.tar.gz",
+  "asyncControlLimitation": {
+    "workload": "139d2d4a58098d78435943cb67ce81b932c584bd2b6bed91f75e09f6b6b672d8",
+    "execution": "SUCCESS/EXACT",
+    "criterion": "LOST_COPIED_UPDATE",
+    "reason": "UNSUPPORTED_CONCURRENT_THREAD",
+    "jointScore": null,
+    "notANegative": true,
+    "notAdmittedUnderCompleteScoredControlGate": true
+  },
+  "measuredHistoricalTotalsUnchanged": {
+    "withoutGiants": 3818,
+    "withGiants": 16280
+  },
+  "estimatesNotResults": {
+    "estimatedAddedScenariosBeforeAdmission": 2999,
+    "estimatedWithoutGiants": 6817,
+    "estimatedWithGiants": 19279
+  },
+  "finalAdmission": "Each workload requires ready setup, valid complete-scored no-fault control (positive allowed), and complete uncapped catalogue. Unknown scenario measurements remain unknown. Full maps are independently audited before inventory merge.",
+  "operationalCpuAdjustment": {
+    "status": "ACTIVE_WITHIN_APPROVED_LEASE",
+    "startedUtc": "2026-09-27T22:41:21.185928+00:00",
+    "reason": "Current fresh-container JVM startup was much slower than the older eight-worker pilot; live cgroups showed repeated CPU quota throttling while the reserved 32-vCPU VM had spare CPU.",
+    "pilot": {
+      "sameCandidateTwoCpuWallSeconds": 126.87504784100008,
+      "sameCandidateFourCpuWallSeconds": 78.12464043,
+      "exitCode": 0,
+      "sameTerminalStatus": true,
+      "sameScheduleConformance": true,
+      "sameImpactCategories": true,
+      "sameCompleteScore": true,
+      "sameReadExposureCountAndCoverage": true,
+      "sameCopiedUpdateCountAndGaps": true
+    },
+    "effectivePolicy": "Eight fixed worker lanes; raise each workload-search Docker container from 2 to 4 CPUs soon after creation. No input, Java/evaluator, JVM memory, or fitness changes. The original runtime config still states 2 CPUs; use the adjustment log for effective per-container timing provenance.",
+    "scopeLimit": "Only this VM and this campaign; stop at existing 03:20 Lisbon cutoff or earlier campaign pause. Does not extend lease.",
+    "sourceSha256": "c0cebd088b406aac9ea84bfaaf8b5bf4f4246746836e0a96d68e8520d5a6bb87",
+    "localSource": "verifiers/target/cluster-proteina07-expansion-2026-09-27/cpu_boost.py",
+    "archiveRelativePaths": [
+      "expansion-results-2026-09-27/cpu_boost.py",
+      "expansion-results-2026-09-27/cpu-boost-events.jsonl",
+      "expansion-results-2026-09-27/cpu-boost-probe"
+    ],
+    "performanceConclusion": "Single-probe speedup only; live campaign throughput and full outcome equivalence still to audit.",
+    "observedEarlyEffect": {
+      "asOfUtc": "2026-09-27T22:47:01Z",
+      "attemptsAtOriginalLimit": 368,
+      "medianSecondsAtOriginalLimit": 116.7,
+      "attemptsWithRecordedFourCpuAdjustment": 59,
+      "medianSecondsWithAdjustmentIncludingTransitions": 34.9,
+      "measuredScenariosAt224237Utc": 383,
+      "measuredScenariosAt224701Utc": 428,
+      "updateErrors": 0,
+      "note": "Early observational timing; family mix and unfinished work differ. Same-candidate isolated control is in pilot."
+    }
+  },
+  "finalOutcome": {
+    "bookingEndedLisbon": "2026-09-28T04:00:00+01:00",
+    "newLaunchCutoffLisbon": "2026-09-28T03:20:00+01:00",
+    "backupCompleteLisbon": "2026-09-28T03:21:51.639718+01:00",
+    "vmHaltedLisbon": "2026-09-28T03:22:08.280422+01:00",
+    "vmHaltExitCode": 0,
+    "guardError": false,
+    "archiveSha256": "d2cb0d87854c36a7ffed239415bb60369eccdd6b0784860e24d23e7babb4596e",
+    "archiveBytes": 1072596311,
+    "archiveHashVerifiedOnHostAndMac": true,
+    "completeNewWorkloads": 142,
+    "newJoint": {
+      "negative": 1909,
+      "positive": 433,
+      "scenarios": 2342,
+      "score": 441.0,
+      "unknown": 0
+    },
+    "newCriteria": {
+      "COMPENSATED_READ_EXPOSURE": {
+        "positive": 0,
+        "negative": 2342,
+        "unknown": 0,
+        "score": 0
+      },
+      "DELETED_DEPENDENCY": {
+        "positive": 1,
+        "negative": 2341,
+        "unknown": 0,
+        "score": 1.0
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "positive": 426,
+        "negative": 1916,
+        "unknown": 0,
+        "score": 426.0
+      },
+      "LOST_COPIED_UPDATE": {
+        "positive": 8,
+        "negative": 2334,
+        "unknown": 0,
+        "score": 8.0
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "positive": 6,
+        "negative": 2336,
+        "unknown": 0,
+        "score": 6.0
+      }
+    },
+    "incompleteWorkloads": [
+      {
+        "catalogued": null,
+        "family": "AddParticipant + SolveQuizAsync",
+        "id": "139d2d4a58098d78435943cb67ce81b932c584bd2b6bed91f75e09f6b6b672d8",
+        "note": "Not counted; source archive preserves partial evidence where present.",
+        "reason": "Require valid measured no-fault control with complete enabled score",
+        "stage": "FAILED"
+      },
+      {
+        "catalogued": null,
+        "family": "FindQuestionByAggregateId + UpdateQuestionTopicsAsync",
+        "id": "d87ecd8d7358e21409d49fecd35ef7ff3006277b9c5b583c3d8121c494e53753",
+        "note": "Not counted; source archive preserves partial evidence where present.",
+        "reason": "Require valid measured no-fault control with complete enabled score",
+        "stage": "FAILED"
+      },
+      {
+        "catalogued": 160,
+        "family": "FindQuiz + UpdateTopic + UpdateTournament",
+        "id": "394baae21b4d1bd84894cfbc42e5b6080e610cd0f75df59021516bd5125a1488",
+        "note": "Not counted; source archive preserves partial evidence where present.",
+        "reason": "Deadline or explicit pause reached before launching a new process",
+        "stage": "FAILED"
+      },
+      {
+        "catalogued": 76,
+        "family": "FindQuiz + UpdateTopic + UpdateTournament",
+        "id": "89a73ab42058b595a0bd129b6e256bb5a72c6ce647fc3decc44923845f0e8bf6",
+        "note": "Not counted; source archive preserves partial evidence where present.",
+        "reason": null,
+        "stage": "PAUSED"
+      }
+    ],
+    "qualifiedUnionInventory": "master-inventory-2026-09-28.json",
+    "qualifiedUnionWorkloads": 314,
+    "qualifiedUnionScenarios": 18622,
+    "qualifiedWithoutGiants": 6160,
+    "localReassessment": "All 142 complete maps matched local catalogues, candidate identities, stored fitness and each of five criterion totals; no unknown score in the new complete maps.",
+    "remaining": "Mixed historical runtime/measurement provenance still needs stratification or harmonization before final paper claims."
+  },
+  "resumeOutcome": {
+    "booking": {
+      "id": "3bth1bjam61svodnare5kfmff8",
+      "host": "proteina07",
+      "mode": "SHARED",
+      "startLisbon": "2026-09-28T10:19:00+01:00",
+      "endLisbon": "2026-09-28T12:00:00+01:00",
+      "userAuthorized": true,
+      "vm": "andre-expansion-2026-09-27",
+      "scope": "Resume only the two partial complete-catalogue maps; preserve unavailable controls",
+      "mapPrefixes": [
+        "394baae21b4d",
+        "89a73ab42058"
+      ],
+      "guardNewLaunchCutoffLisbon": "2026-09-28T11:35:00+01:00",
+      "guardHaltByLisbon": "2026-09-28T11:50:00+01:00"
+    },
+    "newAttemptsMeasured": 51,
+    "priorAttemptFilesByteIdentical": 185,
+    "completeMaps": 2,
+    "scenarios": 236,
+    "joint": {
+      "negative": 116,
+      "positive": 120,
+      "scenarios": 236,
+      "score": 120.0,
+      "unknown": 0
+    },
+    "criteria": {
+      "COMPENSATED_READ_EXPOSURE": {
+        "negative": 236,
+        "positive": 0,
+        "score": 0,
+        "unknown": 0
+      },
+      "DELETED_DEPENDENCY": {
+        "negative": 236,
+        "positive": 0,
+        "score": 0,
+        "unknown": 0
+      },
+      "FAILED_OPERATION_RESIDUAL": {
+        "negative": 116,
+        "positive": 120,
+        "score": 120.0,
+        "unknown": 0
+      },
+      "LOST_COPIED_UPDATE": {
+        "negative": 236,
+        "positive": 0,
+        "score": 0,
+        "unknown": 0
+      },
+      "UNRESOLVED_DELIVERED_EVENT": {
+        "negative": 236,
+        "positive": 0,
+        "score": 0,
+        "unknown": 0
+      }
+    },
+    "archiveSha256": "a91b004bea5279ddfa0e2a392a0b3c748affec7d782e4cf5591a2ed8a661cfbc",
+    "archiveBytes": 81715939,
+    "archiveVerifiedOnMac": true,
+    "archiveLocalPath": "verifiers/target/cluster-proteina07-expansion-2026-09-27/resume-two-maps-2026-09-28.tar.gz",
+    "localAuditSummary": "verifiers/target/cluster-proteina07-expansion-2026-09-27/resume-audited-summary-2026-09-28.json",
+    "backupCompleteLisbon": "2026-09-28T10:49:08.096070+01:00",
+    "vmHaltedLisbon": "2026-09-28T10:49:21.616787+01:00",
+    "vmHaltExitCode": 0,
+    "guardError": false,
+    "effectiveResumeCpuLimitPerContainer": 2,
+    "remainingUnqualifiedControls": 2,
+    "qualifiedUnionWorkloads": 316,
+    "qualifiedUnionScenarios": 18858,
+    "qualifiedWithoutGiants": 6396,
+    "note": "The two resumed maps reused all 185 prior attempts byte-identically; 51 new attempts completed them. Earlier campaign had an operational 4-CPU adjustment on some containers, while resume used configured 2 CPUs. Preserve this timing provenance for interpretation."
+  }
+}

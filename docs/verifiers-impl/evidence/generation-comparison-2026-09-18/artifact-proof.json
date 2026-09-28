@@ -1,0 +1,27 @@
+{
+  "rawDirectory": "verifiers/target/generation-comparison-2026-09-18-run1",
+  "analysisSha256": "9e652863a3d13b3b541d9654bffc12dfeedb01a6faab25724f8e0eb3025c361f",
+  "note": "Counts and enumeration completed with unchanged measurement sources. Plot formatting revised after completion: explicit empty strict strata and linear strict axis. Summary values unchanged.",
+  "rawHashes": {
+    "analysis.log": "7f4fd2a634724514834ad5339cb5250b996895411ddc5f244716a42425a8444e",
+    "verification-selection.json": "15a1ea0c7560e5c3fc98b6b6e336022a0155b3cf3a4bf88cc98d6c8e8fae64eb",
+    "summary.json": "38e1e821db62b944b7884dc7c6a643e3c87e2ccfff88733c2de4e33c4a3c3713",
+    "selection.png": "22cce28dda827c59024ae40b72e05af483d137787bf023ca93214215029ad6e3",
+    "selection.pdf": "401662deaef24402b43617a530a6bd1e7a1dca70cdd2cfbd2ff45fe048a21868",
+    "run-status.json": "bbf05b984f1d5c9c2fc50016e9b33105a46b15d223c221b8382dc8b88ed20c7a",
+    "accounting-cross-check.json": "f96ed44b4a46cd4453ed903cf87c3810bb7912117a183df828fb4cb27169bdaa",
+    "inputs-cap-3.json": "bda707396025cb7b822c868309dc7a9e09795c8145a0424ed10e4f0caa1a6cb7",
+    "compile.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "verification.jsonl": "1e3674b27377e4df41c3bc4805e6d442b19ae81d070a214eba117279322d3940",
+    "RESULTS.md": "81d4af498ed2dc090a7dce83099e5c73dad6722365d17ac43def52decd4afc8c",
+    "inputs-cap-1.json": "b759f226e07745b0156d24c808eb9024fdcc15ab8cca07af11c12c284b5531c5",
+    "compression.png": "0680617d165fdf1afa99f54e4af2844b63734416a58592092e291907cdb730f0",
+    "generation.log": "c102243f63294cf16ac49103ff83f9a6df6639e78c182a91da8b19094ba03df0",
+    "manifest.json": "34ac6f2de085056fb97587775b53291c82d5e401f9cd5556b53604d37cc49ab2",
+    "compression.pdf": "939868fcb2591134943bb000ae83503dc4b3f833ca38a5c7b12a37b0c87d4cbb",
+    "extraction.json": "4f62fdb0af1f0a6bc778e3b18d43d5d4db4b6cdd965f02dbfbcae856c64e2947",
+    "status.json": "1be9f0ec834c8ca53347481fa3d08c70ef4802d898307da2cb43455ec4d9c3bf",
+    "rows-cap-3.jsonl": "b1682bca38e27561bab546a1090d139ed684a5a374231dfc0db5c912090cc1cc",
+    "rows-cap-1.jsonl": "a511c97d7da0c04edc4374b580f6a274c4b0ba841f4d2c4ba6e57e48006fd54f"
+  }
+}

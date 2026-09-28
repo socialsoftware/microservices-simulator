@@ -1,0 +1,128 @@
+{
+  "selected": "add-update-leave",
+  "rows": [
+    {
+      "name": "add-update-leave",
+      "workload": "734e11d1b94eeae0bfed1fe8756e37914f5719f86308eb9dbf390556fedccd60",
+      "candidates": 186,
+      "vectors": 54,
+      "countComplete": true,
+      "anyTruncated": false,
+      "generationSeconds": 154.0480104542803,
+      "control": {
+        "terminalStatus": "SUCCESS",
+        "scheduleConformance": "EXACT",
+        "I": 0,
+        "A": 0,
+        "lostCopiedUpdateCount": 0,
+        "wallSeconds": 38.206141124945134
+      },
+      "controlScore": 0.0,
+      "probes": [
+        {
+          "label": "update-early",
+          "vector": "000001000",
+          "recoveryIndex": 0,
+          "score": 1.0,
+          "I": 1,
+          "A": 0,
+          "seconds": 31.201589334057644,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-leave/probes/attempt-001"
+        },
+        {
+          "label": "update-late",
+          "vector": "000001000",
+          "recoveryIndex": -1,
+          "score": null,
+          "I": 1,
+          "A": 0,
+          "seconds": 35.20190666709095,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-leave/probes/attempt-002"
+        },
+        {
+          "label": "leave-after-update",
+          "vector": "000001001",
+          "recoveryIndex": -1,
+          "score": 2.0,
+          "I": 1,
+          "A": 1,
+          "seconds": 33.663926125038415,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-leave/probes/attempt-003"
+        },
+        {
+          "label": "add-fails",
+          "vector": "010000000",
+          "recoveryIndex": 0,
+          "score": 0.0,
+          "I": 0,
+          "A": 0,
+          "seconds": 35.18084849999286,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-leave/probes/attempt-004"
+        }
+      ]
+    },
+    {
+      "name": "add-update-remove",
+      "workload": "0f7362c13ceea8d7a20a6f6693ba3f94b0ccf039701325f06491d1b78a2fab26",
+      "candidates": 384,
+      "vectors": 72,
+      "countComplete": true,
+      "anyTruncated": false,
+      "generationSeconds": 182.19492212706245,
+      "control": {
+        "terminalStatus": "PARTIAL_COMPENSATED",
+        "scheduleConformance": "DEVIATED",
+        "I": 2,
+        "A": 0,
+        "lostCopiedUpdateCount": 0,
+        "wallSeconds": 37.98304837499745
+      },
+      "controlScore": 2.0,
+      "probes": [
+        {
+          "label": "update-early",
+          "vector": "0000010000",
+          "recoveryIndex": 0,
+          "score": 3.0,
+          "I": 2,
+          "A": 0,
+          "seconds": 30.556957624852657,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-remove/probes/attempt-001"
+        },
+        {
+          "label": "update-late",
+          "vector": "0000010000",
+          "recoveryIndex": -1,
+          "score": 1.0,
+          "I": 1,
+          "A": 0,
+          "seconds": 35.0570195838809,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-remove/probes/attempt-002"
+        },
+        {
+          "label": "remove-after-quiz",
+          "vector": "0000000001",
+          "recoveryIndex": -1,
+          "score": 2.0,
+          "I": 2,
+          "A": 0,
+          "seconds": 34.29934262484312,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-remove/probes/attempt-003"
+        },
+        {
+          "label": "add-fails",
+          "vector": "0100000000",
+          "recoveryIndex": 0,
+          "score": 0.0,
+          "I": 0,
+          "A": 0,
+          "seconds": 34.845389124937356,
+          "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-qualification-2026-09-16/add-update-remove/probes/attempt-004"
+        }
+      ]
+    }
+  ],
+  "campaign": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/exhaustive-reference-2026-09-16",
+  "selectedBeforeSearchOutcomes": true,
+  "policy": "exclusive-observed-fields-v2"
+}

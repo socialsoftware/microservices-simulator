@@ -1,0 +1,43 @@
+{
+  "rows": [
+    {
+      "cases": 12,
+      "casesPerMinute": 3.1023570919578636,
+      "matchesReference": true,
+      "positiveCount": 5,
+      "unknownCount": 1,
+      "wallSeconds": 232.081600750098,
+      "workers": 2,
+      "peakSampledExecutorMemoryMiB": 1153.8,
+      "peakSampledExecutorCPUPercent": 397.18,
+      "projected5184Hours": 27.84979209001176
+    },
+    {
+      "cases": 12,
+      "casesPerMinute": 3.4506761215934594,
+      "matchesReference": true,
+      "positiveCount": 5,
+      "unknownCount": 1,
+      "wallSeconds": 208.6547605828382,
+      "workers": 3,
+      "peakSampledExecutorMemoryMiB": 1594.4,
+      "peakSampledExecutorCPUPercent": 467.78,
+      "projected5184Hours": 25.038571269940586
+    },
+    {
+      "cases": 12,
+      "casesPerMinute": 2.910459590933201,
+      "matchesReference": true,
+      "positiveCount": 5,
+      "unknownCount": 1,
+      "wallSeconds": 247.3836098748725,
+      "workers": 4,
+      "peakSampledExecutorMemoryMiB": 2088.5,
+      "peakSampledExecutorCPUPercent": 730.4200000000001,
+      "projected5184Hours": 29.6860331849847
+    }
+  ],
+  "recommendedWorkers": 3,
+  "throughputGainVsTwo": 0.11227560829104144,
+  "interpretation": "Small sequential capacity pilot on a 72-case workload subset; runtime mix of 5184-case workload may differ. Projection excludes enumeration/repeats/pauses. No causal claim about contention or thermal throttling."
+}

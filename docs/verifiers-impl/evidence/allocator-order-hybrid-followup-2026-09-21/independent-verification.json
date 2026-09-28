@@ -1,0 +1,12 @@
+{
+  "status": "PASS",
+  "searchesVerified": 960,
+  "freshSearches": 540,
+  "reusedSearches": 420,
+  "recordedSelectionsIncludingReuse": 245760,
+  "newApplicationExecutions": 0,
+  "localGAPrefixesMatched": 37750,
+  "rawCriterionRewardsIndependentlyRecomputed": true,
+  "everyPreUpdateProgressAndCheckpointVerified": true,
+  "priorSourceAndEvidenceHashesUnchanged": true
+}

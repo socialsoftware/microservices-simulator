@@ -1,0 +1,18 @@
+{
+  "reviewPasses": 3,
+  "initialFinding": "P2: items() also checked end(result), turning a changed in-command return into CHANGED_TRANSPORTED_COPY.",
+  "resolution": "Check only sagaConstruction metadata at begin; outbound/inbound projection validation retained.",
+  "regressionTest": "returning an intentionally changed in-command copy preserves existing coverage",
+  "before": "FAILED",
+  "after": "PASSED",
+  "finalFocusedTests": 57,
+  "failures": 0,
+  "errors": 0,
+  "skipped": 0,
+  "reviewVerdict": "No remaining blocking findings in the approved scope.",
+  "sourceHashes": {
+    "simulator/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/monitoring/copiedupdate/CopiedUpdateSession.java": "3c726af51753940294ffbb2276f1321480bfe82a4fa9806f90c6504447c19f42",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/LostCopiedUpdateAssessor.java": "590c252b486b06a01730c8db19cf22629c6b85f989fb0b4bf513bf575fc53fd4"
+  },
+  "finalReview": "Directed review of retransported in-command copies found no concrete false positive or remaining blocker."
+}

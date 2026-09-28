@@ -1,0 +1,285 @@
+{
+  "schema": "allocator-order-hybrid-followup.v1",
+  "status": "FROZEN_BEFORE_NEW_SEARCH_OUTCOMES",
+  "purpose": "Test combined hybrid plus type-level order context and sensitivity to one fixed user preference and the fixed search horizon.",
+  "collectionSource": "Exact workload identities from the hash-pinned preceding protocol; no workload is added, removed or selected by outcome.",
+  "collections": {
+    "three-saga": [
+      "2f62ebc8f98ecebfef9ba8b6d506ddaca2376d48a852a1eea9ab98af1a6ecc17",
+      "a603fd11d92f83fa04f9baa36a21658d3682eae22145e0a5ed3a575cf2805ccd",
+      "c099f2b1802793fdf4ed55fd5c45e3b8e410dcb51a90ab76e4765fa1ef99b173",
+      "dfc87108c9dcda1501b7689e23b5d72f9ddf61494508c9f7eaef1ea163abc542",
+      "02cf5305c1279a7ba1484e6da8766ef84c4ba8f6456254f10290faa5282cf834",
+      "0c3d4232347f0eb3ddf8c76b0fc865c3c8e2c8c8616f774613a053db147d3397",
+      "13810131c7b2856e3001d431ba87426c1c09b69ecc838ef7b2f8aae7e01e745a",
+      "902e4e9ad2c0d332501bda8fd1a990aa08fbd6eab93bd332ec9484db3a4fa98b",
+      "84664b24fd86c4cc3ab20d22bba7e09f0719d44d9734eebdbe2dd912f380ed74",
+      "60bf9a799c48fe0d99dafc85b706796aeb6129cc28629a000f996706f681b159",
+      "a308f424b252c1355a35baab75da17d728e4eddbcd14f549e0c64ba5e6278940",
+      "fe399af06dc303b6d816a836c5e87104724dcdb1ac6e893669bd36e548d9019a",
+      "9555c4645a94910cf48dc2459dd47eabee9fd532d561666e00113e4d9440fbdf",
+      "a381e2b36aafd81efdfde0e8bb19f1456d33ad744706aa5e4a45c71dde7686f8",
+      "caa50b65450382d4bdb9cde14f9546ad8ecf84adf304755ff578e1493dd81a51"
+    ],
+    "one-two-saga": [
+      "67a72159f5484054f5cbf5e4f555438aafbb72a9120057e13c7c9b3cefb6457e",
+      "7c26d665df5b33f0672bf9369d5687fa76cce5b35e5bf3f9cbe5a53dc91a8c85",
+      "806b968b0fe868da6804b3b18117c1e152003ba7a06242bddea2ce8d2d9f014a",
+      "0763c8495d7d457a14d226b986d83a54a1d431b2dcc8e690f3a35ac6fdd9f311",
+      "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324",
+      "3a99f1c3f0a46577174eaaaeb9e925f5cc372925837b17dbcf56b0651a8dc05d",
+      "6a2791eeb9c159a6e95b0db4fddb2d381bee42c023d64cb10c30d42835a247c4",
+      "2397cf5673db11a76a721f39f1c05f4146da56d9b3cdaf1adb3a71fe4ff49ea9",
+      "a73ca1b910a33c3dc1b124a88c799157246ecb4de91fc3bbf96de8bc1bac6808",
+      "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19",
+      "93abf85cf62ec80d204fd6cea1002a1175d3ea3c6542be184294095a8a36845f",
+      "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff",
+      "d1bebd79ca82f9e70f65bdd0c067e129aa8899fee5beb591cc947a6e7dfac2d7",
+      "e465b03fa9b26a1f974d1c46bc0024e121e7b20936ed575d44f0a039ffb8db6e",
+      "d965e34a99d9a9704efd9ce4c1571ff378afb5d0a2ef7837c281818ab046963d",
+      "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f",
+      "0705b39ad71b92ae23e9578e248cbc2601f7dfb38bea763bcdadc86242ef4cc4",
+      "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036",
+      "377f8726fe6f933146a1d678933eb1039c9dafbc9a976a8fd926ee12a18cacab",
+      "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e",
+      "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2",
+      "c8209081a67dbabf131f950f28a27166fd1dd6a4965fc8aa5ca9169610fde1f4",
+      "5736e1470f45125e336601410c97facb637c8cde5df4bcb6bce598b0bcda0843",
+      "4332768b3d7c05c59ffddc2cdee843be1142ca49a860c27cb3b1390dda8b1ed8",
+      "375a71fcf5f364122cd2630b31517426c09fdf1e1d709d061b5c191c49294dea",
+      "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94",
+      "43daecb06b9a74a660248bae4179802081dc5eecad2fc5f582732ae0fe282faa",
+      "1dc403f4facceacf0593664a93ba5282cdbb224b06c902c0ecac6904ccdbeeeb",
+      "c02ea4e2aa957451893c83f36530fedaf2bded9e316761fdb216913ce65714b5",
+      "d9fb3b5894d4a4cc7df9644b4c4b6887627ad118016f202d2099b8ae52670cfa",
+      "783024ced6398dc266c67d98d18677048872fbe0c78839e1d5260179a4f61ebf",
+      "ea782cdd59c27e105edaeb699330d4de6a7edcbdf3f7d8f81f6d5aa0e1f1012b",
+      "78a838a8690707dd7c2f468bdb6cbaf46cbe00edd1b5ca516577d48c9f65330e",
+      "9c4501ab67617a484ec4187781430ce1fd2158c8e176d9642de1734f0d3c30b3",
+      "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7",
+      "f305554eff3e14d8d924979b639972912688af5635458837a5d4a5b3e2e9e497",
+      "b82f81187951ee557ba4c69c0016bb79df3314d78a165d7f04a9f13c22a50071",
+      "9e4e1a4beda312b0b97222f6a67b822afcf17823751d8cdf2ce6b68d6fd07ff6",
+      "698896f60d3a2140e7c343f20cb1335ec00494acd139c921a1560b8257aabaf2",
+      "32e2c0d7024e821f3c6d6aeb147f36082c215061457bfc50c5a86b469e133b84",
+      "a91a653a65941763e18b2f89975441131edd8cc998e21e5a23c088a1ac146df4",
+      "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82",
+      "90a85adf74b3bd13feee57f945741a412f6e0615b701399eb3caebd3388d78a4",
+      "840ccecac5bc2c6923d04d7e7e4ee71fc4284017012dd86e452f309907d89683",
+      "e61b02dd89a8281e2a16a2626bfd018d1824790bce88f9449e4ecea4a93eee79",
+      "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da",
+      "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676",
+      "a6b0e8ca89cc4b0fb59c0d7d8a3cb59cd2345f955bf2591aa4c65a25fb927127",
+      "5ac65c4bcfbc2f91a8747e49b696f12ff2a4793ea9f44e485e52362c8486f727",
+      "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e",
+      "09870ac257900e8644893185a9a25330442bc058008e2edb5a85a54447a225f5",
+      "dd4d2d1e93bb345060fcc28733c02ef58a2f2ee99cdaa56d3115f4298f84e920",
+      "4eaa4bbc8f296c8b2bd9ae624d11e4c8a0b655c3b9123a037f2188121180bde9",
+      "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037",
+      "618787ae619d95f9bc22000e2ee413ad4f8f4e44bd44c15e4d8aa9007340b6dc",
+      "4766967faab25f8a909b9b97c45dfcbf79838ae86cf23457451fbc4e8a3e8347",
+      "20bd52195677ebaadb74b87fbaba8a76c0ae00e2ec87f10fab1909904b4da6e3",
+      "e0cb2936b956f969002c650e97f24122ed1216005b52fd750807b9f4988cbf07",
+      "aceceb6ce351a18e37be6a67971ddd9446c5e4d05ebb655bee58f6c337af8fe8",
+      "30a6109bf79e607b14682d1a5241c84339d7ce99cc45ae3b4ea5f6d104b2a27c",
+      "3d8d79c5d058b8a539089ca09da8020d531f51f6f19efa0f3caabc615cc851f7",
+      "a00c956cdae0f5288362e1b19d59970e5f332cd58cbe2e293cc15a1d041f9c08",
+      "e61e7630681dbfb09a48e991bcb6a6bba53cca4dfeb9471ba58cb38a5b1dde95",
+      "c2e3f0a617ca7e3547920a53c6e52801d83256bc40e46ab4e4a7ad7ecb28b4b8",
+      "afb1774f08a3ad5d59c64a767c5658179ff9088e4d7358403d2e08a292783221",
+      "95cf5833a03b6713b7f0784fadf42d042230112cb398787df8ea55240154d277"
+    ]
+  },
+  "collectionCounts": {
+    "three-saga": 15,
+    "one-two-saga": 66
+  },
+  "collectionRoles": {
+    "three-saga": "development: previously examined transfer target",
+    "one-two-saga": "confirmation of new comparisons: previously examined transfer source, not untouched data"
+  },
+  "profiles": {
+    "all-five": {
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 1,
+          "UNRESOLVED_DELIVERED_EVENT": 1,
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "LOST_COPIED_UPDATE": 1
+        }
+      },
+      "selection": "Unchanged profile from the preceding study."
+    },
+    "dependency-and-read": {
+      "fitness": {
+        "policy": "weighted-criteria-v2",
+        "weights": {
+          "DELETED_DEPENDENCY": 1,
+          "FAILED_OPERATION_RESIDUAL": 0,
+          "UNRESOLVED_DELIVERED_EVENT": 0,
+          "COMPENSATED_READ_EXPOSURE": 1,
+          "LOST_COPIED_UPDATE": 0
+        }
+      },
+      "selection": "Fixed before new searches from an explicit preference for dependency consistency and compensated-read exposure. The pair, unlike either component alone, has nonzero recorded support in both collections; no allocator outcome informed the choice."
+    }
+  },
+  "arms": [
+    "round-robin",
+    "uniform",
+    "independent",
+    "progress",
+    "structural",
+    "order",
+    "hybrid",
+    "hybrid-order"
+  ],
+  "reusedAllFiveArms": [
+    "round-robin",
+    "uniform",
+    "independent",
+    "progress",
+    "structural",
+    "order",
+    "hybrid"
+  ],
+  "freshRuns": {
+    "all-five": [
+      "hybrid-order"
+    ],
+    "dependency-and-read": [
+      "round-robin",
+      "uniform",
+      "independent",
+      "progress",
+      "structural",
+      "order",
+      "hybrid",
+      "hybrid-order"
+    ]
+  },
+  "budget": 256,
+  "checkpoints": [
+    16,
+    32,
+    64,
+    128,
+    256
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "primaryEndpoint": {
+    "attempt": 256,
+    "metric": "cumulative weighted impact",
+    "interpretation": "Primary endpoint fixed before searches. Earlier checkpoints are horizon-sensitivity evidence, not alternative endpoints."
+  },
+  "secondaryMetrics": [
+    "positive discoveries",
+    "complete curves at attempts 16, 32, 64, 128 and 256",
+    "unknown feedback count",
+    "selection and update bookkeeping time"
+  ],
+  "contrasts": [
+    [
+      "hybrid-order",
+      "hybrid"
+    ],
+    [
+      "hybrid-order",
+      "order"
+    ],
+    [
+      "hybrid-order",
+      "progress"
+    ],
+    [
+      "hybrid-order",
+      "independent"
+    ],
+    [
+      "order",
+      "structural"
+    ],
+    [
+      "hybrid",
+      "structural"
+    ],
+    [
+      "structural",
+      "progress"
+    ],
+    [
+      "independent",
+      "uniform"
+    ]
+  ],
+  "model": {
+    "hybrid-orderShared": "Original structural coordinates plus seven frozen type-level order coordinates; all progress coordinates excluded.",
+    "hybrid-orderPrivate": "The unchanged ProgressFeatureSpace, including its local bias, with separate parameters for each workload.",
+    "alpha": 1.0,
+    "ridge": 1.0,
+    "reference": "https://archives.iw3c2.org/www2010/_lihong/pub/Li10Contextual.pdf"
+  },
+  "search": {
+    "priorLearning": false,
+    "cooldown": false,
+    "population": 8,
+    "mutation": 0.3,
+    "exploration": "uniform-unseen",
+    "nullFeedback": "Consumes one global and local attempt, never enters the GA parent population, and does not update a policy model."
+  },
+  "analysis": {
+    "pairedUnit": "seed within profile and collection",
+    "interval": "deterministic 10000-draw paired bootstrap 95 percent interval",
+    "reporting": "Report mean differences and seed wins/ties/losses at every fixed checkpoint. Do not compare raw score magnitude across reward profiles and do not select a favorable checkpoint after observing outcomes."
+  },
+  "inputManifest": "docs/verifiers-impl/evidence/allocator-transfer-2026-09-21/inputs.json",
+  "inputManifestSha256": "2c953a38ce99d2cea485da8440a5fd064b987ca5f1f406c47934b35af308ce53",
+  "priorStudy": {
+    "protocol": "docs/verifiers-impl/evidence/allocator-order-hybrid-2026-09-21/protocol.json",
+    "protocolSha256": "70905c92bb95937766be1d377c396e08066ac19cc45f3041ec43f53a16ca4990",
+    "runRoot": "verifiers/target/allocator-order-hybrid-2026-09-21",
+    "reuseRows": 434,
+    "reuseAggregateSha256": "f2f01ec99249e4f861d44cd381638464734bf4a2cdf5281651d8c7c97855095f",
+    "evidenceSha256": {
+      "order-inputs.json": "d9736c982af94f5f9c081a326b90b2242692b3375e751afbe2a468fe8050d30a",
+      "completion.json": "d234c86fb17abd1809c2d4ba4283dfe8a1b9075835a48b57a773869bb3c530a6",
+      "verification.json": "dfe58e4bd66963d7899f2db7ceedfef81a53b7d6b2331e14be20adf533ed9c68"
+    },
+    "reuseRule": "Read-only reference after protocol, identity, receipt, trace and aggregate-hash verification; no trace is copied or rerun."
+  },
+  "newOutput": "verifiers/target/allocator-order-hybrid-followup-2026-09-21",
+  "evidence": "docs/verifiers-impl/evidence/allocator-order-hybrid-followup-2026-09-21"
+}

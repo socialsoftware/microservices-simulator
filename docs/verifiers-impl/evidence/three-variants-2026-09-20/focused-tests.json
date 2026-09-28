@@ -1,0 +1,17 @@
+[
+  {
+    "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/surefire-reports/pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitorSpec.txt",
+    "sha256": "e9eeba2844453526f6786924b4ff5a5497a34c4aafd46ef396b8e8ad67af0198",
+    "summary": "Tests run: 23, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.241 s -- in pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.CommandHandlerVisitorSpec"
+  },
+  {
+    "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/surefire-reports/pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorDummyappSpec.txt",
+    "sha256": "b164377f2ce70e25299b7ca85ae6da022f662e94b6e006cc05a98974c535362f",
+    "summary": "Tests run: 34, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 9.451 s -- in pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorDummyappSpec"
+  },
+  {
+    "report": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/surefire-reports/pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorSpec.txt",
+    "sha256": "82c5d24e79f1590d405c25715089f95f9c3e17362bfbd08d7adde3d417d62b11",
+    "summary": "Tests run: 18, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 2.725 s -- in pt.ulisboa.tecnico.socialsoftware.ms.verifiers.faults.visitor.GroovyConstructorInputTraceVisitorSpec"
+  }
+]

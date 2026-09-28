@@ -1,0 +1,63 @@
+{
+  "mode": "OFFLINE_REASSESSMENT_NOT_A_NEW_SEARCH",
+  "attempts": 3000,
+  "residualPolicy": "exclusive-observed-fields-v2",
+  "originalReportHashesVerified": 18000,
+  "oldCompleteScoresChanged": 0,
+  "otherPersistentCategoriesChanged": 0,
+  "newCompleteScores": 387,
+  "newCompleteResiduals": 425,
+  "arms": [
+    {
+      "arm": "ga-seed-11",
+      "oldUnavailable": 103,
+      "newUnavailable": 27,
+      "newPositive": 330,
+      "newZero": 143
+    },
+    {
+      "arm": "ga-seed-29",
+      "oldUnavailable": 79,
+      "newUnavailable": 29,
+      "newPositive": 322,
+      "newZero": 149
+    },
+    {
+      "arm": "ga-seed-47",
+      "oldUnavailable": 75,
+      "newUnavailable": 23,
+      "newPositive": 355,
+      "newZero": 122
+    },
+    {
+      "arm": "random-seed-11",
+      "oldUnavailable": 95,
+      "newUnavailable": 24,
+      "newPositive": 255,
+      "newZero": 221
+    },
+    {
+      "arm": "random-seed-29",
+      "oldUnavailable": 105,
+      "newUnavailable": 41,
+      "newPositive": 233,
+      "newZero": 226
+    },
+    {
+      "arm": "random-seed-47",
+      "oldUnavailable": 108,
+      "newUnavailable": 34,
+      "newPositive": 249,
+      "newZero": 217
+    }
+  ],
+  "remainingResidualReasons": {
+    "COMPETING_LIFECYCLE_CHANGE": 64
+  },
+  "newUnavailable": 178,
+  "sources": {
+    "verifiers/experiments/recovered-creation-remnants/Reassess.java": "47096f2188c7196e57a1b3c731143a235b99cab4116cbe3862aa043def8542ef",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ImpactV2Assessor.java": "d5e50f0e1665e402c36f61fa6a96a97a1c96041ecc2c47c09dee7184136dafd4",
+    "verifiers/src/main/java/pt/ulisboa/tecnico/socialsoftware/ms/verifiers/faults/executor/ImpactV2EvidenceReport.java": "d44708c047b9c665e3fe5e48325f070756aff0aab4a354298a5f2e1732730889"
+  }
+}

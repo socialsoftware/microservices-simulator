@@ -1,0 +1,7 @@
+# Raw data and rendered figures stay outside git; see ARCHIVED.md.
+*.gz
+*.jsonl
+*.png
+*.pdf
+*.svg
+*/tests/*.xml

@@ -1,0 +1,227 @@
+{
+  "selection": "All nine admitted complete maps from the three verified diversity inventories; no outcome-based filtering. Reject non-admitted controls.",
+  "profiles": [
+    "all five unit weights",
+    "deleted dependencies only"
+  ],
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "budgets": [
+    30,
+    60,
+    120,
+    189
+  ],
+  "policies": [
+    "balanced",
+    "uniform-workload",
+    "noncontextual-adaptive",
+    "contextual"
+  ],
+  "purpose": "Bounded initial engineering and allocation evaluation, not generalisation to all Quizzes workloads. Do not tune policies on these results.",
+  "rows": [
+    {
+      "name": "diversity-03",
+      "workload": "894fecc295e0aea0337f46370e60e10d8c0a4dd4ef3fe8bc8d103fea0ea0b99c",
+      "sagas": [
+        "AnonymizeStudentFunctionalitySagas",
+        "GetCourseExecutionByIdFunctionalitySagas",
+        "RemoveStudentFromCourseExecutionFunctionalitySagas"
+      ],
+      "candidates": 36,
+      "positive": 0,
+      "zero": 36,
+      "unavailable": 0,
+      "score": 0.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-03/combined-reference.json",
+      "referenceSha256": "c944770c0cccafc91497520344fe0602903125db0c2813d70c4af7567de9f518",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/final-diversity-verification-summary.json",
+      "inventorySha256": "38a6b333d560626b135a4c103bb1b7626bc3861e2fc1d2d713d38e4f2959ee29"
+    },
+    {
+      "name": "diversity-04",
+      "workload": "b7547fba9da3acb6db5a21c91630c7065ff2a1613ae3b6762678d0862ff5eb47",
+      "sagas": [
+        "UpdateStudentNameFunctionalitySagas",
+        "AddParticipantFunctionalitySagas",
+        "FindTournamentFunctionalitySagas"
+      ],
+      "candidates": 12,
+      "positive": 0,
+      "zero": 12,
+      "unavailable": 0,
+      "score": 0.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-04/combined-reference.json",
+      "referenceSha256": "dc51d37d7651d17bc218546c959a27f28a3d1d56019f0b6f175433a72c154061",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/final-diversity-verification-summary.json",
+      "inventorySha256": "38a6b333d560626b135a4c103bb1b7626bc3861e2fc1d2d713d38e4f2959ee29"
+    },
+    {
+      "name": "diversity-05",
+      "workload": "b120c708f91a669ae494010f1dd89f8cea006235fef20ce080a1a8f6464f1c19",
+      "sagas": [
+        "AnonymizeStudentFunctionalitySagas",
+        "AddParticipantFunctionalitySagas"
+      ],
+      "candidates": 14,
+      "positive": 0,
+      "zero": 14,
+      "unavailable": 0,
+      "score": 0.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-05/combined-reference.json",
+      "referenceSha256": "0e71302f3a9f3fcc5350568f78c175a0920ad956710f5a95025cc06a408dd1cd",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/final-diversity-verification-summary.json",
+      "inventorySha256": "38a6b333d560626b135a4c103bb1b7626bc3861e2fc1d2d713d38e4f2959ee29"
+    },
+    {
+      "name": "diversity-07",
+      "workload": "80035030dbe47e1698ad58cca614aa78c0b61822e0f87366aa6910d8eb91c7f8",
+      "sagas": [
+        "AddStudentFunctionalitySagas",
+        "UpdateStudentNameFunctionalitySagas"
+      ],
+      "candidates": 6,
+      "positive": 0,
+      "zero": 6,
+      "unavailable": 0,
+      "score": 0.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-07/combined-reference.json",
+      "referenceSha256": "a716da580d7ff5554343b2cc13db334228b2e73dda2dcab9c8269b38845812ed",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/final-diversity-verification-summary.json",
+      "inventorySha256": "38a6b333d560626b135a4c103bb1b7626bc3861e2fc1d2d713d38e4f2959ee29"
+    },
+    {
+      "name": "diversity-08",
+      "workload": "00b13b9fff688e5ad5de966f01e0fce8893522fa1bf6ea60e27a1d65ed23db4f",
+      "sagas": [
+        "GetCourseExecutionByIdFunctionalitySagas",
+        "UpdateStudentNameFunctionalitySagas",
+        "AddParticipantFunctionalitySagas"
+      ],
+      "candidates": 12,
+      "positive": 0,
+      "zero": 12,
+      "unavailable": 0,
+      "score": 0.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-final-diversity-2026-09-20/diversity-08/combined-reference.json",
+      "referenceSha256": "1501940b78a42f0fac86804f02ff79146da7f611014bce8133da5ad158660fc5",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/final-diversity-verification-summary.json",
+      "inventorySha256": "38a6b333d560626b135a4c103bb1b7626bc3861e2fc1d2d713d38e4f2959ee29"
+    },
+    {
+      "name": "late-04",
+      "workload": "a98059ab10b580a559ab1c12d057013090bd2b5b0c55df3f109ae570cab891e4",
+      "sagas": [
+        "RemoveCourseExecutionFunctionalitySagas"
+      ],
+      "candidates": 4,
+      "positive": 1,
+      "zero": 3,
+      "unavailable": 0,
+      "score": 1.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-04/combined-reference.json",
+      "referenceSha256": "5d42b61f4387b240631739f69338129acb20df7ae6190e7fd3ff3551c928cc6e",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/late-diversity-verification-summary.json",
+      "inventorySha256": "c2e7b06a7472a7ea5e7177c03250936fb5f65b41851f27220725b4edf603356b"
+    },
+    {
+      "name": "late-02",
+      "workload": "ac14e6f61404afbd4fdd342b0206513366e5496fe56b847d7d2fafe8c913075c",
+      "sagas": [
+        "FindTournamentFunctionalitySagas",
+        "RemoveTournamentFunctionalitySagas"
+      ],
+      "candidates": 8,
+      "positive": 2,
+      "zero": 6,
+      "unavailable": 0,
+      "score": 4.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-late-diversity-2026-09-20/late-02/combined-reference.json",
+      "referenceSha256": "fcb513bb20919818e5a88fd385d2c439bfcb4eda62ed8bd7c855400b8a013696",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/late-diversity-verification-summary.json",
+      "inventorySha256": "c2e7b06a7472a7ea5e7177c03250936fb5f65b41851f27220725b4edf603356b"
+    },
+    {
+      "name": "recovery-late-event",
+      "workload": "1d79a9a1d6e26450402beba2893ef1c1d4a11935614df6034f371407a5aa3c87",
+      "sagas": [
+        "UpdateTopicFunctionalitySagas",
+        "UpdateTournamentFunctionalitySagas"
+      ],
+      "candidates": 62,
+      "positive": 20,
+      "zero": 26,
+      "unavailable": 16,
+      "score": 20.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/recovery-late-event/combined-reference.json",
+      "referenceSha256": "2fd6ce7052376d5f2e1fa19bf0d703be78b856f064c41eb8ce646a80bb8065c4",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/topic-orders-verification-summary.json",
+      "inventorySha256": "5e31cc8f60d436928018b57c42d4d95a8a36fa67ce53f1dc37ed0a411a403b45"
+    },
+    {
+      "name": "no-event",
+      "workload": "4d36f10b68efc977d9495444fdf2f181b1df64b788d474c897b0e98f33ab2f7e",
+      "sagas": [
+        "UpdateTopicFunctionalitySagas",
+        "UpdateTournamentFunctionalitySagas"
+      ],
+      "candidates": 35,
+      "positive": 15,
+      "zero": 20,
+      "unavailable": 0,
+      "score": 15.0,
+      "config": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/config.json",
+      "catalogue": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/catalogue",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/verifiers/target/cluster-topic-orders-2026-09-20/no-event/combined-reference.json",
+      "referenceSha256": "b69e26bdbc5a48ff008626f4497fa3a4e440d4512f31545284b6fd3fd03102b8",
+      "inventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-proteina01-2026-09-20/verified/topic-orders-verification-summary.json",
+      "inventorySha256": "5e31cc8f60d436928018b57c42d4d95a8a36fa67ce53f1dc37ed0a411a403b45"
+    }
+  ]
+}

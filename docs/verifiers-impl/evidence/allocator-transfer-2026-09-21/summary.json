@@ -1,0 +1,705 @@
+{
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "trainingBudget": 132,
+  "targetBudget": 256,
+  "targetRuns": 120,
+  "trainingPrefixes": 30,
+  "recordedSelections": 34680,
+  "applicationExecutions": 0,
+  "arms": {
+    "structural-warm": {
+      "positives": {
+        "mean": 138.1,
+        "p10": 120.8,
+        "p90": 156.0,
+        "min": 106.0,
+        "max": 157.0
+      },
+      "score": {
+        "mean": 162.5,
+        "p10": 135.6,
+        "p90": 182.1,
+        "min": 127.0,
+        "max": 184.0
+      },
+      "checkpoints": {
+        "16": {
+          "positiveDiscoveries": {
+            "mean": 6.933333333333334,
+            "p10": 3.9000000000000004,
+            "p90": 12.0,
+            "min": 2.0,
+            "max": 13.0
+          },
+          "cumulativeScore": {
+            "mean": 8.033333333333333,
+            "p10": 3.9000000000000004,
+            "p90": 14.0,
+            "min": 2.0,
+            "max": 16.0
+          }
+        },
+        "32": {
+          "positiveDiscoveries": {
+            "mean": 15.566666666666666,
+            "p10": 9.9,
+            "p90": 21.0,
+            "min": 7.0,
+            "max": 26.0
+          },
+          "cumulativeScore": {
+            "mean": 18.233333333333334,
+            "p10": 11.0,
+            "p90": 25.1,
+            "min": 7.0,
+            "max": 33.0
+          }
+        },
+        "64": {
+          "positiveDiscoveries": {
+            "mean": 31.533333333333335,
+            "p10": 19.9,
+            "p90": 42.2,
+            "min": 17.0,
+            "max": 45.0
+          },
+          "cumulativeScore": {
+            "mean": 37.86666666666667,
+            "p10": 21.0,
+            "p90": 53.2,
+            "min": 17.0,
+            "max": 58.0
+          }
+        },
+        "128": {
+          "positiveDiscoveries": {
+            "mean": 61.9,
+            "p10": 37.9,
+            "p90": 76.2,
+            "min": 35.0,
+            "max": 88.0
+          },
+          "cumulativeScore": {
+            "mean": 73.3,
+            "p10": 45.6,
+            "p90": 91.2,
+            "min": 39.0,
+            "max": 113.0
+          }
+        },
+        "256": {
+          "positiveDiscoveries": {
+            "mean": 138.1,
+            "p10": 120.8,
+            "p90": 156.0,
+            "min": 106.0,
+            "max": 157.0
+          },
+          "cumulativeScore": {
+            "mean": 162.5,
+            "p10": 135.6,
+            "p90": 182.1,
+            "min": 127.0,
+            "max": 184.0
+          }
+        }
+      }
+    },
+    "structural-cold": {
+      "positives": {
+        "mean": 144.73333333333332,
+        "p10": 130.0,
+        "p90": 155.5,
+        "min": 121.0,
+        "max": 163.0
+      },
+      "score": {
+        "mean": 171.36666666666667,
+        "p10": 149.6,
+        "p90": 192.4,
+        "min": 132.0,
+        "max": 202.0
+      },
+      "checkpoints": {
+        "16": {
+          "positiveDiscoveries": {
+            "mean": 5.266666666666667,
+            "p10": 1.9000000000000004,
+            "p90": 8.0,
+            "min": 0.0,
+            "max": 9.0
+          },
+          "cumulativeScore": {
+            "mean": 6.166666666666667,
+            "p10": 1.9000000000000004,
+            "p90": 11.0,
+            "min": 0.0,
+            "max": 11.0
+          }
+        },
+        "32": {
+          "positiveDiscoveries": {
+            "mean": 13.333333333333334,
+            "p10": 7.9,
+            "p90": 18.0,
+            "min": 6.0,
+            "max": 19.0
+          },
+          "cumulativeScore": {
+            "mean": 15.666666666666666,
+            "p10": 8.8,
+            "p90": 21.1,
+            "min": 6.0,
+            "max": 25.0
+          }
+        },
+        "64": {
+          "positiveDiscoveries": {
+            "mean": 32.13333333333333,
+            "p10": 25.0,
+            "p90": 39.0,
+            "min": 21.0,
+            "max": 41.0
+          },
+          "cumulativeScore": {
+            "mean": 39.1,
+            "p10": 28.8,
+            "p90": 47.2,
+            "min": 23.0,
+            "max": 51.0
+          }
+        },
+        "128": {
+          "positiveDiscoveries": {
+            "mean": 67.56666666666666,
+            "p10": 60.9,
+            "p90": 79.1,
+            "min": 42.0,
+            "max": 85.0
+          },
+          "cumulativeScore": {
+            "mean": 81.7,
+            "p10": 69.9,
+            "p90": 92.4,
+            "min": 52.0,
+            "max": 113.0
+          }
+        },
+        "256": {
+          "positiveDiscoveries": {
+            "mean": 144.73333333333332,
+            "p10": 130.0,
+            "p90": 155.5,
+            "min": 121.0,
+            "max": 163.0
+          },
+          "cumulativeScore": {
+            "mean": 171.36666666666667,
+            "p10": 149.6,
+            "p90": 192.4,
+            "min": 132.0,
+            "max": 202.0
+          }
+        }
+      }
+    },
+    "progress-warm": {
+      "positives": {
+        "mean": 146.76666666666668,
+        "p10": 123.8,
+        "p90": 159.0,
+        "min": 115.0,
+        "max": 162.0
+      },
+      "score": {
+        "mean": 171.8,
+        "p10": 150.1,
+        "p90": 186.1,
+        "min": 135.0,
+        "max": 190.0
+      },
+      "checkpoints": {
+        "16": {
+          "positiveDiscoveries": {
+            "mean": 10.366666666666667,
+            "p10": 7.0,
+            "p90": 13.0,
+            "min": 7.0,
+            "max": 14.0
+          },
+          "cumulativeScore": {
+            "mean": 12.133333333333333,
+            "p10": 8.0,
+            "p90": 15.100000000000001,
+            "min": 7.0,
+            "max": 18.0
+          }
+        },
+        "32": {
+          "positiveDiscoveries": {
+            "mean": 21.066666666666666,
+            "p10": 16.9,
+            "p90": 24.0,
+            "min": 10.0,
+            "max": 25.0
+          },
+          "cumulativeScore": {
+            "mean": 25.833333333333332,
+            "p10": 20.0,
+            "p90": 31.0,
+            "min": 10.0,
+            "max": 32.0
+          }
+        },
+        "64": {
+          "positiveDiscoveries": {
+            "mean": 40.266666666666666,
+            "p10": 36.0,
+            "p90": 44.1,
+            "min": 31.0,
+            "max": 49.0
+          },
+          "cumulativeScore": {
+            "mean": 50.266666666666666,
+            "p10": 46.0,
+            "p90": 55.0,
+            "min": 33.0,
+            "max": 56.0
+          }
+        },
+        "128": {
+          "positiveDiscoveries": {
+            "mean": 72.33333333333333,
+            "p10": 66.9,
+            "p90": 80.4,
+            "min": 66.0,
+            "max": 89.0
+          },
+          "cumulativeScore": {
+            "mean": 86.46666666666667,
+            "p10": 80.9,
+            "p90": 96.2,
+            "min": 80.0,
+            "max": 102.0
+          }
+        },
+        "256": {
+          "positiveDiscoveries": {
+            "mean": 146.76666666666668,
+            "p10": 123.8,
+            "p90": 159.0,
+            "min": 115.0,
+            "max": 162.0
+          },
+          "cumulativeScore": {
+            "mean": 171.8,
+            "p10": 150.1,
+            "p90": 186.1,
+            "min": 135.0,
+            "max": 190.0
+          }
+        }
+      }
+    },
+    "progress-cold": {
+      "positives": {
+        "mean": 150.2,
+        "p10": 142.4,
+        "p90": 157.2,
+        "min": 133.0,
+        "max": 159.0
+      },
+      "score": {
+        "mean": 175.36666666666667,
+        "p10": 164.7,
+        "p90": 183.1,
+        "min": 151.0,
+        "max": 186.0
+      },
+      "checkpoints": {
+        "16": {
+          "positiveDiscoveries": {
+            "mean": 8.833333333333334,
+            "p10": 5.9,
+            "p90": 12.0,
+            "min": 5.0,
+            "max": 14.0
+          },
+          "cumulativeScore": {
+            "mean": 10.466666666666667,
+            "p10": 6.9,
+            "p90": 15.0,
+            "min": 5.0,
+            "max": 18.0
+          }
+        },
+        "32": {
+          "positiveDiscoveries": {
+            "mean": 17.833333333333332,
+            "p10": 11.0,
+            "p90": 23.0,
+            "min": 5.0,
+            "max": 25.0
+          },
+          "cumulativeScore": {
+            "mean": 21.7,
+            "p10": 13.0,
+            "p90": 29.1,
+            "min": 5.0,
+            "max": 33.0
+          }
+        },
+        "64": {
+          "positiveDiscoveries": {
+            "mean": 37.0,
+            "p10": 30.0,
+            "p90": 42.1,
+            "min": 17.0,
+            "max": 46.0
+          },
+          "cumulativeScore": {
+            "mean": 45.53333333333333,
+            "p10": 35.8,
+            "p90": 52.1,
+            "min": 17.0,
+            "max": 56.0
+          }
+        },
+        "128": {
+          "positiveDiscoveries": {
+            "mean": 71.23333333333333,
+            "p10": 65.8,
+            "p90": 82.30000000000001,
+            "min": 55.0,
+            "max": 89.0
+          },
+          "cumulativeScore": {
+            "mean": 84.7,
+            "p10": 79.8,
+            "p90": 96.30000000000001,
+            "min": 65.0,
+            "max": 102.0
+          }
+        },
+        "256": {
+          "positiveDiscoveries": {
+            "mean": 150.2,
+            "p10": 142.4,
+            "p90": 157.2,
+            "min": 133.0,
+            "max": 159.0
+          },
+          "cumulativeScore": {
+            "mean": 175.36666666666667,
+            "p10": 164.7,
+            "p90": 183.1,
+            "min": 151.0,
+            "max": 186.0
+          }
+        }
+      }
+    }
+  },
+  "pairedWarmMinusCold": {
+    "structural": {
+      "positives": {
+        "mean": -6.633333333333334,
+        "p10": -30.699999999999996,
+        "p90": 10.300000000000004,
+        "min": -46.0,
+        "max": 23.0,
+        "mean95PercentBootstrapInterval": [
+          -12.966666666666667,
+          -0.7333333333333333
+        ],
+        "wins": 15,
+        "ties": 0,
+        "losses": 15
+      },
+      "score": {
+        "mean": -8.866666666666667,
+        "p10": -40.1,
+        "p90": 9.600000000000009,
+        "min": -60.0,
+        "max": 34.0,
+        "mean95PercentBootstrapInterval": [
+          -16.8,
+          -1.2
+        ],
+        "wins": 15,
+        "ties": 0,
+        "losses": 15
+      }
+    },
+    "progress": {
+      "positives": {
+        "mean": -3.433333333333333,
+        "p10": -24.799999999999997,
+        "p90": 11.0,
+        "min": -40.0,
+        "max": 17.0,
+        "mean95PercentBootstrapInterval": [
+          -8.4,
+          1.2333333333333334
+        ],
+        "wins": 14,
+        "ties": 2,
+        "losses": 14
+      },
+      "score": {
+        "mean": -3.566666666666667,
+        "p10": -21.89999999999999,
+        "p90": 12.0,
+        "min": -40.0,
+        "max": 22.0,
+        "mean95PercentBootstrapInterval": [
+          -9.033333333333333,
+          1.5333333333333334
+        ],
+        "wins": 14,
+        "ties": 2,
+        "losses": 14
+      }
+    }
+  },
+  "differenceInTransferBenefitsStructuralMinusProgress": {
+    "positives": {
+      "mean": -3.2,
+      "p10": -30.1,
+      "p90": 14.70000000000001,
+      "min": -44.0,
+      "max": 63.0,
+      "mean95PercentBootstrapInterval": [
+        -10.633333333333333,
+        4.6
+      ],
+      "wins": 15,
+      "ties": 0,
+      "losses": 15
+    },
+    "score": {
+      "mean": -5.3,
+      "p10": -46.2,
+      "p90": 19.1,
+      "min": -50.0,
+      "max": 73.0,
+      "mean95PercentBootstrapInterval": [
+        -14.633333333333333,
+        3.967499999999988
+      ],
+      "wins": 15,
+      "ties": 0,
+      "losses": 15
+    }
+  },
+  "initialTopFamily": {
+    "structural-warm": {
+      "AddParticipant + FindTournament + UpdateTournament": 24,
+      "AddParticipant + FindTournament + UpdateStudentName": 5,
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 1
+    },
+    "structural-cold": {
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": 30
+    },
+    "progress-warm": {
+      "AddParticipant + FindTournament + UpdateTournament": 30
+    },
+    "progress-cold": {
+      "AddParticipant + FindTournament + UpdateTournament": 30
+    }
+  },
+  "targetAllocationsByFamily": {
+    "structural-warm": {
+      "AddParticipant + FindTournament + UpdateStudentName": {
+        "mean": 3.1666666666666665,
+        "p10": 1.0,
+        "p90": 6.0,
+        "min": 1.0,
+        "max": 8.0
+      },
+      "AddParticipant + FindTournament + UpdateTournament": {
+        "mean": 246.66666666666666,
+        "p10": 235.8,
+        "p90": 253.0,
+        "min": 233.0,
+        "max": 253.0
+      },
+      "AddParticipant + GetCourseExecutionById + UpdateStudentName": {
+        "mean": 2.3666666666666667,
+        "p10": 1.0,
+        "p90": 5.0,
+        "min": 1.0,
+        "max": 6.0
+      },
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": {
+        "mean": 3.8,
+        "p10": 1.0,
+        "p90": 9.0,
+        "min": 1.0,
+        "max": 10.0
+      }
+    },
+    "structural-cold": {
+      "AddParticipant + FindTournament + UpdateStudentName": {
+        "mean": 3.6666666666666665,
+        "p10": 2.0,
+        "p90": 5.100000000000001,
+        "min": 2.0,
+        "max": 7.0
+      },
+      "AddParticipant + FindTournament + UpdateTournament": {
+        "mean": 245.96666666666667,
+        "p10": 241.9,
+        "p90": 251.0,
+        "min": 237.0,
+        "max": 251.0
+      },
+      "AddParticipant + GetCourseExecutionById + UpdateStudentName": {
+        "mean": 2.2333333333333334,
+        "p10": 1.0,
+        "p90": 3.0,
+        "min": 1.0,
+        "max": 4.0
+      },
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": {
+        "mean": 4.133333333333334,
+        "p10": 2.0,
+        "p90": 6.0,
+        "min": 2.0,
+        "max": 8.0
+      }
+    },
+    "progress-warm": {
+      "AddParticipant + FindTournament + UpdateStudentName": {
+        "mean": 0.6666666666666666,
+        "p10": 0.0,
+        "p90": 2.0,
+        "min": 0.0,
+        "max": 2.0
+      },
+      "AddParticipant + FindTournament + UpdateTournament": {
+        "mean": 254.73333333333332,
+        "p10": 252.0,
+        "p90": 256.0,
+        "min": 252.0,
+        "max": 256.0
+      },
+      "AddParticipant + GetCourseExecutionById + UpdateStudentName": {
+        "mean": 0.3333333333333333,
+        "p10": 0.0,
+        "p90": 1.0,
+        "min": 0.0,
+        "max": 1.0
+      },
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": {
+        "mean": 0.26666666666666666,
+        "p10": 0.0,
+        "p90": 1.0,
+        "min": 0.0,
+        "max": 1.0
+      }
+    },
+    "progress-cold": {
+      "AddParticipant + FindTournament + UpdateStudentName": {
+        "mean": 3.3333333333333335,
+        "p10": 0.0,
+        "p90": 7.100000000000001,
+        "min": 0.0,
+        "max": 14.0
+      },
+      "AddParticipant + FindTournament + UpdateTournament": {
+        "mean": 251.26666666666668,
+        "p10": 245.9,
+        "p90": 256.0,
+        "min": 235.0,
+        "max": 256.0
+      },
+      "AddParticipant + GetCourseExecutionById + UpdateStudentName": {
+        "mean": 0.7,
+        "p10": 0.0,
+        "p90": 2.0,
+        "min": 0.0,
+        "max": 3.0
+      },
+      "AnonymizeStudent + GetCourseExecutionById + RemoveStudentFromCourseExecution": {
+        "mean": 0.7,
+        "p10": 0.0,
+        "p90": 2.0,
+        "min": 0.0,
+        "max": 4.0
+      }
+    }
+  },
+  "trainingPositives": {
+    "mean": 8.433333333333334,
+    "p10": 6.0,
+    "p90": 12.100000000000001,
+    "min": 4.0,
+    "max": 13.0
+  },
+  "bootstrap": "10,000 paired seed resamples, RNG seed 20260921; intervals describe seed variability conditional on this fixed split",
+  "sourceHashes": {
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-01.json": "ab1a62d149c80e1685085f76fb4780ee83640ae71bf11fff89b7c2bfd250d3e8",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-02.json": "a1593031551029f66367916cb23fb55553ad96f2fa0e75cee340d8715b5a6d12",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-03.json": "f7f5885c07778ff73fce067432bb6dcacac0d30251b9f003ff963baef372e6d1",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-04.json": "83ad8071053bb2f31287337e3b566ca7f058361de22ba8ad34e1decbf6527450",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-05.json": "7f89ef3375150330dd3373af43349e2848f987f601d6f034fa0925e5777e1c10",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-06.json": "e0fbd9e7ee0fa6906c633539cc978747ab17a865acb19482b577f89331b06941",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-07.json": "abc877063d8b1fd29eb758a79b32ef9994d2d33e466d00ee792a9a875db38a96",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-08.json": "728573c5fb61d0ddc2a048f65a288360ccd20620c5b24ef3e757499a256e5354",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-09.json": "d43916b43e15cc839291fb7bb3fb431c6060774c2baaa022c68709dc21d0f083",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-10.json": "49d4fb0c58ed89d462f5f3621caad53d723f2f82deee9bf03bba569578753c4e",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-11.json": "ff89005bf52fe2c590e1a0108a543196beba551f559ac29e75f509ff768b5fc4",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-12.json": "2369d5c2644f695835897e40d1bed04c98b58e7e251703e32a7ec073a66bda53",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-13.json": "7181ca0f3661cc651c2dcbce71af650f31f725d875a6964ef5b2feabbe0ec781",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-14.json": "e390e619f6d994a3e52723c4dff33a660228c678fb513fa47f048c4f0e6a2ed8",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-15.json": "a461e2caa90aafa88f0f0a5195b8a5bf7308f71e592ee0da5b8186fd76b4a6b9",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-16.json": "cc366600f7074768d5a76ae48dc1886674e8fbaf38568c2e84e855fe3b6ce24d",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-17.json": "c094d9b75459b7e8fad549626137b98179d3938ff43581f4eb2682c7b6d78ab3",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-18.json": "329c4ad76ad26a54685f7b5851c875f232541107a3a9da2b8b263db05209eae1",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-19.json": "4b0c240372991af32487317304a768e25f6164ce186b928846a8e8b3059a5dba",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-20.json": "438fe186117d0cd67dc82f3590b31b1bf74471180cf80a40f2d5add4cc7d5129",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-21.json": "cdcc584786f231d713c2a246fe26c5d157ca1e5930b5db8dfc91314d6288e06a",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-22.json": "a39f131d6ac4414f1286ebf6b2fb8ce499fc4b8b285a7d4aa084b5db4e72b6c7",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-23.json": "6e4daf94b0166e9da62263a780f969ff9035d23c1547db93f1783c26b5f73871",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-24.json": "cc4d59e0e2dfcd98ffdd1c0c1aa408f001fef3f7828d8958055327640719e0e5",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-25.json": "238ccf53cc3cd4816ebe2ee5b4938e139461e8459866d28200e249e2d3080ed2",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-26.json": "e291907e4770b13ec772410c31a96a6bf9f5c7ada852be90b3b537aad348e4c1",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-27.json": "b05c3108745cce4859eb783fc54f985cd750773e37c53e886b2c6d0cdfba9c4b",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-28.json": "67c9aed4fabcf38b979a6e8c8265462e66a861bc3932df970b2d72c7954ac304",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-29.json": "5bfb2788ecdd57ba4a39d46769108966d01f1f386f426cf9eccf595fa0a660cc",
+    "verifiers/target/allocator-transfer-2026-09-21/runs/seed-30.json": "6f0b43ed16fb72186339a27e6b96809a787a7ec9816a5ce894292e25602bedd7"
+  },
+  "protocolSha256": "3c01ce4e1c37322f905964bfd728f82c57cdc9cda99e61c69b0636da0f48f694"
+}

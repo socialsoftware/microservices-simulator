@@ -1,0 +1,9 @@
+{
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/batch-execution/run.py": "725daf5462d2478e24d55204f09e6fb520bb8cf16dab8143f78d9667fd7e4bb1",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/compression-preservation/analyze.py": "3f2ac86b800466abcb07759296d281d8bd8f46319884f3a6c7b8f65f2e785940",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/compression-preservation/run.py": "899c904170b30e8759232d16aad4fc2acd42c722b5daaaa36ecf418c9b484fa6",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/impact-v2-broader/qualification.py": "e4ab4c51bcbf28456830181a1b6892835c456ef6c46438fda781209ac91d1bec",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/compression-preservation-2026-09-18/run/runtime.json": "7dbf2fe1e594854c6516e083856e2726926cc758f330fce5d67b0a77346635f4"
+}

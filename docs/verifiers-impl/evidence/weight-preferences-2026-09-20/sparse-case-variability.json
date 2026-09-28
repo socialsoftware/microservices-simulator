@@ -1,0 +1,36 @@
+{
+  "ga": {
+    "evaluationsTo80Percent": {
+      "mean": 1822.1,
+      "median": 1774.5,
+      "p10": 1611.1,
+      "p90": 2079.5
+    },
+    "positivesAt1000": {
+      "mean": 90.06666666666666,
+      "median": 91.5,
+      "p10": 82.9,
+      "p90": 97.1
+    }
+  },
+  "random": {
+    "evaluationsTo80Percent": {
+      "mean": 2671.4,
+      "median": 2674.0,
+      "p10": 2546.3,
+      "p90": 2767.1
+    },
+    "positivesAt1000": {
+      "mean": 44.46666666666667,
+      "median": 44.0,
+      "p10": 37.8,
+      "p90": 52.0
+    }
+  },
+  "pairedSeeds": {
+    "gaEarlierTo80Percent": 30,
+    "ties": 0,
+    "randomEarlier": 0
+  },
+  "meanExecutionBudgetReductionTo80Percent": 0.317923186344239
+}

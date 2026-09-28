@@ -1,0 +1,17 @@
+{
+  "status": "COMPLETE",
+  "targetSearches": 120,
+  "seeds": 30,
+  "trainingPrefixes": 30,
+  "recordedSelections": 34680,
+  "applicationExecutions": 0,
+  "tests": 115,
+  "independentReview": "PASS",
+  "sourceHashes": {
+    "verifiers/experiments/allocator-transfer/inputs.py": "56bd38b724d5f057e8f9b9dae33a6ff56ae13adcdbcef195c2d086e1b04fb31c",
+    "verifiers/experiments/allocator-transfer/run_study.py": "5040768f1c9f4083b25986476dd0c0c559e7bff7edc38f10db0fdd227e052c3d",
+    "verifiers/experiments/allocator-transfer/summarize.py": "583987f42c6ab7abd385365e7b4dc8ce7cb2ee648323d5b2756874fe8dbcf711",
+    "verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+    "verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85"
+  }
+}

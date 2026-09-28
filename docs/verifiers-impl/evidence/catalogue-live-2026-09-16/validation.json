@@ -1,0 +1,65 @@
+{
+  "referenceSha256": "004e4376b206c75c7cb11015600c61365b092e83134a02d8b7a0dcdb086ff7b7",
+  "arms": {
+    "ga": {
+      "positiveScenarios": 5,
+      "nullFitnessAttempts": 0,
+      "duplicates": 2,
+      "stopReason": "BUDGET",
+      "samplingPolicy": "uniform-unseen-catalogue-initialization-and-fallback",
+      "candidateDomain": "complete-catalogue",
+      "applicationSeconds": 385.1274395440705,
+      "commandWallSeconds": 388.6633852920495,
+      "catalogue": {
+        "candidateCount": 72,
+        "complete": true,
+        "enumerationWallSeconds": 58.793890041997656,
+        "generationSeconds": 55.20128137385473,
+        "note": "Shared preparation cost; not included in this search wall time.",
+        "sha256": "e57d7126550c864e02f2b07cd81e1dee8db2b7c892ab0eec9016ce4634a764e2"
+      },
+      "attempts": 12,
+      "recordedChoicesAndFeedbackMatch": true,
+      "resultSha256": "113ad6282f049a2f53f531799f704a5ff0706ad8a4c70a3f43863861e56dbe35"
+    },
+    "random": {
+      "positiveScenarios": 5,
+      "nullFitnessAttempts": 0,
+      "duplicates": 0,
+      "stopReason": "BUDGET",
+      "samplingPolicy": "uniform-unseen-catalogue-initialization-and-fallback",
+      "candidateDomain": "complete-catalogue",
+      "applicationSeconds": 385.0648070401512,
+      "commandWallSeconds": 388.6617647500243,
+      "catalogue": {
+        "candidateCount": 72,
+        "complete": true,
+        "enumerationWallSeconds": 58.793890041997656,
+        "generationSeconds": 55.20128137385473,
+        "note": "Shared preparation cost; not included in this search wall time.",
+        "sha256": "e57d7126550c864e02f2b07cd81e1dee8db2b7c892ab0eec9016ce4634a764e2"
+      },
+      "attempts": 12,
+      "recordedChoicesAndFeedbackMatch": true,
+      "resultSha256": "eea5dcc048605541d3c7d085c0570d377fe91553e3d53db5fdc7996db21e7a15"
+    }
+  },
+  "retainedTraceValidation": [
+    {
+      "candidates": 186,
+      "originalAndUniformGATracesMatched": 60
+    },
+    {
+      "candidates": 72,
+      "originalAndUniformGATracesMatched": 60
+    }
+  ],
+  "enumeration": {
+    "anyTruncated": false,
+    "capLimitedUniqueCandidateCount": 72,
+    "countComplete": true,
+    "enumerationWallSeconds": 58.793890041997656,
+    "generatorWallSeconds": 55.20128137385473,
+    "vectorDomainSize": 36
+  }
+}

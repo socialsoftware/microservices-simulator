@@ -1,0 +1,20 @@
+{
+  "archiveSha256": "fb8eef6a578afe3716ad98204465e51c0a59ccbc8be9b31a498b5cbc07959d58",
+  "archiveBytes": 39016140,
+  "attemptReportSetsVerified": 44,
+  "receiptsVerified": 43,
+  "exactUncappedCatalogueCandidates": 44,
+  "scores": {
+    "zero": 25,
+    "positive": 17,
+    "unavailable": 2
+  },
+  "positiveComponents": {
+    "FAILED_OPERATION_RESIDUAL": 17
+  },
+  "statuses": {
+    "COMPLETE": 42,
+    "PARTIAL": 2
+  },
+  "scope": "Fresh labelled measurement with event-origin assessor overlay; prior 44-case reference remains unchanged."
+}

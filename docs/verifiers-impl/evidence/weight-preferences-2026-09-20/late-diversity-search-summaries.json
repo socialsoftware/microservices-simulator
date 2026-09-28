@@ -1,0 +1,191 @@
+{
+  "late-04-deleted-dependency": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 4,
+    "unavailable": 0,
+    "count": 4,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "late-02-deleted-dependency": {
+    "status": "COMPLETE",
+    "count": 8,
+    "positive": 2,
+    "zero": 6,
+    "unavailable": 0,
+    "checkpoints": {
+      "ga": {
+        "4": {
+          "positive": 1.1,
+          "score": 1.1,
+          "unavailable": 0
+        },
+        "8": {
+          "positive": 2,
+          "score": 2.0,
+          "unavailable": 0
+        }
+      },
+      "random": {
+        "4": {
+          "positive": 1,
+          "score": 1.0,
+          "unavailable": 0
+        },
+        "8": {
+          "positive": 2,
+          "score": 2.0,
+          "unavailable": 0
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 2.7333333333333334,
+      "random": 2.8333333333333335
+    },
+    "meanTo80Positive": {
+      "ga": 5.833333333333333,
+      "random": 6.233333333333333
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 15,
+      "randomWins": 9,
+      "ties": 6,
+      "meanDifference": 0.03125
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    }
+  },
+  "late-02-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 8,
+    "unavailable": 0,
+    "count": 8,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "late-04-compensated-read": {
+    "status": "FLAT_ZERO_NO_DISCOVERY_COMPARISON",
+    "positive": 0,
+    "zero": 4,
+    "unavailable": 0,
+    "count": 4,
+    "reason": "No assessed positive outcomes under this profile; no claim of search advantage."
+  },
+  "late-04-all": {
+    "status": "COMPLETE",
+    "count": 4,
+    "positive": 1,
+    "zero": 3,
+    "unavailable": 0,
+    "checkpoints": {
+      "ga": {
+        "2": {
+          "positive": 0.43333333333333335,
+          "score": 0.43333333333333335,
+          "unavailable": 0
+        },
+        "4": {
+          "positive": 1,
+          "score": 1.0,
+          "unavailable": 0
+        }
+      },
+      "random": {
+        "2": {
+          "positive": 0.43333333333333335,
+          "score": 0.43333333333333335,
+          "unavailable": 0
+        },
+        "4": {
+          "positive": 1,
+          "score": 1.0,
+          "unavailable": 0
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 2.7,
+      "random": 2.6333333333333333
+    },
+    "meanTo80Positive": {
+      "ga": 2.7,
+      "random": 2.6333333333333333
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 3,
+      "randomWins": 5,
+      "ties": 22,
+      "meanDifference": -0.016666666666666666
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    }
+  },
+  "late-02-all": {
+    "status": "COMPLETE",
+    "count": 8,
+    "positive": 2,
+    "zero": 6,
+    "unavailable": 0,
+    "checkpoints": {
+      "ga": {
+        "4": {
+          "positive": 1.1,
+          "score": 2.2,
+          "unavailable": 0
+        },
+        "8": {
+          "positive": 2,
+          "score": 4.0,
+          "unavailable": 0
+        }
+      },
+      "random": {
+        "4": {
+          "positive": 1,
+          "score": 2.0,
+          "unavailable": 0
+        },
+        "8": {
+          "positive": 2,
+          "score": 4.0,
+          "unavailable": 0
+        }
+      }
+    },
+    "meanFirstPositive": {
+      "ga": 2.7333333333333334,
+      "random": 2.8333333333333335
+    },
+    "meanTo80Positive": {
+      "ga": 5.833333333333333,
+      "random": 6.233333333333333
+    },
+    "pairedPositiveAUC": {
+      "gaWins": 15,
+      "randomWins": 9,
+      "ties": 6,
+      "meanDifference": 0.03125
+    },
+    "validation": {
+      "runs": 60,
+      "allCandidatesVisitedExactlyOnce": true,
+      "allEndpointsMatch": true,
+      "scoresRecomputed": true,
+      "referenceUnchanged": true,
+      "timing": "Concurrent local recorded-feedback processing; not isolated overhead or application wall-time comparison."
+    }
+  }
+}

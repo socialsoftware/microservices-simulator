@@ -1,0 +1,6 @@
+{
+  "independentDirectCountsMatch": 81,
+  "eventDeliveriesReviewed": 33,
+  "orderInputSha256": "d9736c982af94f5f9c081a326b90b2242692b3375e751afbe2a468fe8050d30a",
+  "semantics": "Recorded type-level potential access patterns, not same-object or outcome proof"
+}

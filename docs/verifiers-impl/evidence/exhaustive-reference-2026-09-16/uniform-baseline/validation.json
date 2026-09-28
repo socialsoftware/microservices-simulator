@@ -1,0 +1,6 @@
+{
+  "allTraceScoresMatchReference": true,
+  "sourceHashesUnchanged": true,
+  "uniformPermutationsCoverAllCandidates": true,
+  "uniformRuns": 30
+}

@@ -1,0 +1,89 @@
+{
+  "policies": [
+    "adaptive-ucb",
+    "adaptive-ucb-cooldown",
+    "progress-linucb",
+    "progress-linucb-cooldown",
+    "contextual-linucb",
+    "contextual-linucb-cooldown"
+  ],
+  "parameters": {
+    "adaptive-ucb": {
+      "exploration": 1.0
+    },
+    "adaptive-ucb-cooldown": {
+      "exploration": 1.0
+    },
+    "progress-linucb": {
+      "exploration": 1.0,
+      "ridge": 1.0
+    },
+    "progress-linucb-cooldown": {
+      "exploration": 1.0,
+      "ridge": 1.0
+    },
+    "contextual-linucb": {
+      "exploration": 1.0,
+      "ridge": 1.0
+    },
+    "contextual-linucb-cooldown": {
+      "exploration": 1.0,
+      "ridge": 1.0
+    }
+  },
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "profiles": [
+    "all",
+    "dependency"
+  ],
+  "smallCheckpoints": [
+    30,
+    60,
+    120,
+    189
+  ],
+  "mixedCheckpoints": [
+    100,
+    500,
+    1000
+  ],
+  "referenceVersions": "unchanged original cohort references; corrections evaluated separately",
+  "sourceHashes": {
+    "allocator.py": "adc2f91508fa9c3ad865574a050c799063c7a4bdbbd511cda2219cca6356c069",
+    "allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+    "search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+    "fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+    "catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89"
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "negative": 2,
+  "positive": 2,
+  "rows": [
+    {
+      "case": "forward-stale-false",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28/controls/forward-stale-false.json",
+      "newSha256": "5be3aa4099b0176c1911783747e211a55db9d0227716dc281cd5a42b7a5eadd2",
+      "oldSha256": "84d189b482e09b384fb9703b28865e5ef2a9f374774f7158ca0ad5c109259bb8"
+    },
+    {
+      "case": "forward-fresh-false",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28/controls/forward-fresh-false.json",
+      "newSha256": "326941bb6f2f1a925aff954a48f997dd0e39754c81943998626431442f523c6f",
+      "oldSha256": "5fab4245460070605ac85176f98c2b51fa6325ed392e26cd240a70ee1c2ad3c5"
+    },
+    {
+      "case": "recovery-stale-false",
+      "findings": 1,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28/controls/recovery-stale-false.json",
+      "newSha256": "afce7f1f1a879937f7db6be38f401dac555d8ffd59e464770976f5489af81558",
+      "oldSha256": "0d5dd2b16c827cc041694f1beca391700cb4acd2661f1b54e30113c3a87a4203"
+    },
+    {
+      "case": "recovery-delayed-event-false",
+      "findings": 0,
+      "gaps": 0,
+      "newReport": "verifiers/target/saga-copy-transport-2026-09-28/controls/recovery-delayed-event-false.json",
+      "newSha256": "b31c334d4745c22518fd3d6879d0a032e1c38f536f249efc928a26ba6d3e6fc4",
+      "oldSha256": "3d85359096c99c634ba27c9874b25b72f0ec11751a26610ab62dade4b3a65c0f"
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "all-final": {
+    "rows": 74481,
+    "rawSha256": "c1b7a7f5dc917c1668ad4a99e9ed2ba9482a41048434a762fd5cfb2b57d17acb",
+    "gzipSha256": "1c95fdd4c2c681d0500fb024934cf085876e40daaf51576cb2bd7e1f7b4183ba",
+    "gzipBytes": 1409501
+  },
+  "pruned-final": {
+    "rows": 74481,
+    "rawSha256": "77278feef9c9801f5ff92c70096494f3c8128f7d537d12707c3d741e9a8617b8",
+    "gzipSha256": "77d108698e8bf29faee1cd88e2d9915648834b1605c74027796880ef43d39f9c",
+    "gzipBytes": 892125
+  },
+  "compressed-final": {
+    "rows": 74481,
+    "rawSha256": "fa61607520594ad47993332113b76441c44ae973f19a2cabfbe088c4bbd82e77",
+    "gzipSha256": "e7cada1ffcee73ff706f5789585cb73d718b139f6c77de054d93826d97ad7320",
+    "gzipBytes": 895072
+  },
+  "modelSha256": "b18db53f04d994a7e3562583faa0db114c396680965e9cbf282d7a35fe976b55"
+}

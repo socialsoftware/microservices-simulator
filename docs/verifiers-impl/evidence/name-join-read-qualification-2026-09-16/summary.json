@@ -1,0 +1,94 @@
+{
+  "workload": "b9cadedadcab970f16fc34504edff17f81e539429e706437e6431e70df71d64a",
+  "sourceStory": {
+    "storyClass": "AddParticipantAndUpdateStudentNameTest",
+    "sourceMethod": "sequential: add; update",
+    "participants": [
+      "AddParticipantFunctionalitySagas",
+      "UpdateStudentNameFunctionalitySagas",
+      "FindTournamentFunctionalitySagas"
+    ],
+    "desiredOrder": "Join completes; update student name completes; deliver Tournament name-update event; retrieve Tournament.",
+    "selectionRule": "Same source test method for all three inputs; whole-participant Join < Update < Find; exactly one Tournament UpdateStudentName event after update and before query; lexicographically smallest workload ID among matches.",
+    "reason": "Normal membership/name propagation story with copied data and one explicit event; selected before any runtime outcome.",
+    "weights": "Five unit weights, no disabled criteria",
+    "scope": "One no-fault control and complete structural enumeration only; no GA or random search.",
+    "workload": "b9cadedadcab970f16fc34504edff17f81e539429e706437e6431e70df71d64a",
+    "route": "updateStudentNameStep#0/event#0-route#1",
+    "generationWorkloads": 5,
+    "matchingWorkloads": 1
+  },
+  "domain": {
+    "anyTruncated": false,
+    "capLimitedUniqueCandidateCount": 12,
+    "countComplete": true,
+    "enumerationWallSeconds": 31.537959166103974,
+    "generatorWallSeconds": 29.7609228733927,
+    "vectorDomainSize": 12
+  },
+  "generation": {
+    "exitCode": 0,
+    "wallSeconds": 20.226118041900918
+  },
+  "control": {
+    "executionAttemptId": "f14d0b91-cd35-4f35-ab59-20f9dc45fe17",
+    "terminalStatus": "SUCCESS",
+    "scheduleConformance": "EXACT",
+    "wallSeconds": 38.186578208813444,
+    "actionsCompleted": 5,
+    "fitness": {
+      "fitnessScore": null,
+      "fitnessComponents": {
+        "DELETED_DEPENDENCY": {
+          "observedCount": 0,
+          "count": 0,
+          "coverage": "COMPLETE"
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "observedCount": 0,
+          "count": 0,
+          "coverage": "COMPLETE"
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "observedCount": 0,
+          "count": 0,
+          "coverage": "COMPLETE"
+        },
+        "COMPENSATED_READ_EXPOSURE": {
+          "observedCount": 0,
+          "count": null,
+          "coverage": "PARTIAL"
+        },
+        "LOST_COPIED_UPDATE": {
+          "observedCount": 0,
+          "count": 0,
+          "coverage": "COMPLETE_WITHIN_SCOPE"
+        }
+      },
+      "fitnessUnavailableReasons": [
+        "COMPENSATED_READ_EXPOSURE_INCOMPLETE"
+      ]
+    }
+  },
+  "observation": {
+    "studentId": 4,
+    "finalName": "UpdatedName",
+    "tournamentId": 12,
+    "readAndFinalVersion": 27,
+    "producerKind": "EVENT_CONSUMER",
+    "gap": [
+      {
+        "afterOrder": 10,
+        "stage": "ASSESSMENT",
+        "subject": "f14d0b91-cd35-4f35-ab59-20f9dc45fe17:call:10",
+        "reason": "PRODUCER_ACTION_UNPROVEN"
+      }
+    ]
+  },
+  "qualification": "APPLICATION_SUCCESS_BUT_INCOMPLETE_FITNESS",
+  "applicationExecutions": 1,
+  "faultedApplicationExecutions": 0,
+  "gaOrRandomSearchRuns": 0,
+  "integrity": "source, runtime, report hashes and complete candidate enumeration verified",
+  "rawRoot": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/name-join-read-qualification-2026-09-16"
+}

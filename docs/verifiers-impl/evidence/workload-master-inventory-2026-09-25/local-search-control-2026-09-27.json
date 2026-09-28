@@ -1,0 +1,1503 @@
+{
+  "status": "COMPLETE_AND_AUDITED",
+  "scope": "Post-hoc local-search control. Fixed original ID tie rules retained. The smaller collection excludes exactly three maps; it is not yet a balanced final sample.",
+  "execution": "Offline replay of existing measured maps; no new Quizzes outcomes produced.",
+  "runs": {
+    "newRunsCompleted": 105,
+    "reusedRuns": 35,
+    "auditedRuns": 140,
+    "complete": true
+  },
+  "auditedChoices": 770000,
+  "newReplayChoices": 490000,
+  "protocol": {
+    "inputSha256": "3df62a8a51f70906463625526f0cd3edd5e3c2a647b7ab1f5a45a2c761cfcfbe",
+    "seeds": [
+      1,
+      11,
+      29,
+      47,
+      73
+    ],
+    "arms": [
+      "uniform",
+      "P-shared",
+      "S-cal",
+      "SP-cal",
+      "P-local",
+      "H0",
+      "H1-cal"
+    ],
+    "fitness": {
+      "policy": "weighted-criteria-v2",
+      "weights": {
+        "DELETED_DEPENDENCY": 1,
+        "FAILED_OPERATION_RESIDUAL": 1,
+        "UNRESOLVED_DELIVERED_EVENT": 1,
+        "COMPENSATED_READ_EXPOSURE": 1,
+        "LOST_COPIED_UPDATE": 1
+      }
+    },
+    "collections": {
+      "full": 8000,
+      "without-three-largest": 3000
+    },
+    "checkpoints": {
+      "full": [
+        1000,
+        2000,
+        4000,
+        8000
+      ],
+      "without-three-largest": [
+        1000,
+        2000,
+        3000
+      ]
+    },
+    "excludedWorkloads": [
+      "23f9768282509c46a6a4a4fd62d51fa6bca64591ded719e9ab070257ba0ca09d",
+      "242d3ef997d7a56426092ead4f39f934c23c4e209967f36a437f0d33eb650ad5",
+      "ef019eb258c89262dddfeed7279c00a43b2620e2854274aefdefb4f644becf2a"
+    ],
+    "originalTieRulesRetained": true,
+    "sourceHashes": {
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/local_search_control.py": "711be98566cb296b0cb5b3656ccc80e0cba43abcdc1e034a951c4f67a985b93f",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/batch.py": "56641dfbcbe92b11787dcad1a21ed1814c33ae55a073403df18ba442bda163dd",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-expanded-replay/run.py": "f6cd181bbce3195a635357bcf3976ae2c7a75baee5430fe8cceecddab6213131",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocate.py": "e0f49df6a3325f1e608edadf7b8046bda850b2a0b9c92cd9f78225ad5330cea6",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocation_cooldown.py": "4a8ab35b3200b3088883a17927b2c752ce8d0e51e75e07cda5d171ea91de8a78",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/allocator.py": "1045aa9c143721ed0f33538e71417097f5d9263f03266cabb94e4ae7b800bca8",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/campaign.py": "428d07fe7476293d03cb8b3668c1f03b1695833b035f448093b8ba666015054c",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "c4fe29ef3beafa9826f79a5ddee2ac5513548cdd5b073e213a854c0163aa5e89",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/diagnose_reference_ga.py": "82810d954792bbdefcad264ba0219843d22ddb15397f4f86d6575422f98ca05d",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery.py": "3623950ebbd541b71f7bb51f168acb0611e52663d4d214dc962472334695e137",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/discovery_analysis.py": "d3b9aa79523de56b8f3ff1cf14a98a33019d185e5648fb797421ca95c6cca1a4",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/exhaustive_reference.py": "3598ede3b7b96e6f3649632233a815682a4a8922109d1a79212c1b5ccdc2fa67",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/hybrid_linucb.py": "516dc76ffaf2dad6d498be0ca62ee7bfdd95dab33e746f5c48e648d3ed827ee9",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/live_allocate.py": "ab7478222d1f71f9a08c923355b8438a52c69f4e0001d99ee5f42fc17bf71198",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/measure_map.py": "20403e98787ca253a0bab573e83445e32ecb7b83770e6697f4e5312732aed4ca",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/order_features.py": "ca69c0e761571531b446e1d7866cacefd2a3c14df5d6e2d0d861b5cbee1301dc",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/plot_complete_map.py": "6d5e78b7ecba2e7ef9a3b93820adb658220313265181638e9ee64d152367cf82",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify.py": "7c9aef62ae23fd2c22e24c19435b910c3e0eb7e9bc97903607c1dbe25f4449b2",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/qualify_weights.py": "10fb154721c672784d904a4096ec511ae09a7a87403857607d8b1665a0309704",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/run.py": "2cabb23b30f234a51ba6d122efe68c6c76258255cefb8ed15bcaf796603e89b5",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/runtime.py": "ac7f08b21d7054f5b85a52f7342b9933676975f666034985662b7d07f5161c2a",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "08f80a4fa0e80ea0fa653b71b69f2f1abf141d7412dcd572a57d834d00b00d37",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/summarize_qualification.py": "ba13690fd6af4f75782e83349b86d6e4179dda1323d331b3788901b1179f6908",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocation_cooldown.py": "d88c89a0cc882d5cb047cb118237a16f855602b8fb98cbee66651092dc0fd8b8",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_allocator.py": "778b2d203c5f4e47d3f1de9cb60ea49141dd63599e8ff7e502073ebe9f8ef387",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_catalogue.py": "c373968edd0d9e0da2e640e68de31f5926055f468aa063d078a24cab123c9aa7",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_discovery.py": "9a2ebea216e1fc5100dfad433813f121579322917ec9a0a5d079a5f4ccbb48da",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_exhaustive_reference.py": "bb897e67eac8cf227ffbd55c29423e57f6d8725c171ab883313b891275d2f446",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_fitness.py": "43ee0c8fbd336733179d960838fde45c958490229c13e1dec6f89c9bcdde31bc",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_hybrid_linucb.py": "313f43eaa631abc68f404b4cb203c940913d5d311b06572f8196370db41cb48d",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_live_allocate.py": "6101ae286fa495e29b3b4d0a1d1cfa7c7c76e38763d2e3a5394f6be8f29893a6",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_measure_map.py": "acd4df6e92831ebab8475676d022347cb7c5ce5e2642e9c04c7396c5f4ba587e",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_order_features.py": "c91741a45c08d5bf9006b874858245eeee85a712de37057792e34679cc00d033",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_runtime.py": "44730597b02d5f3634a0088b73b6b470b6a2a9bd0897b9d614025d570b04e29b",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_search.py": "eb4bb2e03fb165bfea96cc1c52b665907e3f71f87be7b9d4ad53a85930334747",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/test_transfer.py": "ce85acf766a4b23f22b4d932367b82ae1b2f06e16498f93e9590905336858a85",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/transfer.py": "a6c97e457208aeb6bb9df3d06d6e9317ba6ddf465c68f50f96df8ef269109829",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_exploration.py": "580924f2e967ad3a0d836e0ba79a24ac3198bfd7365d8d896bdbb0215cea72d9",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/uniform_reference.py": "ef4150a4fba31e4e2b3a2f704f36711c02882632a217173711b6c4f0ee53ac32",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-component-pilot/policies.py": "1997eed82640c3db1ca487f5a28d2c979c5c43b74c4dca5955d21e7e54a562ef",
+      "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/allocator-order-hybrid-followup/study.py": "ad63e55056f425d7e97396eec1f31caceb03cbb0bc26b16737fae4fc10a40a79"
+    },
+    "kernelProofSha256": "d5c9479c7ae85026e6cdf2baaeb196f1d3acfc3bda3fbf226c6ce00e6ec4e24d"
+  },
+  "meanCheckpoints": {
+    "full": {
+      "ga": {
+        "uniform": [
+          {
+            "choices": 1000,
+            "score": 226.0,
+            "positives": 165.4,
+            "unknowns": 80,
+            "positiveFamilies": 24.2
+          },
+          {
+            "choices": 2000,
+            "score": 639.2,
+            "positives": 457.8,
+            "unknowns": 211.8,
+            "positiveFamilies": 25
+          },
+          {
+            "choices": 4000,
+            "score": 2140.4,
+            "positives": 1383.4,
+            "unknowns": 482.4,
+            "positiveFamilies": 25
+          },
+          {
+            "choices": 8000,
+            "score": 10117.4,
+            "positives": 4611,
+            "unknowns": 772.6,
+            "positiveFamilies": 25
+          }
+        ],
+        "P-shared": [
+          {
+            "choices": 1000,
+            "score": 761.4,
+            "positives": 684.4,
+            "unknowns": 12.4,
+            "positiveFamilies": 7.2
+          },
+          {
+            "choices": 2000,
+            "score": 1631.2,
+            "positives": 1487.4,
+            "unknowns": 21.8,
+            "positiveFamilies": 7.2
+          },
+          {
+            "choices": 4000,
+            "score": 3580.0,
+            "positives": 2982.6,
+            "unknowns": 48,
+            "positiveFamilies": 7.8
+          },
+          {
+            "choices": 8000,
+            "score": 12430.0,
+            "positives": 6045,
+            "unknowns": 390.4,
+            "positiveFamilies": 11.4
+          }
+        ],
+        "S-cal": [
+          {
+            "choices": 1000,
+            "score": 779.4,
+            "positives": 665.2,
+            "unknowns": 82.8,
+            "positiveFamilies": 7.6
+          },
+          {
+            "choices": 2000,
+            "score": 1649.0,
+            "positives": 1469.8,
+            "unknowns": 94.4,
+            "positiveFamilies": 7.6
+          },
+          {
+            "choices": 4000,
+            "score": 3933.0,
+            "positives": 2999.6,
+            "unknowns": 128,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 8000,
+            "score": 13479.6,
+            "positives": 6252.2,
+            "unknowns": 382.6,
+            "positiveFamilies": 8
+          }
+        ],
+        "SP-cal": [
+          {
+            "choices": 1000,
+            "score": 2450.4,
+            "positives": 755.2,
+            "unknowns": 127,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 2000,
+            "score": 5032.4,
+            "positives": 1582.6,
+            "unknowns": 193.8,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 4000,
+            "score": 9376.0,
+            "positives": 3156.2,
+            "unknowns": 339.6,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 8000,
+            "score": 16159.0,
+            "positives": 6204.6,
+            "unknowns": 641.2,
+            "positiveFamilies": 10.4
+          }
+        ],
+        "P-local": [
+          {
+            "choices": 1000,
+            "score": 2319.4,
+            "positives": 813.6,
+            "unknowns": 43.8,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 2000,
+            "score": 4984.6,
+            "positives": 1651.2,
+            "unknowns": 109.8,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 4000,
+            "score": 9327.6,
+            "positives": 3228.6,
+            "unknowns": 239.8,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 8000,
+            "score": 16739.4,
+            "positives": 6096.8,
+            "unknowns": 625.8,
+            "positiveFamilies": 18
+          }
+        ],
+        "H0": [
+          {
+            "choices": 1000,
+            "score": 2757.4,
+            "positives": 835,
+            "unknowns": 55.4,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 2000,
+            "score": 5329.2,
+            "positives": 1660.8,
+            "unknowns": 119.8,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 4000,
+            "score": 9545.2,
+            "positives": 3219.4,
+            "unknowns": 253.2,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 8000,
+            "score": 17116.4,
+            "positives": 6111.2,
+            "unknowns": 656.2,
+            "positiveFamilies": 18
+          }
+        ],
+        "H1-cal": [
+          {
+            "choices": 1000,
+            "score": 2338.6,
+            "positives": 723.6,
+            "unknowns": 141.2,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 2000,
+            "score": 4943.2,
+            "positives": 1555,
+            "unknowns": 211.6,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 4000,
+            "score": 9174.6,
+            "positives": 3110.4,
+            "unknowns": 361.6,
+            "positiveFamilies": 8.4
+          },
+          {
+            "choices": 8000,
+            "score": 16236.0,
+            "positives": 6113,
+            "unknowns": 626.2,
+            "positiveFamilies": 16
+          }
+        ]
+      },
+      "random": {
+        "uniform": [
+          {
+            "choices": 1000,
+            "score": 217.4,
+            "positives": 161,
+            "unknowns": 79.8,
+            "positiveFamilies": 23.4
+          },
+          {
+            "choices": 2000,
+            "score": 572.4,
+            "positives": 427.2,
+            "unknowns": 216.8,
+            "positiveFamilies": 24.8
+          },
+          {
+            "choices": 4000,
+            "score": 1957.4,
+            "positives": 1339,
+            "unknowns": 488.2,
+            "positiveFamilies": 25
+          },
+          {
+            "choices": 8000,
+            "score": 8845.0,
+            "positives": 4392.4,
+            "unknowns": 800.6,
+            "positiveFamilies": 25
+          }
+        ],
+        "P-shared": [
+          {
+            "choices": 1000,
+            "score": 1293.4,
+            "positives": 705,
+            "unknowns": 32.6,
+            "positiveFamilies": 6.2
+          },
+          {
+            "choices": 2000,
+            "score": 2758.2,
+            "positives": 1498.8,
+            "unknowns": 62.4,
+            "positiveFamilies": 6.2
+          },
+          {
+            "choices": 4000,
+            "score": 5921.0,
+            "positives": 3065.6,
+            "unknowns": 135.6,
+            "positiveFamilies": 6.8
+          },
+          {
+            "choices": 8000,
+            "score": 12199.6,
+            "positives": 5989,
+            "unknowns": 459,
+            "positiveFamilies": 10.8
+          }
+        ],
+        "S-cal": [
+          {
+            "choices": 1000,
+            "score": 722.8,
+            "positives": 634.6,
+            "unknowns": 86.4,
+            "positiveFamilies": 7.6
+          },
+          {
+            "choices": 2000,
+            "score": 1564.2,
+            "positives": 1417,
+            "unknowns": 94.8,
+            "positiveFamilies": 7.6
+          },
+          {
+            "choices": 4000,
+            "score": 3797.4,
+            "positives": 2990.6,
+            "unknowns": 131.6,
+            "positiveFamilies": 7.6
+          },
+          {
+            "choices": 8000,
+            "score": 13382.6,
+            "positives": 6233.2,
+            "unknowns": 404.8,
+            "positiveFamilies": 7.6
+          }
+        ],
+        "SP-cal": [
+          {
+            "choices": 1000,
+            "score": 1936.4,
+            "positives": 683.4,
+            "unknowns": 139.2,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 2000,
+            "score": 4251.6,
+            "positives": 1487.8,
+            "unknowns": 216.6,
+            "positiveFamilies": 7
+          },
+          {
+            "choices": 4000,
+            "score": 8852.2,
+            "positives": 3082,
+            "unknowns": 376,
+            "positiveFamilies": 7.4
+          },
+          {
+            "choices": 8000,
+            "score": 16557.6,
+            "positives": 6146,
+            "unknowns": 731.8,
+            "positiveFamilies": 8.8
+          }
+        ],
+        "P-local": [
+          {
+            "choices": 1000,
+            "score": 2193.6,
+            "positives": 764.8,
+            "unknowns": 60.8,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 2000,
+            "score": 4619.2,
+            "positives": 1581.4,
+            "unknowns": 121.4,
+            "positiveFamilies": 8
+          },
+          {
+            "choices": 4000,
+            "score": 9484.4,
+            "positives": 3209.6,
+            "unknowns": 253.4,
+            "positiveFamilies": 8.2
+          },
+          {
+            "choices": 8000,
+            "score": 16081.6,
+            "positives": 5967.2,
+            "unknowns": 659,
+            "positiveFamilies": 18
+          }
+        ],
+        "H0": [
+          {
+            "choices": 1000,
+            "score": 2042.8,
+            "positives": 711.6,
+            "unknowns": 83,
+            "positiveFamilies": 10.8
+          },
+          {
+            "choices": 2000,
+            "score": 4415.8,
+            "positives": 1518.8,
+            "unknowns": 150.8,
+            "positiveFamilies": 10.8
+          },
+          {
+            "choices": 4000,
+            "score": 9109.4,
+            "positives": 3116,
+            "unknowns": 304,
+            "positiveFamilies": 11.2
+          },
+          {
+            "choices": 8000,
+            "score": 16082.0,
+            "positives": 5939.8,
+            "unknowns": 710,
+            "positiveFamilies": 18.2
+          }
+        ],
+        "H1-cal": [
+          {
+            "choices": 1000,
+            "score": 1937.8,
+            "positives": 673,
+            "unknowns": 150.2,
+            "positiveFamilies": 7.2
+          },
+          {
+            "choices": 2000,
+            "score": 4300.0,
+            "positives": 1480.4,
+            "unknowns": 221,
+            "positiveFamilies": 7.2
+          },
+          {
+            "choices": 4000,
+            "score": 9013.6,
+            "positives": 3081.6,
+            "unknowns": 369.6,
+            "positiveFamilies": 8.8
+          },
+          {
+            "choices": 8000,
+            "score": 16428.0,
+            "positives": 6077.2,
+            "unknowns": 682.4,
+            "positiveFamilies": 14
+          }
+        ]
+      }
+    },
+    "without-three-largest": {
+      "ga": {
+        "uniform": [
+          {
+            "choices": 1000,
+            "score": 188.6,
+            "positives": 152,
+            "unknowns": 84.2,
+            "positiveFamilies": 22.6
+          },
+          {
+            "choices": 2000,
+            "score": 489.2,
+            "positives": 409.2,
+            "unknowns": 219.8,
+            "positiveFamilies": 24
+          },
+          {
+            "choices": 3000,
+            "score": 932.8,
+            "positives": 764.6,
+            "unknowns": 367.4,
+            "positiveFamilies": 24
+          }
+        ],
+        "P-shared": [
+          {
+            "choices": 1000,
+            "score": 502.0,
+            "positives": 435.4,
+            "unknowns": 61.2,
+            "positiveFamilies": 10.8
+          },
+          {
+            "choices": 2000,
+            "score": 905.0,
+            "positives": 769.6,
+            "unknowns": 320.6,
+            "positiveFamilies": 14.6
+          },
+          {
+            "choices": 3000,
+            "score": 1242.6,
+            "positives": 1037.6,
+            "unknowns": 443,
+            "positiveFamilies": 22.4
+          }
+        ],
+        "S-cal": [
+          {
+            "choices": 1000,
+            "score": 583.4,
+            "positives": 441.6,
+            "unknowns": 98.8,
+            "positiveFamilies": 10.6
+          },
+          {
+            "choices": 2000,
+            "score": 1046.0,
+            "positives": 841.2,
+            "unknowns": 277.6,
+            "positiveFamilies": 17.2
+          },
+          {
+            "choices": 3000,
+            "score": 1320.0,
+            "positives": 1097,
+            "unknowns": 481,
+            "positiveFamilies": 24
+          }
+        ],
+        "SP-cal": [
+          {
+            "choices": 1000,
+            "score": 562.4,
+            "positives": 423.4,
+            "unknowns": 125.8,
+            "positiveFamilies": 14
+          },
+          {
+            "choices": 2000,
+            "score": 1037.0,
+            "positives": 841.8,
+            "unknowns": 271.2,
+            "positiveFamilies": 17
+          },
+          {
+            "choices": 3000,
+            "score": 1320.0,
+            "positives": 1097,
+            "unknowns": 475,
+            "positiveFamilies": 24
+          }
+        ],
+        "P-local": [
+          {
+            "choices": 1000,
+            "score": 468.4,
+            "positives": 358.2,
+            "unknowns": 118,
+            "positiveFamilies": 17
+          },
+          {
+            "choices": 2000,
+            "score": 915.6,
+            "positives": 742.6,
+            "unknowns": 312.2,
+            "positiveFamilies": 20.4
+          },
+          {
+            "choices": 3000,
+            "score": 1257.8,
+            "positives": 1044.2,
+            "unknowns": 437.6,
+            "positiveFamilies": 23.8
+          }
+        ],
+        "H0": [
+          {
+            "choices": 1000,
+            "score": 454.8,
+            "positives": 347.6,
+            "unknowns": 132.8,
+            "positiveFamilies": 17.2
+          },
+          {
+            "choices": 2000,
+            "score": 911.6,
+            "positives": 739,
+            "unknowns": 316.2,
+            "positiveFamilies": 20.4
+          },
+          {
+            "choices": 3000,
+            "score": 1255.0,
+            "positives": 1042.2,
+            "unknowns": 441,
+            "positiveFamilies": 23.8
+          }
+        ],
+        "H1-cal": [
+          {
+            "choices": 1000,
+            "score": 468.6,
+            "positives": 357.8,
+            "unknowns": 118,
+            "positiveFamilies": 17
+          },
+          {
+            "choices": 2000,
+            "score": 944.8,
+            "positives": 772.4,
+            "unknowns": 305.6,
+            "positiveFamilies": 20
+          },
+          {
+            "choices": 3000,
+            "score": 1273.2,
+            "positives": 1056.2,
+            "unknowns": 442,
+            "positiveFamilies": 23.6
+          }
+        ]
+      },
+      "random": {
+        "uniform": [
+          {
+            "choices": 1000,
+            "score": 176.8,
+            "positives": 143.8,
+            "unknowns": 84,
+            "positiveFamilies": 22.8
+          },
+          {
+            "choices": 2000,
+            "score": 450.8,
+            "positives": 382.8,
+            "unknowns": 223.8,
+            "positiveFamilies": 24
+          },
+          {
+            "choices": 3000,
+            "score": 872.6,
+            "positives": 726.8,
+            "unknowns": 368.4,
+            "positiveFamilies": 24
+          }
+        ],
+        "P-shared": [
+          {
+            "choices": 1000,
+            "score": 505.4,
+            "positives": 425,
+            "unknowns": 80.2,
+            "positiveFamilies": 11
+          },
+          {
+            "choices": 2000,
+            "score": 855.6,
+            "positives": 726.4,
+            "unknowns": 388.8,
+            "positiveFamilies": 14.4
+          },
+          {
+            "choices": 3000,
+            "score": 1125.6,
+            "positives": 957,
+            "unknowns": 505.4,
+            "positiveFamilies": 21
+          }
+        ],
+        "S-cal": [
+          {
+            "choices": 1000,
+            "score": 580.4,
+            "positives": 437,
+            "unknowns": 100.8,
+            "positiveFamilies": 10.8
+          },
+          {
+            "choices": 2000,
+            "score": 1033.0,
+            "positives": 834,
+            "unknowns": 285.2,
+            "positiveFamilies": 16
+          },
+          {
+            "choices": 3000,
+            "score": 1320.0,
+            "positives": 1097,
+            "unknowns": 489.2,
+            "positiveFamilies": 24
+          }
+        ],
+        "SP-cal": [
+          {
+            "choices": 1000,
+            "score": 359.2,
+            "positives": 255,
+            "unknowns": 291.8,
+            "positiveFamilies": 20.4
+          },
+          {
+            "choices": 2000,
+            "score": 898.6,
+            "positives": 730.2,
+            "unknowns": 352.8,
+            "positiveFamilies": 21.4
+          },
+          {
+            "choices": 3000,
+            "score": 1296.8,
+            "positives": 1076.2,
+            "unknowns": 518,
+            "positiveFamilies": 24
+          }
+        ],
+        "P-local": [
+          {
+            "choices": 1000,
+            "score": 430.2,
+            "positives": 317.8,
+            "unknowns": 143.8,
+            "positiveFamilies": 17.2
+          },
+          {
+            "choices": 2000,
+            "score": 890.6,
+            "positives": 713.2,
+            "unknowns": 333.2,
+            "positiveFamilies": 20
+          },
+          {
+            "choices": 3000,
+            "score": 1252.8,
+            "positives": 1033.2,
+            "unknowns": 456.2,
+            "positiveFamilies": 23.4
+          }
+        ],
+        "H0": [
+          {
+            "choices": 1000,
+            "score": 383.2,
+            "positives": 281.2,
+            "unknowns": 204.6,
+            "positiveFamilies": 17.2
+          },
+          {
+            "choices": 2000,
+            "score": 884.6,
+            "positives": 707.4,
+            "unknowns": 344.2,
+            "positiveFamilies": 20.2
+          },
+          {
+            "choices": 3000,
+            "score": 1248.2,
+            "positives": 1028.6,
+            "unknowns": 467.4,
+            "positiveFamilies": 23.4
+          }
+        ],
+        "H1-cal": [
+          {
+            "choices": 1000,
+            "score": 441.0,
+            "positives": 327.4,
+            "unknowns": 125.4,
+            "positiveFamilies": 17
+          },
+          {
+            "choices": 2000,
+            "score": 903.4,
+            "positives": 722.6,
+            "unknowns": 312,
+            "positiveFamilies": 20
+          },
+          {
+            "choices": 3000,
+            "score": 1265.6,
+            "positives": 1045.8,
+            "unknowns": 452.2,
+            "positiveFamilies": 23.4
+          }
+        ]
+      }
+    }
+  },
+  "pairedFinalScores": {
+    "full": {
+      "uniform": {
+        "gaScoreRange": [
+          10070.0,
+          10182.0
+        ],
+        "randomScoreRange": [
+          8708.0,
+          9000.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 10070.0,
+            "random": 8708.0,
+            "randomMinusGA": -1362.0
+          },
+          {
+            "seed": 11,
+            "ga": 10114.0,
+            "random": 9000.0,
+            "randomMinusGA": -1114.0
+          },
+          {
+            "seed": 29,
+            "ga": 10141.0,
+            "random": 8869.0,
+            "randomMinusGA": -1272.0
+          },
+          {
+            "seed": 47,
+            "ga": 10182.0,
+            "random": 8817.0,
+            "randomMinusGA": -1365.0
+          },
+          {
+            "seed": 73,
+            "ga": 10080.0,
+            "random": 8831.0,
+            "randomMinusGA": -1249.0
+          }
+        ]
+      },
+      "P-shared": {
+        "gaScoreRange": [
+          10901.0,
+          13259.0
+        ],
+        "randomScoreRange": [
+          10543.0,
+          12752.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 12651.0,
+            "random": 12649.0,
+            "randomMinusGA": -2.0
+          },
+          {
+            "seed": 11,
+            "ga": 12639.0,
+            "random": 12752.0,
+            "randomMinusGA": 113.0
+          },
+          {
+            "seed": 29,
+            "ga": 13259.0,
+            "random": 12555.0,
+            "randomMinusGA": -704.0
+          },
+          {
+            "seed": 47,
+            "ga": 10901.0,
+            "random": 10543.0,
+            "randomMinusGA": -358.0
+          },
+          {
+            "seed": 73,
+            "ga": 12700.0,
+            "random": 12499.0,
+            "randomMinusGA": -201.0
+          }
+        ]
+      },
+      "S-cal": {
+        "gaScoreRange": [
+          12473.0,
+          14069.0
+        ],
+        "randomScoreRange": [
+          12893.0,
+          13818.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 13773.0,
+            "random": 13672.0,
+            "randomMinusGA": -101.0
+          },
+          {
+            "seed": 11,
+            "ga": 14069.0,
+            "random": 13818.0,
+            "randomMinusGA": -251.0
+          },
+          {
+            "seed": 29,
+            "ga": 13420.0,
+            "random": 13185.0,
+            "randomMinusGA": -235.0
+          },
+          {
+            "seed": 47,
+            "ga": 13663.0,
+            "random": 13345.0,
+            "randomMinusGA": -318.0
+          },
+          {
+            "seed": 73,
+            "ga": 12473.0,
+            "random": 12893.0,
+            "randomMinusGA": 420.0
+          }
+        ]
+      },
+      "SP-cal": {
+        "gaScoreRange": [
+          12545.0,
+          18616.0
+        ],
+        "randomScoreRange": [
+          12718.0,
+          17961.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 12545.0,
+            "random": 12718.0,
+            "randomMinusGA": 173.0
+          },
+          {
+            "seed": 11,
+            "ga": 18616.0,
+            "random": 17961.0,
+            "randomMinusGA": -655.0
+          },
+          {
+            "seed": 29,
+            "ga": 13188.0,
+            "random": 17120.0,
+            "randomMinusGA": 3932.0
+          },
+          {
+            "seed": 47,
+            "ga": 18297.0,
+            "random": 17792.0,
+            "randomMinusGA": -505.0
+          },
+          {
+            "seed": 73,
+            "ga": 18149.0,
+            "random": 17197.0,
+            "randomMinusGA": -952.0
+          }
+        ]
+      },
+      "P-local": {
+        "gaScoreRange": [
+          15538.0,
+          17637.0
+        ],
+        "randomScoreRange": [
+          12596.0,
+          17110.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 17637.0,
+            "random": 12596.0,
+            "randomMinusGA": -5041.0
+          },
+          {
+            "seed": 11,
+            "ga": 17372.0,
+            "random": 17110.0,
+            "randomMinusGA": -262.0
+          },
+          {
+            "seed": 29,
+            "ga": 15538.0,
+            "random": 17022.0,
+            "randomMinusGA": 1484.0
+          },
+          {
+            "seed": 47,
+            "ga": 17560.0,
+            "random": 16817.0,
+            "randomMinusGA": -743.0
+          },
+          {
+            "seed": 73,
+            "ga": 15590.0,
+            "random": 16863.0,
+            "randomMinusGA": 1273.0
+          }
+        ]
+      },
+      "H0": {
+        "gaScoreRange": [
+          15904.0,
+          17837.0
+        ],
+        "randomScoreRange": [
+          12393.0,
+          17271.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 17744.0,
+            "random": 12393.0,
+            "randomMinusGA": -5351.0
+          },
+          {
+            "seed": 11,
+            "ga": 17837.0,
+            "random": 17271.0,
+            "randomMinusGA": -566.0
+          },
+          {
+            "seed": 29,
+            "ga": 15904.0,
+            "random": 17262.0,
+            "randomMinusGA": 1358.0
+          },
+          {
+            "seed": 47,
+            "ga": 17819.0,
+            "random": 16396.0,
+            "randomMinusGA": -1423.0
+          },
+          {
+            "seed": 73,
+            "ga": 16278.0,
+            "random": 17088.0,
+            "randomMinusGA": 810.0
+          }
+        ]
+      },
+      "H1-cal": {
+        "gaScoreRange": [
+          12846.0,
+          18257.0
+        ],
+        "randomScoreRange": [
+          12601.0,
+          17909.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 17792.0,
+            "random": 12601.0,
+            "randomMinusGA": -5191.0
+          },
+          {
+            "seed": 11,
+            "ga": 18257.0,
+            "random": 17909.0,
+            "randomMinusGA": -348.0
+          },
+          {
+            "seed": 29,
+            "ga": 12846.0,
+            "random": 17581.0,
+            "randomMinusGA": 4735.0
+          },
+          {
+            "seed": 47,
+            "ga": 17615.0,
+            "random": 16534.0,
+            "randomMinusGA": -1081.0
+          },
+          {
+            "seed": 73,
+            "ga": 14670.0,
+            "random": 17515.0,
+            "randomMinusGA": 2845.0
+          }
+        ]
+      }
+    },
+    "without-three-largest": {
+      "uniform": {
+        "gaScoreRange": [
+          897.0,
+          967.0
+        ],
+        "randomScoreRange": [
+          859.0,
+          884.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 935.0,
+            "random": 879.0,
+            "randomMinusGA": -56.0
+          },
+          {
+            "seed": 11,
+            "ga": 928.0,
+            "random": 859.0,
+            "randomMinusGA": -69.0
+          },
+          {
+            "seed": 29,
+            "ga": 967.0,
+            "random": 884.0,
+            "randomMinusGA": -83.0
+          },
+          {
+            "seed": 47,
+            "ga": 897.0,
+            "random": 859.0,
+            "randomMinusGA": -38.0
+          },
+          {
+            "seed": 73,
+            "ga": 937.0,
+            "random": 882.0,
+            "randomMinusGA": -55.0
+          }
+        ]
+      },
+      "P-shared": {
+        "gaScoreRange": [
+          1172.0,
+          1319.0
+        ],
+        "randomScoreRange": [
+          1038.0,
+          1214.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1214.0,
+            "random": 1214.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 11,
+            "ga": 1319.0,
+            "random": 1173.0,
+            "randomMinusGA": -146.0
+          },
+          {
+            "seed": 29,
+            "ga": 1209.0,
+            "random": 1038.0,
+            "randomMinusGA": -171.0
+          },
+          {
+            "seed": 47,
+            "ga": 1172.0,
+            "random": 1084.0,
+            "randomMinusGA": -88.0
+          },
+          {
+            "seed": 73,
+            "ga": 1299.0,
+            "random": 1119.0,
+            "randomMinusGA": -180.0
+          }
+        ]
+      },
+      "S-cal": {
+        "gaScoreRange": [
+          1320.0,
+          1320.0
+        ],
+        "randomScoreRange": [
+          1320.0,
+          1320.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 11,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 29,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 47,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 73,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          }
+        ]
+      },
+      "SP-cal": {
+        "gaScoreRange": [
+          1320.0,
+          1320.0
+        ],
+        "randomScoreRange": [
+          1204.0,
+          1320.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 11,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 29,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          },
+          {
+            "seed": 47,
+            "ga": 1320.0,
+            "random": 1204.0,
+            "randomMinusGA": -116.0
+          },
+          {
+            "seed": 73,
+            "ga": 1320.0,
+            "random": 1320.0,
+            "randomMinusGA": 0.0
+          }
+        ]
+      },
+      "P-local": {
+        "gaScoreRange": [
+          1244.0,
+          1276.0
+        ],
+        "randomScoreRange": [
+          1235.0,
+          1264.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1244.0,
+            "random": 1235.0,
+            "randomMinusGA": -9.0
+          },
+          {
+            "seed": 11,
+            "ga": 1248.0,
+            "random": 1255.0,
+            "randomMinusGA": 7.0
+          },
+          {
+            "seed": 29,
+            "ga": 1276.0,
+            "random": 1259.0,
+            "randomMinusGA": -17.0
+          },
+          {
+            "seed": 47,
+            "ga": 1265.0,
+            "random": 1264.0,
+            "randomMinusGA": -1.0
+          },
+          {
+            "seed": 73,
+            "ga": 1256.0,
+            "random": 1251.0,
+            "randomMinusGA": -5.0
+          }
+        ]
+      },
+      "H0": {
+        "gaScoreRange": [
+          1232.0,
+          1275.0
+        ],
+        "randomScoreRange": [
+          1231.0,
+          1256.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1232.0,
+            "random": 1231.0,
+            "randomMinusGA": -1.0
+          },
+          {
+            "seed": 11,
+            "ga": 1248.0,
+            "random": 1256.0,
+            "randomMinusGA": 8.0
+          },
+          {
+            "seed": 29,
+            "ga": 1275.0,
+            "random": 1250.0,
+            "randomMinusGA": -25.0
+          },
+          {
+            "seed": 47,
+            "ga": 1264.0,
+            "random": 1254.0,
+            "randomMinusGA": -10.0
+          },
+          {
+            "seed": 73,
+            "ga": 1256.0,
+            "random": 1250.0,
+            "randomMinusGA": -6.0
+          }
+        ]
+      },
+      "H1-cal": {
+        "gaScoreRange": [
+          1259.0,
+          1281.0
+        ],
+        "randomScoreRange": [
+          1249.0,
+          1277.0
+        ],
+        "pairedFinalScores": [
+          {
+            "seed": 1,
+            "ga": 1276.0,
+            "random": 1249.0,
+            "randomMinusGA": -27.0
+          },
+          {
+            "seed": 11,
+            "ga": 1271.0,
+            "random": 1267.0,
+            "randomMinusGA": -4.0
+          },
+          {
+            "seed": 29,
+            "ga": 1281.0,
+            "random": 1277.0,
+            "randomMinusGA": -4.0
+          },
+          {
+            "seed": 47,
+            "ga": 1279.0,
+            "random": 1268.0,
+            "randomMinusGA": -11.0
+          },
+          {
+            "seed": 73,
+            "ga": 1259.0,
+            "random": 1267.0,
+            "randomMinusGA": 8.0
+          }
+        ]
+      }
+    }
+  },
+  "checks": {
+    "feedbackReassessed": true,
+    "causalProgress": true,
+    "coldStatesMatched": true,
+    "localPrefixesMatchedWithinMethod": true,
+    "randomPrefixesMatchUniformUnseenDraws": true,
+    "noRepeatedMeasuredCandidates": true
+  },
+  "aggregate": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-search-control-2026-09-27/aggregate.json",
+  "aggregateSha256": "06abdc9780652808ca4961626d5b67072ceb267abac79a122c3768ff0755345c",
+  "kernelProof": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-search-control-2026-09-27/random-kernel-proof.json",
+  "conclusions": [
+    "All six adaptive policies exceed the uniform allocator in mean final joint score in both collections with either local search method. This is exploratory evidence from five seeds, not a significance claim.",
+    "At 8000 choices in the full inventory, H0 has the highest GA mean (17116.4); SP-cal has the highest random-search mean (16557.6). Rankings therefore are not invariant.",
+    "The complete H1 hybrid changes from 12846 to 17581 at seed29, but from 17792 to 12601 at seed1. A small change in its five-seed mean hides large changes in individual paths.",
+    "Without the three largest maps at 3000 choices, S-cal reaches all 1320 available joint score and all 1097 joint positives with both methods in all five seeds; SP-cal also reaches this ceiling with GA. Expansion is needed for a meaningful 4000-choice comparison."
+  ],
+  "expansionProposal": {
+    "status": "PROPOSAL_ONLY",
+    "selectionRule": "Up to eight generated schedules per family, ranked by SHA256 of fixed selection seed and workload ID; no result scores used.",
+    "selectionSeed": "paper-small-expansion-2026-09-27",
+    "generatedPoolWorkloads": 1782,
+    "generatedPoolFamilies": 23,
+    "candidateWorkloads": 146,
+    "candidateFamilies": 23,
+    "currentMeasuredSmallerScenarios": 3818,
+    "analogueEstimatedAddedScenarios": 2999,
+    "analogueEstimatedTotalScenarios": 6817,
+    "newExecutedWorkloads": 0,
+    "limitations": [
+      "New schedule controls and full catalogue execution still required. Analogue counts are planning estimates, not actual generated or measured counts.",
+      "The collection still needs a predefined representation rule; this cap is a proposed measurement batch, not a claim of equal family representation.",
+      "This changes scheduling diversity inside existing families; it does not add 23 new families."
+    ]
+  },
+  "expansionCandidates": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-search-control-2026-09-27/expansion-proposal.json",
+  "remainingGates": [
+    "Agree and implement a common seeded tie rule before freezing the final evaluation; this control deliberately retained the original ID priority.",
+    "Qualify and measure the proposed additional workloads before changing any inventory totals.",
+    "Validate selected results in a common Quizzes runtime on the cluster.",
+    "Freeze the paper claims and small set of displayed policies before the final multi-seed comparison."
+  ]
+}

@@ -1,0 +1,63 @@
+{
+  "status": "PASS",
+  "mode": "SCENARIO_EXECUTOR_LIVE_SEQUENTIAL",
+  "applicationAttempts": 4,
+  "profile": {
+    "policy": "weighted-criteria-v2",
+    "weights": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 1,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "LOST_COPIED_UPDATE": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    }
+  },
+  "positive": 2,
+  "zero": 2,
+  "unavailable": 0,
+  "modelUpdates": 4,
+  "rows": [
+    {
+      "decision": 1,
+      "workload": "name-join-read-12",
+      "scenarioId": "03511cbda86bf80a05156014536f8afd8aa9e49c34caadec704b872728be903e",
+      "score": 0.0,
+      "terminalStatus": "COMPENSATED",
+      "conformance": "EXACT"
+    },
+    {
+      "decision": 2,
+      "workload": "update-remove-72",
+      "scenarioId": "8f542e99db29ad94e94813b54e04a3c57173a424af8512ee897d321bc1f98a79",
+      "score": 1.0,
+      "terminalStatus": "COMPENSATED",
+      "conformance": "EXACT"
+    },
+    {
+      "decision": 3,
+      "workload": "update-remove-72",
+      "scenarioId": "4d08c86e7c22ebe31db696654eb2b5edab34f788b0ce04e56adfade4458269e6",
+      "score": 1.0,
+      "terminalStatus": "PARTIAL_COMPENSATED",
+      "conformance": "EXACT"
+    },
+    {
+      "decision": 4,
+      "workload": "update-remove-72",
+      "scenarioId": "481b10f91d2cbc21b8a55f53b2ddacf2e06501352bc40759c376bed8010a3431",
+      "score": 0.0,
+      "terminalStatus": "COMPENSATED",
+      "conformance": "EXACT"
+    }
+  ],
+  "verifiedReportHashes": 24,
+  "pauseAfter": 1,
+  "sessionNewDispatches": [
+    1,
+    3,
+    0
+  ],
+  "firstDispatchAndReceiptUnchanged": true,
+  "completedResumeDispatchedNothing": true,
+  "artifacts": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/live-allocator-smoke-2026-09-21"
+}

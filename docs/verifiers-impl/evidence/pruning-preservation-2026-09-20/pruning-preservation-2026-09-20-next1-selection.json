@@ -1,0 +1,22 @@
+[
+  {
+    "label": "GetCourseExecutionById-UpdateTournament",
+    "tupleIndex": 1,
+    "inputIds": [
+      "5ec9f8e7df016efec5149b0e80e8acc7d13c090783ea935053658e0c4b5c4cec",
+      "c71c6ab8745873e807f41bdfd7cb8ce6dd66d9ff18d4b6c1a5f718e0750b53cb"
+    ],
+    "source": [
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: update tournament; anonymize creator; event",
+        "callContext": "sequential: update tournament; anonymize creator; event"
+      },
+      {
+        "class": "pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament.AnonymizeStudentAndUpdateTournamentTest",
+        "method": "sequential: update tournament; anonymize creator; event",
+        "callContext": "sequential: update tournament; anonymize creator; event"
+      }
+    ]
+  }
+]

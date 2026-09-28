@@ -1,0 +1,212 @@
+[
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "compensate": "s1"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "step": "s4"
+        },
+        {
+          "event": "e1"
+        },
+        {
+          "event": "e2"
+        },
+        {
+          "step": "s5"
+        },
+        {
+          "compensate": "s4"
+        },
+        {
+          "compensate": "s3"
+        }
+      ],
+      "aliases": [
+        "5a073c1210ecb48148c00d0e431213b6df3dbb7fd086ca36964c500404f1d690"
+      ],
+      "faultVector": "01001",
+      "id": "5a073c1210ecb48148c00d0e431213b6df3dbb7fd086ca36964c500404f1d690",
+      "key": "07a12731652c0e95408f245379e03a79cad501ba28881be0070b6f808bad6d13",
+      "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+    },
+    "family": "CreateQuiz + RemoveStudentFromCourseExecution",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/attempt-001",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "19c5f9bf443e0e638ee4c0226d153bc2f5742b52b95eb4096ada13aef73c608c",
+      "execution-report.impact-v2.json": "d6315f9a69d2f6f6df4e5f816ba4f7e2c25e6194ba37fd0781766a8bd1c7ba33",
+      "execution-report.impact.json": "d76d67c2bba4a61392c26c50c6b6266dcdb2a3d10c24bdf6cbfc141ea7af6af6",
+      "execution-report.json": "14ddc1fb488fe55cfc3c46201fd7cbf281b900e288e7b9a9fc134b45abb3b9db",
+      "execution-report.saga-read-exposure.json": "b958827fc9848f19964cfeb789721b8afe8bc89b269f3f936e2d7b92f5f7523f",
+      "replay.json": "d1ea0ac3862120242e37dea674f46d20077584cb95571a709e5e0bf2e57ffb18"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-96-map-four-v11/reference.json",
+    "referenceSha256": "6802846eb8c8c11b64a013ee16bf10f6a2d223e4ae3cc63fccd5a16f8fe20fff",
+    "residualReasons": [],
+    "runtimeHash": "d1ea0ac3862120242e37dea674f46d20077584cb95571a709e5e0bf2e57ffb18",
+    "status": "COMPLETE",
+    "workload": "2b1ebf31d0d84671a6a78889361f146cad5e9d029f47120cd05cba7c49c70c71"
+  },
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "step": "s4"
+        },
+        {
+          "step": "s5"
+        },
+        {
+          "step": "s6"
+        },
+        {
+          "step": "s7"
+        },
+        {
+          "compensate": "s6"
+        },
+        {
+          "compensate": "s5"
+        },
+        {
+          "compensate": "s3"
+        },
+        {
+          "compensate": "s2"
+        }
+      ],
+      "aliases": [
+        "469abee306673175412f1260ad8da3631a4e8e4fa8dfaa023cce756b73179c0f"
+      ],
+      "faultVector": "00010010",
+      "id": "469abee306673175412f1260ad8da3631a4e8e4fa8dfaa023cce756b73179c0f",
+      "key": "010eb1538b8115978773ebbc16d9d9b0da70a65dc1b1c20eb3f83b9f25e8980b",
+      "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+    },
+    "family": "CreateCourseExecution + CreateQuestion",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/attempt-001",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "79b140a8042c60b48d881250e1430a2cb05573a8d81b118e30f9701d10cd95bc",
+      "execution-report.impact-v2.json": "cce478248af41a64fa0d91dab8773ef4c4e5265aab1b306e94fc8a0c6af24695",
+      "execution-report.impact.json": "4d6d9a330c1d9f009fd51c8e3292fa415300fd28ba1bf08ee32cee69be3af838",
+      "execution-report.json": "b675918b099dd0196da1538ec866b8fe3b66f389a4105dbac75b3279828f9952",
+      "execution-report.saga-read-exposure.json": "c64ba0ab14f1bd0fd1cd81c789436a9280c9cb6113470fdef6e25818519cafce",
+      "replay.json": "b0f6cd9b7936c063400f037e12e427f7323aacd35dd7c4a161f8bf7dbea35e91"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-72-map-four-v11/reference.json",
+    "referenceSha256": "8fc86017d4a3d6f1ef031272eec5d8909b6976799071ef091de4b99bdad4f9c3",
+    "residualReasons": [],
+    "runtimeHash": "b0f6cd9b7936c063400f037e12e427f7323aacd35dd7c4a161f8bf7dbea35e91",
+    "status": "COMPLETE",
+    "workload": "6a25ff8183416a43ffca9c08101c1cf76176fe3f162735fce3761c7dd408ca1b"
+  },
+  {
+    "availableCounts": {
+      "COMPENSATED_READ_EXPOSURE": 0,
+      "DELETED_DEPENDENCY": 0,
+      "FAILED_OPERATION_RESIDUAL": 0,
+      "UNRESOLVED_DELIVERED_EVENT": 0
+    },
+    "candidate": "08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094",
+    "candidateData": {
+      "actions": [
+        {
+          "step": "s1"
+        },
+        {
+          "step": "s2"
+        },
+        {
+          "step": "s3"
+        },
+        {
+          "event": "e1"
+        },
+        {
+          "event": "e2"
+        }
+      ],
+      "aliases": [
+        "313e5768892bfa69aae5c52701cfc47587f963978a0420bb00b0d5daf2a53962"
+      ],
+      "faultVector": "0010",
+      "id": "313e5768892bfa69aae5c52701cfc47587f963978a0420bb00b0d5daf2a53962",
+      "key": "08158a189cbc3788fce5f3178ffcfb8f298361e0235ccda7b49a090efa6cb094",
+      "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+    },
+    "family": "CreateTopic + UpdateTopic",
+    "group": "COPY_PROVENANCE",
+    "lostGaps": [
+      "MISSING_COMMAND_SCOPE:pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.course.aggregate.CourseDto"
+    ],
+    "missingCriteria": [
+      "LOST_COPIED_UPDATE"
+    ],
+    "oldDirectory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/attempt-002",
+    "oldReportHashes": {
+      "execution-report-lost-copied-updates.json": "8b1b18ac53c0a280f3047c2d707a69295edec93d0104b9d3f39bed11ae0700a9",
+      "execution-report.impact-v2.json": "f1d39bc3753d4a8f84836a8a08571c80c003d87bb7227e08181f302745ff14c9",
+      "execution-report.impact.json": "bbde1c1f4e5d58c4ac8d2ed6cb9be65177bd6ca2e2a96ec86e5073ef36588f5e",
+      "execution-report.json": "01f36ffa18bed2dbdd066bb97230833f7c5d63b7ae2eb4f391dde23bf5ee4de1",
+      "execution-report.saga-read-exposure.json": "82094e266b24c781b93212744c79b817221b0c3f313e617dfad3f4f8b6f443b4",
+      "replay.json": "8f12535ca65a83f18331d1d83d0cdf092bb6eeb33cac91a7ee034758f06afd72"
+    },
+    "readGaps": [],
+    "reference": "verifiers/target/allocator-local-pilot-2026-09-23/family-115-map-four-v11/reference.json",
+    "referenceSha256": "8f57f0b86c1cc9ec7d30c3fb78424e066ea53f5bf808d802e6ab9864fe1a4d98",
+    "residualReasons": [],
+    "runtimeHash": "8f12535ca65a83f18331d1d83d0cdf092bb6eeb33cac91a7ee034758f06afd72",
+    "status": "COMPLETE",
+    "workload": "49560ab4bcac12eeca6737db13e4953d49f90eecee2c9a2619b9ed05121e6b82"
+  }
+]

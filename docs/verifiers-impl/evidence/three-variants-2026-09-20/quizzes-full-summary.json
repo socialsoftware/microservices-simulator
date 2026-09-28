@@ -1,0 +1,70 @@
+{
+  "totals" : {
+    "2" : {
+      "allOrders" : 625950,
+      "compressedOrders" : 66811,
+      "inputCombinations" : 49139,
+      "prunedOrders" : 496114,
+      "sagaSets" : 351,
+      "selectedInputCombinations" : 25786,
+      "selectedSagaSets" : 123
+    },
+    "3" : {
+      "allOrders" : 6488974140,
+      "compressedOrders" : 80661897,
+      "inputCombinations" : 4076149,
+      "prunedOrders" : 6059802185,
+      "sagaSets" : 2925,
+      "selectedInputCombinations" : 1708057,
+      "selectedSagaSets" : 726
+    },
+    "4" : {
+      "allOrders" : 95646448381540,
+      "compressedOrders" : 1160758241790,
+      "inputCombinations" : 213039521,
+      "prunedOrders" : 92714797643430,
+      "sagaSets" : 17550,
+      "selectedInputCombinations" : 90793636,
+      "selectedSagaSets" : 4042
+    }
+  },
+  "scope" : "Normal step orders, 2–4 distinct Saga types, all accepted test inputs; current broad interaction pruning includes compensation/event effects. Fault vectors, recovery schedules and event placements are not expanded; executability is not established.",
+  "normalization" : {
+    "inputVariantsSeen" : 340,
+    "inputVariantsAccepted" : 337,
+    "inputVariantsDeduplicated" : 0,
+    "inputVariantsExcludedByPolicy" : 3,
+    "inputVariantsRejectedBySourceMode" : 0,
+    "inputVariantsCapped" : 0,
+    "inputSagasWithInputs" : 27
+  },
+  "application" : "quizzes-full",
+  "sagasWithInputs" : 27,
+  "proof" : {
+    "alternativeInputChecks" : 8762,
+    "accountingPairChecks" : 351,
+    "fullEnumerationChecks" : 14,
+    "noExactInputBindings" : true
+  },
+  "extraction" : {
+    "typeOnlyFootprints" : 9,
+    "sagaBlocksSeen" : 43,
+    "sagasAdapted" : 43,
+    "stepsSeen" : 93,
+    "footprintsSeen" : 120,
+    "inputTracesSeen" : 368,
+    "inputVariantsAdapted" : 340,
+    "inputVariantsDeduplicated" : 28,
+    "inputVariantsSkipped" : 0,
+    "partialTraces" : 4,
+    "unresolvedTraces" : 0,
+    "replayableTraces" : 364,
+    "sagasWithoutUsableInputs" : 15,
+    "sagasSeen" : 43,
+    "stepsAdapted" : 93,
+    "footprintsAdapted" : 120,
+    "eventConsequenceCandidatesAdapted" : 0,
+    "eventConsequenceDiagnostics" : 12,
+    "sourceSetupPlanBindings" : 122
+  }
+}

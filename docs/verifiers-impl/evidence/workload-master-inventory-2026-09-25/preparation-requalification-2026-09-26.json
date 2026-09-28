@@ -1,0 +1,799 @@
+{
+  "status": "COMPLETE",
+  "workloads": 17,
+  "scenarios": 85,
+  "joint": {
+    "positive": 16,
+    "negative": 69,
+    "unavailable": 0
+  },
+  "changedAssessments": 0,
+  "preparationModes": {
+    "EXPLICIT_RETAINED_FIXTURE": 13,
+    "CURRENT_SOURCE_PREFIX": 3,
+    "CURRENT_SOURCE_PREFIX_WITH_EXPLICIT_HELPER_REPAIR": 1
+  },
+  "qualification": {
+    "path": "verifiers/target/preparation-17-2026-09-26/qualification.json",
+    "sha256": "90da64a7c042332b0bc4f60cbbc35ee41068d5da8c2ad35a43cc7b2a092fb0f6"
+  },
+  "integrityReceipt": {
+    "path": "verifiers/target/preparation-17-2026-09-26/integrity.json",
+    "sha256": "f6fd89c1bac5ed067c177ae90a1aa2d6f41d51d48168423a3b5c8c4cbf4b045d"
+  },
+  "rows": [
+    {
+      "candidateCount": 3,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/05b93426b215",
+      "explicitHelperRepairSources": null,
+      "family": "RemoveStudentFromCourseExecution",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-029-05b93426b2/pilot/reference.json",
+      "historicalReferenceSha256": "73464c1442d205f98b396b552d3acedb299cfc2e077ad640e257554e55d93e1b",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 3
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 4,
+      "oldActions": 4,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/05b93426b215/reference.json",
+      "referenceSha256": "3acfaeb3e6bf33ab999c6a3d59d5fa34d47a3233f3ad817def3eab5811fbd005",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "bdeb3010d381d90f5d7bea0627a470487181d0230cb091be41ae066647a95b6b",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "05b93426b21581c68958028f782140ce84aed2031a3ad999b9122802bb392036"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/1160dea937ac",
+      "explicitHelperRepairSources": null,
+      "family": "GetCourseExecutionById",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-088-1160dea937/pilot/reference.json",
+      "historicalReferenceSha256": "0e4a1ed04f93d95f6046f936240fcbc9d612f74102ceed1954bf21c0c1359b81",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 6,
+      "oldActions": 6,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/1160dea937ac/reference.json",
+      "referenceSha256": "a20e50423a9ff36e290abef8d2042da921e41fa150b66045d49384ef98073d00",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "6417a43989d4db5664d36d3f26d39027cc71671bc6b01e256805a3265b18d74b",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "1160dea937ac821f2340cc8aa436129fefaf3e319df426a750029dc1ae61db82"
+    },
+    {
+      "candidateCount": 3,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/24e200101865",
+      "explicitHelperRepairSources": null,
+      "family": "AddParticipant",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-110-24e2001018/pilot/reference.json",
+      "historicalReferenceSha256": "e889f44848eea0250c7ab4423fbaf2f664427b1fcec36ef33c5bc3f84d56ecce",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 3
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/24e200101865/reference.json",
+      "referenceSha256": "bfcbcad172f304f0910107574f031d4639d7f63778aa896960b530ea8d4ea4f6",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "377c17e0d0cd511ddc2ac08cf17e3d7627d28c7e4a9894d020413d994473d618",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "24e2001018653367d190b7cd940b273373c547275c37a1db78dc3a792dabcb9e"
+    },
+    {
+      "candidateCount": 4,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/45eb75108b99",
+      "explicitHelperRepairSources": null,
+      "family": "StartQuiz",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-072-45eb75108b/pilot/reference.json",
+      "historicalReferenceSha256": "ede5558146eb790e8f08053e9b75385ecda56d1c35416bff97663edbba918a8e",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 4
+      },
+      "mode": "CURRENT_SOURCE_PREFIX",
+      "newActions": 10,
+      "oldActions": 7,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/45eb75108b99/reference.json",
+      "referenceSha256": "d0cb232fb8bcfaaff5b4208eca46217d55616b0c97a75bb4b6c702bc627fa450",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": false,
+      "selectedSetupSha256": "e7710ca80c8239cccee41ad0edc4f3a951039678835f665eb2ebb01b10400bc4",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "45eb75108b99bb4e9544720a7f91fe95ac8ecd38a7754fc731aaffb4c04cbec7"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/4e6973042bbe",
+      "explicitHelperRepairSources": null,
+      "family": "FindQuestionByAggregateId",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-038-4e6973042b/pilot/reference.json",
+      "historicalReferenceSha256": "a874ca9fad2e4a11ce4ae27db6c085331ba5efa109d0e1f85a05b3436faf8fe9",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 5,
+      "oldActions": 5,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/4e6973042bbe/reference.json",
+      "referenceSha256": "245ac38d0b5ace67b718cbfe1efb714eabde50fbb27b97a1fbbac18c23ea70da",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "efffe655884b7f619bf5178651546c2721f8865911d86f11127f3560984152dd",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/4e6973042bbe/unsupported-async-prefix/preflight.json",
+      "workload": "4e6973042bbed20189a1843fe15f730ca51fa9fb0e5cde02f83ef12232858a1e"
+    },
+    {
+      "candidateCount": 8,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 2
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 2
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/506b56cb24df",
+      "explicitHelperRepairSources": null,
+      "family": "FindQuiz + RemoveTournament",
+      "historicalReference": "verifiers/target/workload-search-2026-09-24/pilot40-source-snapshot/family-201-complete-map/reference.json",
+      "historicalReferenceSha256": "f93fad9e28d9c339a2c383c4c2136abda792b791e74bcd850a47960dfba19b7e",
+      "historicalSetupSha256": "ef0103449975ec606d5c65f6a3c9f03a0258059df28cad2fba5db7de3f55a9df",
+      "joint": {
+        "positive": 2,
+        "unavailable": 0,
+        "zero": 6
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/506b56cb24df/reference.json",
+      "referenceSha256": "f8dde975afa9650930f6d61d46c839e184993cc5cab988baa065bf0d367ffeb0",
+      "restoredStaticSource": "/Users/andre/.codex/worktrees/428b/microservices-simulator/verifiers/target/workload-discovery-2026-09-24/family-201-qualification/attempt-002/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "2cee3963bba4d331abbaad7274ba132aea8664820a38853226efcba073e5486a",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "506b56cb24df8cbf227c41c1772df2165b4d7296327c253c9873ae7ab7321def"
+    },
+    {
+      "candidateCount": 33,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 13
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/56cfea865c00",
+      "explicitHelperRepairSources": null,
+      "family": "LeaveTournament + UpdateTournament",
+      "historicalReference": "verifiers/target/workload-expansion-2026-09-25/family-136-map/reference.json",
+      "historicalReferenceSha256": "0a333a01570467878179363c9356ea996125f46c53cde8f0f5bef637a32adb14",
+      "historicalSetupSha256": "9ac1157a476aab9cc1722145bddc4b9b97d40dcc1eb5447f6afc23ca1195d4de",
+      "joint": {
+        "positive": 13,
+        "unavailable": 0,
+        "zero": 20
+      },
+      "mode": "CURRENT_SOURCE_PREFIX",
+      "newActions": 15,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/56cfea865c00/reference.json",
+      "referenceSha256": "bb40881a6b329f34e439c22404084d62b6bc098b49f14f9ba62d12a7abeff7f7",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/workload-expansion-2026-09-25/family-136-map/attempt-001/package",
+      "samePreparation": false,
+      "selectedSetupSha256": "e5813ef1c759a7d974ebc368649f649eb1a589b4067cd5e096d30f1f5127c694",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "56cfea865c00496352e19d36ed23db020be7a2e000763aa8e598d761e4112cef"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/588de51953ee",
+      "explicitHelperRepairSources": null,
+      "family": "FindQuiz",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-042-588de51953/pilot/reference.json",
+      "historicalReferenceSha256": "af06b4911e3ead0c276cadd0bc1ee180cc38d2a6df0e29933b630cc9aecd317b",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/588de51953ee/reference.json",
+      "referenceSha256": "9a180c146fb1f50c5aef986d8c03a4c96ef2c9febe3b5e2d65477db1cb5a2cf5",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "84aa58e0f766d45fe6a04012f5e48515aa09664394ac2b3ee721fac0d4b97fa6",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "588de51953eed981ed2af59899f32ea9bc6c9f2f38f80b98c16f37f164df6ea2"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/7d186fc36392",
+      "explicitHelperRepairSources": null,
+      "family": "FindTournament",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-117-7d186fc363/pilot/reference.json",
+      "historicalReferenceSha256": "badbfebcb19d98d26fe989584de54f19fe75bee0eb6cac2ab70b9be837daa2d4",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/7d186fc36392/reference.json",
+      "referenceSha256": "7c2e97d7d65e75d0316e42a01e9ae235714b67a29c75e243aa746831c2a71a0a",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "840739c4954749f8a71c78f1f9dd57fcb051484d61dd832938bf6a116eb274ed",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "7d186fc363923b393918d2f6d8d926a603b187735cd3b259cc68204f68a5b037"
+    },
+    {
+      "candidateCount": 4,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/8d575abe3225",
+      "explicitHelperRepairSources": null,
+      "family": "StartQuiz",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-002-8d575abe32/pilot/reference.json",
+      "historicalReferenceSha256": "15b184107cb2d78658781f6240943ba135b58f65fe6c77d2905b735e1e862fa8",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 4
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 7,
+      "oldActions": 7,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/8d575abe3225/reference.json",
+      "referenceSha256": "52cc2950c92026ad52927839d78b131d4c067d9b6fb3a52e52538e30144737ca",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "bb49dc50d7fccb923114aa146472876ed22cf39364a1843b2abe5db1a799fcfc",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "8d575abe3225fd3c2a30d247a1c0cf7e0db96dcf164a7bb2dd444714081be324"
+    },
+    {
+      "candidateCount": 3,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/a2c78d5b591a",
+      "explicitHelperRepairSources": null,
+      "family": "RemoveStudentFromCourseExecution",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-096-a2c78d5b59/pilot/reference.json",
+      "historicalReferenceSha256": "12a9305e06654a297bfc33287885e1925f98c8deeda8ac3bc5b04f0e2f15d5f0",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 3
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 4,
+      "oldActions": 4,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/a2c78d5b591a/reference.json",
+      "referenceSha256": "be4a522ce0a677331ff8156068860eba04e9c7708dbdea950d0450a0922287d2",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "bdeb3010d381d90f5d7bea0627a470487181d0230cb091be41ae066647a95b6b",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "a2c78d5b591ae5eab0113dc8185a09a736624fb7730ac6e048d3e7d6cce0b676"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ab51c0283e08",
+      "explicitHelperRepairSources": null,
+      "family": "FindTournament",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-055-ab51c0283e/pilot/reference.json",
+      "historicalReferenceSha256": "5fd1622df194ef7c6610c9fe8bfdf1146bb415d23e92dd9bec72014256a8afa8",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ab51c0283e08/reference.json",
+      "referenceSha256": "74b8540e867e7f3c5343459a865d612ee1fcc90bc559eae9b04da0404daee0ab",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "517dd81552464dfa933f5711774fbc73dc7aa1db2033ee24fa2226558467f060",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "ab51c0283e0886e1db7f156539ec126606e873b8c46a244b9019a635f0945e94"
+    },
+    {
+      "candidateCount": 3,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/bc41b59a13bd",
+      "explicitHelperRepairSources": null,
+      "family": "AnonymizeStudent",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-012-bc41b59a13/pilot/reference.json",
+      "historicalReferenceSha256": "570439dcfa0621f7fe61a7f9ee2c2400f73626972d30e7195b91d3f1c01732d2",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 3
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 4,
+      "oldActions": 4,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/bc41b59a13bd/reference.json",
+      "referenceSha256": "8f0c05802ad62b547910b9e5f3db1fd7deaac793b03a5fa504d5560291cf4e1b",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "fde741c5a1854fb23b39fd34015a9572ee6327a76c6c1492da48a6d79dbdb9fa",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "bc41b59a13bd8391a799df33667819a9929021cf084321d491b8394581370c19"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/c0b611e23ef8",
+      "explicitHelperRepairSources": null,
+      "family": "GetCourseExecutions",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-026-c0b611e23e/pilot/reference.json",
+      "historicalReferenceSha256": "006b6234985c2238010e16304d911908a57fd63e7fd423f58a551251f560721e",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "CURRENT_SOURCE_PREFIX",
+      "newActions": 5,
+      "oldActions": 4,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/c0b611e23ef8/reference.json",
+      "referenceSha256": "56614847c62f4e4b3bfbc9f9a2368deda429d97a700bbe8f4b1975e02cfdaf8a",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": false,
+      "selectedSetupSha256": "689a27ddd893d8e81e00322401ba4fbe19649f4457661614a8b486b1f1b20951",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "c0b611e23ef863add89a79fd8a2dad752dff4489439ce314f5798ab5a9d4d57f"
+    },
+    {
+      "candidateCount": 4,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 1
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/d53ab56d5d78",
+      "explicitHelperRepairSources": {
+        "/Users/andre/meic/thesis/microservices-simulator/applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/QuizzesSpockTest.groovy": "2434d7f4d2e72fa95bdc93a722a0c627f5699d1b8f90a5f488089638c52477d8",
+        "/Users/andre/meic/thesis/microservices-simulator/applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/execution/RemoveCourseExecutionTest.groovy": "69eaad892ccbf0d459ac165a4d5a43b2ef5ebf99ec5c7dd0517f0c014aee2e90"
+      },
+      "family": "RemoveCourseExecution",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-094-d53ab56d5d/pilot/reference.json",
+      "historicalReferenceSha256": "b2b514b93eeded031c1e58ccd3ef32774eade13ca9fee236f21f5703523fac16",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 1,
+        "unavailable": 0,
+        "zero": 3
+      },
+      "mode": "CURRENT_SOURCE_PREFIX_WITH_EXPLICIT_HELPER_REPAIR",
+      "newActions": 4,
+      "oldActions": 2,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/d53ab56d5d78/reference.json",
+      "referenceSha256": "6c777b34524e9b6ea71543deff5224a577e0c6f5e2e53614ef6544504e0a28af",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": false,
+      "selectedSetupSha256": "b179f4ae2a526c39f0c5fd2240f90a320f2fae3e13efdd16586aaa7c62841268",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "d53ab56d5d7842991016c1c260c699235e08701018c155565067d47f506347da"
+    },
+    {
+      "candidateCount": 6,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ead0cdf7590b",
+      "explicitHelperRepairSources": null,
+      "family": "AddParticipant + FindTournament",
+      "historicalReference": "verifiers/target/allocator-local-pilot-2026-09-23/family-13-map-v4/reference.json",
+      "historicalReferenceSha256": "9b50abcbe803cfc774288832211f0ca8783e74e477760a6f500bde0971ff300f",
+      "historicalSetupSha256": "27092a47e5545ee92733b4a683d68e72d5918fdbdbb2cdba78beeb5b5f046d21",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 6
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ead0cdf7590b/reference.json",
+      "referenceSha256": "f524090b1976c0b74ad4abbdab0c4efdc7a3c6ba6372ff5514f95f6b957e2965",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/allocator-local-pilot-2026-09-23/family-13-map-v4/attempt-001/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "c33524c726ef47a2fbd78e029741872c600b876325e03b72d1f539a46a98ffa8",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "ead0cdf7590b04bb46decb5764d31527232c9cc5ed36d921ed038ad039506f68"
+    },
+    {
+      "candidateCount": 2,
+      "changedAssessmentKeys": [],
+      "controlScore": 0.0,
+      "criteria": {
+        "COMPENSATED_READ_EXPOSURE": {
+          "positive": 0
+        },
+        "DELETED_DEPENDENCY": {
+          "positive": 0
+        },
+        "FAILED_OPERATION_RESIDUAL": {
+          "positive": 0
+        },
+        "LOST_COPIED_UPDATE": {
+          "positive": 0
+        },
+        "UNRESOLVED_DELIVERED_EVENT": {
+          "positive": 0
+        }
+      },
+      "directory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ed6c68a74b24",
+      "explicitHelperRepairSources": null,
+      "family": "GetCourseExecutionById",
+      "historicalReference": "verifiers/target/cluster-proteina06-2026-09-18/replay-complete/sources/breadth-020-ed6c68a74b/pilot/reference.json",
+      "historicalReferenceSha256": "41989d243f7b82573e35c4219335e78f27f50c2b0bd02305fbca7a757739d63a",
+      "historicalSetupSha256": "b1bb0c6e36c4f1384565e4337136f643ba6e96646c388d31c4282b02a95f6fff",
+      "joint": {
+        "positive": 0,
+        "unavailable": 0,
+        "zero": 2
+      },
+      "mode": "EXPLICIT_RETAINED_FIXTURE",
+      "newActions": 14,
+      "oldActions": 14,
+      "preflightStatus": "SETUP_READY",
+      "reference": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/preparation-17-2026-09-26/ed6c68a74b24/reference.json",
+      "referenceSha256": "05774ffbac4227bf543d4a2719171206543876b7820a0089c9889ae04a65ff45",
+      "restoredStaticSource": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/cluster-next-preparation-2026-09-19/e61e7630681d/package",
+      "samePreparation": true,
+      "selectedSetupSha256": "edc7d1a729403f5d587a4f59be9906085c4123cbcb0f1213f9d20180f7b37fc4",
+      "state": "QUALIFIED",
+      "unsupportedSourcePrefix": null,
+      "workload": "ed6c68a74b24883a85c21172af8e7ed9ce5e974cff09ad836e5ddd25d8cb23ff"
+    }
+  ],
+  "limits": [
+    "Explicit retained fixtures define standalone workloads, not full original test histories.",
+    "The rejected asynchronous source prefix is preserved separately.",
+    "The non-last execution fixture explicitly expands an omitted createQuestion helper; generic extraction remains unchanged."
+  ]
+}

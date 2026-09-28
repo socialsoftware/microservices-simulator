@@ -1,0 +1,946 @@
+{
+  "three-saga": {
+    "arms": {
+      "round-robin": {
+        "positives": {
+          "mean": 100.43333333333334,
+          "p10": 93.0,
+          "p90": 107.0
+        },
+        "cumulativeScore": {
+          "mean": 115.0,
+          "p10": 107.7,
+          "p90": 122.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.015451612044125795,
+          "p10": 0.014022238366305829,
+          "p90": 0.016378456307575107
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 5.833333333333333,
+            "cumulativeScore": 6.733333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 10.6,
+            "cumulativeScore": 12.166666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 21.066666666666666,
+            "cumulativeScore": 23.933333333333334,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 41.3,
+            "cumulativeScore": 46.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 100.43333333333334,
+            "cumulativeScore": 115.0,
+            "unknowns": 0
+          }
+        ]
+      },
+      "uniform": {
+        "positives": {
+          "mean": 98.8,
+          "p10": 89.9,
+          "p90": 106.30000000000001
+        },
+        "cumulativeScore": {
+          "mean": 113.43333333333334,
+          "p10": 102.7,
+          "p90": 124.0
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.015070497058331966,
+          "p10": 0.014093314623460173,
+          "p90": 0.015326956124044954
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 5.833333333333333,
+            "cumulativeScore": 6.6,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 10.666666666666666,
+            "cumulativeScore": 12.1,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 20.3,
+            "cumulativeScore": 23.133333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 42.733333333333334,
+            "cumulativeScore": 48.666666666666664,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 98.8,
+            "cumulativeScore": 113.43333333333334,
+            "unknowns": 0
+          }
+        ]
+      },
+      "independent": {
+        "positives": {
+          "mean": 150.4,
+          "p10": 136.0,
+          "p90": 159.1
+        },
+        "cumulativeScore": {
+          "mean": 182.83333333333334,
+          "p10": 165.9,
+          "p90": 195.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.02304348915349692,
+          "p10": 0.02128735459409654,
+          "p90": 0.023975512012839317
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 6.966666666666667,
+            "cumulativeScore": 8.0,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 14.566666666666666,
+            "cumulativeScore": 16.833333333333332,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 32.63333333333333,
+            "cumulativeScore": 38.36666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 71.5,
+            "cumulativeScore": 86.43333333333334,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 150.4,
+            "cumulativeScore": 182.83333333333334,
+            "unknowns": 0
+          }
+        ]
+      },
+      "progress": {
+        "positives": {
+          "mean": 150.2,
+          "p10": 142.4,
+          "p90": 157.2
+        },
+        "cumulativeScore": {
+          "mean": 175.36666666666667,
+          "p10": 164.7,
+          "p90": 183.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.04403694209177047,
+          "p10": 0.04104028071742505,
+          "p90": 0.046423988230526445
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 8.833333333333334,
+            "cumulativeScore": 10.466666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 17.833333333333332,
+            "cumulativeScore": 21.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 37,
+            "cumulativeScore": 45.53333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 71.23333333333333,
+            "cumulativeScore": 84.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 150.2,
+            "cumulativeScore": 175.36666666666667,
+            "unknowns": 0
+          }
+        ]
+      },
+      "structural": {
+        "positives": {
+          "mean": 144.73333333333332,
+          "p10": 130.0,
+          "p90": 155.5
+        },
+        "cumulativeScore": {
+          "mean": 171.36666666666667,
+          "p10": 149.6,
+          "p90": 192.4
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.39219806479134905,
+          "p10": 0.38323709708638487,
+          "p90": 0.4003817494958639
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 5.266666666666667,
+            "cumulativeScore": 6.166666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 13.333333333333334,
+            "cumulativeScore": 15.666666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 32.13333333333333,
+            "cumulativeScore": 39.1,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 67.56666666666666,
+            "cumulativeScore": 81.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 144.73333333333332,
+            "cumulativeScore": 171.36666666666667,
+            "unknowns": 0
+          }
+        ]
+      },
+      "order": {
+        "positives": {
+          "mean": 148.66666666666666,
+          "p10": 125.4,
+          "p90": 162.70000000000002
+        },
+        "cumulativeScore": {
+          "mean": 176.13333333333333,
+          "p10": 139.2,
+          "p90": 201.60000000000002
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.5121221714342634,
+          "p10": 0.49885095909703525,
+          "p90": 0.5198292839340866
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 5.533333333333333,
+            "cumulativeScore": 6.2,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 13.533333333333333,
+            "cumulativeScore": 15.3,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 33.7,
+            "cumulativeScore": 38.53333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 71.06666666666666,
+            "cumulativeScore": 83.46666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 148.66666666666666,
+            "cumulativeScore": 176.13333333333333,
+            "unknowns": 0
+          }
+        ]
+      },
+      "hybrid": {
+        "positives": {
+          "mean": 155.33333333333334,
+          "p10": 148.0,
+          "p90": 163.1
+        },
+        "cumulativeScore": {
+          "mean": 186.43333333333334,
+          "p10": 166.9,
+          "p90": 198.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.4366589291486889,
+          "p10": 0.4325589437736198,
+          "p90": 0.44068167684599757
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 5.966666666666667,
+            "cumulativeScore": 6.866666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 13.466666666666667,
+            "cumulativeScore": 15.666666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 31.366666666666667,
+            "cumulativeScore": 37.13333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 73.5,
+            "cumulativeScore": 88.83333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 155.33333333333334,
+            "cumulativeScore": 186.43333333333334,
+            "unknowns": 0
+          }
+        ]
+      }
+    },
+    "contrasts": {
+      "order minus structural": {
+        "positives": {
+          "meanDifference": 3.933333333333333,
+          "pairedBootstrap95": [
+            -0.8666666666666667,
+            8.167499999999988
+          ],
+          "wins": 22,
+          "ties": 1,
+          "losses": 7
+        },
+        "cumulativeScore": {
+          "meanDifference": 4.766666666666667,
+          "pairedBootstrap95": [
+            -2.267499999999999,
+            11.4
+          ],
+          "wins": 19,
+          "ties": 0,
+          "losses": 11
+        }
+      },
+      "hybrid minus structural": {
+        "positives": {
+          "meanDifference": 10.6,
+          "pairedBootstrap95": [
+            6.733333333333333,
+            14.266666666666667
+          ],
+          "wins": 26,
+          "ties": 1,
+          "losses": 3
+        },
+        "cumulativeScore": {
+          "meanDifference": 15.066666666666666,
+          "pairedBootstrap95": [
+            8.8,
+            21.300833333333323
+          ],
+          "wins": 27,
+          "ties": 0,
+          "losses": 3
+        }
+      },
+      "structural minus progress": {
+        "positives": {
+          "meanDifference": -5.466666666666667,
+          "pairedBootstrap95": [
+            -8.566666666666666,
+            -2.6
+          ],
+          "wins": 5,
+          "ties": 2,
+          "losses": 23
+        },
+        "cumulativeScore": {
+          "meanDifference": -4.0,
+          "pairedBootstrap95": [
+            -8.667499999999999,
+            0.5666666666666667
+          ],
+          "wins": 8,
+          "ties": 3,
+          "losses": 19
+        }
+      },
+      "independent minus uniform": {
+        "positives": {
+          "meanDifference": 51.6,
+          "pairedBootstrap95": [
+            48.46666666666667,
+            54.7
+          ],
+          "wins": 30,
+          "ties": 0,
+          "losses": 0
+        },
+        "cumulativeScore": {
+          "meanDifference": 69.4,
+          "pairedBootstrap95": [
+            65.03333333333333,
+            73.63333333333334
+          ],
+          "wins": 30,
+          "ties": 0,
+          "losses": 0
+        }
+      }
+    }
+  },
+  "one-two-saga": {
+    "arms": {
+      "round-robin": {
+        "positives": {
+          "mean": 20.066666666666666,
+          "p10": 17.0,
+          "p90": 22.0
+        },
+        "cumulativeScore": {
+          "mean": 24.466666666666665,
+          "p10": 21.0,
+          "p90": 27.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.009592132937783996,
+          "p10": 0.008983049774542451,
+          "p90": 0.009501964319497347
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.3,
+            "cumulativeScore": 1.3,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 3,
+            "cumulativeScore": 3.6666666666666665,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 3.9,
+            "cumulativeScore": 4.733333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 8.433333333333334,
+            "cumulativeScore": 10.3,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 20.066666666666666,
+            "cumulativeScore": 24.466666666666665,
+            "unknowns": 0
+          }
+        ]
+      },
+      "uniform": {
+        "positives": {
+          "mean": 21.5,
+          "p10": 19.0,
+          "p90": 25.1
+        },
+        "cumulativeScore": {
+          "mean": 26.133333333333333,
+          "p10": 22.0,
+          "p90": 30.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.01024254112659643,
+          "p10": 0.009718126407824457,
+          "p90": 0.010129012959077954
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.1333333333333333,
+            "cumulativeScore": 1.4666666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 2.1333333333333333,
+            "cumulativeScore": 2.566666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 4.533333333333333,
+            "cumulativeScore": 5.366666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 9.966666666666667,
+            "cumulativeScore": 12.033333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 21.5,
+            "cumulativeScore": 26.133333333333333,
+            "unknowns": 0
+          }
+        ]
+      },
+      "independent": {
+        "positives": {
+          "mean": 32.733333333333334,
+          "p10": 27.0,
+          "p90": 40.1
+        },
+        "cumulativeScore": {
+          "mean": 37.46666666666667,
+          "p10": 32.0,
+          "p90": 44.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.014003848300005,
+          "p10": 0.013692084630019963,
+          "p90": 0.014390256558544935
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.7333333333333334,
+            "cumulativeScore": 1.7333333333333334,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 3.6,
+            "cumulativeScore": 4.4,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 5.866666666666666,
+            "cumulativeScore": 6.733333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 11.866666666666667,
+            "cumulativeScore": 13.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 32.733333333333334,
+            "cumulativeScore": 37.46666666666667,
+            "unknowns": 0
+          }
+        ]
+      },
+      "progress": {
+        "positives": {
+          "mean": 57.3,
+          "p10": 37.9,
+          "p90": 70.2
+        },
+        "cumulativeScore": {
+          "mean": 60.266666666666666,
+          "p10": 40.8,
+          "p90": 73.2
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 0.07855160917000224,
+          "p10": 0.07259870127309113,
+          "p90": 0.08050718610174953
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 3.933333333333333,
+            "cumulativeScore": 3.933333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 9.666666666666666,
+            "cumulativeScore": 9.666666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 18.233333333333334,
+            "cumulativeScore": 18.3,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 27.966666666666665,
+            "cumulativeScore": 29.1,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 57.3,
+            "cumulativeScore": 60.266666666666666,
+            "unknowns": 0
+          }
+        ]
+      },
+      "structural": {
+        "positives": {
+          "mean": 38.233333333333334,
+          "p10": 18.700000000000003,
+          "p90": 54.300000000000004
+        },
+        "cumulativeScore": {
+          "mean": 43.56666666666667,
+          "p10": 24.700000000000003,
+          "p90": 56.70000000000001
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 2.442907842822994,
+          "p10": 2.2846461402485145,
+          "p90": 2.6167407683329658
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.2333333333333334,
+            "cumulativeScore": 1.5666666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 2.533333333333333,
+            "cumulativeScore": 3.1,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 6.366666666666666,
+            "cumulativeScore": 7.366666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 15.266666666666667,
+            "cumulativeScore": 18.066666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 38.233333333333334,
+            "cumulativeScore": 43.56666666666667,
+            "unknowns": 0
+          }
+        ]
+      },
+      "order": {
+        "positives": {
+          "mean": 43.233333333333334,
+          "p10": 25.5,
+          "p90": 60.50000000000001
+        },
+        "cumulativeScore": {
+          "mean": 48.36666666666667,
+          "p10": 31.5,
+          "p90": 63.70000000000001
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 2.9283592991841334,
+          "p10": 2.7182634444907308,
+          "p90": 3.1380635058972985
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.3666666666666667,
+            "cumulativeScore": 1.7,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 2.5,
+            "cumulativeScore": 3.066666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 6.233333333333333,
+            "cumulativeScore": 7.266666666666667,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 14.233333333333333,
+            "cumulativeScore": 16.766666666666666,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 43.233333333333334,
+            "cumulativeScore": 48.36666666666667,
+            "unknowns": 0
+          }
+        ]
+      },
+      "hybrid": {
+        "positives": {
+          "mean": 43.733333333333334,
+          "p10": 39.400000000000006,
+          "p90": 49.0
+        },
+        "cumulativeScore": {
+          "mean": 47.43333333333333,
+          "p10": 43.400000000000006,
+          "p90": 52.1
+        },
+        "unknowns": {
+          "mean": 0,
+          "p10": 0.0,
+          "p90": 0.0
+        },
+        "selectionAndUpdateSeconds": {
+          "mean": 2.708950042251187,
+          "p10": 2.6376363752409815,
+          "p90": 2.768247428047471
+        },
+        "checkpoints": [
+          {
+            "attempt": 16,
+            "positives": 1.3333333333333333,
+            "cumulativeScore": 1.6333333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 32,
+            "positives": 2.7,
+            "cumulativeScore": 3.2,
+            "unknowns": 0
+          },
+          {
+            "attempt": 64,
+            "positives": 6.933333333333334,
+            "cumulativeScore": 8.033333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 128,
+            "positives": 9.933333333333334,
+            "cumulativeScore": 12.033333333333333,
+            "unknowns": 0
+          },
+          {
+            "attempt": 256,
+            "positives": 43.733333333333334,
+            "cumulativeScore": 47.43333333333333,
+            "unknowns": 0
+          }
+        ]
+      }
+    },
+    "contrasts": {
+      "order minus structural": {
+        "positives": {
+          "meanDifference": 5,
+          "pairedBootstrap95": [
+            3.3333333333333335,
+            7.033333333333333
+          ],
+          "wins": 25,
+          "ties": 3,
+          "losses": 2
+        },
+        "cumulativeScore": {
+          "meanDifference": 4.8,
+          "pairedBootstrap95": [
+            3.1,
+            6.866666666666666
+          ],
+          "wins": 24,
+          "ties": 4,
+          "losses": 2
+        }
+      },
+      "hybrid minus structural": {
+        "positives": {
+          "meanDifference": 5.5,
+          "pairedBootstrap95": [
+            0.36666666666666664,
+            10.6
+          ],
+          "wins": 17,
+          "ties": 1,
+          "losses": 12
+        },
+        "cumulativeScore": {
+          "meanDifference": 3.8666666666666667,
+          "pairedBootstrap95": [
+            -1.0666666666666667,
+            8.8
+          ],
+          "wins": 17,
+          "ties": 0,
+          "losses": 13
+        }
+      },
+      "structural minus progress": {
+        "positives": {
+          "meanDifference": -19.066666666666666,
+          "pairedBootstrap95": [
+            -24.566666666666666,
+            -13.366666666666667
+          ],
+          "wins": 4,
+          "ties": 0,
+          "losses": 26
+        },
+        "cumulativeScore": {
+          "meanDifference": -16.7,
+          "pairedBootstrap95": [
+            -22.0,
+            -11.166666666666666
+          ],
+          "wins": 4,
+          "ties": 0,
+          "losses": 26
+        }
+      },
+      "independent minus uniform": {
+        "positives": {
+          "meanDifference": 11.233333333333333,
+          "pairedBootstrap95": [
+            9.5,
+            13.033333333333333
+          ],
+          "wins": 30,
+          "ties": 0,
+          "losses": 0
+        },
+        "cumulativeScore": {
+          "meanDifference": 11.333333333333334,
+          "pairedBootstrap95": [
+            9.533333333333333,
+            13.166666666666666
+          ],
+          "wins": 30,
+          "ties": 0,
+          "losses": 0
+        }
+      }
+    }
+  }
+}

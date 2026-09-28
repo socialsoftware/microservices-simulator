@@ -1,0 +1,40 @@
+{
+  "all": {
+    "workloads": 96,
+    "sagaSets": 45,
+    "scenarios": 14464,
+    "scores": {
+      "all": {
+        "positive": 10581,
+        "zero": 3033,
+        "unavailable": 850
+      },
+      "dependency": {
+        "positive": 4059,
+        "zero": 9939,
+        "unavailable": 466
+      }
+    }
+  },
+  "sameRuntimeSmall": {
+    "workloads": 81,
+    "sagaSets": 41,
+    "scenarios": 1511,
+    "scores": {
+      "all": {
+        "positive": 594,
+        "zero": 917,
+        "unavailable": 0
+      },
+      "dependency": {
+        "positive": 6,
+        "zero": 1505,
+        "unavailable": 0
+      }
+    }
+  },
+  "positiveMaps": 32,
+  "allZeroMaps": 64,
+  "uniqueWorkloadIds": 96,
+  "metadataAvailableForEveryStructuralProfile": true
+}

@@ -1,0 +1,11 @@
+{
+  "admittedWorkloads": 2,
+  "candidateCounts": [
+    72,
+    12
+  ],
+  "controlProfile": "DELETED_DEPENDENCY only",
+  "tamperedSummaryRejected": true,
+  "allCriteriaIncompleteControlRejected": true,
+  "applicationExecutions": 0
+}

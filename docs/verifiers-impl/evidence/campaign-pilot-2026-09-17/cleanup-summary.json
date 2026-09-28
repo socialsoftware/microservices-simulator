@@ -1,0 +1,15 @@
+{
+  "releaseJarsRemoved": 938,
+  "releaseJarBytesRemoved": 422301922,
+  "preserved": "All reports, prepared builds, pt artifacts and SNAPSHOT versions",
+  "packageCompaction": {
+    "copiesRecloned": 7780,
+    "logicalBytesRecloned": 17817784929,
+    "freeBytesBefore": 9759207424,
+    "freeBytesAfter": 9797287936,
+    "wallSeconds": 81.39242386817932,
+    "method": "APFS copy-on-write clones; all paths and file contents preserved and SHA-256 checked before replacement"
+  },
+  "cleanupInventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/cache-cleanup.json",
+  "cloneInventory": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/campaign-pilot-2026-09-17/compacted-copies.jsonl"
+}

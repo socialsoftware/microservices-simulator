@@ -1,0 +1,15 @@
+{
+  "verifiers/target/name-join-read-qualification-2026-09-16/selection.json": "893f3eca448fe0097d9ca1af6e6cb14081b3abbece9d33091f91719dc5e8075a",
+  "verifiers/target/name-join-read-qualification-2026-09-16/generation-command.json": "f86d6a56ea641f8f6979dc766fae3d49b008ec5353b0fd1e9bd47215dfc5efc6",
+  "verifiers/target/name-join-read-qualification-2026-09-16/generation-result.json": "33d1f8ecc57def0ffc740d00fc9c83dcef4c17a19e8bca2e77cf6ff8c0a5b0f1",
+  "verifiers/target/name-join-read-qualification-2026-09-16/application-source-hashes.json": "07a38f0c5636a0c427859655acbb27a8abae2e51995aa4af1130161e955095c6",
+  "verifiers/target/name-join-read-qualification-2026-09-16/config.json": "f587b4e1c3bddf2781f730bba1fbc84c5f7e16da483ee34ce80ca680062df099",
+  "verifiers/target/name-join-read-qualification-2026-09-16/control/control.json": "5568fd4ff13ae63550542631004a757e9899a3c251410ee96e403433e609b89d",
+  "verifiers/target/name-join-read-qualification-2026-09-16/catalogue/domain-count.json": "5dd1d93be32023b7381490383f5fa15bc74d20c7976ac1b595594d4736f5faec",
+  "verifiers/target/name-join-read-qualification-2026-09-16/catalogue/requests.json": "d00508df6d1035175f51f0d611b252f7cab66dd740794fbf2a88bca6290ab9a1",
+  "verifiers/target/name-join-read-qualification-2026-09-16/catalogue/catalogue.json": "529cbbb294a92dd5727a349f05c5b7cb88ddc6feddb757cca99547d7295a3f14",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/name-join-read-qualification-2026-09-16/control/attempt-001/execution-report.json": "32ecbc26795184dd403de34633112fef54e3a59e6c56cce92aed5160d66fc1bb",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/name-join-read-qualification-2026-09-16/control/attempt-001/execution-report.saga-read-exposure.json": "52ecb7b03bc9415a44cc9c91db8f6af1d6661933fbddc03eca38ca0a88d916e6",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/name-join-read-qualification-2026-09-16/control/attempt-001/execution-report.impact-v2.json": "c2d42c55387cc34019fef076ed3a4359d78ae7b21ea7bd7241a3e341d4046549",
+  "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/name-join-read-qualification-2026-09-16/control/attempt-001/execution-report-lost-copied-updates.json": "aa1f4f66e29286b10d55eb6e2ae483a99913066aeeb8ec024cbded2ff6569293"
+}

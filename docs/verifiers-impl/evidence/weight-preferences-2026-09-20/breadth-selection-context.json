@@ -1,0 +1,15 @@
+{
+  "source": "verifiers/target/cluster-proteina06-2026-09-18/overnight-analysis.json",
+  "controls": 129,
+  "families": 70,
+  "successfulExactCompleteZeroControls": 67,
+  "familiesWithPassingControl": 39,
+  "stages": {
+    "ERROR": 31,
+    "COMPLETE_MAP": 59,
+    "PILOT_COMPLETE": 5,
+    "CONTROL_REJECTED": 31,
+    "ENUMERATION_DEFERRED": 3
+  },
+  "scope": "Earlier 129-plan breadth cohort only; distinct from later extensions. Static materializability is not runtime success; a pilot is not a complete fault map."
+}

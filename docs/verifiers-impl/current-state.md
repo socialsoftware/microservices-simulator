@@ -17,6 +17,7 @@ Java application code + Groovy/Spock tests
   -> optional invariant-impact result
   -> automatic potential-impact evidence sidecar
   -> fixed-workload GA or random search under an execution budget
+  -> bounded cross-workload allocation over explicit catalogues (recorded or live)
 ```
 
 The verifier does **not** prove that an application is correct. It currently answers narrower questions:
@@ -28,7 +29,8 @@ The verifier does **not** prove that an application is correct. It currently ans
 5. Did that attempt trigger an observed aggregate-invariant rejection?
 6. Which of the three implemented potential-impact conditions hold, for which aggregate identities, and with what observation coverage?
 7. Which fault/recovery alternatives does a fixed-workload GA or random policy find under the same execution budget?
-8. Did a Saga read a subsequently compensated version, or use an earlier copied value to overwrite an intervening foreign change?
+8. How do bounded workload-allocation policies spend one shared attempt budget?
+9. Did a Saga read a subsequently compensated version, or use an earlier copied value to overwrite an intervening foreign change?
 
 The earlier explicit Quizzes broken-reference benchmark rule is retained as separate
 application-specific evidence; it is not the generic ImpactV2 definition.
@@ -160,8 +162,8 @@ It counts structured `INVARIANT_VIOLATION` events emitted when the existing Saga
 **ImpactV2** assesses explicit potential-impact conditions from
 persisted state and execution evidence, counting distinct affected aggregate identities
 within a declared check scope. Its first categories are subscription-declared
-dependencies on deleted objects, residual data after failure/recovery without competing
-writers, and unresolved event progress.
+dependencies on deleted objects, residual data after failure/recovery with exclusive
+observed ownership of the object or supported changed fields, and unresolved event progress.
 It is an extent measure, not a business-harm or severity oracle. Coverage gaps and invalid
 attempts remain distinct from an evaluated zero. Partial reports retain an observed
 affected-object lower bound while their complete score remains null.
@@ -179,6 +181,61 @@ remains their distinct-object union. Weights are nonnegative, fixed per run, and
 one is positive. Only enabled criteria require complete evidence; invalid attempts never
 receive a weighted score. This is a prioritization value, not an additional detector or
 a count of independent harms.
+
+### Cross-workload allocation
+
+The prospective expanded replay entry point, `allocator-expanded-replay/seeded_replay.py`,
+uses a common seeded uniform draw among maximum priorities within `1e-12` relative/absolute
+tolerance for all six adaptive variants. Its tie RNG is separate from local GA randomness;
+unique maxima and learner updates retain their meaning. Four unit tests and 21 short runs
+across seven variants and three seeds verify reproducibility, cold states and matched local
+GA prefixes. Historical runners and results retain their original tie behavior.
+[Seeded-tie validation and expansion preparation](evidence/workload-master-inventory-2026-09-25/seeded-ties-and-expansion-2026-09-27.json).
+The subsequent Quizzes expansion and same-VM resume completed 144 audited maps
+(2,578 scenarios). The 51 remaining attempts in the two initially partial maps
+were measured; 185 earlier attempt files remained byte-identical. Two controls
+with incomplete score coverage remain preserved but excluded. Both VM sessions
+were halted within their leases. Effective container CPU limits differed between
+parts of the campaign and resume; retain that provenance for final evaluation.
+[Qualified union and runtime limits](evidence/workload-master-inventory-2026-09-25/master-inventory-2026-09-28.json).
+
+**Cross-workload allocation** spends one global attempt budget over an explicitly admitted,
+finite catalogue of WorkloadPlans. One allocation decision selects one workload; that
+workload's persistent local search session selects one previously unseen FaultScenario.
+Switching workloads preserves each session's population, seen candidates, RNG and proposal
+history. A confirmed positive is a selected scenario with an available configured score
+greater than zero; it is not a distinct defect.
+
+The sequential allocator supports recorded feedback over complete maps and live dispatch
+through the existing ScenarioExecutor adapter over explicit complete catalogues.
+Its policies cannot inspect unselected results. Reward is the selected scenario's configured
+`weighted-criteria-v2` score. An unavailable score consumes one global attempt and remains
+unknown; it supplies neither a zero label nor a GA parent or adaptive-model update.
+Retained runtime `PROCESS_FAILURE`, `TIMEOUT`, `INVALID_REPORT` and
+`INFRASTRUCTURE_FAILURE` outcomes are preserved under that rule when their candidate identity,
+unavailable measurement shape and original null fitness assessment validate. Other status
+names are rejected rather than silently interpreted.
+
+The allocator exposes three adaptive models: independent mean-score UCB, shared linear UCB
+over only a bias and observed progress, and shared linear UCB over the full existing
+structure-plus-progress context. Each has a raw variant and an explicit `-cooldown` variant.
+The cooldown suffix applies the same rule without changing its model: exclude a workload for
+one completed decision after null feedback when another workload remains active. It then
+re-enters; a sole active workload is never blocked. An available zero remains ordinary
+observed feedback and does not trigger the guard. The existing `adaptive-ucb`,
+`contextual-linucb` and `contextual-linucb-cooldown` labels retain their previous meaning and
+seeded behavior. No adaptive model is yet established as the best allocator.
+
+Two opt-in recorded-feedback variants are implemented in the
+[order/hybrid experiment](../../verifiers/experiments/allocator-order-hybrid/README.md).
+The order variant adds seven normalized counts of potential read/write order patterns
+from persisted step accesses and resolved event receivers. They describe aggregate-type
+overlap, not proven shared object identity or anomalies. Required metadata joins fail
+explicitly when absent; existing analyzer limitations remain in the coverage audit.
+The hybrid variant uses shared structural coefficients and workload-specific coefficients
+for observed progress, including a local intercept. It uses the same reward and local GA;
+unavailable feedback still consumes budget without model training. These injectable
+experimental policies do not change the existing CLI/live policy names or defaults.
 
 ### Lost copied update
 
@@ -252,6 +309,12 @@ An **event consequence** is the deterministic atomic normal action joining one s
 
 Domain services are identified structurally through command-handler dispatch targets rather than package or class-name conventions. This prevents coordination facades from being treated as domain state services. The rationale is retained in [`decisions/2026-04-06-domain-service-vs-coordination-facade.md`](decisions/2026-04-06-domain-service-vs-coordination-facade.md).
 
+Command dispatch also supports a direct Java pattern switch in `handleDomainCommand`.
+The switch must select its Command parameter, and an unguarded typed branch must make
+one unconditional call to a known service field. Guarded branches, conditional/nested
+switches and multiple service targets are not assigned a guessed dispatch. This covers
+the direct handler shape used by Quizzes-full without changing the application.
+
 Aggregate-key inference follows each command constructor's delegation to the framework `Command` constructor. It identifies the semantic aggregate-id parameter and maps literals, getter chains, and Saga-constructor parameters at the command call site into normalized key evidence. Explicit `null` roots and unsupported expressions remain keyless rather than borrowing another argument. Typed `SagaCommand` wrappers are transparent to forward dispatch analysis. For a generic bare-`Command` compensation, the verifier independently derives the aggregate from the payload's service token through the matching command handler and derives the root from the payload's third argument under the base `Command` root-key contract.
 
 The Quizzes qualification found the same 132 forward command accesses as the baseline and 26 usable generic compensation accesses instead of none. Only two of 134 steps retain focused analysis limitations, down from 573 limitations across all 134 steps: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. The static package serializes the 132 forward accesses; compensation evidence remains part of the internal step model rather than being presented as a forward dispatch.
@@ -267,6 +330,13 @@ Groovy facade call
   -> traced literals, DTOs, helpers, properties, calls, and placeholders
   -> InputVariant
 ```
+
+Local Groovy helpers may omit trailing parameters with default expressions. The tracer
+binds supplied arguments first and evaluates omitted defaults in the helper context.
+Ambiguous overloads remain unresolved. This expands source input extraction in both
+Full variants; it does not imply that every extracted input has an executable setup.
+The three-application recount and remaining event/setup limits are recorded in
+[`evidence/three-variants-2026-09-20/RESULTS.md`](evidence/three-variants-2026-09-20/RESULTS.md).
 
 For each input, provenance and ownership have different jobs:
 
@@ -309,6 +379,12 @@ enrollment effects. Calls from different features or classes are never combined 
 extension. Assertion/cleanup/where labels, control flow, direct workflow execution, and
 direct event-handler execution close further feature-prefix extraction.
 
+A qualified Quizzes removal fixture exposes a remaining extraction gap: an unassigned
+`createQuestion(...)` helper call was absent from the persisted prefix. The experiment
+expands that exact helper explicitly and records its source hashes; this is not a generic
+extractor fix. A successful setup preflight proves the persisted recipe executes, not
+that every preparation side effect of its source feature was extracted.
+
 Direct facade arguments backed by fresh DTO constructors retain caller setters and
 property assignments as they stood before the call, including self-rebinding calls.
 Later assignments cannot leak backward into the retained setup argument recipe.
@@ -336,8 +412,17 @@ every setup-dependent argument, and contain no selected target action. An unsele
 facade effect between selected targets blocks the tuple rather than being omitted or
 moved into setup. Collapsed repeated target occurrences and differing complete candidates
 remain ambiguous and blocked. This metadata is internal; persisted record shapes and the
-closed application setup dispatcher are unchanged. Existing fixture-only coverage retains
-priority, so this is an extension of supported preparation, not whole-test replay.
+closed application setup dispatcher are unchanged. An exact coherent feature prefix now
+has priority over fixture-only argument coverage. For facade inputs selected from the
+same observed feature, facade actions before the earliest selected operation require a
+coherent feature prefix. Earlier selected operations remain measured participants;
+unsupported or ambiguous preparation cannot silently fall back to a shorter fixture.
+Inputs deliberately composed from different features may still use their one common
+coherent fixture, defining a new workload rather than replaying either source feature.
+Constructor-derived Saga inputs keep their fixture semantics: later workflow execution
+is measured behavior, not extra facade preparation. Feature preparation is retained even
+when the shared fixture already supplies all target arguments. This remains bounded
+source preparation, not whole-test replay.
 
 Exact facade calls reached in `setup()` are also target occurrences when their extracted
 inputs are selected as participants. The complete fixture therefore cannot replay that
@@ -408,6 +493,41 @@ Optional dynamic enrichment adds `dynamicObservations` in `dynamic-observations.
 The reader validates the manifest directory boundary, every declared hash, unique ids, exact kind-specific record shapes, and all Saga, step, route, input, interaction, setup, workload, occurrence, scenario, observation, and attribution references before returning content. Setup preflight, execution, ImpactV1, Maven/test logs, runtime input maps, and normalization diagnostics remain outside the package.
 
 Historical v3/v4/v5 manifests and their embedded record shapes are documentation evidence only. Regenerate a current package for current preflight or execution; there is no compatibility or migration layer.
+
+### Optional exact fault counts
+
+With `catalog-write-mode=COUNT_ONLY`, `enabled=true` and
+`verifiers.scenario-catalog.count-fault-scenarios=true`, generation additionally writes
+`fault-counts/fault-count-summary.json` and `fault-counts/fault-count-sets.jsonl`.
+These supplementary reports do not create workload or fault-scenario catalogues and
+do not change the existing manifest or legacy accounting fields.
+
+For each set of Saga types, the reports count workloads and canonical fault scenarios:
+no fault or the first fault per participant, supported event selections and placements,
+and every admissible recovery order. Different workload identities remain distinct even
+when a fault makes their executed actions identical. Selected event consumers remain
+atomic actions. Combined deliveries use the current generator rule: routes from one
+producer occurrence/emission site, up to `max-event-consequences-per-workload`; routes
+whose downstream Saga is already an explicit participant are excluded.
+
+Input policy, input limits, pruning, scheduling strategy, inclusion of singles and the
+maximum Saga-set size define the counted domain. Catalogue, normal-schedule and recovery
+**write** caps do not truncate these counts. These are structural candidates, including
+ones without established runtime preparation; they are not counts of executable cases.
+The existing normal-order accounting remains separate and excludes event expansion.
+
+`RecoveryScheduleGenerator.count(plan, vector)` exposes its exact count without
+constructing scenario representatives. `FaultScenarioCountService` aggregates input
+tuples and `FaultScenarioStructureCounter` uses dynamic programming across normal steps,
+fault choices, events and recovery. The latter preserves compressed segment boundaries
+and ordered tails, skipped-step workload identity and forced no-op events after a
+prevented emission. It caches scalar results for equivalent structures, not catalogues.
+
+Resource guards are `count-max-states` (default 2,000,000 per structural computation)
+and `count-max-input-tuples` (100,000 for input-dependent tuple traversal). A guard
+failure produces an INCOMPLETE row with null counts and makes that set-size total null;
+a partial subtotal is never labelled complete. Large integers are preserved exactly.
+See [the verified Quizzes 2–4 Saga counts](evidence/fault-counts-2026-09-20/RESULTS.md).
 
 ### Determinism and bounds
 
@@ -534,9 +654,53 @@ the separate topic course-ID compensation residue (ImpactV2=1); all controls sco
 This qualifies one exact existing input pair and its selected schedules. It does not
 recount the whole catalogue or make every retained test input executable.
 
+Direct interaction facts remain the forward-step conflict graph. Workload selection now
+uses a separate augmented view: compensation footprints can connect their owning Saga to
+another selected participant, and a resolved one-hop event route can connect its producer
+to a different participant reached by the downstream Saga's footprint. If that downstream
+Saga is itself selected, the event edge is inapplicable because the current event-expansion
+contract does not add that route. The recovery checkpoint's source step and the event
+trigger step are the corresponding segment-compression anchors.
+
+Recovery footprints keep the owning input's binding evidence. An event receiver is not
+treated as the producer input: strict selection retains that edge only when static exact
+keys prove equality, while broad selection may retain unresolved identity and still rejects
+proven unequal exact keys. Workload conflict evidence may use a deterministic minimal
+connected subset for stable identity, but scheduling separately uses every applicable
+forward, recovery and event-mediated candidate for the concrete input tuple. A direct edge
+therefore does not suppress a recovery or event anchor at another step. The historical
+[pruning audit](evidence/pruning-audit-2026-09-19/RESULTS.md) records the old omission;
+its post-fix regeneration retains the event-only probe without admitting the unrelated-query
+control. The original pair's fixture lacks a participant; its empty delivery remains valid.
+An extended ordinary Quizzes test now supplies membership through its existing setup.
+The generated pair has 15 setup calls, including AddParticipant, without manual bindings.
+Two selected Tournament-delivery orders and their six faulted variants execute with exact
+conformance and complete zero scores. Broader outcome preservation remains unproved.
+See [event-read qualification](evidence/event-read-attribution-2026-09-19/RESULTS.md).
+
+A fresh selection-only count uses 819 inputs across 37 Saga types (the test extension
+adds two inputs to the previous population). For that same population, forward-only
+selection admits 248/666 Saga pairs and 123,701 input pairs; current selection admits
+316/666 and 136,156. These are input combinations before schedules, event placement and
+faults, not executable FaultScenarios. Old compression counts remain tied to their earlier
+generator snapshot; this selection recount does not replace them.
+
 ### Segment-compressed scheduling
 
-`SEGMENT_COMPRESSED` identifies cross-Saga conflict-anchor steps, groups each Saga's preceding non-anchor run with its next anchor, and interleaves those segments while preserving in-Saga anchor order. Non-anchor tails are appended once in deterministic order.
+`SEGMENT_COMPRESSED` identifies all applicable cross-Saga conflict-anchor steps, including
+the source checkpoint step for a recovery edge and the producer trigger for an event edge,
+groups each Saga's preceding non-anchor run with its next anchor, and interleaves those
+segments while preserving in-Saga anchor order. Non-anchor tails are appended once in
+deterministic order. Direct, recovery and event candidates can all contribute distinct
+anchors to the same already-connected Saga set. Anchor extraction itself does not require
+the complete participant set to be connected: under `BRUTE_FORCE`, conflicts inside one
+component remain anchors while unrelated participants keep their ordinary deterministic
+tail placement. Interaction-pruned participant admission still requires a connected set.
+
+Accounting applies the same tuple-specific candidate filter and route exclusions as
+generation, then sums the bounded schedule counts. If accepted tuples in one grouped Saga
+set have different anchor sets, `scheduleCountPerTuple` is their bounded maximum while
+`scenarioShapeCount` and the input-bound totals are the exact sums over those tuples.
 
 It reduces permutations of internal/non-conflicting steps while retaining conflict-anchor order cases under the verifier's static conflict evidence. It is not proof of semantic completeness or exact runtime aggregate-instance binding. See [`decisions/2026-06-16-conflict-anchor-segment-compression.md`](decisions/2026-06-16-conflict-anchor-segment-compression.md).
 
@@ -810,7 +974,7 @@ Parents compete using the configured score; offspring combine per-Saga fault cho
 conditionally valid recovery choices. Default population is 8 and mutation probability
 0.3. Null fitness cannot become a parent. Each real attempt has a fresh container/JVM/H2.
 Weights change selection and score summaries, not generation, observation or random
-sampling. No cross-workload normalization or RL reward has been implemented.
+sampling. No cross-workload normalization is performed.
 
 One gene selects no fault or one faultable step per Saga. Valid recovery actions come
 from the existing on-demand generator. Every comparison arm owns its package copy and
@@ -865,6 +1029,264 @@ configuration and reporting, not improved discovery. Six recorded-feedback compa
 preserve historical default selection against the frozen original implementation; targeted
 tests verify that weighted preferences can change GA selection and leave random selection
 unchanged. Broader preference evaluation remains pending.
+
+### Bounded cross-workload allocator
+
+The [allocation command](../../verifiers/experiments/fixed-workload-ga/README.md#cross-workload-recorded-allocation)
+accepts a positive global attempt budget, deterministic seed, one fixed
+`weighted-criteria-v2` configuration and an explicit list of complete recorded maps. Each
+map entry supplies its original workload configuration, sealed complete catalogue and
+complete reference. Loading verifies catalogue completeness and provenance, exact workload
+and candidate identities, observation joins, and the stored fitness assessment under the
+map's original policy. Global weights may then revalue observations only after selection.
+
+Each allocation gives exactly one application-equivalent attempt to one nonexhausted
+workload. Its local policy is the existing GA with population 8, mutation probability 0.3,
+and uniform-unseen finite-catalogue initialization and duplicate fallback. The incremental
+ask/tell API retains the original synchronous seeded trajectories while allowing sessions
+to pause between completed attempts. Duplicate proposals never become application attempts.
+Exhausted workloads leave the choice set; allocation stops at the global budget or complete
+catalogue exhaustion.
+
+Eight outer policy labels are implemented: stable balanced round-robin, seeded uniform
+selection among nonexhausted workloads, and six matched adaptive variants. The adaptive
+factorial pairs `adaptive-ucb` with `adaptive-ucb-cooldown`, `progress-linucb` with
+`progress-linucb-cooldown`, and `contextual-linucb` with
+`contextual-linucb-cooldown`. The first model learns independent per-workload mean scores.
+The second shares one linear model using only a bias and progress already observed for each
+workload; its feature names contain no structural counts or tokens. The third is the existing
+full shared model over extracted Saga membership, unordered Saga pairs, referenced
+interaction/access structure, scheduled event routes and observed progress. Shared models
+have no workload-identity feature. Fixed feature construction, scaling and names are retained
+in each result.
+
+Every `-cooldown` variant changes only eligibility after missing feedback: when another
+workload is active, the workload that returned null fitness is excluded for the next
+completed decision and then re-enters. A sole active workload remains eligible. Available
+zero is an ordinary model update and does not trigger the guard; missing feedback remains
+unknown and still supplies no reward label, GA parent or model update. The raw labels remain
+available as matched comparators. No variant is yet established as the best allocation policy.
+This is a transparent contextual-bandit allocator, not a claim of general reinforcement
+learning.
+
+The output records one compact decision row per attempt plus total and per-workload
+allocations, confirmed positives, cumulative configured score, unknowns, stop state and
+selection/update overhead. Selection includes active/exhaustion scans, outer-policy choice
+and local-GA candidate proposal; update includes local-GA feedback/fitness, observed progress
+and any adaptive-model update. Input/model initialization, evaluator/application latency and
+final serialization are excluded. The recorded CLI performs no application executions. The separate
+[live command](../../verifiers/experiments/fixed-workload-ga/README.md#cross-workload-live-allocation)
+dispatches one scenario at a time through `Runtime.evaluate`. It validates each retained
+no-fault control against its original reports and requires a complete assessment with a
+valid terminal/schedule outcome for the enabled criteria. Positive and compensated/deviated
+controls qualify without giving their scores to
+the allocator or local GA. This qualification cost is outside the search budget; the
+no-fault candidate remains in the catalogue and costs one decision if selected.
+
+Live allocation freezes configuration, sources, catalogues, controls and runtime identity.
+Durable dispatch and result receipts support pause/resume by deterministic feedback replay;
+completed attempts are not repeated. An interrupted dispatch without a verifiable result
+requires explicit resolution as spent and unavailable. Resume and failed executor calls
+check for surviving executor containers before proceeding. Workload admission remains
+explicit; lazy admission and automatic retries are not implemented.
+
+[Live integration verification](evidence/live-allocation-2026-09-21/RESULTS.md) covers
+contract tests, interrupted trajectories for all eight policies and retained input validation.
+A subsequent four-attempt Docker smoke over two workloads verifies live routing, feedback
+and pause/resume. The deleted-dependency profile produced scores 0, 1, 1, 0, with no
+unavailable scores. All schedules were exact; one execution was PARTIAL_COMPENSATED
+with complete enabled-criterion assessment. Pause after the first attempt, continuation
+for three more, and resume after completion preserved evidence without duplicate execution.
+The two retained no-fault controls were reused outside this budget. This bounded smoke
+is an integration result, not an allocation-effectiveness comparison.
+
+The [matched six-variant comparison](evidence/allocator-factorial-2026-09-21/RESULTS.md)
+uses nine complete maps (189 scenarios), then adds a 3,918-scenario map, with 30 seeds
+and two weight profiles. The revised mixed reference has 3,228 positive, 613 zero and
+266 unavailable scores. At budget 1,000 with all criteria, raw independent/progress/full
+models find 867.67/859.73/866.57 positives; their guarded counterparts find
+833.17/833.50/836.67. With deleted dependencies alone the raw means are
+576.27/613.97/610.53, versus 569.43/590.60/589.13 with the guard. At budget 60 on the
+small cohort, raw progress-only allocation finds 17.47 positives versus full context's
+16.00 and independent allocation's 12.93. Structural context and the missing-feedback
+rule therefore have distinct, context-dependent effects; neither establishes a universal
+improvement. The saved evidence includes score, variability, allocation, unavailable
+attempts and independent verification. These recorded comparisons do not establish
+transfer to unseen Saga families or live execution performance. Earlier comparisons
+remain preserved under their original reference versions.
+
+### Local experiment workbench (2026-09-24)
+
+`python3 verifiers/webui/server.py` serves the local **Fault Lab** UI at
+`http://127.0.0.1:8765`. It indexes supported retained fixed-workload results, allocation
+results/journals and compressed research traces under `verifiers/target`, preserving
+historical scoring policies and the distinction between unavailable feedback and zero.
+The UI provides individual-run discovery curves, workload allocation, retained scenario
+evidence, available impact-component counts, up to four overlaid traces, and CSV/JSON/SVG
+exports. A displayed historical result is not a new integrity qualification. Comparison
+context remains explicitly unknown when retained provenance is insufficient.
+
+The launcher accepts existing prepared recorded/live allocation configurations, selected
+workloads, one existing core CLI policy, seed, budget and five fixed impact weights. It
+snapshots settings and invokes the existing runners in a detached process; ordinary
+runner validation remains authoritative. Workbench-owned live jobs expose progress and
+the existing pause/resume behavior. Jobs and logs survive browser/HTTP-service closure
+under `verifiers/target/webui/jobs`; execution still requires the host to remain running.
+Dispatch is limited to one workbench job at a time and writes fresh evidence directories.
+
+This local interface does not prepare arbitrary applications, qualify inputs on behalf
+of the runner, schedule cluster jobs, resolve ambiguous dispatches, or provide multiuser
+hosting. Compact traces do not gain missing category/action evidence, and comparison
+curves are individual seeds rather than new statistical summaries. See the
+[workbench guide](../../verifiers/webui/README.md) for supported shapes and validation.
+
+### Transfer to new Saga combinations (2026-09-21)
+
+The [bounded transfer experiment](evidence/allocator-transfer-2026-09-21/RESULTS.md)
+uses a common 132-observation prefix from 66 one/two-Saga workloads, then 256 target
+selections in 15 three-Saga workloads. Structural and progress-only linear UCB each run
+with learned or fresh model state. Target GAs/progress start empty; only model parameters
+transfer. All five criteria have unit weights, the optional missing-feedback rule is off,
+and the existing GA and model settings are unchanged. Thirty seeds produce 120 recorded
+searches, with no new application executions.
+
+At 256 target selections, structural prior learning finds 138.10 positives versus 144.73
+without it; progress-only learning finds 146.77 versus 150.20. Structural transfer improves
+the early 16/32-selection means but not the final endpoint. All target positives belong
+to one Saga set; its ten ordinary-order variants have identical initial structural
+features. This does not establish general transfer benefit or lack of benefit. The
+standalone harness, matched cold-trajectory checks and independent linear solve are
+recorded in the evidence; production allocation defaults and manuscript remain unchanged.
+
+### Order context, hybrid allocation and reward preferences (2026-09-21)
+
+The later [expanded recorded-feedback comparison](evidence/workload-master-inventory-2026-09-25/replay-multiseed-2026-09-26.json)
+qualifies 172 workloads and audits 210 runs: seven component variants, six objectives,
+five seeds and 8,000 choices each. It retains unordered structural features; the order
+coordinates below are not part of those seven arms. Three dominant workloads have the
+same inputs/setup but different schedules and identical structural vectors. Exact ties
+use fixed workload-ID priority. Two post-hoc seed-1 controls change only that priority
+within the three-workload class and materially change score; matched local GA prefixes
+remain identical. This is evidence of tie sensitivity, not a new winning policy or
+common-runtime validation. Primary traces, numeric equivalence proof and the seed-29
+hybrid delayed-return episode are retained. Production allocation defaults are unchanged.
+
+The subsequent [formal seeded replay](evidence/workload-master-inventory-2026-09-25/formal-replay-2026-09-28.json)
+uses the audited 316-workload/18,858-scenario inventory and a second collection that
+excludes its three largest workloads (313/6,396). For each collection, seven policies,
+the five individual impact criteria and their joint score, and five seeds give 210
+complete runs: 8,000 choices in the full collection and 4,000 in the smaller one.
+All policies start cold, use the same GA candidate prefix per workload and seed,
+and resolve equal priorities with the same seeded rule. The smaller collection's
+joint-score mean favors calibrated structure (1,862.2/1,881 available points)
+over calibrated structure plus progress (1,855.2), calibrated hybrid (1,631.2),
+and local progress (1,607.0). In the full collection the three largest maps hold
+23,290/25,171 available joint-score points, so its rankings are sensitive to
+allocation within one dominant Saga family. Isolated criterion results and
+unavailable outcomes are retained in the evidence. This is recorded-feedback
+search evidence; common-runtime validation and live overhead measurement remain separate.
+
+The [independent-UCB addendum](evidence/workload-master-inventory-2026-09-25/ucb-addendum-2026-09-28.json)
+adds 60 runs with the same inputs, budgets, objectives, five seeds and seeded ties; all
+420 original runs remain intact. The existing independent mean-score policy uses exploration
+1, allocation counts including unavailable attempts, and no forced initial sweep. Its batched
+adapter matches the original selector in 1,500 decisions; cold starts and local candidate/score
+prefixes match all original runs. Mean joint score is 1,487.0 without the giants and 17,518.8
+with them. The full-collection mean exceeds the previous seven means, but SP and H1 each beat
+UCB in three of five paired seeds. UCB does not lead the full collection's isolated deleted,
+residual or read criteria. Hybrid exploration and progress representations remain unchanged.
+
+The opt-in `allocator-expanded-replay/hybrid_exploration_control.py` now provides an
+alpha-only diagnostic against those frozen formal runs. `H0-cold1` uses alpha
+`1/sqrt(2)` and `H1-cold1` uses `1/sqrt(3)`, giving both an initial uncertainty bonus
+of one instead of `sqrt(2)`. Feature vectors, ridge updates, objectives, GA and seeded
+ties are preserved; traces and protocols go to separate directories. Common-history
+checks verify identical learned models, and each cohort checks dense/compiled trajectory
+equivalence before running. This matches initial bonus scale, not uncertainty throughout
+learning, and does not implement order or new progress inputs. Results require completion
+and the matched-prefix audit; this entry point itself establishes no ranking.
+
+The separate `allocator-expanded-replay/measurement_replay.py` prepares a
+[synchronous-copy measurement revision](evidence/workload-master-inventory-2026-09-25/measurement-replay-preparation-2026-09-28.json):
+270 observations in seven existing maps are replaced by the fixed remeasurement
+cohort, including its failed attempt. Catalogue identities, structural profiles and
+unselected observations are preserved. Joint unknowns fall from 560 to 291 without
+the giants and from 1,388 to 1,119 with them; available joint positives increase by
+56 in each collection. No new workloads or scenarios are added. The prepared replay
+has 80 runs: the original eight policies (including independent UCB), joint score,
+five seeds and both original budgets. Alpha settings remain the baseline settings.
+Launching requires both alpha-control cohorts to finish and pass their audits.
+This remains a benchmark with historical measurement versions; the new preparation
+does not establish allocator results. GA prefixes are checked across policies within
+the new revision, since changed feedback can legitimately change them across revisions.
+
+The [completed measurement replay](evidence/workload-master-inventory-2026-09-25/measurement-replay-results-2026-09-28.json)
+passes all 80 run audits, including exact recorded feedback and matched local GA
+prefixes within each revised cohort. Without the giants, S/SP joint-score means
+are 1,882.4/1,885.4 and positive-scenario means 1,654.6/1,656.4; their ordering is
+close, while H0/H1 reach 1,648.8/1,660.8 points. In the full collection, independent
+UCB has the highest mean score (17,517.4), while S finds the most positive scenarios
+(6,384.2 versus UCB's 6,046.2). Positive-family means are 8.6 for S and 17 for UCB.
+These five-seed comparisons show sensitivity to the measurement revision, not a
+general advantage across applications. The full-collection SP unknown-choice mean
+increases despite better catalogue coverage because its allocation path changes.
+
+The opt-in `allocator-expanded-replay/order_replay.py` adds a paired order control
+on that corrected benchmark: SO versus S-cal, SPO versus SP-cal, and H1+O versus
+H1-cal. Seven bounded, outcome-free access-order counts join the original non-bias
+structural coordinates, and the combined static block is normalized to unit L2;
+bias, baseline alpha/ridge, cumulative progress, seeded ties and local GA are retained.
+Order enters only the shared part of H1+O. This preserves the parents' cold uncertainty
+magnitudes, while changing feature geometry. Metadata is checked per package generation;
+a trimmed package uses its retained Saga/interaction role hashes for exact recovery.
+The approved matrix is 30 new runs, joint score only, five paired seeds, budgets
+4,000/8,000. Extraction completeness does not resolve existing static-analysis limitations
+or imply object-level dependencies. Results require the separate completion and
+parent-matched GA/feedback audits; this entry point changes no live policy or default.
+
+The [measurement diagnosis](evidence/workload-master-inventory-2026-09-25/measurement-diagnosis-2026-09-28.json)
+partitions 1,388 unavailable joint scores into 471 unavailable executions, 519 copied-update
+provenance gaps, 284 residual-only gaps, 102 read-only gaps and 12 overlapping residual/read
+gaps. Without the giants, 560 remain. The 519 copied-update cases split into 239 concurrent-thread
+cases (possibly with other gaps), 274 command-scope-only cases and six duplicate-identity cases.
+CreateQuestion/CreateQuiz demonstrate constructor copies after a command returns, outside the
+observer's required command scope; async paths separately exceed its owner-thread contract.
+Skipped evidence cannot be recovered by assigning zero or simply rescoring. This is a retained
+evidence/source diagnosis, without new executions, observer changes or reference replacement.
+
+The experimental [order/hybrid follow-up](evidence/allocator-order-hybrid-followup-2026-09-21/RESULTS.md)
+completes a matched shared/hybrid × structure/structure-plus-order comparison, alongside
+balanced, uniform, independent-UCB and shared-progress alternatives. Seven bounded
+features describe potential access order at aggregate-type level. Hybrid models share
+structural coefficients and keep separate progress coefficients and a bias per workload;
+the combined variant adds the order coordinates only to the shared vector. The original
+GA, live policy names and defaults remain unchanged; the new variants are injected by
+the recorded-feedback experiment harness.
+
+All 81 previously examined workloads are retained in two separate collections: 15 with
+three Sagas (1,026 scenarios) and 66 with one/two Sagas (485). Each method starts empty,
+uses 256 choices and seeds 1–30, with no cooldown or parameter tuning. The second profile
+gives unit weight to deleted dependencies and compensated reads only. It reassesses each
+selected observation before both GA feedback and outer-model update. Five unit weights
+produce 516/78 positives in the collections; the second profile produces 76/6, with no
+unavailable scores in these references.
+
+At 256 choices, adding order to the hybrid changes mean all-criteria impact from 186.43
+to 186.50 in the first collection and leaves each seed's final impact unchanged in the
+other three collection/profile conditions. In the 66-workload collection, shared progress
+beats shared structure with all criteria (60.27 versus 43.57), while shared structure finds
+all six positives in every seed under the second profile, versus four on average for
+shared progress. In the 15-workload collection that preference instead favors progress
+(30.53 versus structural 21.33). Earlier checkpoints and paired intervals are retained:
+there is no general winner or demonstrated rule for choosing one on unseen workloads.
+
+The combined evidence has 960 searches, including 420 verified reused searches and 540
+new searches, with no new application executions. Independent review verifies every raw
+criterion reward, receipt, progress update and checkpoint, and 37,750 matching local GA
+prefixes across methods. Source-derived order features retain the previously audited
+limitations: type-level potential accesses, not proven shared object identities, and
+16 workloads with partial static knowledge. The manuscript awaits user review of these
+results; adding more model variants is not the next default step.
 
 ### Larger-horizon workload exploration (2026-09-15)
 
@@ -944,12 +1366,128 @@ has six positive scores, five zeros and one unavailable result. A separate twelv
 GA throughput pilot has three positives and four unavailable compensation failures; these
 pilots are qualification, not evidence of GA superiority.
 
-The approved larger comparison has started: 500 attempts per method, matched seeds
-11/29/47, five unit weights, population 8, mutation probability 0.3 and two isolated workers.
-Its frozen protocol and live status are under `verifiers/target/ga-500x3-2026-09-15/`.
-The paired pilot took 416.4 seconds for 24 attempts, projecting 14.5 hours for 3,000;
-15–18 hours is a planning range, not a completion guarantee. No campaign effectiveness
-conclusion is available yet. Unavailable executions consume budget and retain null fitness.
+The larger comparison completed all 3,000 attempts in 16.49 hours: 500 attempts per method,
+matched seeds 11/29/47, five unit weights, population 8, mutation probability 0.3 and two
+isolated workers. Its frozen protocol, results, integrity audit and plots are under
+`verifiers/target/ga-500x3-2026-09-15/` (see `analysis/REPORT.md`). GA found 829 positive
+attempts across its three seeds, versus 528 for random; it found more within the same
+budget in each pair. These are per-arm distinct scenarios summed across seeds, not distinct
+bugs or globally unique cases. All scored positives have a residual finding; 453 GA and
+198 random scored positives also have a compensated-read finding. No lost-copy or
+unresolved-delivered-event positives were observed. This campaign does not isolate the
+benefit of anomaly weights or establish recall over the 5,184-candidate domain.
+
+There are 565 unavailable scores (18.83%): 489 partial residual assessments and 76 actual
+compensation failures. The [retained-evidence diagnosis](evidence/ga-coverage-diagnosis-2026-09-16/README.md)
+finds complete attributed version chains and disjoint observed changed fields in all 489
+residual cases. Forty-two also have an independent `INTERVENING_WRITER` read-assessment
+gap. In all 76 recovery failures, a committed removal deleted the Tournament before another
+Saga's recovery tried to load it. The approved exclusive-field residual extension has now
+been implemented and applied offline to all 3,000 retained attempts: 425 residual
+assessments become complete and 387 combined scores become available, reducing unavailable
+scores to 178 (5.93%). All 2,435 previously available scores are preserved. Remaining
+unavailability comprises 64 other-writer lifecycle cases, 38 additional read gaps and
+76 failed recoveries (four further read gaps overlap the 64). The read detector and
+recovery behavior are unchanged. These are reassessed retained attempts, not a new GA
+trajectory under the improved feedback; the original campaign files remain intact.
+
+The completed [smaller reference experiment](evidence/exhaustive-reference-2026-09-16/README.md)
+selects AddParticipant → UpdateTournament → LeaveTournament from the same source-backed
+story. All 186 candidates across 54 canonical vectors were measured without truncation:
+112 complete positive scores, 72 complete zeros and two unavailable combined scores
+(both persistent I=1 with an intervening-writer read gap). All six repeat checks matched.
+Across 30 recorded-feedback seed pairs, mean positives at 100 evaluations are 54.93 for
+GA versus 45.43 for random; at 184 they converge to 110.00 versus 110.07. All known
+positives are reached in 23/30 GA and 27/30 random searches; the rest stall at 184–185
+candidates. Search does not guarantee exhaustion. Forty application histories deviate
+because LeaveTournament rejects a non-enrolled student; recovery completes and the
+existing policy assesses actual evidence. This protocol measures discovery order using
+recorded feedback, not live-search timing; the campaign took 53.76 minutes.
+
+A subsequent uniform-catalogue baseline changes the comparative conclusion: shuffling
+all 186 candidates without replacement yields 59.37 mean positives at 100 evaluations,
+versus GA's 54.93 and the original random sampler's 45.43. All 30 uniform searches
+reach all known positives. Thus GA beats the original two-stage sampler on this workload,
+not the uniform-catalogue baseline. The positive-bearing vector groups have more recovery
+variants; equal weight per vector underrepresents them relative to equal weight per
+candidate. The added experiment reuses the same map and retained search traces, with
+no application reruns or changes to GA. See the reference evidence's uniform-baseline
+section for assumptions, validation and the enumeration-cost limitation.
+
+A [read-only GA diagnosis](evidence/exhaustive-reference-2026-09-16/ga-diagnosis/README.md)
+reproduces all 30 retained traces using frozen source and measured feedback. Across each
+search's first 100 evaluations, 35.73% are novel offspring (88.43% positive); 64.27% are
+random initialization/fallback candidates (36.31% positive). Repeated offspring immediately
+disable crossover until random sampling finds an unseen case. The score-2 parent pool
+is reached early, and exact recovery-list inheritance often needs replacement. These
+are observed mechanisms, not an isolated causal proof or an implemented search fix.
+Uniform random also leads on score-2 count and summed available score at 100 evaluations.
+
+The approved [uniform-exploration variant](evidence/exhaustive-reference-2026-09-16/ga-uniform-exploration/README.md)
+adds opt-in `exploration="uniform-unseen"` to search on a complete RecordedDomain. Only
+initialization and duplicate fallback change; genetic operators, weights and feedback
+stay fixed. Default live/on-demand behavior is unchanged. On the development map, mean
+positives at 100 evaluations rise to 66.80 (original GA 54.93; uniform random 59.37).
+All 30 variant searches cover the 186-case catalogue. All 55 Python tests pass and the
+default mode reproduces all 30 original traces exactly. This is an improvement on the
+map that motivated it, requiring confirmation on other workloads before general claims.
+
+A [second-workload confirmation](evidence/ga-confirmation-2026-09-16/README.md) completed
+on AddParticipant → LeaveTournament → RemoveTournament, selected before comparative
+outcomes. Its uncapped 72-case map has 29 score-2 positives, 41 complete zeros and two
+unavailable scores caused by compensation accessing a deleted Tournament. All six
+repeat checks matched. Of 70 scorable histories, 57 are EXACT and 13 DEVIATED.
+With operators and weights frozen, the variant finds 12.93 positives at 25 evaluations
+versus uniform random's 10.30 (23 wins, five ties, two losses across 30 seeds); at 50,
+the means are 22.07 versus 20.73. Both cover all 72 cases in every seed. The positives
+combine deleted dependencies with failed-operation residuals; anomaly criteria are zero.
+This confirms earlier discovery on a second same-family workload, not independent-app
+validation, scalability or end-to-end live speed. Campaign wall time was 23.38 minutes.
+
+The [complete-catalogue live integration](evidence/catalogue-live-2026-09-16/README.md)
+adds `run.py catalogue` and `run.py run --catalogue ...`. Catalogue preparation exhausts
+canonical fault vectors, rejects failed/truncated requests and seals source/package
+provenance. Both GA and random reuse the same candidates; each selected candidate runs
+through the ordinary isolated executor before feedback reaches the next choice. GA uses
+uniform unseen initialization/fallback, while random draws uniformly without replacement.
+Without `--catalogue`, the historical on-demand behavior remains unchanged. A catalogue
+run requires a measured no-fault control with valid terminal/schedule outcome and complete
+enabled score; positive and compensated/deviated controls are eligible, and their scores
+are not supplied as search feedback.
+Results identify the policy/catalogue and report shared enumeration cost separately from
+application and command time. This integrates the evaluated search policy; it does not
+add cluster execution or change detector/fitness semantics. The integration passes 60
+Python tests, reproduces all 120 retained GA traces across the two maps, and matches
+stored-map choices/feedback in 24 fresh application executions (12 per method). The
+small live pilot found five positives per arm; it is a wiring check, not an effectiveness
+comparison.
+
+The measurement-only `measure_map.py` runner adds bounded configurable workers and explicit
+pause/resume for complete workload maps. Pause drains in-flight application attempts;
+resume validates frozen inputs and retained evidence before dispatching missing candidates.
+Completed unknown assessments remain recorded, and unfinished directories from abrupt
+interruption are preserved. Each session records worker count and timing. This does not
+change scenario semantics, detectors, fitness, or live GA/random execution, and does not
+automatically replay historical search policies. See the
+[campaign commands](../../verifiers/experiments/fixed-workload-ga/README.md#resumable-measurement-campaign).
+The [local pilot](evidence/campaign-pilot-2026-09-17/README.md) passes 69 Python tests and
+42 real report comparisons, including pause/resume. Three workers gave the best measured
+throughput (3.45 cases/minute) among 2/3/4; this is a local capacity choice, not a general
+performance claim or a newly completed 5,184-case evaluation.
+The [full 5,184-case measured map](evidence/full-map-results-2026-09-18/RESULTS.md)
+is complete: 3,979 positive, 657 zero and 548 unavailable scores. Thirty recorded-feedback
+seeds per method compare the integrated GA and uniform random; six preselected repeat
+checks agree. At 500 evaluations, GA finds 426.43 positives versus 382.30, with score
+sums 1,342.00 versus 1,058.77. Both exhaust the catalogue. These measure discovery order,
+not live search timing. Of the scored observations, 2,971 are EXACT and 1,665 DEVIATED.
+
+The [workload unblock qualification](evidence/workload-unlock-2026-09-18/README.md)
+adds ten EXACT executions with all five criteria complete, without changing production
+code. An existing join/update/query order has a zero-score successful control and a
+final-update fault with one residual plus one compensated-read finding. Regeneration
+of the RemoveCourseExecution two-receiver package adds current inferred copy contracts;
+each receiver order's four cases has three zeros and one residual-positive score 1.
+Event-produced read attribution and nested test-helper setup remain separate blockers.
 
 ### Bounded structural space map (2026-09-07)
 
@@ -1049,6 +1587,17 @@ merge/error handling. Failed calls are never deliveries. Setup, observer callbac
 recovery and event consumers cannot become application readers. Missing or changed forward
 Saga attribution is a coverage gap. Internal reads, lists/predicates, nested references and
 in-memory DTO reuse are not globally covered by this hook.
+
+A mapped forward reader can also receive a version written by a selected event consumer.
+Its attribution joins the exact attempt, workload, action, event ID and receiver ID with
+the persisted route's trigger, handling class/method and handler. The action must have
+completed successfully before the read, in both action order and observation order.
+For these synchronous, indivisible event actions the verdict is
+`NOT_OBSERVED / EVENT_DELIVERY_COMPLETED_BEFORE_READ`. It does not inherit the publisher
+Saga's completion or compensation. Missing, failed, ambiguous or mismatched delivery proof
+remains unknown. Reads performed inside event consumers remain excluded.
+The v2 sidecar adds source `events` and per-action event metadata; absent legacy fields
+cannot establish this new proof. Existing recorded campaign assessments are unchanged.
 
 `ReadResponseObservation` applies role exclusions, then checks payload and exact command
 adapter scope before requiring reader attribution. Successful unmapped calls are
@@ -1182,6 +1731,24 @@ hooks record returned objects, actual outbound/inbound reuse and aggregate place
 The collector reuses the post-setup ImpactV2 baseline and transaction-confirmed snapshots.
 Missing instrumentation or mismatched contracts disables recording and remains unavailable.
 
+Synchronous Saga/local construction between commands is also supported: a returned source
+object can be copied while no command is open, then sent inside a later command. The
+observer retains the constructor occurrence by object identity, snapshots both source and
+target projections, and records `COPY_TRANSPORT_LINK` only after outbound/inbound paths,
+types and values match. This works with local serialization enabled or disabled. The
+registration retains that transport occurrence; the assessor checks response → constructor
+→ command input → transport → registration → matching committed write, including the
+same Saga/attempt attribution. The earlier in-command constructor path remains supported.
+Missing origins, changed transport values and unsupported concurrent threads remain gaps;
+a constructor or rolled-back registration alone cannot establish a committed overwrite.
+Fresh qualification is retained separately in
+[evidence](evidence/saga-copy-transport-2026-09-28/README.md): all 270 fixed synchronous
+cases were attempted, with 269 complete negative copied-update verdicts and one
+startup failure retained as unavailable. Joint fitness is positive in 56 cases,
+negative in 213 and unavailable in one; the other criteria are unchanged in all
+269 completed executions. Four asynchronous cases remain excluded. Historical maps
+and replay scores are not replaced.
+
 `LostCopiedUpdateAssessor` checks the exact response path, outgoing input, retained inbound
 transport-link occurrence, constructor, registration and matching committed version. The
 immediate predecessor must be a foreign write after the read that changed the same cell;
@@ -1235,8 +1802,8 @@ The collector is not a general read-from or value-lineage recorder. Existing agg
 access traces identify objects and access modes but do not generically identify every
 returned read version or copied value. ImpactV2's three checks do not classify dirty
 reads, lost updates, write skew, or serializability; completeness is relative to those
-checks. A multi-writer residual candidate remains unknown rather than being assigned to
-one writer. The [Portuguese methodological discussion](reunioes/2026-09-08.md#as-anomalias-explicam-interacoes-que-esta-metrica-nao-cobre)
+checks. Multi-writer residuals are assessed only for the exclusive observed-field pattern
+defined below; unsupported interference remains unknown. The [Portuguese methodological discussion](reunioes/2026-09-08.md#as-anomalias-explicam-interacoes-que-esta-metrica-nao-cobre)
 explains why persistent-effect measurement was prioritized and what causal analysis
 would additionally require. This is an explicit current scope boundary, not evidence
 that concurrency-anomaly detection is unsuitable for the thesis.
@@ -1282,16 +1849,16 @@ and three deterministic category results:
 
 - `DELETED_DEPENDENCY`: an ACTIVE final source retains a subscription-declared dependency
   on a target observed becoming DELETED during the attempt and remaining DELETED;
-- `FAILED_OPERATION_RESIDUAL`: a failed Saga with completed recovery is the sole observed
-  writer of an aggregate whose application data or lifecycle differs at the horizon,
-  excluding a measured new creation logically deleted during that recovery;
+- `FAILED_OPERATION_RESIDUAL`: a failed Saga with completed recovery leaves an observed
+  persistent difference under the original single-writer rule or the exclusive-field
+  extension below, excluding a measured new creation logically deleted during its own recovery;
 - `UNRESOLVED_DELIVERED_EVENT`: the exact scheduled event delivery succeeded, the same
   typed receiver's persistent state did not change across delivery, and the surviving
   receiver remains polymorphically eligible for that event at the horizon.
 
 Each category records deterministic candidates, findings, evidence references and unknown
-reasons. Another Saga or event consumer writing a residual candidate makes that object
-unknown. Missing projections, writer attribution, exact delivery evidence, or final
+reasons. Unsupported same-object interference and event-consumer writers leave residual
+assessment unknown. Missing projections, writer attribution, exact delivery evidence, or final
 eligibility cannot produce a positive finding. Current persistence represents deletion
 through the aggregate lifecycle projection; a missing final snapshot is unknown rather
 than proof of physical deletion.
@@ -1312,6 +1879,49 @@ serialize both counts as null. Assessment failure is contained, retains raw evid
 adds `ASSESSMENT_FAILED`; it does not replace the application outcome. ImpactV1 semantics
 and the ImpactV2 v1 sidecar schema are unchanged; execution reports use v6 for the added
 empty-attempt status.
+
+### Exclusive observed-field residuals
+
+`residualAssessmentPolicy=exclusive-keyed-list-fields-v4` identifies the current rule.
+It retains v3's disjoint lifecycle changes and exactly proven successful event writers,
+and can attribute fields inside a list whose single `*AggregateId` item key is present
+and unique in every observed snapshot. Existing v2/v3 reports retain their stored
+score. The existing v1 report schema carries this policy marker and optional
+`Finding.affectedFields` JSON pointers. Reading an older report without policy metadata
+labels it `whole-object-single-writer-v1`; it does not relabel its stored score as new.
+
+The single-writer path and its recovered-creation exclusion remain unchanged. For an
+existing aggregate with exactly one failed, recovered Saga, other observed writers may
+be committed Sagas in FORWARD or exactly proven successful event consumers. An event
+writer requires a unique completed successful event-consequence action and unique matching
+delivery with the same attempt, workload, action, event, handler, receiver identity,
+receiver version and resulting persistent state. The extension requires exact attribution,
+complete comparison evidence, a continuous predecessor identity/version chain with
+increasing revisions and observation sequences, and final revision/data matching the last
+tracked write. It compares top-level persistent fields and lifecycle between adjacent
+versions. Other collections and nested values are treated as whole fields; missing keys
+differ from present null values. Keyed list entries are compared by identity and direct
+item fields. When another writer overlaps some item fields, a residual remains provable
+only if an exclusive keyed-item field still differs at the end; the aggregate counts once.
+
+The fields used as residual proof, including recovery changes, must not overlap any other
+writer's changed fields. Lifecycle uses the same ownership rule: a lifecycle change made
+only by another proven writer does not block attribution, while lifecycle changes by both
+the failed Saga and another writer remain unknown as an overlap. A final difference in an
+exclusively changed field contributes one affected aggregate and retains the field paths,
+actions and versions. Restored exclusive fields contribute zero; remaining changes made
+exclusively by successful Sagas or proven event consumers do not add residual points. No
+Quizzes-specific field mapping or inference about read dependencies/business intent is used.
+
+Missing baselines, broken chains, unknown or unproven event writers, unfinished recovery,
+multiple failed writers and overlaps without a final exclusive keyed-item difference remain
+unknown. The [qualification](evidence/ga-coverage-diagnosis-2026-09-16/README.md)
+records generic controls and separate offline reassessment of all 3,000 campaign attempts.
+
+Copied-update traces retain the original `gaps` that govern fifth-criterion coverage and
+also include bounded `gapContexts` (hook, trace position, command depth/type, source/target
+types, observed source-origin order, cross-thread flag, writer and collection location
+when known). These diagnostics do not change eligibility or score.
 
 ### Recovered-creation remnants
 
@@ -1778,6 +2388,24 @@ not a durable publication archive; preserve selected raw evidence before cleanin
 | Do the impact controls differ? | Candidate objects 0/1/1/0; exposures 0/1/0/1 | Final-state candidates, not established domain harm |
 | What is the current verifier test result? | 763 tests, 48 suites, no failures/errors/skips | `verifiers/target/impact-v2-base/verifiers-full.log`; obsolete XML reports excluded |
 
+### Input-cap sensitivity in forward-space counting
+
+The [complete eligible-input comparison](evidence/generation-all-inputs-2026-09-18/RESULTS.md)
+counts all 74,481 combinations of 2–4 distinct types among 37 Saga types at input caps
+1, 3, 10 and 1,000. These admit 37, 89, 220 and 817 source-derived variants respectively.
+The last population has zero cap exclusions and includes every variant accepted by the
+Saga source-mode and RESOLVED_OR_REPLAYABLE policies in the measured snapshot.
+Broad pruning plus segment compression retains 7.88%, 3.50% and 16.60% of brute-force
+forward orders for sizes 2, 3 and 4. At cap 10 these were 8.74%, 2.13% and 2.31%:
+the input bound materially affects the aggregate reduction, especially for four Sagas.
+Earlier input identities/accounting reproduce as equal JSON values; count rows for
+caps 1, 3 and 10 reproduce byte-for-byte. At the complete population, 31 structural
+enumeration checks and 3,996 production-accounting comparisons pass. These counts do
+not establish setup readiness or runtime outcome preservation. Faults, recovery and
+event expansion are outside this forward-space comparison.
+The experiment harness accepts explicit positive `--input-caps`; production defaults
+and semantics are unchanged. The largest requested cap governs its verification subset.
+
 ### Equivalent Quizzes count-only analysis
 
 Command shape (repository root):
@@ -2125,6 +2753,7 @@ evidence and are not added to either unit/regression-suite total.
 - The seven state-only setups previously rejected by the preflight parent now pass a targeted Docker rerun. The old complete report and newer package generations still need to be distinguished; the targeted repair does not qualify every newer workload.
 - Two Quizzes steps retain focused static-analysis limitations: one unresolved `SagaCommand` payload and one unresolved dispatch through a helper `send` call. Unsupported aggregate-root expressions remain keyless and can enter only the configured fallback lens.
 - Event-consequence extraction supports one conservative direct producer shape and exact local consumer routes; each selected route still requires one unique runtime subscriber. Wrong receiver or unit-of-work binding, mixed compensation-origin emission, conditional/repeated consumer delegation, multiple/repeated/conditional producer emissions, multi-object fan-out within one route, recursion, nested event chains, and unresolved routes are rejected diagnostically.
+- Event-mediated pruning uses the extracted downstream footprint but does not invent a receiver identity from the producer input. Broad retention is therefore a structural possibility until setup and the unique runtime subscriber are qualified; nested event chains remain outside selection.
 - Four observed Quizzes forms of `DateHandler.toISOString(DateHandler.now()...)` are materializable as a relative `now` plus offset. Setup translation now also handles the observed `Arrays.asList(...)`, bounded string concatenation, and `QuizDto` shapes. Other expressions remain blocked rather than being guessed.
 - Static setup candidacy is conservative prediction. The newly attached setups have full static validation, but broad runtime preflight has not yet been repeated for them.
 - The setup dispatcher admits only explicitly registered signatures. The known StartQuiz and LeaveTournament gaps are fixed and their bounded preflight passes; unregistered signatures still fail closed. The parent preserves validated expected failure reports from nonzero workers; crashes, absent or malformed reports and mismatched identities remain invalid attempts.
@@ -2144,7 +2773,10 @@ evidence and are not added to either unit/regression-suite total.
 - Semantic deduplication of value-equivalent inputs.
 - Profile-aware resolution for ambiguous multiple `@Service` implementations.
 - A universal domain-correctness oracle, generic serial-comparison oracle, or automatic continuation-probe impact model. ImpactV2 already assesses its three bounded final-effect conditions.
-- Generic reset orchestration beyond fresh process workers or cross-workload prioritization. Configurable per-criterion weighted fitness is supported within a fixed workload. The separate fixed-workload search command provides GA and random policies; this benchmark command remains application-specific.
+- Generic reset orchestration beyond fresh process workers or application-scale lazy
+  workload admission. Bounded cross-workload dispatch and pause/resume are implemented
+  for explicit qualified catalogues, with a four-attempt Docker integration smoke.
+  The benchmark command remains application-specific.
 
 ## Safe thesis framing
 
@@ -2160,3 +2792,13 @@ Safe current claim:
 > establish severity, universal domain harm or coverage of every executable scenario.
 > Methodological interpretation with the advisor, broader claims where justified, and
 > automated search evaluation remain future work.
+
+### Bounded pruning preservation evidence
+
+The [20 September comparison](evidence/pruning-preservation-2026-09-20/RESULTS.md) runs
+two discarded combinations and matched single-Saga scenarios without segment compression.
+All 118 admitted measurements have complete five-criterion counts and exact conformance.
+Pruning keeps 12 scenarios and the same one distinct finding; the decrease from 38 positive
+executions to two is duplicate manifestation removal in this measured set. Initial domain
+states, named faults, finding identities and composed final domain states were checked.
+This is scoped runtime evidence, separate from the earlier compression experiment.

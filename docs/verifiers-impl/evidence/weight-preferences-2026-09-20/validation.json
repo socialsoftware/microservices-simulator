@@ -1,0 +1,38 @@
+{
+  "checks": {
+    "009-all": {
+      "sixtyFullDistinctTraces": true,
+      "correctEndpoints": true
+    },
+    "009-deleted-dependency": {
+      "sixtyFullDistinctTraces": true,
+      "correctEndpoints": true
+    },
+    "009-uniform-random": {
+      "sameCandidateOrderAcrossProfiles": true
+    },
+    "012-all": {
+      "sixtyFullDistinctTraces": true,
+      "correctEndpoints": true
+    },
+    "012-deleted-dependency": {
+      "sixtyFullDistinctTraces": true,
+      "correctEndpoints": true
+    },
+    "012-compensated-read": {
+      "sixtyFullDistinctTraces": true,
+      "correctEndpoints": true
+    },
+    "012-uniform-random": {
+      "sameCandidateOrderAcrossProfiles": true
+    }
+  },
+  "sourceHashesUnchanged": true,
+  "009AllCriteriaMatchesEarlierFrozenReplay": true,
+  "profiles": [
+    "all",
+    "deleted-dependency",
+    "compensated-read"
+  ],
+  "scriptFinalSha256": "d520dbae8a2b7bb5b1d84f19c724c5fe20128ee19eb14c0ab247da69f84b5b66"
+}

@@ -1,0 +1,16 @@
+{
+  "status": "COMPLETE_INDEPENDENTLY_VERIFIED",
+  "searches": 420,
+  "recordedSelections": 107520,
+  "newApplicationExecutions": 0,
+  "tests": 134,
+  "artifacts": {
+    "protocol.json": "70905c92bb95937766be1d377c396e08066ac19cc45f3041ec43f53a16ca4990",
+    "order-inputs.json": "d9736c982af94f5f9c081a326b90b2242692b3375e751afbe2a468fe8050d30a",
+    "summary.json": "f614238eed6665e2a8ad56d053f933913690781b00cdd0bf9035bd4f31cd7cb0",
+    "verification.json": "dfe58e4bd66963d7899f2db7ceedfef81a53b7d6b2331e14be20adf533ed9c68",
+    "RESULTS.md": "2ab358a334ab9b753edcb604cc2d5caa72d63926185535e2f3dc124ee0392575",
+    "allocation-comparison.png": "450900c6721eeaf534fbf97d9a894e053ffdf8997e11b222377bf5657c740c98",
+    "allocation-comparison.svg": "a7608f4e4117fd135820417edef0ef9cbc382537c5c12f06a3f49e0f438cbe71"
+  }
+}

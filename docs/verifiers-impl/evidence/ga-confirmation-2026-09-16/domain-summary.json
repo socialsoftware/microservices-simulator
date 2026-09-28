@@ -1,0 +1,10 @@
+{
+  "vectorDomainSize": 36,
+  "recoveryCap": 500,
+  "capLimitedUniqueCandidateCount": 72,
+  "sumUncappedScheduleCounts": 72,
+  "sumWrittenScheduleCounts": 72,
+  "countComplete": true,
+  "anyTruncated": false,
+  "generatorWallSeconds": 76.84829933266155
+}

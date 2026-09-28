@@ -1,0 +1,32 @@
+{
+  "checks": [
+    "round-robin: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "round-robin: recover journal lagging two verified receipts, no additional dispatch",
+    "round-robin: changed configuration refuses resume without execution",
+    "uniform: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "uniform: recover journal lagging two verified receipts, no additional dispatch",
+    "uniform: changed configuration refuses resume without execution",
+    "adaptive-ucb: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "adaptive-ucb: recover journal lagging two verified receipts, no additional dispatch",
+    "adaptive-ucb: changed configuration refuses resume without execution",
+    "contextual-linucb: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "contextual-linucb: recover journal lagging two verified receipts, no additional dispatch",
+    "contextual-linucb: changed configuration refuses resume without execution",
+    "contextual-linucb-cooldown: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "contextual-linucb-cooldown: recover journal lagging two verified receipts, no additional dispatch",
+    "contextual-linucb-cooldown: changed configuration refuses resume without execution",
+    "adaptive-ucb-cooldown: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "adaptive-ucb-cooldown: recover journal lagging two verified receipts, no additional dispatch",
+    "adaptive-ucb-cooldown: changed configuration refuses resume without execution",
+    "progress-linucb: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "progress-linucb: recover journal lagging two verified receipts, no additional dispatch",
+    "progress-linucb: changed configuration refuses resume without execution",
+    "progress-linucb-cooldown: three-workload routing, three pauses, complete model/GA trajectory equality;21unique mocked executor-adapter calls",
+    "progress-linucb-cooldown: recover journal lagging two verified receipts, no additional dispatch",
+    "progress-linucb-cooldown: changed configuration refuses resume without execution"
+  ],
+  "policyCount": 8,
+  "workloadsPerRun": 3,
+  "executor": "deterministic fake runtime, durable production live coordinator",
+  "actualApplicationExecutions": 0
+}

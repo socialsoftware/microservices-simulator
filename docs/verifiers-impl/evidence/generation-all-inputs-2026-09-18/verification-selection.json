@@ -1,0 +1,156 @@
+[ {
+  "stratum" : "4/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "00011d2508f6cbec5e91149a3b76352c96bc036d7cda2f90a000ea16cd2fd85d"
+}, {
+  "stratum" : "4/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "000c7f806c8acbd43ed16a3acc4362dc0c29966814786b29467496c8460d6600"
+}, {
+  "stratum" : "4/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "001bbf3377a87e92990aef9efb703ccc2d04ee16f7cf675db99a7d05bfe8e1ea"
+}, {
+  "stratum" : "4/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.UpdateUserNameInQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.FindQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "0021c541124cc4811b6f773af0cd68aa26bfd4bbd307fcbf6cf5577e801df220"
+}, {
+  "stratum" : "3/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "002f334c28a95b929c897ea8e6642991babfeb4dc28b050793b6ad5b4ad80195"
+}, {
+  "stratum" : "3/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "00585405c10b2aa11923ddd2292232816d0e7487ddab8de750316d711fc23c49"
+}, {
+  "stratum" : "4/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AnonymizeUserTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateUserNameFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "0094d8737f2377141a26bdb49556df5e06d8e648a3a63719cdedfcf8630d7b62"
+}, {
+  "stratum" : "2/strict/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "00bd16b9ad826b3a25efaecea9d951f6dc8e9227c22ebbb82a7f99a638e6b4ac"
+}, {
+  "stratum" : "2/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "00bd16b9ad826b3a25efaecea9d951f6dc8e9227c22ebbb82a7f99a638e6b4ac"
+}, {
+  "stratum" : "3/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "00ce6bb3065569782566de33a0a9fd779ef21fd0a23f3e4ea4e8af481eae4f46"
+}, {
+  "stratum" : "3/strict/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "00f4695fecfcb291d88acd3a36c4aa9c9a9bd0d80e5c0479a79fc8ae6e7e2ff5"
+}, {
+  "stratum" : "3/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.RemoveTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "00f4695fecfcb291d88acd3a36c4aa9c9a9bd0d80e5c0479a79fc8ae6e7e2ff5"
+}, {
+  "stratum" : "3/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.CreateCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "010b0bcea74176a45b1d1e42b1e538ee62d1eff7e3f6d9b00ccc5fc354406584"
+}, {
+  "stratum" : "3/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.RemoveQuizAnswerFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizAsyncFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "010dd4d91d923d6caf4ce23df5955e0969cee6a29919648ad0376663efa1f12d"
+}, {
+  "stratum" : "4/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.sagas.CreateUserFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "013cf2e6032e0f5f8e4fb4fd4fb22113b5cc8559831e946c39f89d4589872c90"
+}, {
+  "stratum" : "2/type-fallback/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionsByUserFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "014655b31ccaa3d69745f7338602dfcfd8afbaa68ec06b59513d11f372f17b87"
+}, {
+  "stratum" : "4/strict/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.LeaveTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.UpdateTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "0194d3f5e888b335afa1b040335d8c4c6c92749a666e4f5b2813c93975d5fc27"
+}, {
+  "stratum" : "3/strict/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "01eeafa415ec4f4a4bd94b171a181d39166366c4ddbf0e2a5db7844385e78b99"
+}, {
+  "stratum" : "3/strict/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "04ab536ac9ba52a378376f800e973f262615646576d95d6027aa5efc97a49611"
+}, {
+  "stratum" : "4/strict/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "07eb591e2732f802a4c092316f807163b7408f88289810edefa5459dea55e06f"
+}, {
+  "stratum" : "2/strict/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "09c79041820cc0c50c03c326aadf42ef1264ffec1c3c003cc6e0ecb39f63eb5a"
+}, {
+  "stratum" : "4/strict/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "0aee4553137cb94099254afb8ceadf6617c4665efe441b82ca38d737d7d7027a"
+}, {
+  "stratum" : "3/strict/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AnonymizeStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.RemoveStudentFromCourseExecutionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas.CreateQuizFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "11987e0dac97714e2a0ecd9d30256c61915f6a78eedd6af0734cd71d5938c8ab"
+}, {
+  "stratum" : "2/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "13bee5f7f4bd7d4b56132a1acd057fdd14b2ad1e886f832ebc624af2df5e50a1"
+}, {
+  "stratum" : "4/strict/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "17f2af9ea1c14f2d8f39cc57402da5dad6f4b0f7d29b0659c59cc0fc608f2dd3"
+}, {
+  "stratum" : "2/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas.StartQuizFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "1f5dca37733bbd851cf1d1b561ba51c304bcdf975ed78747fa50732d0d2ffb12"
+}, {
+  "stratum" : "2/type-fallback/1000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.CreateQuestionFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "1fd85b126e79bf9462ef7415ec410d4d3e3ce197fa1ec3a791b03a82648cf039"
+}, {
+  "stratum" : "2/type-fallback/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "type-fallback",
+  "hash" : "258037be757a777140743d7b6aa6b13cb1940826512c0e9bb1873644fe49c819"
+}, {
+  "stratum" : "3/strict/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CancelTournamentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "4215099a9375f31f499d5b6249e360c4334e96f5c744cd0d6b3ba93989714631"
+}, {
+  "stratum" : "3/strict/20000",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.AddStudentFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "4481b6b74995354784ddad9412bf5d841ab8c47949ab3ffd1f6f9f3c24439e13"
+}, {
+  "stratum" : "4/strict/100",
+  "sagas" : [ "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.GetCourseExecutionByIdFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas.UpdateStudentNameFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas", "pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.FindTournamentFunctionalitySagas" ],
+  "lens" : "strict",
+  "hash" : "ffa64766b482076257d1318c9d45c9df10e9673ffc6a4adb2ee078a0ad88c9bf"
+} ]

@@ -1,0 +1,69 @@
+{
+  "budget": 5184,
+  "exploration": "uniform-unseen",
+  "feedback": "Only returned when selected; null scores remain unavailable and consume one evaluation",
+  "fitness": {
+    "policy": "weighted-criteria-v2",
+    "weights": {
+      "COMPENSATED_READ_EXPOSURE": 1,
+      "DELETED_DEPENDENCY": 1,
+      "FAILED_OPERATION_RESIDUAL": 1,
+      "LOST_COPIED_UPDATE": 1,
+      "UNRESOLVED_DELIVERED_EVENT": 1
+    }
+  },
+  "mode": "RECORDED_FEEDBACK_NOT_LIVE_TIMING",
+  "mutation": 0.3,
+  "population": 8,
+  "scope": "One measured observation per candidate; repeat qualification is separate",
+  "seedSelection": "Fixed integers 1..30 before replay, no seed selection by outcomes",
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "sourceHashes": {
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/analyze_complete_map.py": "73b308d65d698c9daed6028442206089410979b0b3ebc3f1bb5690c836cc6d5a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/catalogue.py": "04ae605975bdc118eea4430afaa34bad816539c716de248b5e47a64c253ba334",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/fitness.py": "2e33596ec50177da6efadc8ccb36beaa960094379846c76ecab89456d46f1d09",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/experiments/fixed-workload-ga/search.py": "15e57588775283a929892d7ac7768699ccb8ec304411069f368403308da2ea0f",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/domain-count.json": "8599df0c59750d49942dbc47dd9d51b96f2c1b4fbc686cc1b4cdbfb23d57b3ce",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/package/scenario-catalog-manifest.json": "39f2cdca93a36393003445d65afc4219f4c57794f0255bbd3c204f0986c30c7a",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/catalogue/requests.json": "d97470efd9275f6f9af339cff85dfefd16a02b33b7e03424099d280cf7349ac5",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/config.json": "0a3fb0251458b6a0047f93c50d250c99ffe583a16a88c5eacdca1594fe1c1df6",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/map/protocol.json": "c5a0d479810aa3d172275f74d665e6f758cf04ddfbd1e5eb0b4f3d8206778386",
+    "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/full-map-5184-2026-09-17/map/reference.json": "86d5a93dd12df85d7fa2d8ab5db95aa26d3bdf74f4b83ce722aeeee02c0c154b"
+  },
+  "stallLimit": 1000,
+  "strategies": [
+    "ga",
+    "random"
+  ]
+}

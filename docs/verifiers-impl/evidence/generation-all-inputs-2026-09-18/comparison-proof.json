@@ -1,0 +1,58 @@
+{
+  "baselineAgreement": {
+    "inputs-cap-1.json": {
+      "sha256": "46b08105d03d5bf95d0e8b1610e1d45ccb8e8c737e2a80e74309a1504c6acf58",
+      "comparison": "equal JSON values (object key order can differ)"
+    },
+    "rows-cap-1.jsonl": {
+      "sha256": "a511c97d7da0c04edc4374b580f6a274c4b0ba841f4d2c4ba6e57e48006fd54f",
+      "comparison": "byte-identical rows"
+    },
+    "inputs-cap-3.json": {
+      "sha256": "a4c84a4994c25e131561dc1335a44a8779de11dd23a0e39d1f95baac9605c7d0",
+      "comparison": "equal JSON values (object key order can differ)"
+    },
+    "rows-cap-3.jsonl": {
+      "sha256": "b1682bca38e27561bab546a1090d139ed684a5a374231dfc0db5c912090cc1cc",
+      "comparison": "byte-identical rows"
+    },
+    "inputs-cap-10.json": {
+      "sha256": "6492f6f614a1fa0e4fb8e1eb3ec55edbef3947fabeeff60c9c794207a54c2cea",
+      "comparison": "equal JSON values (object key order can differ)"
+    },
+    "rows-cap-10.jsonl": {
+      "sha256": "c43ac5b8c2768cd86e820b458c1327118e186b157d3e5353f54a4f3afae82735",
+      "comparison": "byte-identical rows"
+    }
+  },
+  "inputPopulationNested": true,
+  "allEligibleInputsRetained": true,
+  "rawArtifacts": {
+    "rows-cap-1.jsonl": "a511c97d7da0c04edc4374b580f6a274c4b0ba841f4d2c4ba6e57e48006fd54f",
+    "rows-cap-10.jsonl": "c43ac5b8c2768cd86e820b458c1327118e186b157d3e5353f54a4f3afae82735",
+    "rows-cap-1000.jsonl": "48aeb81c219eb4314e5838f31132d46ec9ea86c463454489b622c2c4cf0fb3ab",
+    "rows-cap-3.jsonl": "b1682bca38e27561bab546a1090d139ed684a5a374231dfc0db5c912090cc1cc"
+  },
+  "independentAllTupleCounts": {
+    "1": {
+      "2": "666",
+      "3": "7770",
+      "4": "66045"
+    },
+    "3": {
+      "2": "3841",
+      "3": "107085",
+      "4": "2167713"
+    },
+    "10": {
+      "2": "23255",
+      "3": "1572728",
+      "4": "76452186"
+    },
+    "1000": {
+      "2": "309568",
+      "3": "72334850",
+      "4": "11693312153"
+    }
+  }
+}

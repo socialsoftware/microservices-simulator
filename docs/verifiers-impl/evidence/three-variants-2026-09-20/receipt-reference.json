@@ -1,0 +1,10 @@
+{
+  "receipt": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/three-variants-2026-09-20/source-and-artifact-receipt.json",
+  "sha256": "503554099356082ff204ace244251fb766ea9772d614a64117915fee08eeed47",
+  "independentRowSums": "PASS",
+  "finalSourceVerification": {
+    "path": "/Users/andre/meic/thesis/microservices-simulator/verifiers/target/three-variants-2026-09-20/final-source-verification.json",
+    "sha256": "0896c89086b881f2e97e94a590d9eb724321fb6076b8677e95fa1834a239e720",
+    "modelsIdenticalAfterFinalReview": true
+  }
+}

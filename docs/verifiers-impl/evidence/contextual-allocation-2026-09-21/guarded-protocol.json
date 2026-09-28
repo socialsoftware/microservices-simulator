@@ -1,0 +1,51 @@
+{
+  "policy": "contextual-linucb-cooldown",
+  "rationale": "Independent two-workload missing-feedback stress test revealed repeated selection of the unavailable workload without any observed reward; this is a robustness guard, not a tuned reward.",
+  "rule": "After null feedback, try one other nonexhausted workload if one exists; then the former workload can compete normally. Known zero does not trigger this rule.",
+  "rewardAndLearning": "Identical raw configured weighted score. Null consumes budget and updates neither model parameters nor GA parent population.",
+  "parameters": {
+    "exploration": 1.0,
+    "ridge": 1.0
+  },
+  "seeds": [
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19,
+    20,
+    21,
+    22,
+    23,
+    24,
+    25,
+    26,
+    27,
+    28,
+    29,
+    30
+  ],
+  "cohorts": [
+    "small-cohort-config.json",
+    "mixed-cohort-config.json"
+  ],
+  "profiles": [
+    "all",
+    "dependency"
+  ],
+  "comparison": "Same frozen references and three baseline traces; original unguarded contextual traces retained separately. No application executions; no outcomes discarded; no tuning to comparison outcomes."
+}
