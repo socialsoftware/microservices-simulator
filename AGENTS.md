@@ -21,12 +21,6 @@ Use `CONTEXT-MAP.md` to find the canonical context for each bounded context. For
 
 - `docs/verifiers-impl/current-state.md`
 
-## Verifiers Thesis Context (PIC2)
-
-- `verifiers/` development follows the thesis direction documented in `André_Silva___IST_UL___MEIC_PIC2.pdf`.
-- The PDF is large but relevant context for simulator background, intended architecture, and evaluation goals.
-- Use the PDF as intent context; use repository code and `docs/verifiers-impl/current-state.md` as the source of truth for what is already implemented.
-
 ## Verifier Patterns and Fixtures
 
 - Preserve the existing verifier pipeline boundaries: `visitor/*` -> `ApplicationAnalysisState` -> `scenario/adapter/*` -> `scenario/*` -> `dynamic/*`.
@@ -57,42 +51,8 @@ Use `CONTEXT-MAP.md` to find the canonical context for each bounded context. For
 
 Before planning, implementing, or reviewing, read only the relevant canonical docs, glossary terms, and exact issue package. Update affected canonical docs in the same change as behavior.
 
-## Feature Workflow
-
-Use the global skills `disambiguate → spec → plan → execute`. There are two routes:
-
-- direct: agreed brief → implementation approval → execute;
-- documented: `SPEC.md` → `PLAN.md` → implementation approval → execute.
-
-Documented issues live at `issues/YYYY-MM-DD-<slug>/` and contain `SPEC.md` and `PLAN.md`. Spec and plan are one planning phase; implementation always stops for explicit approval before worktree creation or source changes unless the user explicitly waives that gate.
-
-## Artifact Authority
-
-- The spec owns approved product behavior, boundaries, assumptions, and terminology.
-- The plan owns execution strategy, milestone boundaries, discovery, risks, and proof.
-- Canonical docs own current shipped behavior.
-- Handoffs own actual changed files, implementation discoveries, deviations, and proof.
-- Update governing artifacts together when approved intent or strategy changes.
-
-## Execution Scope
-
-Plans approve outcomes and change boundaries, not exhaustive file allowlists. Necessary implementation details inside the boundary may proceed and must be reported. Material changes to intent, security/data/API or production boundaries, architecture, rollout, reversibility, or meaningful cost require user approval. Do not absorb unrelated findings.
-
 ## Workflow Safety
 
 - Preserve unrelated dirty work.
 - Never perform destructive, production, deployment, release, push, or merge actions without explicit authority.
 - Run the narrowest meaningful validation and report checks honestly.
-
-## Application-Generation Harness
-
-The aggregate-by-aggregate application-generation harness is a supported, explicitly scoped workflow; it is not the repository's default objective. Use it only when the user requests generated-application work, then follow `docs/workflow.md`, the relevant material under `docs/concepts/` and `docs/templates/`, and the target application's local guidance.
-
-Generated application service code must remain profile-agnostic: service classes depend on abstract factories and repository interfaces, not concrete Saga-profile implementations. This preserves compatibility with other transactional profiles.
-
-Relevant module guidance:
-
-- `simulator/AGENTS.md` for framework-specific work;
-- `applications/quizzes/AGENTS.md` for Quizzes application-generation work.
-
-For that workflow, install the simulator first with `cd simulator && mvn install`, then run application tests from the application module with the required profile, for example `cd applications/quizzes && mvn -Ptest-sagas test`.
