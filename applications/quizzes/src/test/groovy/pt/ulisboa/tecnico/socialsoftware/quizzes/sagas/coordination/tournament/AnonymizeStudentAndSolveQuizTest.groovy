@@ -3,11 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.quizzes.sagas.coordination.tournament
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest
 import org.springframework.boot.test.context.TestConfiguration
+import pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Aggregate
 import pt.ulisboa.tecnico.socialsoftware.ms.notification.EventRepository
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.BeanConfigurationSagas
 import pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSpockTest
 import pt.ulisboa.tecnico.socialsoftware.quizzes.events.UpdateStudentNameEvent
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DeleteCourseExecutionEvent
+import pt.ulisboa.tecnico.socialsoftware.quizzes.events.DisenrollStudentFromCourseExecutionEvent
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.service.QuizAnswerService
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
@@ -117,6 +120,81 @@ class AnonymizeStudentAndSolveQuizTest extends QuizzesSpockTest {
                 .orElseThrow().eventSubscriptions.any {
             it.subscribesEvent(event)
         }
+
+        when: 'the name update reaches the existing Tournament participant'
+        tournamentEventHandling.handleUpdateStudentNameEvent()
+
+        then: 'the public query returns the propagated name'
+        def result = tournamentFunctionalities.findTournament(tournamentDto.aggregateId)
+        result.participants.find { it.aggregateId == userDto.aggregateId }.name == USER_NAME_3
+    }
+
+    def 'DeleteCourseExecution event reaches an existing tournament'() {
+        given: 'another execution keeps the Course valid after removing one with content'
+        createCourseExecution(COURSE_EXECUTION_NAME, COURSE_EXECUTION_TYPE, ACRONYM_1,
+                COURSE_EXECUTION_ACADEMIC_TERM, TIME_4)
+        and: 'students are removed before deleting their execution, without delivering their events yet'
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(
+                courseExecutionDto.aggregateId, userDto.aggregateId)
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(
+                courseExecutionDto.aggregateId, userCreatorDto.aggregateId)
+        def before = tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId).orElseThrow()
+        assert before.state == Aggregate.AggregateState.ACTIVE
+
+        when: 'the real operation publishes the deletion event'
+        courseExecutionFunctionalities.removeCourseExecution(courseExecutionDto.aggregateId)
+
+        then: 'the still-active Tournament subscribes to that persisted event'
+        def event = eventRepository.findAll().find {
+            it instanceof DeleteCourseExecutionEvent &&
+                    it.publisherAggregateId == courseExecutionDto.aggregateId
+        }
+        event != null
+        event.published
+        tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId)
+                .orElseThrow().eventSubscriptions.any { it.subscribesEvent(event) }
+
+        when: 'the application handler delivers it'
+        tournamentEventHandling.handleDeleteCourseExecutionEvents()
+
+        then: 'the latest persisted Tournament is inactive'
+        def after = tournamentRepository.findAll()
+                .findAll { it.aggregateId == tournamentDto.aggregateId }.max { it.version }
+        after.state == Aggregate.AggregateState.INACTIVE
+        after.version > before.version
+        !tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId).present
+    }
+
+    def 'DisenrollStudent event reaches an existing tournament participant'() {
+        given:
+        def before = tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId).orElseThrow()
+        assert before.tournamentParticipants.find { it.participantAggregateId == userDto.aggregateId }.state ==
+                Aggregate.AggregateState.ACTIVE
+
+        when: 'the real operation removes the student and publishes the event'
+        courseExecutionFunctionalities.removeStudentFromCourseExecution(
+                courseExecutionDto.aggregateId, userDto.aggregateId)
+
+        then: 'the existing Tournament is eligible for this student and execution'
+        def event = eventRepository.findAll().find {
+            it instanceof DisenrollStudentFromCourseExecutionEvent &&
+                    it.publisherAggregateId == courseExecutionDto.aggregateId &&
+                    it.studentAggregateId == userDto.aggregateId
+        }
+        event != null
+        event.published
+        tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId)
+                .orElseThrow().eventSubscriptions.any { it.subscribesEvent(event) }
+
+        when: 'the application handler delivers it'
+        tournamentEventHandling.handleUnenrollStudentFromCourseExecutionEvents()
+
+        then: 'the latest persisted participant is deleted and the event version is recorded'
+        def after = tournamentRepository.findLastAggregateVersion(tournamentDto.aggregateId).orElseThrow()
+        after.tournamentParticipants.find { it.participantAggregateId == userDto.aggregateId }.state ==
+                Aggregate.AggregateState.DELETED
+        after.tournamentCourseExecution.courseExecutionVersion == event.publisherAggregateVersion
+        after.version > before.version
     }
 
     @TestConfiguration

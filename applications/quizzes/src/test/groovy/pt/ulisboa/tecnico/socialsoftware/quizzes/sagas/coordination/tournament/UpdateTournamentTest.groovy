@@ -16,6 +16,7 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.exception.Quizzes
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggregate.CourseExecutionDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.functionalities.ExecutionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto
+import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.functionalities.QuestionFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.functionalities.QuizFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.service.QuizService
@@ -38,6 +39,8 @@ class UpdateTournamentTest extends QuizzesSpockTest {
     private ExecutionFunctionalities courseExecutionFunctionalities
     @Autowired
     private QuizFunctionalities quizFunctionalities
+    @Autowired
+    private QuestionFunctionalities questionFunctionalities
     @Autowired
     private TournamentFunctionalities tournamentFunctionalities
     @Autowired
@@ -97,6 +100,45 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         true // or just leave it blank if using Spock 2+
     }
 
+    def 'delete a topic already used by a tournament'() {
+        when: 'a topic subscribed by the tournament is deleted'
+        topicFunctionalities.deleteTopic(topicDto1.getAggregateId())
+
+        then: 'the tournament still contains the topic before the event is delivered'
+        def tournament = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
+        tournament.topics*.aggregateId.contains(topicDto1.getAggregateId())
+    }
+
+    def 'remove a question already used by a tournament quiz'() {
+        when: 'a question copied into the quiz is removed'
+        questionFunctionalities.removeQuestion(questionDto1.getAggregateId())
+
+        then: 'the quiz still contains the question before the event is delivered'
+        def quiz = quizFunctionalities.findQuiz(tournamentDto.getQuiz().getAggregateId())
+        quiz.questionDtos*.aggregateId.contains(questionDto1.getAggregateId())
+    }
+
+    def 'update a question already included in a tournament quiz'() {
+        given: 'new text, preserving the existing valid options'
+        questionDto1.setTitle('UPDATED QUESTION TITLE')
+        questionDto1.setContent('UPDATED QUESTION CONTENT')
+
+        when: 'the author updates the question'
+        questionFunctionalities.updateQuestion(questionDto1)
+
+        then: 'the producer stores the new text'
+        def updated = questionFunctionalities.findQuestionByAggregateId(questionDto1.getAggregateId())
+        updated.title == 'UPDATED QUESTION TITLE'
+        updated.content == 'UPDATED QUESTION CONTENT'
+
+        and: 'the quiz still has its previous copy before event delivery'
+        def quiz = quizFunctionalities.findQuiz(tournamentDto.getQuiz().getAggregateId())
+        def copiedQuestion = quiz.questionDtos.find { it.aggregateId == questionDto1.getAggregateId() }
+        copiedQuestion != null
+        copiedQuestion.title == TITLE_1
+        copiedQuestion.content == CONTENT_1
+    }
+
     def 'update tournament successfully'() {
         given:
         tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
@@ -137,6 +179,24 @@ class UpdateTournamentTest extends QuizzesSpockTest {
         def updatedTournamentDto = tournamentFunctionalities.findTournament(tournamentDto.getAggregateId())
         updatedTournamentDto.numberOfQuestions == 3
         updatedTournamentDto.topics.find { it.aggregateId == topicDto1.aggregateId }.name == 'RENAMED TOPIC'
+    }
+
+    def 'update topic and tournament then read their quiz'() {
+        given:
+        topicDto1.setName('RENAMED TOPIC')
+        tournamentDto.setStartTime(DateHandler.toISOString(TIME_2))
+        tournamentDto.setEndTime(DateHandler.toISOString(TIME_4))
+        tournamentDto.setNumberOfQuestions(3)
+        def topicsAggregateIds = [topicDto1.getAggregateId(), topicDto2.getAggregateId(), topicDto3.getAggregateId()].toSet()
+
+        when:
+        topicFunctionalities.updateTopic(topicDto1)
+        tournamentFunctionalities.updateTournament(tournamentDto, topicsAggregateIds)
+        def quizDto = quizFunctionalities.findQuiz(tournamentDto.quiz.aggregateId)
+
+        then:
+        quizDto != null
+        quizDto.questionDtos.size() == 3
     }
 
     def 'update tournament aborts when trying to create the tournament and violates an invariant'() {
