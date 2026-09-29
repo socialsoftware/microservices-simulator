@@ -1,3 +1,4 @@
+import os
 import copy
 import random
 
@@ -216,3 +217,43 @@ class ConfigTool:
                 return True
 
         return False
+
+    @staticmethod
+    def get_project_root() -> str:
+        """Returns the project root directory (performance-analysis)."""
+        return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+    @staticmethod
+    def resolve_config_path(config_path: str) -> str:
+        """Resolves config path, checking cwd, initial_config, and models/eval_results directories."""
+
+        if os.path.exists(config_path):
+            return os.path.abspath(config_path)
+
+        project_root = ConfigTool.get_project_root()
+        candidate = os.path.join(project_root, "src", "initial_config", config_path)
+        if os.path.exists(candidate):
+            return candidate
+
+        candidate_eval = os.path.join(project_root, "models", "eval_results", config_path)
+        if os.path.exists(candidate_eval):
+            return candidate_eval
+
+        return config_path
+
+    @staticmethod
+    def resolve_workload_path(workload_path: str) -> str:
+        """Normalizes workload path to be relative to workloads directory for Locust."""
+        
+        project_root = ConfigTool.get_project_root()
+        workloads_dir = os.path.join(project_root, "src", "workloads")
+
+        if os.path.isabs(workload_path) and workload_path.startswith(workloads_dir):
+            return os.path.relpath(workload_path, workloads_dir)
+
+        for prefix in ["src/workloads/", "workloads/", "./src/workloads/", "./workloads/"]:
+            if workload_path.startswith(prefix):
+                return workload_path[len(prefix):]
+
+        return workload_path
+

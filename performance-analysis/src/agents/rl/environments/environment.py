@@ -62,17 +62,26 @@ class MicroserviceOptimizerEnv(gym.Env):
         """Returns the action masking function."""
         return get_valid_action_mask(self.action_mapping, self.sim_runner.current_config, self.microservices)
 
-    def _randomize_workload(self) -> WorkloadConfig:
-        """Returns a randomized workload configuration."""
+    def _randomize_workload(self, deterministic: bool = False) -> WorkloadConfig:
+        """Returns a workload configuration."""
 
-        file = random.choice(self.workloads)
-        users = random.randint(*self.users_itvl)
-        # Locust does not work well above a ramp-up value of 100, so we cap it there
-        spawn_rate = users if users <= 100 else 100
-        iterations = random.randint(*self.iterations_itvl)
-        read_weight = random.uniform(*self.weights_itvl)
-        write_weight = random.uniform(*self.weights_itvl)
-        wait_time = random.uniform(*self.wait_time_itvl)
+        if deterministic:
+            file = self.workloads[0] if self.workloads else None
+            users = self.users_itvl[1]
+            spawn_rate = users if users <= 100 else 100
+            iterations = self.iterations_itvl[1]
+            read_weight = self.weights_itvl[0]
+            write_weight = self.weights_itvl[0]
+            wait_time = self.wait_time_itvl[0]
+        else:
+            file = random.choice(self.workloads)
+            users = random.randint(*self.users_itvl)
+            # Locust does not work well above a ramp-up value of 100, so we cap it there
+            spawn_rate = users if users <= 100 else 100
+            iterations = random.randint(*self.iterations_itvl)
+            read_weight = random.uniform(*self.weights_itvl)
+            write_weight = random.uniform(*self.weights_itvl)
+            wait_time = random.uniform(*self.wait_time_itvl)
 
         logging.info(
             f"Workload: file={file}, users={users}, iterations={iterations}, read_w={read_weight:.2f}, write_w={write_weight:.2f}, wait_t={wait_time:.2f}")
@@ -89,9 +98,10 @@ class MicroserviceOptimizerEnv(gym.Env):
         self.current_step = 0
 
         try:
-            self.wl_config = self._randomize_workload()
+            is_deterministic = options is not None and options.get("deterministic", False)
+            self.wl_config = self._randomize_workload(deterministic=is_deterministic)
 
-            if options is not None and options.get("deterministic"):
+            if is_deterministic:
                 new_config = self.sim_runner.base_config
             else:
                 new_config = ConfigTool.randomize_config(

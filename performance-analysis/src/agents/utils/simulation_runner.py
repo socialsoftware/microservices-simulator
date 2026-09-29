@@ -5,6 +5,7 @@ import os
 import sys
 from src.simulator_tools.simulator_utils import *
 from src.simulator_tools.h2_utils import *
+from src.simulator_tools.config_utils import ConfigTool
 from dataclasses import dataclass
 
 
@@ -27,19 +28,22 @@ class SimRunner:
     Abstracts the type of agent and algorithm implemented from the workloads and data collection.
     """
 
-    def __init__(self, trace_collector):
+    def __init__(self, trace_collector, config_path: str = None):
         self.trace_collector = trace_collector
-        self.base_config = self._read_base_config()
+        self.base_config = self._read_base_config(config_path)
         self.current_config = self.base_config
 
-    def _read_base_config(self) -> dict:
-        """Loads and returns base configuration from initial_config/config.json."""
+    def _read_base_config(self, config_path: str = None) -> dict:
+        """Loads and returns configuration. If config_path is None, defaults to initial_config/config.json."""
 
-        config_path = os.path.join(
-            os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
-            "initial_config",
-            "config.json"
-        )
+        if config_path is None:
+            config_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                "initial_config",
+                "config.json"
+            )
+        else:
+            config_path = ConfigTool.resolve_config_path(config_path)
 
         try:
             with open(config_path, 'r') as f:

@@ -51,12 +51,17 @@ def start_grpc_server(port=4319, tm=None, max_workers=2):
     if tm is None:
         tm = trace_manager
 
-    # Start gRPC Server
-    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers))
+    # Start gRPC Server with reuseport disabled to prevent zombie processes from intercepting traces
+    options = [("grpc.so_reuseport", 0)]
+    grpc_server = grpc.server(futures.ThreadPoolExecutor(max_workers=max_workers), options=options)
     trace_service_pb2_grpc.add_TraceServiceServicer_to_server(
         TraceServiceReceiver(tm), grpc_server
     )
-    grpc_server.add_insecure_port(f"0.0.0.0:{port}")
+    bound_port = grpc_server.add_insecure_port(f"0.0.0.0:{port}")
+    if bound_port == 0:
+        raise RuntimeError(
+            f"Failed to bind gRPC server to port {port}. A stale process is already using this port."
+        )
 
     grpc_thread = threading.Thread(target=grpc_server.start, daemon=True)
     grpc_thread.start()
@@ -75,8 +80,8 @@ def interactive_cli():
     print("  read     - Print current metrics")
     print("  reset    - Reset trace manager metrics")
     print("  train    - Start the agent training loop (e.g. train {ppo, test})")
-    print("  eval     - Evaluate a trained model (e.g., eval {ppo} [MODEL_PATH])")
-    print("  baseline - Evaluate a static configuration baseline (e.g., baseline [WORKLOAD_PATH] [JSON_CONFIG_PATH])")
+    print("  eval     - Evaluate a trained model (e.g. eval {ppo} <model_path> <workload_path> <config_path>)")
+    print("  baseline - Evaluate a configuration baseline (e.g. baseline <workload_path> <config_path>)")
     print("  debug    - Toggle debug logging")
     print("  exit     - Stop the server and exit")
 
@@ -109,17 +114,17 @@ def interactive_cli():
                 finally:
                     server = start_grpc_server(DEFAULT_CLI_PORT)
             elif cmd.startswith("eval"):
-                parts = cmd.split(" ", 2)
-                if len(parts) < 3:
-                    print("Usage: eval {ppo} <path_to_model.zip>")
+                parts = cmd.split()
+                if len(parts) < 5:
+                    print("Usage: eval {ppo} <path_to_model.zip> <workload_path> <config_json_path>")
                 else:
                     trace_manager.reset()
                     try:
-                        start_evaluation(trace_manager, parts[1], parts[2])
+                        start_evaluation(trace_manager, parts[1], parts[2], parts[3], parts[4])
                     finally:
                         trace_manager.reset()
             elif cmd.startswith("baseline"):
-                parts = cmd.split(" ", 2)
+                parts = cmd.split()
                 if len(parts) < 3:
                     print("Usage: baseline <workload_path> <config_json_path>")
                 else:

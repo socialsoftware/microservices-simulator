@@ -42,7 +42,7 @@ def start_trace_server(worker_id: int):
         grpc_srv.stop(0)
 
 
-def create_rl_env(trace_manager: TraceManager, worker_id: int = 1, is_training: bool = False):
+def create_rl_env(trace_manager: TraceManager, worker_id: int = 1, is_training: bool = False, custom_workload: str = None, custom_config_path: str = None):
     """
     Creates an instace of MicroserviceOptimizerEnv with all strategies, wrappers, and env vars.
     """
@@ -64,7 +64,7 @@ def create_rl_env(trace_manager: TraceManager, worker_id: int = 1, is_training: 
     workload_cfg = config["workloads"]
     train_cfg = config["training"]
 
-    sim_runner = SimRunner(trace_manager)
+    sim_runner = SimRunner(trace_manager, config_path=custom_config_path)
     reward_strat = RewardStrategyFactory.create(
         environment["reward_type"], alpha=environment["alpha"], beta=environment["beta"]
     )
@@ -75,9 +75,11 @@ def create_rl_env(trace_manager: TraceManager, worker_id: int = 1, is_training: 
         run_time=workload_cfg["run-time"]
     )
 
+    workloads = [custom_workload] if custom_workload else workload_cfg["workloads"]
+
     env = MicroserviceOptimizerEnv(
         sim_runner,
-        workload_cfg["workloads"],
+        workloads,
         tuple(workload_cfg["users"]),
         tuple(workload_cfg["iterations"]),
         tuple(workload_cfg["weights_ratio"]),
