@@ -38,7 +38,6 @@ public class TraceManager {
     private final SdkTracerProvider masterRootTracerProvider;
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
     private final Map<String, Span> commandSpans = new ConcurrentHashMap<>();
-    private static final ThreadLocal<Span> currentCommandSpan = new ThreadLocal<>();
     private final Map<String, Long> queueWaitTimesNano = new ConcurrentHashMap<>();
     private final Map<String, Integer> commandRetryCounters = new ConcurrentHashMap<>();
     private final Map<UnitOfWork, String> uowTraceIds = Collections.synchronizedMap(new WeakHashMap<>());
@@ -230,20 +229,23 @@ public class TraceManager {
             durationMs = (System.nanoTime() - start) / 1_000_000.0;
         }
 
-        // Try ThreadLocal active command span first, fallback to lookup
-        Span parentSpan = currentCommandSpan.get();
-        if (parentSpan == null) {
-            parentSpan = getCommandSpan(executionId, methodName + "command");
-        }
-        if (parentSpan != null) {
-            parentSpan.setAttribute("queue time (ms)", durationMs);
+        // Use OpenTelemetry's active span in context first
+        Span activeSpan = Span.current();
+        if (activeSpan != null && activeSpan.getSpanContext().isValid()) {
+            activeSpan.setAttribute("queue time (ms)", durationMs);
+        } else {
+            // Fallback to name-based lookup
+            Span parentSpan = getCommandSpan(executionId, methodName + "command");
+            if (parentSpan != null) {
+                parentSpan.setAttribute("queue time (ms)", durationMs);
+            }
         }
     }
 
     public void recordUsefulTime(double durationMs) {
-        Span span = currentCommandSpan.get();
-        if (span != null) {
-            span.setAttribute("useful time (ms)", durationMs);
+        Span activeSpan = Span.current();
+        if (activeSpan != null && activeSpan.getSpanContext().isValid()) {
+            activeSpan.setAttribute("useful time (ms)", durationMs);
         }
     }
 
@@ -264,11 +266,11 @@ public class TraceManager {
         return commandSpans.get(key);
     }
 
-    public void startCommandSpan(String executionId, Command command) {
+    public Span startCommandSpan(String executionId, Command command) {
         String commandName = command.getClass().getSimpleName();
         Span parentSpan = functionalitySpans.get(executionId);
         if (parentSpan == null) {
-            return;
+            return null;
         }
 
         String key = commandKey(executionId, commandName);
@@ -292,14 +294,13 @@ public class TraceManager {
             commandSpan.setAttribute("functionality", command.getUnitOfWork().getFunctionalityName());
         }
         commandSpans.put(key, commandSpan);
-        currentCommandSpan.set(commandSpan);
+        return commandSpan;
     }
 
     public void endCommandSpan(String executionId, Command command) {
         String commandName = command.getClass().getSimpleName();
         String key = commandKey(executionId, commandName);
         Span commandSpan = commandSpans.remove(key);
-        currentCommandSpan.remove();
         if (commandSpan != null) {
             commandSpan.end();
         }
@@ -310,9 +311,9 @@ public class TraceManager {
         if (delay <= 0) {
             return null;
         }
-        Span parentSpan = getCommandSpan(executionId, command);
-        if (parentSpan == null) {
-            parentSpan = currentCommandSpan.get();
+        Span parentSpan = Span.current();
+        if (parentSpan == null || !parentSpan.getSpanContext().isValid()) {
+            parentSpan = getCommandSpan(executionId, command);
         }
         if (parentSpan == null)
             return null;

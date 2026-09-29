@@ -13,6 +13,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.WeakHashMap;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.context.Scope;
 import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
@@ -32,12 +34,6 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaComm
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.AbortSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.command.CommitSagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
-
-/* 
-    ! TODO: A test is failling because of the way we handle retries. When a retry is specified, the functionality is executed again, 
-    ! but the behaviour is not re-injected, which means that the same behaviour is applied to all retries. This honeslty should be the case
-    ! but its not the behaviour expected by the test.
-*/
 
 @Aspect
 @Component
@@ -126,7 +122,8 @@ public class ImpairmentHandler {
         String funcName = command.getUnitOfWork() != null ? command.getUnitOfWork().getFunctionalityName() : "unknown";
         String executionId = TraceManager.getInstance().resolveExecutionId(command.getUnitOfWork());
 
-        TraceManager.getInstance().startCommandSpan(executionId, command);
+        Span commandSpan = TraceManager.getInstance().startCommandSpan(executionId, command);
+        Scope scope = commandSpan != null ? commandSpan.makeCurrent() : null;
 
         try {
             // TODO - Implement fault injection
@@ -149,6 +146,9 @@ public class ImpairmentHandler {
                     e.getMessage());
             throw e;
         } finally {
+            if (scope != null) {
+                scope.close();
+            }
             TraceManager.getInstance().endCommandSpan(executionId, command);
         }
     }
