@@ -11,7 +11,7 @@ The harness generates an application from a **spec pair**:
 | File | Owns |
 |------|------|
 | `applications/{app-name}/{app-name}-domain-model.md` — **the plain domain** | Entities (§1), relationships including composition (§2), rules as standing invariants (§3.1 single-entity, §3.2 cross-entity), functionalities with Primary Entity / Other Entities (§4) |
-| `applications/{app-name}/{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4), cross-file notes (§5) |
+| `applications/{app-name}/{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4) |
 
 **One plain domain, N aggregate groupings.** The domain model describes the domain and nothing else;
 the grouping file holds every consequence of one decomposition. Several grouping files may exist over
@@ -126,7 +126,8 @@ enforcement patterns. If the human raises one, note it for Interview B and carry
      policy and it belongs to grouping §3.a, in Interview B. Write down what they said, then ask
      again for the invariant the check enforces.
    - When a rule turns out to say only that two copies of one thing must agree, it is not a domain
-     rule at all. It is a coherence obligation one grouping creates, and it goes to grouping §5.
+     rule at all. It exists only because one grouping copies data. Leave it out of both files, and in
+     Interview B make sure grouping §2 refreshes every copy from the same events.
 5. **Functionalities** (§4), writes and reads alike, with **Primary Entity** and **Other Entities**.
    §4 is the **complete** inventory: an operation absent from it is an operation that will never be
    implemented. Ask explicitly what is missing, by walking the source application's surface rather
@@ -173,15 +174,15 @@ that one question, and re-run the self-audit.
    that sentence is what the human confirms it against.
 4. **The event DAG** (§3) and the **events** (§4). These must agree with each other and with §2:
    every arrow in §3 needs its event rows in §4 unless the cached fields are immutable, every §4
-   consumer needs its arrow, and every event payload needs its anchor field.
-5. **Cross-file notes** (§5): the snapshot-coherence obligations, and anything else that is a
-   consequence of this decomposition rather than of the domain. Do not list the §3.2 rules with a
-   pattern or a per-rule label, here or anywhere in the grouping: `/classify-and-plan` derives the
-   pattern from §1, §2, §3.a and §4, and a hand-written copy is how a classification stops being
+   consumer needs its arrow, and every event payload needs its anchor field. Do not list the §3.2
+   rules with a pattern or a per-rule label anywhere in the grouping: `/classify-and-plan` derives
+   the pattern from §1, §2, §3.a and §4, and a hand-written copy is how a classification stops being
    derived.
 
 Write `applications/{app-name}/{app-name}-aggregate-grouping.md`, then re-read both files together
-and report any section you filled by inference.
+and report any section you filled by inference. Notes on why the boundaries fell where they did
+belong in neither file: put them in `applications/{app-name}/{app-name}-design-rationale.md`, as
+TrainTicket does.
 
 ## Step 5: Hand off
 

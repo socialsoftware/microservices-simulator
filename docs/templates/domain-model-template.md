@@ -26,11 +26,11 @@ write without editing the "domain" model.
 | Aggregate names, aggregate membership, "co-located", an `Owns` column | Grouping §1 |
 | `{entity}AggregateId`, `{entity}Version`, a field copied from another entity | Grouping §2 |
 | `technical` fields (`lastModifiedTime`, …) and their justification | Grouping §2.b |
-| Caching, snapshots, cache coherence | Grouping §2 / §5 |
+| Caching, snapshots, cache coherence | Grouping §2 |
 | Events, event subscriptions, the event DAG, saga steps | Grouping §3 / §4 |
 | `state == DELETED` / `ACTIVE` / `INACTIVE`, `remove()`, `AggregateState` | Grouping (§2.b note) — say "has been removed" |
 | Pattern names P1–P4, "precondition checked at operation time", "standing invariant vs. precondition" | Grouping §3.a Consistency policy |
-| Anything phrased in terms of what `/classify-and-plan` or any other skill will do | Grouping §5 |
+| Anything phrased in terms of what `/classify-and-plan` or any other skill will do | Neither file; leave it out |
 | "References are by aggregate id, not by natural key" | Grouping |
 
 Say **"a Station that has been removed"**, never `Station.state == DELETED`. Say **`Order.trip`**,

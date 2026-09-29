@@ -118,7 +118,7 @@ A run starts from two files under `applications/{app-name}/`:
 | File | Owns |
 |------|------|
 | `{app-name}-domain-model.md` — **the plain domain** | Entities (§1), relationships including composition (§2), rules stated as standing invariants (§3.1 single-entity, §3.2 cross-entity), functionalities with Primary Entity / Other Entities (§4) |
-| `{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4), cross-file notes (§5) |
+| `{app-name}-aggregate-grouping.md` | Aggregate partitioning and snapshot value objects (§1), snapshots (§2), technical fields (§2.b), the event DAG and the consistency policy (§3), events (§4) |
 
 **One plain domain, N aggregate groupings.** The domain model describes the domain and nothing else.
 Every consequence of *one* decomposition — which entities co-locate, what is cached, what propagates

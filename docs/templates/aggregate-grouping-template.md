@@ -118,14 +118,3 @@ Name every domain event published by each upstream aggregate.
 | `{EventName}` | {PublisherAggregate} | {operation that fires it} | `{field1}`, `{field2}` | {ConsumerAggregate1}, {ConsumerAggregate2} |
 
 > **Anchor field:** One payload field must be the publisher aggregate's own ID (the **anchor**). This field is passed to `super(anchorAggregateId)` in the event constructor and must match the `subscribedAggregateId` used in the corresponding `EventSubscription` subclass. Without this, event filtering is broken. See [`docs/concepts/events.md`](../../docs/concepts/events.md) canonical wiring for the exact pattern.
-
----
-
-## §5 — Cross-file notes
-
-Anything that is a consequence of this decomposition rather than of the domain: snapshot coherence
-obligations, why a guard is phrased pre-mutation, which reads a given saga declares,
-reference-by-aggregate-id conventions. Do not list the domain's §3.2 rules here with a pattern or a
-per-rule label: the pattern is derived at planning time, and a hand-written copy only drifts from it.
-
----

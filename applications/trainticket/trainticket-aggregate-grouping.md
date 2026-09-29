@@ -13,6 +13,9 @@
 > **2026-09-27.** The §5 Rule realisation table was removed: `/classify-and-plan` now derives each
 > rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The last version with it
 > is in git at `50e31d84a`.
+>
+> **2026-09-29.** §5 Cross-file notes was removed: no skill read it, and the grouping template no
+> longer has it. The last version with it is in git at `e56a384b1`.
 
 This file captures **one** aggregate partitioning of the [TrainTicket domain model](trainticket-domain-model.md).
 Several such files may exist over that one domain; writing a second must require no edit to it.
@@ -220,64 +223,5 @@ implicit:
 > The table is intentionally empty; see §3.a. Since there are no
 > events, there are no `EventSubscription` subclasses, no `getEventSubscriptions()` overrides
 > returning anything but an empty list, and no inter-invariant handlers in any aggregate.
-
----
-
-## §5 — Cross-file notes
-
-### Other notes
-
-- **A cascade variant is the planned follow-up.** Several grouping files may exist over one plain
-  domain. A second file over this *same* domain model, adding event propagation for reference-data
-  change and deletion, is planned. It would give two implementations of one domain differing only in
-  consistency policy — a sharper comparison than either alone, and the only way this domain
-  exercises P2. It requires **no edit to the domain model**: the invariants are already stated as
-  standing invariants there, and all that changes is this file's §2, §3.a and §4, which give the
-  rules that read another aggregate's state an event that repairs them. Writing it is the
-  falsification test of the plain-domain split.
-- **`CONTACTS_BELONG_TO_ACCOUNT` declares no User read.** Both sides of its predicate are local to
-  the booking saga: the account comes from the request and the contact's account from the Contacts
-  fetch that `PreserveTicket` already declares. Listing User among the rule's entities would make
-  `/classify-and-plan` raise a cross-aggregate prerequisite with no operation to satisfy it, which
-  is why the domain model's note says the account appears only as a shared reference target.
-- **`ENDPOINTS_ON_TRIP_ROUTE` declares no Station read.** The predicate resolves entirely from
-  `RouteStation.stationName` and `RouteStation.sequence`, which the Route fetch already carries, so
-  `PreserveTicket` declares no Station read.
-- **Empty §4 means session `d` is never generated.** Session `d` produces
-  `{Aggregate}InterInvariantTest.groovy`, which tests event subscriptions. `docs/workflow.md` sets the
-  `d` checkbox "only for aggregates that have a non-empty Events subscribed list", and
-  `classify-and-plan` § "Step 8" omits the section entirely when that list is empty — so no aggregate
-  here gets a session `d` at all. Phase 2 is **24 sessions (8 × `a b c`), not 32 with eight empty
-  ones**. The cost is that the T3 Subscription test type goes unexercised, which is the acknowledged
-  price of the no-cascade decision, not an oversight, and it is what the cascade variant above would
-  recover.
-- **No functionality is scheduled before an aggregate it reads.** `SearchTrips` was, being
-  Trip-primary while reading Order, which the topological sort places last; it was cut at the §9
-  review. Phase 2 is therefore 24 sessions with no revisit session, and every read is implementable
-  in its primary aggregate's session `b`. If `SearchTrips` returns as the extension §7 of the
-  rationale plans, this constraint returns with it, and `classify-and-plan` § "Step 5.5b" is the
-  mechanism that catches it.
-- **`GetLeftTicketCount` is the application's one read saga.** It assembles state from three
-  aggregates without writing anything, and is TrainTicket's `ts-seat-service.getLeftTicketOfInterval`.
-  `PreserveTicket` is correspondingly the only multi-aggregate write.
-- **Order's immutability is what makes empty §4 safe.** Every field `Order` copies from another
-  aggregate is Java `final`. If a later change makes any of them mutable, the frozen-contract
-  argument in §2 collapses and those rows need real event subscriptions.
-- **Seat capacity is enforced inside one aggregate.** `SEAT_CAPACITY_NOT_EXCEEDED` and
-  `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` resolve against the Order aggregate's own table;
-  `SEAT_NUMBER_WITHIN_CAPACITY` reads no rows at all and tests the allocated number against a single
-  passed-in scalar. Only the capacity *limit* crosses a boundary, and the booking saga passes it in
-  once from the Trip's TrainType, serving all three. The seat number itself is allocated by the
-  saga as the lowest free value in `[1, capacity]`, so the allocation and the rules that bound it read
-  the same rows. Introducing a seat-inventory aggregate later would move all three from P3 to P1 and
-  would add an aggregate the benchmark does not have.
-- **`PriceConfig` is the only aggregate keyed on two foreign aggregates.**
-  `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` is an own-table uniqueness check over the
-  `(routeAggregateId, trainTypeAggregateId)` pair. Co-locating `PriceConfig` inside `Route` in a
-  future grouping would turn it into a P1 intra-invariant and remove one aggregate.
-- **`Trip` is a template; `Order` carries the date.** Nothing in `Trip` is per-departure. Every rule
-  about a concrete journey — capacity, seat uniqueness, the refund window — keys on
-  `(tripAggregateId, travelDate)` held by `Order`. A future grouping that introduces a per-departure
-  aggregate would move those keys out of `Order`.
 
 ---

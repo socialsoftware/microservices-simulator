@@ -13,7 +13,7 @@ next session — agents are told exactly what to read and what to produce, not o
 | File | Content |
 |------|---------|
 | `{App}-domain-model.md` — the plain domain | Entities (§1), relationships incl. composition (§2), rules as standing invariants (§3.1/§3.2), functionalities with Primary Entity / Other Entities (§4) |
-| `{App}-aggregate-grouping.md` | Aggregate partitioning + snapshot value objects (§1), snapshots (§2), technical fields (§2.b), event DAG + consistency policy (§3), events (§4), cross-file notes (§5) |
+| `{App}-aggregate-grouping.md` | Aggregate partitioning + snapshot value objects (§1), snapshots (§2), technical fields (§2.b), event DAG + consistency policy (§3), events (§4) |
 
 One plain domain, N aggregate groupings: the domain model names no aggregate, and a second grouping
 over it must require no edit to it. See `HARNESS.md` § 5.

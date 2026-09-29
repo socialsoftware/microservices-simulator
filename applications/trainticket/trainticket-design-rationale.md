@@ -191,7 +191,8 @@ operation time**, landing on P4a (saga fetch fails), P3 (service guard over an a
 own table), or P4b (one value passed to the aggregate the saga constructs).
 
 A **cascade variant** — a second aggregate-grouping file over the *same* domain model, adding event
-propagation — is recorded as planned follow-up in the grouping file's §5. The template explicitly
+propagation — was recorded as planned follow-up in the grouping file's former §5, and now exists as
+[`trainticket-aggregate-grouping-cascade.md`](trainticket-aggregate-grouping-cascade.md). The template explicitly
 permits multiple grouping files per domain model. Two implementations of one domain differing only in
 consistency policy would be a sharper experiment than either alone, and it is the only route by which
 this domain exercises P2.
@@ -858,5 +859,136 @@ All eight counts were recounted mechanically from the files rather than carried 
 shape-coverage table survives unchanged — no shape rested on either mis-tiered rule — and **D5 is
 intact**, since nothing here touches the partitioning. The corrections were to tiers, citations and
 prose; the application this specification describes is the same one §9 left behind.
+
+---
+
+## 11. The cascade variant — 2026-09-19
+
+These notes were §5 of [`trainticket-aggregate-grouping-cascade.md`](trainticket-aggregate-grouping-cascade.md)
+until 2026-09-29, when the grouping template dropped §5; they moved here unchanged in substance. In
+this section §1–§4 and §3.a name the cascade grouping's sections, and §7 and §9 name this
+document's.
+
+### How the cascade grouping's classification differs from the sibling's
+
+The difference is derived, not listed here. Running `/classify-and-plan` over each grouping gives two
+classifications of the same domain rules, and the rules whose pattern differs between them are the
+measured difference. Which rules can move is fixed by structure. §1 and the §3 arrows are identical
+in both files, so a rule whose every read is local to its aggregate (co-located, or cached in §2)
+gets the same pattern under both. That is the structural check on the claim that only one variable
+changed. What differs is §2's version fields, §3.a's policy and §4's nine events, so a rule moves
+exactly when it reads data the sibling leaves out of its aggregate's reach and one of those events
+now repairs it. The five rules §3.a leaves unrepaired do not move.
+
+Measured 2026-09-27, by applying `/classify-and-plan` Step 4 to both files: **six of the 22 rules
+change pattern, all to P2, and none moves in the other direction.** `STATIONS_EXIST`,
+`ROUTE_AND_TRAIN_TYPE_EXIST`, `TRIP_EXISTS` and `CONTACTS_EXIST` go from P4a to P2;
+`SEAT_CAPACITY_NOT_EXCEEDED` and `SEAT_NUMBER_WITHIN_CAPACITY` go from P3 to P2. Every other rule
+keeps its pattern.
+
+**A repaired rule is still checked at operation time.** Each rule an event repairs here is *also*
+established by a saga fetch when the operation runs: booking a ticket on an already-removed Trip
+still fails immediately rather than succeeding and being withdrawn a poll later. The difference
+between the two groupings is what happens *after* the operation, not during it.
+
+### Other notes
+
+- **What the cascade grouping is for.** The sibling grouping's former §5 predicted it: "A cascade variant is the
+  planned follow-up... It requires **no edit to the domain model**: the invariants are already
+  stated as standing invariants there, and all that changes is this file's §2, §3.a and §4, which
+  give the rules that read another aggregate's state an event that repairs them. Writing it is the
+  falsification test of the plain-domain split." That prediction is confirmed, with one
+  qualification and one correction, both below.
+- **Zero edits to the domain model.** Writing the cascade grouping required no change to
+  `trainticket-domain-model.md` — not a rule restatement, not a field, not a word. The
+  `/review-artifacts` Check 5 contamination scan passes over it before and after, and the file is
+  byte-identical across the exercise.
+- **The qualification: the domain model names one grouping, six times.** Its "How to use this file"
+  pointer, three preamble sentences, the §3.2 preamble and the §4 note each link to
+  `trainticket-aggregate-grouping.md` in the singular. None of those sentences states a
+  decomposition decision — each defers one to "the grouping" and links an example of one — so none
+  is contamination and none had to change. It is a cross-reference convention that a
+  two-grouping application makes incomplete rather than wrong, and whether the templates should say
+  that a domain model's grouping pointers are exemplary rather than exhaustive is a question for the
+  human, between runs.
+- **The correction: three writes become sagas.** The sibling grouping records that `CreateContacts`
+  and `CreatePriceConfig` are single-aggregate writes, because the rules that would have made them
+  fetch their upstreams were dropped at the §9 review for lack of benchmark support. Under this
+  policy they cannot be: `Contacts` must seed `userVersion`, and `PriceConfig` must seed
+  `routeVersion` and `trainTypeVersion`, and a subscription version cannot be supplied by a caller.
+  Both become sagas that fetch the upstream aggregate. A side effect worth being explicit about:
+  those fetches would *incidentally* fail when the upstream does not exist, which looks like
+  `ACCOUNT_EXISTS (Contacts)` and the PriceConfig block of `ROUTE_AND_TRAIN_TYPE_EXIST` — two rules
+  the domain model deliberately dropped. The cascade grouping does not reinstate them. The fetch exists to seed
+  a version, no rule name is claimed for it, and the domain model stays as it is.
+- **Two cascades run past the end of the rule set, and that is disclosed rather than hidden.**
+  `DeleteRouteEvent` / `DeleteTrainTypeEvent` withdraw the `PriceConfig`, and `DeleteUserEvent`
+  withdraws the `Contacts`, yet neither withdrawal repairs a rule of domain §3.2, because no rule
+  there requires it. They follow from the policy's first rule (removal
+  propagates along stored references) applied uniformly, and uniformity is the reason they are kept:
+  a tariff keyed on a route that no longer exists is unreachable through
+  `GetPriceConfigByRouteAndTrainType`, and a contact record owned by no account cannot be booked
+  against. A grouping is entitled to propagate further than the stated invariants require; it is not
+  entitled to do so silently, which is what this note is for.
+- **Phase 2 is 29 sessions.** Session `d` produces `{Aggregate}InterInvariantTest.groovy` and is
+  generated only for aggregates with a non-empty Events subscribed list — `docs/workflow.md` sets
+  the `d` checkbox "only for aggregates that have a non-empty Events subscribed list", and
+  `classify-and-plan` § "Step 8" omits the section entirely when that list is empty. Five of the
+  eight aggregates subscribe to something: Route, Trip, PriceConfig, Contacts and Order. Station,
+  TrainType and User are pure publishers and get no session `d`. So Phase 2 is 8 × `a b c` plus five
+  `d` sessions = **29**, against the sibling grouping's 24. It is *not* 32: that figure assumes
+  every aggregate subscribes, which a DAG with three sources cannot do.
+- **The T3 Subscription test type is recovered.** The sibling grouping gives it up as the
+  acknowledged price of no-cascade — no events means no subscriptions means nothing for a T3 test to
+  exercise. Here, five aggregates get one. Exercising T3 on a second application is the concrete
+  research return on writing the cascade grouping, and it is available on a domain model that was authored for
+  the other policy.
+- **`CONTACTS_BELONG_TO_ACCOUNT` declares no User read.** Both sides of its predicate are local to
+  the booking saga: the account comes from the request and the contact's account from the Contacts
+  fetch that `PreserveTicket` already declares. Listing User among the rule's entities would make
+  `/classify-and-plan` raise a cross-aggregate prerequisite with no operation to satisfy it, which
+  is why the domain model's note says the account appears only as a shared reference target. This is
+  unchanged from the sibling grouping, and it is why `PreserveTicket` still does not read User even
+  though `CreateContacts` now does.
+- **`ENDPOINTS_ON_TRIP_ROUTE` declares no Station read.** The predicate resolves entirely from
+  `RouteStation.stationName` and `RouteStation.sequence`, which the Route fetch already carries, so
+  `PreserveTicket` declares no Station read.
+- **No functionality is scheduled before an aggregate it reads.** `SearchTrips` was, being
+  Trip-primary while reading Order, which the topological sort places last; it was cut at the §9
+  review. Every read is implementable in its primary aggregate's session `b`, and there is no
+  revisit session. If `SearchTrips` returns as the extension §7 of the rationale plans, this
+  constraint returns with it, and `classify-and-plan` § "Step 5.5b" is the mechanism that catches
+  it. The event DAG adds no ordering constraint of its own beyond the one the arrows already impose
+  on the aggregate sort.
+- **`GetLeftTicketCount` is the application's one read saga.** It assembles state from three
+  aggregates without writing anything, and is TrainTicket's `ts-seat-service.getLeftTicketOfInterval`.
+  `PreserveTicket` is correspondingly the only multi-aggregate write — `CreateContacts` and
+  `CreatePriceConfig` become multi-aggregate *reads* under this policy, but neither writes more than
+  its own aggregate.
+- **Order's immutability is what makes the cascade selective.** The sibling grouping says the same
+  fact the other way round — "Order's immutability is what makes empty §4 safe". Both readings
+  depend on the identical domain fact, that every field `Order` copies from another aggregate is
+  Java `final`. If a later change makes any of them mutable, the sibling's frozen-contract argument
+  collapses *and* the four frozen-value skips here would have to be re-decided. That the same
+  sentence of the domain model is load-bearing for two opposite policies is the clearest evidence
+  that it belongs in the domain model and not in either grouping.
+- **Seat capacity is still enforced inside one aggregate at booking time.**
+  `SEAT_CAPACITY_NOT_EXCEEDED` and `SEAT_NUMBER_UNIQUE_PER_DEPARTURE` resolve against the Order
+  aggregate's own table; `SEAT_NUMBER_WITHIN_CAPACITY` reads no rows at all and tests the allocated
+  number against a single passed-in scalar. Only the capacity *limit* crosses a boundary, and the
+  booking saga passes it in once from the Trip's TrainType, serving all three. What this grouping
+  adds is a second, later path by which the limit can change under the rows already written.
+  Introducing a seat-inventory aggregate would turn the capacity relay into a single subscriber and
+  is the obvious third grouping over this domain.
+- **`PriceConfig` is the only aggregate keyed on two foreign aggregates.**
+  `UNIQUE_PRICE_CONFIG_PER_ROUTE_AND_TRAIN_TYPE` is an own-table uniqueness check over the
+  `(routeAggregateId, trainTypeAggregateId)` pair. Co-locating `PriceConfig` inside `Route` in a
+  future grouping would turn it into an intra-invariant and remove one aggregate — a boundary
+  change, and therefore a different experiment from this one.
+- **`Trip` is a template; `Order` carries the date.** Nothing in `Trip` is per-departure. Every rule
+  about a concrete journey — capacity, seat uniqueness, the refund window — keys on
+  `(tripAggregateId, travelDate)` held by `Order`. This is why `TripCapacityChangedEvent` cannot
+  itself decide which orders to bump: the Trip does not know its departures, and the decision is
+  made per Order from fields the Order holds.
 
 ---

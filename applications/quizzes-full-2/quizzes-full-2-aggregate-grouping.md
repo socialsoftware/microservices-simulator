@@ -14,6 +14,9 @@
 > rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The reasons it gave for
 > the rules the cascade leaves unrepaired moved to §3.a. The last version with the table is in git
 > at `50e31d84a`.
+>
+> **2026-09-29.** §5 Cross-file notes was removed: no skill read it, and the grouping template no
+> longer has it. The last version with it is in git at `e56a384b1`.
 
 This file captures **one** aggregate partitioning of the [Quizzes domain model](quizzes-full-2-domain-model.md).
 Several such files may exist over that one domain; writing a second must require no edit to it.
@@ -220,44 +223,5 @@ confirms the flags against:
 > **Anchor field:** the field marked `(anchor)` is the publisher aggregate's own ID. It is passed to `super(anchorAggregateId)` in the event constructor and must match the `subscribedAggregateId` used in the corresponding `EventSubscription` subclass. Without this, event filtering is broken. See [`docs/concepts/events.md`](../../docs/concepts/events.md) canonical wiring for the exact pattern.
 
 > **`QuizAnswerQuestionAnswerEvent` payload:** `quizAnswerAggregateId` and `answerTime` let the Tournament link the participant's QuizAnswer on the first answer and store the authoritative `firstAnswerTime`, so `TOURNAMENT_ANSWER_BEFORE_START` does not depend on the ~1 s event poll lag. `quizAggregateId` and `studentAggregateId` identify which participant the statistics belong to.
-
----
-
-## §5 — Cross-file notes
-
-### Snapshot-coherence obligations
-
-Obligations this grouping creates by copying data, which the domain model does not and cannot state.
-
-- **`TOURNAMENT_CREATOR_PARTICIPANT_CONSISTENCY`.** When the creator is also a participant, the
-  `TournamentCreator` snapshot and that `TournamentParticipant`'s cached `User` fields are two copies
-  of the same `User`, and they must agree:
-  `∀p ∈ participants where p.userAggregateId == creator.userAggregateId: p.userName == creator.userName ∧ p.userUsername == creator.userUsername ∧ p.userVersion == creator.userVersion`.
-  This was a domain rule until the 2026-09-19 re-partition. It is not one: it says nothing about the
-  domain, only that this grouping's two caches of one entity must not drift. A grouping that stored
-  the creator as a plain reference, or that kept one `User` snapshot shared by both roles, would not
-  have it.
-- **`correctOptionKey` seeding.** `ANSWER_MATCHES_CORRECT_OPTION` reads
-  `QuestionAnswer.chosenOption.correct` in the domain. Here the `Option` lives in the Question
-  aggregate, so the `CreateQuizAnswer` saga seeds each `QuestionAnswer` with the correct Option's key
-  and the invariant compares `optionKey == correctOptionKey`. If Options ever became mutable, this
-  row would need an event.
-- **`TOPIC_COURSE_EXECUTION` is local only because of two cached fields.** It is a P1 intra-invariant
-  only because Tournament caches `courseAggregateId` on both its Execution snapshot and each Topic
-  snapshot. Dropping either field turns the rule into a cross-aggregate check.
-- **Participant statistics are a cache.** `QUIZ_ANSWER_EXISTS` is stated in the domain as "the
-  participant's statistics *are* the quantities over their QuizAnswer". Here they are a stored copy
-  refreshed by `QuizAnswerQuestionAnswerEvent`, so the rule becomes a coherence obligation on that
-  copy, satisfied within the event poll interval rather than instantaneously.
-
-### Other notes
-
-- **Course has no events.** Course fields are `final` and there is no `DeleteCourse` functionality, so the three Course snapshot rows in §2 are seeded once at creation and never refreshed. Adding course mutation or deletion later means adding an event *and* a `courseVersion` to those rows.
-- **User publishes its own name changes.** `UpdateUserName` and `AnonymizeUser` are User-primary operations in §4 of the domain model. Execution, QuizAnswer and Tournament are consumers only — an aggregate must never subscribe to its own events.
-- **Participants are removed, never "leave".** There is no standalone leave-tournament operation. A participant disappears either through `DisenrollStudentFromCourseExecutionEvent` or when `DeleteTournament` clears the list, which is what makes `TOURNAMENT_DELETE` reachable.
-- **A no-cascade variant would be a second grouping file, not an edit to the domain.** Dropping the
-  event subscriptions would leave every rule an event repairs here checked only at operation time,
-  and leave the domain model untouched — which is the property the plain-domain split exists to
-  give.
 
 ---
