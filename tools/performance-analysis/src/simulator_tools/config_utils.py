@@ -220,7 +220,7 @@ class ConfigTool:
 
     @staticmethod
     def get_project_root() -> str:
-        """Returns the project root directory (performance-analysis)."""
+        """Returns the tool root directory (tools/performance-analysis)."""
         return os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
     @staticmethod

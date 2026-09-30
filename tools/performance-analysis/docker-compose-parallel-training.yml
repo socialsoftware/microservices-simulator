@@ -44,7 +44,7 @@ x-quizzes-base: &quizzes-base
   image: quizzes:latest
   build:
     context: .
-    dockerfile: performance-analysis/Dockerfile
+    dockerfile: tools/performance-analysis/Dockerfile
     args:
       PROFILE: ${TX_MODE:-sagas},local
   init: true
@@ -126,7 +126,7 @@ services:
       jaeger:
         condition: service_started
     volumes:
-      - ./performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+      - ./tools/performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
     networks:
       - messaging-network
     extra_hosts:

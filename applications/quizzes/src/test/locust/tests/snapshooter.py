@@ -4,7 +4,7 @@ from locust import HttpUser, task, events
 from utils.app_utils import *
 from utils.test_utils import *
 
-# docker exec postgres pg_dump -U postgres msdb --data-only --inserts > performance-analysis/src/initial_config/baseline_data.sql
+# docker exec postgres pg_dump -U postgres msdb --data-only --inserts > tools/performance-analysis/src/initial_config/baseline_data.sql
 # remove "SELECT pg_catalog.set_config"
 # remove restrict and unrestrict
 

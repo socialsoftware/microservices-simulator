@@ -14,7 +14,7 @@ This directory contains the Python infrastructure for running the Reinforcement 
 ## Directory Structure
 
 ```text
-performance-analysis/
+tools/performance-analysis/
 ├── otel-collector-config.yaml           # OTel collector routing metrics
 ├── docker-compose-parallel-training.yml # Docker Compose configuration
 ├── start_parallel.sh                    # Helper script to launch simulator instances
@@ -85,7 +85,7 @@ Start the simulator container(s) using the [`start_parallel.sh`](start_parallel.
 Navigate to this directory and create/activate the virtual environment:
 
 ```bash
-cd performance-analysis
+cd tools/performance-analysis
 python3 -m venv venv
 source venv/bin/activate
 ```
@@ -146,7 +146,7 @@ The standard evaluation methodology compares the default system baseline against
 * **`eval`**: Model checkpoint, workload, and `config.json` loaded from CLI inputs; traffic parameters loaded from `ppo_config.yaml` (locked to deterministic load).
 * **`baseline`**: Workload and `config.json` loaded from CLI inputs; traffic parameters loaded from `ppo_config.yaml` (locked to deterministic load).
 * *Note*: Traffic parameters are always loaded from `ppo_config.yaml` for simplification.
-* *Note*: To better understand the structure and parameters of `config.json`, refer to the [Root Configuration Reference](../README.md#configuration-reference).
+* *Note*: To better understand the structure and parameters of `config.json`, refer to the [Root Configuration Reference](../../README.md#configuration-reference).
 
 ### Path Resolution Shortcuts
 You do not need to provide full filesystem paths:

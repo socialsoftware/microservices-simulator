@@ -30,10 +30,10 @@ logs/
 # Python / AI / Local 
 .claude
 .run
-performance-analysis/venv/
-performance-analysis/tensorboard_logs/
-performance-analysis/experiments/
-performance-analysis/models/
+tools/performance-analysis/venv/
+tools/performance-analysis/tensorboard_logs/
+tools/performance-analysis/experiments/
+tools/performance-analysis/models/
 **/__pycache__/
 *.egg-info/
 .eggs/

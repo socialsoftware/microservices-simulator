@@ -49,9 +49,9 @@ jmeter-results/
 **/ImpairmentReport.txt
 **/service-hardware-profiling.txt
 **/logs/
-performance-analysis/experiments
+tools/performance-analysis/experiments
 **/tensorboard_logs/**
-performance-analysis/models
+tools/performance-analysis/models
 
 ### Python ###
 **/__pycache__/
@@ -60,4 +60,4 @@ performance-analysis/models
 .eggs/
 build/
 dist/
-*/venv/*
+**/venv/**
