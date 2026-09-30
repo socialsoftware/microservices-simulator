@@ -37,7 +37,7 @@ class TestReportSignalsTest {
         TestReport report = TestReport.from(new Oracle.TimedRun(result, 0L, 0L, 0L),
                 ScheduleExplorationStrategy.UNIFORM_RANDOM,
                 FeedbackScheduleCorpus.Plan.randomSchedule(),
-                new FeedbackScheduleCorpus.Observation(true, false, 0, false, 0), 42L, 0L);
+                new FeedbackScheduleCorpus.Observation(true, false, 0, false, 0), null, 42L, 0L);
 
         assertEquals(BehavioralFingerprint.from(result).hash(), report.behavioralFingerprint().hash());
         assertEquals(BehavioralSignals.SCHEMA, report.behavioralSignals().schema());

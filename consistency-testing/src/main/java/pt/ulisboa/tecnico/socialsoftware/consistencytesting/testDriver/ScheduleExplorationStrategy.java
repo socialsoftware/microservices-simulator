@@ -11,7 +11,10 @@ public enum ScheduleExplorationStrategy {
     UNIFORM_RANDOM("uniform-random"),
 
     /** Mutates useful prior choice traces while retaining random exploration. */
-    FEEDBACK_GUIDED("feedback-guided");
+    FEEDBACK_GUIDED("feedback-guided"),
+
+    /** Seeks under-observed aggregate reads-from relations using ready-step choices. */
+    READS_FROM_GUIDED("reads-from-guided");
 
     private final String propertyValue;
 

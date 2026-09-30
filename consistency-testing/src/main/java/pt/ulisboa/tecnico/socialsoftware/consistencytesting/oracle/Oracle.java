@@ -102,6 +102,7 @@ public final class Oracle {
     private @Nullable ConfigurableApplicationContext springContext;
     private long schedulerSeed = DEFAULT_SCHEDULER_SEED;
     private List<Integer> schedulerChoicePrefix = List.of();
+    private @Nullable ReadsFromTarget readsFromTarget;
     private Set<SemanticLockId> ignoredSemanticLocks = Set.of();
 
     private @Nullable Set<EventHandling> eventHandlings;
@@ -435,7 +436,8 @@ public final class Oracle {
                     captureSession,
                     eventHandlings,
                     schedulerSeed,
-                    schedulerChoicePrefix);
+                    schedulerChoicePrefix,
+                    readsFromTarget);
 
             return scheduleExecutor.execute();
         }
@@ -452,6 +454,12 @@ public final class Oracle {
      */
     public Oracle setSchedulerChoicePrefix(List<Integer> schedulerChoicePrefix) {
         this.schedulerChoicePrefix = List.copyOf(schedulerChoicePrefix);
+        return this;
+    }
+
+    /** Selects a group-local relation to seek during the next schedule run. */
+    public Oracle setReadsFromTarget(@Nullable ReadsFromTarget readsFromTarget) {
+        this.readsFromTarget = readsFromTarget;
         return this;
     }
 

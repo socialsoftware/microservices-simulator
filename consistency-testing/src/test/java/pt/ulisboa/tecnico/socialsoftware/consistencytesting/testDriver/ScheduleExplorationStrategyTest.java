@@ -15,6 +15,8 @@ class ScheduleExplorationStrategyTest {
                 ScheduleExplorationStrategy.parse("uniform-random"));
         assertEquals(ScheduleExplorationStrategy.FEEDBACK_GUIDED,
                 ScheduleExplorationStrategy.parse("feedback-guided"));
+        assertEquals(ScheduleExplorationStrategy.READS_FROM_GUIDED,
+                ScheduleExplorationStrategy.parse("reads-from-guided"));
     }
 
     @Test

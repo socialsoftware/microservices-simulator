@@ -14,6 +14,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralSig
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromTarget;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleDecision;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
@@ -92,6 +93,10 @@ public record TestReport(
             int newFeatures,
             boolean admittedToCorpus,
             int corpusSize,
+            @Nullable String targetWriter,
+            @Nullable String targetReader,
+            @Nullable String targetAggregateType,
+            boolean targetObserved,
             List<ScheduleDecisionView> decisions) {
 
         public ScheduleExplorationView {
@@ -104,6 +109,7 @@ public record TestReport(
             ScheduleExplorationStrategy strategy,
             FeedbackScheduleCorpus.Plan plan,
             FeedbackScheduleCorpus.Observation observation,
+            @Nullable ReadsFromTarget readsFromTarget,
             long schedulerSeed,
             long runDurationNanos) {
 
@@ -163,7 +169,12 @@ public record TestReport(
         ScheduleExplorationView scheduleExplorationView = new ScheduleExplorationView(
                         strategy.propertyValue(), plan.parentFingerprintHash(), plan.mutatedChoices(),
                         observation.rewardEligible(), observation.newBehavior(), observation.newFeatures(),
-                        observation.admittedToCorpus(), observation.corpusSize(), decisions);
+                        observation.admittedToCorpus(), observation.corpusSize(),
+                        readsFromTarget == null ? null : readsFromTarget.writer().toString(),
+                        readsFromTarget == null ? null : readsFromTarget.reader().toString(),
+                        readsFromTarget == null ? null : readsFromTarget.aggregateType(),
+                        readsFromTarget != null && readsFromTarget.observedIn(result),
+                        decisions);
 
         return new TestReport(
                 schedule, behavioralFingerprintView, behavioralSignalsView, scheduleExplorationView,

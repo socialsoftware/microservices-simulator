@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromTarget;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencyGraph;
@@ -227,6 +228,12 @@ public final class TestDriver {
                             : Plan.randomSchedule();
             oracle.setSchedulerChoicePrefix(schedulePlan.choicePrefix());
 
+            ReadsFromTarget readsFromTarget = scheduleExplorationStrategy
+                    == ScheduleExplorationStrategy.READS_FROM_GUIDED
+                            ? state.readsFromGuidance.nextTarget(state.guidanceRng)
+                            : null;
+            oracle.setReadsFromTarget(readsFromTarget);
+
             Set<InterDependency> chosen = scheduleExplorationStrategy
                     == ScheduleExplorationStrategy.RANDOM_CONSTRAINTS
                             ? chooseInterDependencies(
@@ -240,10 +247,13 @@ public final class TestDriver {
 
             results.add(result);
             FeedbackScheduleCorpus.Observation observation = state.corpus.observe(result);
+            if (scheduleExplorationStrategy == ScheduleExplorationStrategy.READS_FROM_GUIDED) {
+                state.readsFromGuidance.observe(result);
+            }
             long runDurationNanos = System.nanoTime() - iterationStartedAtNanos;
             reportWriter.write(TestReport.from(
                     timedRun, scheduleExplorationStrategy, schedulePlan, observation,
-                    schedulerSeed, runDurationNanos), reportSubdirectory);
+                    readsFromTarget, schedulerSeed, runDurationNanos), reportSubdirectory);
 
             // Accumulate observed steps/dependencies so later random-constraint runs can propose valid cross-run edges.
             state.observedSteps.addAll(result.schedule());
@@ -266,6 +276,7 @@ public final class TestDriver {
         // Independent seeded stream so feedback selection does not consume randomness used for other schedule choices.
         private final Random guidanceRng = new Random(masterSeed ^ GUIDANCE_SEED_SALT);
         private final FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
+        private final ReadsFromGuidance readsFromGuidance = new ReadsFromGuidance();
         private final Set<StepId> observedSteps = new HashSet<>();
         private final StepDependencies observedIntraDependencies = new StepDependencies();
         private final StepDependencies observedInterDependencies = new StepDependencies();

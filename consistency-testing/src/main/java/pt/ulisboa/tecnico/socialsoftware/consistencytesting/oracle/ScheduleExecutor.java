@@ -13,6 +13,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.CompletionException;
 
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -77,7 +78,7 @@ final class ScheduleExecutor {
             long schedulerSeed) {
 
         this(functionalities, interInvariants, interDependencies, uowService, traceSession,
-                captureSession, eventHandlings, schedulerSeed, List.of());
+                captureSession, eventHandlings, schedulerSeed, List.of(), null);
     }
 
     ScheduleExecutor(
@@ -89,7 +90,8 @@ final class ScheduleExecutor {
             DeferredEventApplicationService.CaptureSession captureSession,
             Set<EventHandling> eventHandlings,
             long schedulerSeed,
-            List<Integer> schedulerChoicePrefix) {
+            List<Integer> schedulerChoicePrefix,
+            @Nullable ReadsFromTarget readsFromTarget) {
 
         this.functionalities = Map.copyOf(functionalities);
         this.interInvariants = Set.copyOf(interInvariants);
@@ -98,7 +100,7 @@ final class ScheduleExecutor {
         this.captureSession = captureSession;
         this.traceSession = traceSession;
         this.eventHandlings = eventHandlings;
-        this.scheduleChoices = new ScheduleChoiceController(schedulerSeed, schedulerChoicePrefix);
+        this.scheduleChoices = new ScheduleChoiceController(schedulerSeed, schedulerChoicePrefix, readsFromTarget);
 
         for (Entry<FunctionalityId, WorkflowFunctionality> funcEntry : functionalities.entrySet()) {
             addSteps(OracleStepFactory.buildStepsForFunctionality(
@@ -473,7 +475,8 @@ final class ScheduleExecutor {
             return Optional.empty();
         }
 
-        return Optional.of(readySet.get(scheduleChoices.choose(readySet.size())));
+        return Optional.of(readySet.get(scheduleChoices.choose(
+                readySet.stream().map(OracleStep::getId).toList(), effectSequence, schedule)));
     }
 
     private boolean stepCanExecute(StepId stepId) {
