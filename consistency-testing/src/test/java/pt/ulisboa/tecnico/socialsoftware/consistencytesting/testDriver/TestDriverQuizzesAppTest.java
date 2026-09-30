@@ -34,6 +34,7 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestCase;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.InitialState;
+import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.QuizzesFunctionalityCatalogsProvider;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.oracle.QuizzesTestFactory;
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
 import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
@@ -115,6 +116,25 @@ class TestDriverQuizzesAppTest {
                 "randomized exploration should realize more than one interleaving, "
                         + "got " + distinctSchedules + " distinct schedules and "
                         + distinctReadsFrom + " distinct reads-from sets");
+    }
+
+    @Test
+    void groupBatchRetainsStoppingRunAndCanContinueLater() {
+        FunctionalityCatalog catalog = oracle.getBean(QuizzesFunctionalityCatalogsProvider.class)
+                .getCatalogs().getFirst();
+        FunctionalityId member = catalog.funcFactories().keySet().iterator().next();
+        FunctionalityGroup group = new FunctionalityGroup(member, member, Set.of());
+        TestDriver.GroupExplorationSession session = driver.startGroupExploration(catalog, group);
+        List<TestResult> observed = new ArrayList<>();
+
+        List<TestResult> stopped = session.runBatch(5, observed::add, result -> true);
+        assertEquals(1, stopped.size());
+        assertEquals(stopped, observed);
+        assertEquals(1, session.completedRuns());
+
+        assertEquals(2, session.runBatch(2, observed::add).size());
+        assertEquals(3, observed.size());
+        assertEquals(3, session.completedRuns());
     }
 
     @Test

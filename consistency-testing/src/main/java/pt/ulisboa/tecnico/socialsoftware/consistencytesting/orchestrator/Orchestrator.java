@@ -88,6 +88,8 @@ public final class Orchestrator {
     private static final String MAXIMUM_RUNS_PER_GROUP_PROPERTY = "consistency.maximumRunsPerGroup";
     private static final String ALLOCATION_BATCH_SIZE_PROPERTY = "consistency.allocationBatchSize";
     private static final String PLANNING_POLICY_PROPERTY = "consistency.planningPolicy";
+    private static final String STOP_GROUP_AT_FIRST_ACTIONABLE_FINDING_PROPERTY =
+            "consistency.stopGroupAtFirstActionableFinding";
 
     private static final String RUN_REPORT_FILE_NAME = "test-report-%05d.json";
 
@@ -116,6 +118,7 @@ public final class Orchestrator {
     private int minimumRunsPerGroup;
     private int maximumRunsPerGroup;
     private int allocationBatchSize;
+    private boolean stopGroupAtFirstActionableFinding;
     private PlanningPolicy planningPolicy = PlanningPolicy.FOOTPRINT_CONFLICTS;
 
     private Orchestrator(Class<?> springAppClass) {
@@ -154,6 +157,9 @@ public final class Orchestrator {
                         requiredPositiveIntegerProperty(ALLOCATION_BATCH_SIZE_PROPERTY));
             }
         }
+        orchestrator.stopGroupAtFirstActionableFinding =
+                Boolean.getBoolean(STOP_GROUP_AT_FIRST_ACTIONABLE_FINDING_PROPERTY);
+
         return orchestrator;
     }
 
@@ -283,6 +289,16 @@ public final class Orchestrator {
         this.maximumRunsPerGroup = maximumRunsPerGroup;
         this.allocationBatchSize = allocationBatchSize;
         return this;
+    }
+
+    /** Stops exploring a group after its first strong, actionable finding. */
+    public Orchestrator withStopGroupAtFirstActionableFinding(boolean enabled) {
+        this.stopGroupAtFirstActionableFinding = enabled;
+        return this;
+    }
+
+    private boolean shouldStopGroupAfterRun(TestResult result) {
+        return stopGroupAtFirstActionableFinding && TestDriver.isActionableFinding(result);
     }
 
     /**
@@ -433,7 +449,8 @@ public final class Orchestrator {
         // totals (relevant for multi-catalog campaigns).
         for (FunctionalityGroup group : groups) {
             long allocationStartedAt = System.currentTimeMillis();
-            List<TestResult> results = driver.exploreGroup(catalog, group, progress::recordCompletedRun);
+            List<TestResult> results = driver.startGroupExploration(catalog, group).runBatch(
+                    iterationsPerGroup, progress::recordCompletedRun, this::shouldStopGroupAfterRun);
             long allocationDurationMillis = System.currentTimeMillis() - allocationStartedAt;
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
@@ -486,11 +503,13 @@ public final class Orchestrator {
 
             long allocationStartedAt = System.currentTimeMillis();
             List<TestResult> batch = execution.session.runBatch(
-                    allocation.requestedRuns(), progress::recordCompletedRun);
+                    allocation.requestedRuns(), progress::recordCompletedRun,
+                    this::shouldStopGroupAfterRun);
             long allocationDurationMillis = System.currentTimeMillis() - allocationStartedAt;
 
             AdaptiveGroupBudgetAllocator.BatchFeedback feedback = execution.evidence.observe(batch);
-            allocator.observe(allocation, feedback);
+            boolean stopped = shouldStopGroupAfterRun(batch.getLast());
+            allocator.observe(allocation, feedback, stopped);
 
             execution.results.addAll(batch);
             List<OrchestrationReport.Finding> newFindings = findingsOf(

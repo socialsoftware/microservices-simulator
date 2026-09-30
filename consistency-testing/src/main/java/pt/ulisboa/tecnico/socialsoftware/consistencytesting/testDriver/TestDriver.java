@@ -15,6 +15,7 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -203,7 +204,7 @@ public final class TestDriver {
 
         return runExplorationBatch(
                 initialStateSetup, beforeCleanupHook, reportSubdirectory,
-                new ExplorationState(), iterations);
+                new ExplorationState(), iterations, result -> false);
     }
 
     /** Runs a requested number of iterations, updating the supplied state for later batches. */
@@ -212,7 +213,8 @@ public final class TestDriver {
             Consumer<TestResult> beforeCleanupHook,
             @Nullable Path reportSubdirectory,
             ExplorationState state,
-            int batchIterations) {
+            int batchIterations,
+            Predicate<TestResult> stopAfterRun) {
 
         List<TestResult> results = new ArrayList<>();
         for (int batchIteration = 0; batchIteration < batchIterations; batchIteration++) {
@@ -265,6 +267,9 @@ public final class TestDriver {
             if (isFinding(result)) {
                 log.warn("Run {}: potential issue found, statuses={}, exceptions={}",
                         iteration, result.statuses(), result.exceptions().keySet());
+            }
+            if (stopAfterRun.test(result)) {
+                break;
             }
         }
 
@@ -395,6 +400,11 @@ public final class TestDriver {
         }
         return !result.exceptions().isEmpty()
                 || result.statuses().stream().anyMatch(INTERESTING_STATUSES::contains);
+    }
+
+    /** Strong outcomes that warrant repairing this group before exploring it again. */
+    public static boolean isActionableFinding(TestResult result) {
+        return result.statuses().stream().anyMatch(INTERESTING_STATUSES::contains);
     }
 
     /**
@@ -589,12 +599,20 @@ public final class TestDriver {
         public List<TestResult> runBatch(
                 int batchIterations, Consumer<TestResult> beforeCleanupHook) {
 
+            return runBatch(batchIterations, beforeCleanupHook, result -> false);
+        }
+
+        public List<TestResult> runBatch(
+                int batchIterations,
+                Consumer<TestResult> beforeCleanupHook,
+                Predicate<TestResult> stopAfterRun) {
+
             if (batchIterations < 1) {
                 throw new IllegalArgumentException("batchIterations must be >= 1, got " + batchIterations);
             }
             return runExplorationBatch(
                     initialStateSetup, beforeCleanupHook, reportSubdirectory,
-                    state, batchIterations);
+                    state, batchIterations, stopAfterRun);
         }
 
         public int completedRuns() {

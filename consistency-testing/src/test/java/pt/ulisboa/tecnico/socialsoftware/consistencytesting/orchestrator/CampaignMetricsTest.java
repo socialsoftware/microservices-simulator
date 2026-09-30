@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Map;
@@ -70,6 +71,35 @@ class CampaignMetricsTest {
         assertEquals(1, snapshot.runsWithStepExceptions());
         assertEquals(1, snapshot.semanticLockGuardRejectionRuns());
         assertFalse(TestDriver.isFinding(result));
+    }
+
+    @Test
+    void onlyStrongStatusesStopGroupExploration() {
+        FunctionalityId functionality = FunctionalityId.forSagaFunctionality("createQuiz");
+        StepId step = StepId.forFunctionalityStep(functionality, "saveQuiz");
+        TestResult ordinaryException = new TestResult(
+                new StepDependencies(), new StepDependencies(), Map.of(), List.of(),
+                Map.of(step, new IllegalStateException("ordinary failure")), Set.of(),
+                List.of(), Set.of(), List.of(), List.of(), Map.of());
+
+        assertTrue(TestDriver.isFinding(ordinaryException));
+        assertFalse(TestDriver.isActionableFinding(ordinaryException));
+        assertTrue(TestDriver.isActionableFinding(resultWithAllOutcomeSignals()));
+        assertFalse(TestDriver.isActionableFinding(protectedSemanticLockConflict()));
+        assertFalse(TestDriver.isActionableFinding(resultWithStatuses(Set.of(TestStatus.ISOLATION_ANOMALY))));
+        assertFalse(TestDriver.isActionableFinding(
+                resultWithStatuses(Set.of(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED))));
+        for (TestStatus status : List.of(TestStatus.INTERNAL_SYSTEM_EXCEPTION,
+                TestStatus.CRITICAL_STEP_FAILURE, TestStatus.INTER_INVARIANT_VIOLATION,
+                TestStatus.EXECUTION_LIMIT_EXCEEDED)) {
+            assertTrue(TestDriver.isActionableFinding(resultWithStatuses(Set.of(status))));
+        }
+    }
+
+    private static TestResult resultWithStatuses(Set<TestStatus> statuses) {
+        return new TestResult(
+                new StepDependencies(), new StepDependencies(), Map.of(), List.of(), Map.of(), statuses,
+                List.of(), Set.of(), List.of(), List.of(), Map.of());
     }
 
     private static TestResult cleanResult() {

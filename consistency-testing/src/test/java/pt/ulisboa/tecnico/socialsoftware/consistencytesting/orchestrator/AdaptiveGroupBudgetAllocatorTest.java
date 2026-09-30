@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
@@ -72,6 +73,34 @@ class AdaptiveGroupBudgetAllocatorTest {
         allocator.nextAllocation();
 
         assertThrows(IllegalStateException.class, allocator::nextAllocation);
+    }
+
+    @Test
+    void stoppedGroupReleasesUnusedRunsToAnActiveGroup() {
+        AdaptiveGroupBudgetAllocator allocator = allocator(9, 2, 8, 2);
+
+        AdaptiveGroupBudgetAllocator.Allocation first = allocator.nextAllocation();
+        assertEquals(A, first.group());
+        allocator.observe(first, feedback(1, 1, 1, 1), true);
+
+        while (allocator.hasNext()) {
+            AdaptiveGroupBudgetAllocator.Allocation allocation = allocator.nextAllocation();
+            assertEquals(B, allocation.group());
+            allocator.observe(allocation, feedback(allocation.requestedRuns(), 0, 0, 0));
+        }
+
+        assertEquals(1, allocator.completedRuns(A));
+        assertEquals(8, allocator.completedRuns(B));
+    }
+
+    @Test
+    void stopsCampaignWhenEveryGroupHasAnActionableFinding() {
+        AdaptiveGroupBudgetAllocator allocator = allocator(8, 2, 6, 2);
+        for (int index = 0; index < 2; index++) {
+            AdaptiveGroupBudgetAllocator.Allocation allocation = allocator.nextAllocation();
+            allocator.observe(allocation, feedback(1, 1, 1, 1), true);
+        }
+        assertFalse(allocator.hasNext());
     }
 
     private static List<AdaptiveGroupBudgetAllocator.GroupKey> runSequence(long seed) {

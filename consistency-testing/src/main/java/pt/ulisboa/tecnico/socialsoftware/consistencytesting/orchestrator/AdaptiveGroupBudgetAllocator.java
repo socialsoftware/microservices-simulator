@@ -71,6 +71,7 @@ final class AdaptiveGroupBudgetAllocator {
         /** Completed runs observed for this group so far. */
         private int runs;
         private double reward;
+        private boolean stopped;
 
         /**
          * Scores a group by its observed average reward plus a bonus for limited sampling.
@@ -148,7 +149,8 @@ final class AdaptiveGroupBudgetAllocator {
     }
 
     boolean hasNext() {
-        return completedRuns < totalRunBudget;
+        return completedRuns < totalRunBudget && states.values().stream()
+                .anyMatch(state -> !state.stopped && state.runs < maximumRunsPerGroup);
     }
 
     Allocation nextAllocation() {
@@ -168,7 +170,7 @@ final class AdaptiveGroupBudgetAllocator {
 
         int remainingBudget = totalRunBudget - completedRuns;
         List<GroupKey> eligible = states.entrySet().stream()
-                .filter(entry -> entry.getValue().runs < maximumRunsPerGroup)
+                .filter(entry -> !entry.getValue().stopped && entry.getValue().runs < maximumRunsPerGroup)
                 .map(Map.Entry::getKey)
                 .sorted(Comparator.naturalOrder())
                 .collect(Collectors.toCollection(ArrayList::new));
@@ -194,15 +196,24 @@ final class AdaptiveGroupBudgetAllocator {
 
     /** Adds feedback to the selected group's totals and makes the allocator ready for its next decision. */
     void observe(Allocation allocation, BatchFeedback feedback) {
+        observe(allocation, feedback, false);
+    }
+
+    /** Records feedback for the pending allocation; a stopped group may complete fewer runs and is retired. */
+    void observe(Allocation allocation, BatchFeedback feedback, boolean stopped) {
         if (pending == null || !pending.equals(allocation)) {
             throw new IllegalArgumentException("Feedback does not match pending allocation");
         }
-        if (feedback.completedRuns() != allocation.requestedRuns()) {
-            throw new IllegalArgumentException("Completed runs do not match requested allocation");
+        if (feedback.completedRuns() > allocation.requestedRuns()) {
+            throw new IllegalArgumentException("Completed runs exceed requested allocation");
+        }
+        if (!stopped && feedback.completedRuns() != allocation.requestedRuns()) {
+            throw new IllegalArgumentException("Incomplete allocation requires a stopped group");
         }
         GroupState state = states.get(allocation.group());
         state.runs += feedback.completedRuns();
         state.reward += feedback.reward();
+        state.stopped = stopped;
         completedRuns += feedback.completedRuns();
         pending = null;
     }
