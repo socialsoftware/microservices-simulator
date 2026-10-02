@@ -42,7 +42,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.T
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.functionalities.TopicFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.coordination.sagas.UpdateTopicFunctionalitySagas;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.TournamentDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.aggregate.sagas.states.TournamentSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.functionalities.TournamentFunctionalities;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.user.coordination.functionalities.UserFunctionalities;
 
@@ -68,9 +67,6 @@ class FunctionalityGroupPlannerQuizzesAppTest {
     private static final FunctionalityId SUMMARY_A = FunctionalityId.forSagaFunctionality("generateSummaryA");
     private static final FunctionalityId SUMMARY_B = FunctionalityId.forSagaFunctionality("generateSummaryB");
     private static final FunctionalityId LEAVE_A = FunctionalityId.forSagaFunctionality("leaveTournamentA");
-    private static final FunctionalityId MOVE_A_TO_STARTED = FunctionalityId
-            .forSagaFunctionality("moveMemberToStartedTournament");
-    private static final FunctionalityId REMOVE_A = FunctionalityId.forSagaFunctionality("removeTournamentA");
     private static final FunctionalityId UPDATE_LONELY_TOPIC = FunctionalityId
             .forSagaFunctionality("updateLonelyTopic");
 
@@ -91,8 +87,7 @@ class FunctionalityGroupPlannerQuizzesAppTest {
 
         // These tests are meant to run with the engineered scenarios not protected.
         driver.setIgnoredSemanticLocks(Set.of(
-                SemanticLockId.from(CourseExecutionSagaState.IN_TOURNAMENT_QUOTA_UPDATE),
-                SemanticLockId.from(TournamentSagaState.IN_MOVE_PARTICIPANT)));
+                SemanticLockId.from(CourseExecutionSagaState.IN_TOURNAMENT_QUOTA_UPDATE)));
 
         factory = new QuizzesTestFactory(
                 oracle.getBean(SagaUnitOfWorkService.class),
@@ -106,7 +101,7 @@ class FunctionalityGroupPlannerQuizzesAppTest {
 
         // Profile + plan ONCE for the whole class: both tests read `groups`.
         Map<FunctionalityId, FunctionalityFootprint> footprints = driver
-                .profileFunctionalitiesAllowingSoloExceptions(catalog);
+                .profileFunctionalities(catalog);
 
         for (FunctionalityFootprint footprint : footprints.values()) {
             log.info("footprint {} -> {}", footprint.functionalityId(), footprint.accesses());
@@ -134,25 +129,16 @@ class FunctionalityGroupPlannerQuizzesAppTest {
      * The shared initial state all catalog functionalities run on top of:
      * <ul>
      * <li>{@code tournamentA} — the base tournament, with {@code member}
-     * enrolled (so it can be left / moved out of, and cannot be removed);</li>
+     * enrolled (so it can be left);</li>
      * <li>{@code tournamentB} — a second tournament of the SAME course
      * execution (quota scenarios + cross-handle contrast);</li>
-     * <li>{@code startedTournament} — already running, so any enrolment in it
-     * is rejected (the move's compensation subject);</li>
      * <li>{@code joiner} — a student in no tournament yet (quota joins);</li>
      * <li>{@code lonelyTopic} — a topic NO tournament references: updating it
      * emits an event nobody consumes, making it the disjoint control (the
-     * regular {@code topic} is referenced by all three tournaments, so
+     * regular {@code topic} is referenced by both tournaments, so
      * updating THAT would fan out into tournament writes via event
      * handlers).</li>
      * </ul>
-     * <p>
-     * This is a deliberately targeted engine test: moving into
-     * {@code startedTournament} and removing the occupied source both reject when
-     * run alone, but concurrency can make the removal valid and strand the move's
-     * compensation. Setup therefore uses the package-private lenient profiler.
-     * Production campaigns and generated catalog validation use the strict public
-     * profiler and reject such entries.
      */
     private FunctionalityCatalog buildCatalog() {
         SagaUnitOfWorkService unitOfWorkService = oracle.getBean(SagaUnitOfWorkService.class);
@@ -167,9 +153,6 @@ class FunctionalityGroupPlannerQuizzesAppTest {
 
             TournamentDto tournamentB = factory.createTournament(
                     QuizzesTestFactory.time1(), QuizzesTestFactory.time3(), 1,
-                    creatorId, executionId, List.of(topicId));
-
-            TournamentDto startedTournament = factory.createStartedTournament(
                     creatorId, executionId, List.of(topicId));
 
             Integer joinerId = factory.createStudentInExecution(executionId,
@@ -189,7 +172,6 @@ class FunctionalityGroupPlannerQuizzesAppTest {
                     .register("question", initialState.questionDto().getAggregateId())
                     .register("tournamentA", tournamentAId)
                     .register("tournamentB", tournamentB.getAggregateId())
-                    .register("startedTournament", startedTournament.getAggregateId())
                     .register("joiner", joinerId)
                     .register("member", memberId)
                     .register("lonelyTopic", lonelyTopic.getAggregateId());
@@ -224,13 +206,6 @@ class FunctionalityGroupPlannerQuizzesAppTest {
         factories.put(LEAVE_A, registry -> factory.createLeaveTournamentFunctionality(
                 unitOfWorkService, registry.idOf("tournamentA"), registry.idOf("member"), gateway));
 
-        factories.put(MOVE_A_TO_STARTED, registry -> factory.createMoveParticipantBetweenTournamentsFunctionality(
-                unitOfWorkService, registry.idOf("tournamentA"), registry.idOf("startedTournament"),
-                registry.idOf("execution"), registry.idOf("member"), gateway));
-
-        factories.put(REMOVE_A, registry -> factory.createRemoveTournamentFunctionality(
-                unitOfWorkService, registry.idOf("tournamentA"), gateway));
-
         factories.put(UPDATE_LONELY_TOPIC, registry -> {
             TopicDto updateDto = new TopicDto();
             updateDto.setAggregateId(registry.idOf("lonelyTopic"));
@@ -262,18 +237,15 @@ class FunctionalityGroupPlannerQuizzesAppTest {
 
     @Test
     void plannerFindsTheKnownConflictPairsAndPrunesTheRest() {
-        // The pairs behind every engineered anomaly of TestDriverQuizzesAppTest
+        // The pairs behind the solo-valid scenarios of TestDriverQuizzesAppTest
         // must be found by the planner ON ITS OWN:
         // - the max-tournaments write skew (both joins of the same user),
-        // - the summary non-repeatable read (summary vs the member leaving),
-        // - the impossible compensation (move racing the removal of its source).
+        // - the summary non-repeatable read (summary vs the member leaving).
         assertTrue(hasGroup(JOIN_A, JOIN_B),
                 "quota write-skew pair should be planned: the quota count READS every tournament of the "
                         + "execution while each join WRITES its own");
         assertTrue(hasGroup(SUMMARY_A, LEAVE_A),
                 "summary non-repeatable-read pair should be planned (RW on tournamentA)");
-        assertTrue(hasGroup(MOVE_A_TO_STARTED, REMOVE_A),
-                "impossible-compensation pair should be planned (both touch tournamentA with writes)");
         assertTrue(hasGroup(JOIN_B, UPDATE_B),
                 "WW pair on tournamentB should be planned");
 
@@ -340,14 +312,6 @@ class FunctionalityGroupPlannerQuizzesAppTest {
         assertTrue(summaryRuns.stream().anyMatch(result -> result.anomalies().stream()
                 .anyMatch(anomaly -> anomaly.type() == AnomalyType.NON_REPEATABLE_READ)),
                 "exploring the planner's summary/leave pair should surface the non-repeatable read");
-
-        // Impossible compensation: dirty read + critical step failure.
-        List<TestResult> moveRuns = driver.exploreGroup(catalog, groupOf(MOVE_A_TO_STARTED, REMOVE_A));
-        assertEquals(ITERATIONS, moveRuns.size());
-        assertTrue(moveRuns.stream().anyMatch(result -> result.statuses()
-                .contains(TestStatus.CRITICAL_STEP_FAILURE)
-                || result.anomalies().stream().anyMatch(anomaly -> anomaly.type() == AnomalyType.DIRTY_READ)),
-                "exploring the planner's move/remove pair should strand the compensation in some interleaving");
 
         // A self-pair must be runnable end-to-end: two same-arguments instances
         // of the same functionality, distinct ids, full budget.

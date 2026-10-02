@@ -438,16 +438,6 @@ public final class TestDriver {
         return profileFunctionalities(catalog, true);
     }
 
-    /**
-     * Test-only escape hatch for targeted catalogs whose purpose is to explore
-     * operations made valid by concurrent progress.
-     */
-    Map<FunctionalityId, FunctionalityFootprint> profileFunctionalitiesAllowingSoloExceptions(
-            FunctionalityCatalog catalog) {
-
-        return profileFunctionalities(catalog, false);
-    }
-
     private Map<FunctionalityId, FunctionalityFootprint> profileFunctionalities(
             FunctionalityCatalog catalog, boolean rejectSoloExceptions) {
 

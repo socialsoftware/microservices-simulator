@@ -433,6 +433,10 @@ class TestDriverQuizzesAppTest {
      * deletion of the source tournament (which is only legal while that tournament
      * has no participants, and could be true only temporarily while the move is
      * in progress and before it compensates).
+     * <p>
+     * This explicit pair bypasses solo profiling: removing the occupied source
+     * alone deletes its linked quiz before rejecting tournament deletion, breaking
+     * an invariant. That fixture must remain invalid for ordinary profiling.
      */
     private TestCase.Builder impossibleCompensationTestCase() {
         SagaUnitOfWorkService sagaUnitOfWorkService = oracle.getBean(SagaUnitOfWorkService.class);
@@ -497,6 +501,8 @@ class TestDriverQuizzesAppTest {
     void forcedConcurrentDeleteMakesMoveCompensationImpossible() {
         StepId leaveSourceStep = StepId.forFunctionalityStep(MOVE_PARTICIPANT_FUNC_ID, "leaveSourceTournamentStep");
         StepId addToTargetStep = StepId.forFunctionalityStep(MOVE_PARTICIPANT_FUNC_ID, "addToTargetTournamentStep");
+        StepId moveCompensationStep = StepId.forCompensationStep(
+                MOVE_PARTICIPANT_FUNC_ID, "leaveSourceTournamentStep");
         StepId deleteReadStep = StepId.forFunctionalityStep(REMOVE_SOURCE_TOURNAMENT_FUNC_ID, "getTournamentStep");
         StepId deleteStep = StepId.forFunctionalityStep(REMOVE_SOURCE_TOURNAMENT_FUNC_ID, "removeTournamentStep");
 
@@ -526,6 +532,17 @@ class TestDriverQuizzesAppTest {
             List<StepId> schedule = res.schedule();
             assertTrue(schedule.indexOf(deleteReadStep) > schedule.indexOf(leaveSourceStep),
                     "the deleter must read the source tournament after the user has left it");
+            assertTrue(schedule.containsAll(List.of(leaveSourceStep, deleteReadStep, deleteStep,
+                    addToTargetStep, moveCompensationStep)),
+                    "departure, removal, target rejection and compensation must all execute");
+            assertTrue(schedule.indexOf(deleteStep) < schedule.indexOf(addToTargetStep)
+                    && schedule.indexOf(addToTargetStep) < schedule.indexOf(moveCompensationStep),
+                    "source deletion must precede target rejection and the failed compensation");
+            assertFalse(tournamentExists(sourceTournamentId),
+                    "concurrent removal must actually delete the temporarily empty source tournament");
+            assertTrue(res.exceptions().keySet().stream()
+                    .noneMatch(step -> step.getFunctionalityId().equals(REMOVE_SOURCE_TOURNAMENT_FUNC_ID)),
+                    "source removal must succeed without a step exception");
 
             // The delete must really have read the version the move published, not the
             // initial one - otherwise it would have seen the participant and refused.
@@ -550,6 +567,8 @@ class TestDriverQuizzesAppTest {
 
         assertTrue(result.statuses().contains(TestStatus.CRITICAL_STEP_FAILURE),
                 "the oracle should flag the failed compensation as a critical step failure");
+        assertTrue(result.exceptions().containsKey(moveCompensationStep),
+                "restoring the participant to the deleted source must fail at the departure compensation");
         assertFalse(inSourceRef.get(),
                 "the compensation should not be able to put the user back into the source tournament: "
                         + "it was deleted while the move was in flight");
