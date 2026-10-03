@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -18,7 +16,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.execution.aggrega
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 
 public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
 
@@ -45,14 +42,6 @@ public class AnonymizeStudentFunctionalitySagas extends WorkflowFunctionality {
             sagaCommand.setForbiddenStates(List.of(CourseExecutionSagaState.READ_COURSE));
             commandGateway.send(sagaCommand);
         });
-
-        getCourseExecutionStep.registerCompensation(() -> {
-            Logger.getLogger(AnonymizeStudentFunctionalitySagas.class.getName()).info("Compensating getCourseExecutionStep");
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
 
         SagaStep anonymizeStudentStep = new SagaStep("anonymizeStudentStep", () -> {
             AnonymizeStudentCommand anonymizeStudentCommand = new AnonymizeStudentCommand(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), executionAggregateId, userAggregateId);

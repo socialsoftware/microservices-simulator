@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -42,13 +40,6 @@ public class ConcludeQuizFunctionalitySagas extends WorkflowFunctionality {
             commandGateway.send(sagaCommand);
             this.setQuizAnswer(quizAnswer);
         });
-
-        getQuizAnswerStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.quizAnswer.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
 
         SagaStep concludeQuizStep = new SagaStep("concludeQuizStep", () -> {
 //            quizAnswerService.concludeQuiz(quizAggregateId, userAggregateId, unitOfWork); // TODO

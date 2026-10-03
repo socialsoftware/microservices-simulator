@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -44,13 +42,6 @@ public class UpdateQuizFunctionalitySagas extends WorkflowFunctionality {
             QuizDto quiz = (QuizDto) commandGateway.send(sagaCommand);
             this.setQuiz(quiz);
         });
-
-        getQuizStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(), quiz.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
 
         SagaStep updateQuizStep = new SagaStep("updateQuizStep", () -> {
             Set<QuizQuestion> quizQuestions = quizDto.getQuestionDtos().stream().map(QuizQuestion::new).collect(Collectors.toSet());
