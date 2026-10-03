@@ -346,13 +346,13 @@ functionalities:
     exclusion_reason: null
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsAsyncFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [neutral-shared-state]
-    functionality_ids: [updateQuestionTopicsAsync]
+    included: false
+    catalogs: []
+    functionality_ids: []
     evidence:
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/sagas/UpdateQuestionTopicsAsyncFunctionalitySagas.java
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/question/coordination/functionalities/QuestionFunctionalities.java
-    exclusion_reason: null
+    exclusion_reason: "Excluded from consistency sweep because async functionalities are not yet reliably supported by the consistency-testing engine."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas.UpdateQuestionTopicsFunctionalitySagas
     kind: write
     included: true
@@ -481,13 +481,13 @@ functionalities:
     exclusion_reason: null
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantAsyncFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [neutral-shared-state]
-    functionality_ids: [addParticipantAsync]
+    included: false
+    catalogs: []
+    functionality_ids: []
     evidence:
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/AddParticipantAsyncFunctionalitySagas.java
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
-    exclusion_reason: null
+    exclusion_reason: "Excluded from consistency sweep because async functionalities are not yet reliably supported by the consistency-testing engine."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.AddParticipantFunctionalitySagas
     kind: write
     included: true
@@ -526,13 +526,13 @@ functionalities:
     exclusion_reason: null
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentAsyncFunctionalitySagas
     kind: write
-    included: true
-    catalogs: [neutral-shared-state]
-    functionality_ids: [createTournamentAsync]
+    included: false
+    catalogs: []
+    functionality_ids: []
     evidence:
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/CreateTournamentAsyncFunctionalitySagas.java
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
-    exclusion_reason: null
+    exclusion_reason: "Excluded from consistency sweep because async functionalities are not yet reliably supported by the consistency-testing engine."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.CreateTournamentFunctionalitySagas
     kind: write
     included: true
@@ -667,7 +667,7 @@ functionalities:
     evidence:
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/sagas/SolveQuizAsyncFunctionalitySagas.java
       - applications/quizzes-consistency-testing/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/tournament/coordination/functionalities/TournamentFunctionalities.java
-    exclusion_reason: "Fails neutral solo profiling at startQuizAnswerStep even with an enrolled user that has no answer for the tournament quiz; excluded because a sequential-baseline failure cannot be attributed to concurrent scheduling."
+    exclusion_reason: "Excluded from consistency sweep because async functionalities are not yet reliably supported by the consistency-testing engine."
   - class: pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.tournament.coordination.sagas.SolveQuizFunctionalitySagas
     kind: write
     included: false

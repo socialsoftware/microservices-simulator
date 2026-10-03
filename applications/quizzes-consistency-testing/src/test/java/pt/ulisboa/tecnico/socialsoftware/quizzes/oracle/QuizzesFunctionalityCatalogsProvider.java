@@ -138,10 +138,6 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
         add(factories, "updateQuestionTopics", h -> new UpdateQuestionTopicsFunctionalitySagas(
                 unitOfWorkService, h.idOf("primaryQuestion"), List.of(h.idOf("secondaryTopic")),
                 uow("updateQuestionTopics"), commandGateway));
-        add(factories, "updateQuestionTopicsAsync", h -> new UpdateQuestionTopicsAsyncFunctionalitySagas(
-                unitOfWorkService, h.idOf("primaryQuestion"), List.of(h.idOf("secondaryTopic")),
-                uow("updateQuestionTopicsAsync"), commandGateway));
-
         add(factories, "createQuiz", h -> new CreateQuizFunctionalitySagas(
                 unitOfWorkService, h.idOf("mainExecution"), quizInput(h, "Created quiz"),
                 uow("createQuiz"), commandGateway));
@@ -173,17 +169,11 @@ public class QuizzesFunctionalityCatalogsProvider implements FunctionalityCatalo
                 new AddParticipantWithinMaxTournamentsFunctionalitySagas(
                         unitOfWorkService, h.idOf("cancellableTournament"), h.idOf("mainExecution"),
                         h.idOf("startStudent"), uow("addParticipantWithinMaxTournaments"), commandGateway));
-        add(factories, "addParticipantAsync", h -> new AddParticipantAsyncFunctionalitySagas(
-                unitOfWorkService, h.idOf("cancellableTournament"), h.idOf("mainExecution"), h.idOf("startStudent"),
-                uow("addParticipantAsync"), commandGateway));
         add(factories, "cancelTournament", h -> new CancelTournamentFunctionalitySagas(
                 unitOfWorkService, h.idOf("cancellableTournament"), uow("cancelTournament"), commandGateway));
         add(factories, "createTournament", h -> new CreateTournamentFunctionalitySagas(
                 unitOfWorkService, h.idOf("creator"), h.idOf("mainExecution"), List.of(h.idOf("primaryTopic")),
                 tournamentInput(), uow("createTournament"), commandGateway));
-        add(factories, "createTournamentAsync", h -> new CreateTournamentAsyncFunctionalitySagas(
-                unitOfWorkService, h.idOf("creator"), h.idOf("mainExecution"), List.of(h.idOf("primaryTopic")),
-                tournamentInput(), uow("createTournamentAsync"), commandGateway));
         add(factories, "findParticipant", h -> new FindParticipantFunctionalitySagas(
                 unitOfWorkService, h.idOf("openTournament"), h.idOf("participant"),
                 uow("findParticipant"), commandGateway));
