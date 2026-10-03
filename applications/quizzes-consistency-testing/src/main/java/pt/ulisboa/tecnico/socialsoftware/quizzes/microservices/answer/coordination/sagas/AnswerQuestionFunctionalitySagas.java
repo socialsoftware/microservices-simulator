@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -51,14 +49,6 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.setQuestionDto(questionDto);
         });
 
-        getQuestionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(),
-                    this.questionDto.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep getQuizAnswerStep = new SagaStep("getQuizAnswerStep", () -> {
             GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(
                     unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAnswer.getQuizAggregateId(), quizAggregateId, userAggregateId);
@@ -67,14 +57,6 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
             QuizAnswerDto quizAnswer = (QuizAnswerDto) commandGateway.send(sagaCommand);
             this.setQuizAnswer(quizAnswer);
         });
-
-        getQuizAnswerStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.QUIZ.getServiceName(),
-                    this.quizAnswer.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
 
         SagaStep answerQuestionStep = new SagaStep("answerQuestionStep", () -> {
             AnswerQuestionCommand answerQuestion = new AnswerQuestionCommand(unitOfWork,

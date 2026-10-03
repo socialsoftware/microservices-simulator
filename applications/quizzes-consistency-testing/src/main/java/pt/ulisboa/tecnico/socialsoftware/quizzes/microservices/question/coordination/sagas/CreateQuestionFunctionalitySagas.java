@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -24,7 +22,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.topic.aggregate.s
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.logging.Logger;
 import java.util.stream.Collectors;
 
 public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
@@ -57,14 +54,6 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
             this.setCourse(questionCourse);
         });
 
-        getCourseStep.registerCompensation(() -> {
-            Logger.getLogger(CreateQuestionFunctionalitySagas.class.getName()).info("Compensating getCourseStep");
-            Command command = new Command(unitOfWork, ServiceMapping.COURSE.getServiceName(), courseDto.getAggregateId());
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep getTopicsStep = new SagaStep("getTopicsStep", () -> {
             List<TopicDto> topics = questionDto.getTopicDto().stream()
                     .map(topicDto -> {
@@ -77,16 +66,6 @@ public class CreateQuestionFunctionalitySagas extends WorkflowFunctionality {
                     .collect(Collectors.toList());
             this.setTopics(topics);
         });
-
-        getTopicsStep.registerCompensation(() -> {
-            Logger.getLogger(CreateQuestionFunctionalitySagas.class.getName()).info("Compensating getTopicsStep");
-            questionDto.getTopicDto().forEach(topicDto -> {
-                Command command = new Command(unitOfWork, ServiceMapping.TOPIC.getServiceName(), topicDto.getAggregateId());
-                SagaCommand sagaCommand = new SagaCommand(command);
-                sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-                commandGateway.send(sagaCommand);
-            });
-        }, unitOfWork);
 
         SagaStep createQuestionStep = new SagaStep("createQuestionStep", () -> {
             CreateQuestionCommand createQuestionCommand = new CreateQuestionCommand(unitOfWork, ServiceMapping.QUESTION.getServiceName(), this.getCourse(), questionDto, this.getTopics());

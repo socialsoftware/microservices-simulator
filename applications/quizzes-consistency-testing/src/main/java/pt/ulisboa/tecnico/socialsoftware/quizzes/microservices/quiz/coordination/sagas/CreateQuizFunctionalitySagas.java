@@ -1,9 +1,7 @@
 package pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.coordination.sagas;
 
 import pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality;
-import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
 import pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandGateway;
-import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.GenericSagaState;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.messaging.SagaCommand;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWork;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService;
@@ -53,13 +51,6 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
             this.setQuizCourseExecution(quizCourseExecution);
         });
 
-        getCourseExecutionStep.registerCompensation(() -> {
-            Command command = new Command(unitOfWork, ServiceMapping.EXECUTION.getServiceName(), courseExecutionId);
-            SagaCommand sagaCommand = new SagaCommand(command);
-            sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-            commandGateway.send(sagaCommand);
-        }, unitOfWork);
-
         SagaStep getQuestionsStep = new SagaStep("getQuestionsStep", () -> { // TODO
             Set<QuestionDto> questions = quizDto.getQuestionDtos().stream()
                     .map(questionDto -> {
@@ -71,15 +62,6 @@ public class CreateQuizFunctionalitySagas extends WorkflowFunctionality {
                     .collect(Collectors.toSet());
             this.setQuestions(questions);
         });
-
-        getQuestionsStep.registerCompensation(() -> {
-            quizDto.getQuestionDtos().forEach(questionDto -> {
-                Command command = new Command(unitOfWork, ServiceMapping.QUESTION.getServiceName(), questionDto.getAggregateId());
-                SagaCommand sagaCommand = new SagaCommand(command);
-                sagaCommand.setSemanticLock(GenericSagaState.NOT_IN_SAGA);
-                commandGateway.send(sagaCommand);
-            });
-        }, unitOfWork);
 
         SagaStep createQuizStep = new SagaStep("createQuizStep", () -> {
             CreateQuizCommand createQuizCommand = new CreateQuizCommand(unitOfWork, ServiceMapping.QUIZ.getServiceName(), this.getQuizCourseExecution(), this.getQuestions(), quizDto);
