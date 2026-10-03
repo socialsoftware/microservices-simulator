@@ -69,6 +69,7 @@ public class UpdateQuestionTopicsAsyncFunctionalitySagas extends WorkflowFunctio
         });
 
         SagaStep updateQuestionTopicsStep = new SagaStep("updateQuestionTopicsStep", () -> {
+            CompletableFuture.allOf(this.topicsFuture, this.questionFuture).join();
             this.setTopics(this.topicsFuture.join());
             this.setQuestion(this.questionFuture.join());
             this.setTopicDtos(this.question.getTopicDto());
