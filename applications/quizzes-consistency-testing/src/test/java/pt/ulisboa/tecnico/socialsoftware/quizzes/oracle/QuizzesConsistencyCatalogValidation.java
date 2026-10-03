@@ -44,7 +44,7 @@ class QuizzesConsistencyCatalogValidation {
                     .map(FunctionalityCatalog::name).toList()).size(),
                     "catalog names must be unique");
             assertEquals(
-                    Map.of("neutral-shared-state", 49, "engineered-quota-positive-control", 2),
+                    Map.of("neutral-shared-state", 46, "engineered-quota-positive-control", 2),
                     catalogs.stream().collect(Collectors.toMap(
                             FunctionalityCatalog::name,
                             catalog -> catalog.funcFactories().size())),
