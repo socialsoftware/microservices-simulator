@@ -17,7 +17,6 @@ import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.quiz.StartTournamentQu
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.GetTournamentByIdCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.commands.tournament.SolveQuizCommand;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.QuizAnswerDto;
-import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.answer.aggregate.sagas.states.QuizAnswerSagaState;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.question.aggregate.QuestionDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.QuizDto;
 import pt.ulisboa.tecnico.socialsoftware.quizzes.microservices.quiz.aggregate.sagas.states.QuizSagaState;
@@ -91,9 +90,11 @@ public class SolveQuizFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep startQuizAnswerStep = new SagaStep("startQuizAnswerStep", () -> {
             StartQuizCommand startTournamentQuizCommand = new StartQuizCommand(unitOfWork, ServiceMapping.ANSWER.getServiceName(), this.getQuizDto().getAggregateId(), this.getTournamentDto().getCourseExecution().getAggregateId(), this.quizDto, this.userDto);
-            SagaCommand sagaCommand = new SagaCommand(startTournamentQuizCommand);
-            sagaCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
-            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(sagaCommand);
+            //  TODO review if this lock was truly needed, or can be removed
+            // SagaCommand sagaCommand = new SagaCommand(startTournamentQuizCommand);
+            // sagaCommand.setSemanticLock(QuizAnswerSagaState.STARTED_QUIZ);
+            // QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(sagaCommand);
+            QuizAnswerDto quizAnswerDto = (QuizAnswerDto) commandGateway.send(startTournamentQuizCommand);
             this.setQuizAnswerDto(quizAnswerDto);
         }, new ArrayList<>(Arrays.asList(getQuestionById, getStudentByExecutionIdAndUserId)));
 
