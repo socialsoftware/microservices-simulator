@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver;
 
 import java.util.Arrays;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.NoveltyMetric;
+
 /** Schedule exploration policy used within each functionality group. */
 public enum ScheduleExplorationStrategy {
     /** Random interleavings plus learned cross-functionality ordering constraints. */
@@ -14,7 +16,10 @@ public enum ScheduleExplorationStrategy {
     FEEDBACK_GUIDED("feedback-guided"),
 
     /** Seeks under-observed aggregate reads-from relations using ready-step choices. */
-    READS_FROM_GUIDED("reads-from-guided");
+    READS_FROM_GUIDED("reads-from-guided"),
+
+    /** Mutates prior choice traces rewarded by bounded behavioral signals. */
+    FEEDBACK_SIGNALS("feedback-signals");
 
     private final String propertyValue;
 
@@ -24,6 +29,16 @@ public enum ScheduleExplorationStrategy {
 
     public String propertyValue() {
         return propertyValue;
+    }
+
+    public boolean usesFeedbackCorpus() {
+        return this == FEEDBACK_GUIDED || this == FEEDBACK_SIGNALS;
+    }
+
+    /** Metric used by the feedback corpus, including observational feedback in other modes. */
+    public NoveltyMetric noveltyMetric() {
+        return this == FEEDBACK_SIGNALS
+                ? NoveltyMetric.BEHAVIORAL_SIGNALS : NoveltyMetric.DETAILED_FINGERPRINT;
     }
 
     public static ScheduleExplorationStrategy parse(String value) {

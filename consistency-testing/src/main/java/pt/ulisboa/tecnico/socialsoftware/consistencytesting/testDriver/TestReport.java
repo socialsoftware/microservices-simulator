@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Anomaly;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.AnomalyType;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
@@ -101,6 +103,12 @@ public record TestReport(
 
         public ScheduleExplorationView {
             decisions = List.copyOf(decisions);
+        }
+
+        /** Schema of the observations counted by newBehavior/newFeatures. */
+        @JsonProperty(value = "noveltyMetricSchema", access = JsonProperty.Access.READ_ONLY)
+        public String noveltyMetricSchema() {
+            return ScheduleExplorationStrategy.parse(strategy).noveltyMetric().schema();
         }
     }
 

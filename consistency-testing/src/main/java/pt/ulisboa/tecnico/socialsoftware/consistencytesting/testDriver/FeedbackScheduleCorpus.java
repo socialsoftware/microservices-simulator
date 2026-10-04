@@ -3,12 +3,14 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Random;
 import java.util.Set;
 
 import org.jspecify.annotations.Nullable;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.NoveltyMetric;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleDecision;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleTrace;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
@@ -28,12 +30,17 @@ final class FeedbackScheduleCorpus {
     private static final int MAX_FEATURE_ENERGY = 8;
     /** Minimum selection weight for every admitted trace. */
     private static final int BASE_ENERGY = 1;
-    /** Extra selection weight awarded when a trace produces a new fingerprint. */
+    /** Extra selection weight awarded when a trace produces a new observation under the chosen metric. */
     private static final int NEW_BEHAVIOR_BONUS = 2;
 
-    private final Set<String> observedFingerprintHashes = new HashSet<>();
+    private final NoveltyMetric noveltyMetric;
+    private final Set<String> observedBehaviorHashes = new HashSet<>();
     private final Set<String> observedFeatures = new HashSet<>();
     private final List<Entry> entries = new ArrayList<>();
+
+    FeedbackScheduleCorpus(NoveltyMetric noveltyMetric) {
+        this.noveltyMetric = Objects.requireNonNull(noveltyMetric);
+    }
 
     Plan nextPlan(Random random) {
         List<Entry> mutableEntries = entries.stream().filter(entry -> hasMutableChoice(entry.trace)).toList();
@@ -75,10 +82,10 @@ final class FeedbackScheduleCorpus {
             return new Observation(false, false, 0, false, entries.size());
         }
 
-        BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
-        boolean newBehavior = observedFingerprintHashes.add(fingerprint.hash());
+        NoveltyMetric.Observation novelty = noveltyMetric.measure(result);
+        boolean newBehavior = observedBehaviorHashes.add(novelty.hash());
         int previousFeatureCount = observedFeatures.size();
-        observedFeatures.addAll(fingerprint.features());
+        observedFeatures.addAll(novelty.features());
         int newFeatures = observedFeatures.size() - previousFeatureCount;
 
         boolean admitted = (newBehavior || newFeatures > 0) && hasMutableChoice(result.scheduleTrace());
@@ -87,7 +94,9 @@ final class FeedbackScheduleCorpus {
             // MAX_FEATURE_ENERGY cap, and a new behavior receives NEW_BEHAVIOR_BONUS.
             int initialEnergy = BASE_ENERGY + Math.min(newFeatures, MAX_FEATURE_ENERGY)
                     + (newBehavior ? NEW_BEHAVIOR_BONUS : 0);
-            entries.add(new Entry(fingerprint.hash(), result.scheduleTrace(), initialEnergy));
+            // Keep detailed fingerprint identity for parent-trace report.
+            String fingerprintHash = BehavioralFingerprint.from(result).hash();
+            entries.add(new Entry(fingerprintHash, result.scheduleTrace(), initialEnergy));
         }
         return new Observation(true, newBehavior, newFeatures, admitted, entries.size());
     }

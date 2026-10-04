@@ -9,9 +9,12 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralSignals;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.NoveltyMetric;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.Oracle;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
@@ -21,6 +24,21 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepKind;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 
 class TestReportSignalsTest {
+
+    @Test
+    void signalNoveltySchemaIsExplicitAndRoundTripsWithoutChangingTheReportConstructor() throws Exception {
+        TestResult result = new TestResult(new StepDependencies(), new StepDependencies(), Map.of(), List.of(),
+                Map.of(), Set.of(), List.of(), Set.of(), List.of(), List.of(), Map.of());
+        var report = TestReport.from(new Oracle.TimedRun(result, 0L, 0L, 0L),
+                ScheduleExplorationStrategy.FEEDBACK_SIGNALS, FeedbackScheduleCorpus.Plan.randomSchedule(),
+                new FeedbackScheduleCorpus(NoveltyMetric.BEHAVIORAL_SIGNALS).observe(result), null, 42L, 0L);
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(report);
+        assertEquals(BehavioralSignals.SCHEMA,
+                mapper.readTree(json).path("scheduleExploration").path("noveltyMetricSchema").asText());
+        assertEquals(report, mapper.readValue(json, TestReport.class));
+        assertEquals(BehavioralFingerprint.SCHEMA, report.behavioralFingerprint().schema());
+    }
 
     @Test
     void writesDetailedFingerprintAndBoundedSignalsWithoutChangingExplorerFeedback() {

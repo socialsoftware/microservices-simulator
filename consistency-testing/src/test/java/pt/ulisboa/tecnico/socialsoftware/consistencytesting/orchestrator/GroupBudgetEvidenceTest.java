@@ -81,7 +81,7 @@ class GroupBudgetEvidenceTest {
         assertEquals(0, feedback.newBehaviors());
         assertEquals(0, feedback.runsAddingFeatures());
         assertEquals(0, feedback.newFindingFamilies());
-        assertEquals(0.0, feedback.reward());
+        assertEquals(0.0, feedback.reward(GroupBudgetStrategy.ADAPTIVE_NOVELTY));
     }
 
     @Test
@@ -94,7 +94,7 @@ class GroupBudgetEvidenceTest {
         assertEquals(0, feedback.newBehaviors());
         assertEquals(0, feedback.runsAddingFeatures());
         assertEquals(0, feedback.newFindingFamilies());
-        assertEquals(0.0, feedback.reward());
+        assertEquals(0.0, feedback.reward(GroupBudgetStrategy.ADAPTIVE_NOVELTY));
     }
 
     @Test
@@ -108,7 +108,7 @@ class GroupBudgetEvidenceTest {
         assertEquals(0, feedback.newBehaviors());
         assertEquals(0, feedback.runsAddingFeatures());
         assertEquals(0, feedback.newFindingFamilies());
-        assertEquals(0.0, feedback.reward());
+        assertEquals(0.0, feedback.reward(GroupBudgetStrategy.ADAPTIVE_NOVELTY));
     }
 
     private static TestResult result(String stepName, String violatedInvariant) {

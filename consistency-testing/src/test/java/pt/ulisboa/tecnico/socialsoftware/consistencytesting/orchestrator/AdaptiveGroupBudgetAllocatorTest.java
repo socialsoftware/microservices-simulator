@@ -121,8 +121,9 @@ class AdaptiveGroupBudgetAllocatorTest {
         for (int batch = 0; batch < 3; batch++) {
             allocator.observe(allocator.nextAllocation(), feedback(2, 0, 0, 0));
         }
-        // Bound avoids tying test to exact UCB formula.
-        assertTrue(allocator.priorityScore(A) < 1.0);
+        // The three zero-relation batches evict the initial burst from the recent reward window;
+        // the remaining priority score is the UCB exploration bonus.
+        assertTrue(allocator.priorityScore(A) < 2.0);
     }
 
     @Test

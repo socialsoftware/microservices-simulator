@@ -226,7 +226,7 @@ public final class TestDriver {
             long schedulerSeed = state.scheduleRng.nextLong();
             oracle.setSchedulerSeed(schedulerSeed);
 
-            Plan schedulePlan = scheduleExplorationStrategy == ScheduleExplorationStrategy.FEEDBACK_GUIDED
+            Plan schedulePlan = scheduleExplorationStrategy.usesFeedbackCorpus()
                             ? state.nextCorpusPlan()
                             : Plan.randomSchedule();
             oracle.setSchedulerChoicePrefix(schedulePlan.choicePrefix());
@@ -281,7 +281,7 @@ public final class TestDriver {
         private final Random scheduleRng = new Random(masterSeed);
         // Independent seeded stream so feedback selection does not consume randomness used for other schedule choices.
         private final Random guidanceRng = new Random(masterSeed ^ GUIDANCE_SEED_SALT);
-        private final FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus();
+        private final FeedbackScheduleCorpus corpus = new FeedbackScheduleCorpus(scheduleExplorationStrategy.noveltyMetric());
         private final ReadsFromGuidance readsFromGuidance = new ReadsFromGuidance();
         private final Set<StepId> observedSteps = new HashSet<>();
         private final StepDependencies observedIntraDependencies = new StepDependencies();
