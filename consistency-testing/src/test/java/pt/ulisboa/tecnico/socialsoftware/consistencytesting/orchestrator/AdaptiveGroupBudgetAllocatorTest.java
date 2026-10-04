@@ -3,6 +3,7 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -101,6 +102,20 @@ class AdaptiveGroupBudgetAllocatorTest {
             allocator.observe(allocation, feedback(1, 1, 1, 1), true);
         }
         assertFalse(allocator.hasNext());
+    }
+
+    @Test
+    void balancedRedistributionIgnoresNoveltyAndUsesExactOddBudget() {
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A, B), 11, 2, 11, 1, 42L, GroupBudgetStrategy.BALANCED_REDISTRIBUTION);
+        while (allocator.hasNext()) {
+            var allocation = allocator.nextAllocation();
+            boolean novel = allocation.group().equals(A);
+            allocator.observe(allocation, new AdaptiveGroupBudgetAllocator.BatchFeedback(
+                    allocation.requestedRuns(), novel ? allocation.requestedRuns() : 0, 0, 0));
+        }
+        assertEquals(11, allocator.completedRuns(A) + allocator.completedRuns(B));
+        assertTrue(Math.abs(allocator.completedRuns(A) - allocator.completedRuns(B)) <= 1);
     }
 
     private static List<AdaptiveGroupBudgetAllocator.GroupKey> runSequence(long seed) {

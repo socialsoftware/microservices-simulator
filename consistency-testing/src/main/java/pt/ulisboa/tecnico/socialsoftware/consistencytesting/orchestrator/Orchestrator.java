@@ -149,11 +149,13 @@ public final class Orchestrator {
         String configuredGroupBudget = System.getProperty(GROUP_BUDGET_STRATEGY_PROPERTY);
         if (configuredGroupBudget != null && !configuredGroupBudget.isBlank()) {
             GroupBudgetStrategy strategy = GroupBudgetStrategy.parse(configuredGroupBudget);
-            if (strategy == GroupBudgetStrategy.ADAPTIVE_NOVELTY) {
-                orchestrator.withAdaptiveGroupBudget(
-                        requiredPositiveIntegerProperty(TOTAL_RUN_BUDGET_PROPERTY),
+            if (strategy.sharesCampaignBudget()) {
+                int total = requiredPositiveIntegerProperty(TOTAL_RUN_BUDGET_PROPERTY);
+                orchestrator.withGroupBudget(strategy, total,
                         requiredPositiveIntegerProperty(MINIMUM_RUNS_PER_GROUP_PROPERTY),
-                        requiredPositiveIntegerProperty(MAXIMUM_RUNS_PER_GROUP_PROPERTY),
+                        System.getProperty(MAXIMUM_RUNS_PER_GROUP_PROPERTY) == null
+                                ? total
+                                : requiredPositiveIntegerProperty(MAXIMUM_RUNS_PER_GROUP_PROPERTY),
                         requiredPositiveIntegerProperty(ALLOCATION_BATCH_SIZE_PROPERTY));
             }
         }
@@ -269,21 +271,23 @@ public final class Orchestrator {
     }
 
     /**
-     * Shares one bounded run budget across every selected group. Each group first receives
-     * {@code minimumRunsPerGroup}; remaining batches are distributed dynamically according to results.
+     * Selects a shared-budget policy. {@code maximumRunsPerGroup} caps runs for one group;
+     * setting it to {@code totalRunBudget} removes any effective per-group cap.
      */
-    public Orchestrator withAdaptiveGroupBudget(
-            int totalRunBudget,
-            int minimumRunsPerGroup,
-            int maximumRunsPerGroup,
-            int allocationBatchSize) {
+    public Orchestrator withGroupBudget(
+            GroupBudgetStrategy strategy, int totalRunBudget,
+            int minimumRunsPerGroup, int maximumRunsPerGroup, int allocationBatchSize) {
+
+        if (!Objects.requireNonNull(strategy).sharesCampaignBudget()) {
+            throw new IllegalArgumentException("Use iterationsPerGroup for fixed budgets");
+        }
 
         if (totalRunBudget < 1 || minimumRunsPerGroup < 1
                 || maximumRunsPerGroup < minimumRunsPerGroup || allocationBatchSize < 1) {
             throw new IllegalArgumentException(
                     "Adaptive budget requires total >= 1, minimum >= 1, maximum >= minimum, and batch >= 1");
         }
-        this.groupBudgetStrategy = GroupBudgetStrategy.ADAPTIVE_NOVELTY;
+        this.groupBudgetStrategy = strategy;
         this.totalRunBudget = totalRunBudget;
         this.minimumRunsPerGroup = minimumRunsPerGroup;
         this.maximumRunsPerGroup = maximumRunsPerGroup;
@@ -321,7 +325,7 @@ public final class Orchestrator {
                 StringUtils.toPortableString(effectiveReportsDirectory), ignoredSemanticLockSelectors(),
                 configuredGroupSelectors(), startedAt);
 
-        if (groupBudgetStrategy == GroupBudgetStrategy.ADAPTIVE_NOVELTY) {
+        if (groupBudgetStrategy.sharesCampaignBudget()) {
             progress.configureGroupBudget(
                     totalRunBudget, minimumRunsPerGroup, maximumRunsPerGroup, allocationBatchSize);
         }
@@ -337,7 +341,7 @@ public final class Orchestrator {
             driver.init();
 
             List<FunctionalityCatalog> catalogs = selectCatalogs(getCatalogs(driver), groupSelectors);
-            if (groupBudgetStrategy == GroupBudgetStrategy.ADAPTIVE_NOVELTY) {
+            if (groupBudgetStrategy.sharesCampaignBudget()) {
                 log.info("Campaign over {}: {} selected catalog(s), {} total adaptive run(s), "
                         + "range {}..{} per group, batch {}, master seed {}, schedule strategy {}",
                         springAppClass.getSimpleName(), catalogs.size(), totalRunBudget,
@@ -359,7 +363,7 @@ public final class Orchestrator {
                     plan.possiblePairs(), plan.groups().size()));
             int plannedGroups = plans.stream().mapToInt(plan -> plan.groups().size()).sum();
 
-            if (groupBudgetStrategy == GroupBudgetStrategy.ADAPTIVE_NOVELTY) {
+            if (groupBudgetStrategy.sharesCampaignBudget()) {
                 validateAdaptiveBudget(plannedGroups);
                 progress.configureGroupBudget(
                         totalRunBudget, minimumRunsPerGroup, maximumRunsPerGroup, allocationBatchSize);
@@ -377,7 +381,7 @@ public final class Orchestrator {
             // campaign would produce for this catalog/configuration/seed as intended.
             driver.setIgnoredSemanticLocks(ignoredSemanticLocks);
 
-            if (groupBudgetStrategy == GroupBudgetStrategy.ADAPTIVE_NOVELTY) {
+            if (groupBudgetStrategy.sharesCampaignBudget()) {
                 exploreAdaptiveBudget(driver, plans, progress, checkpoint);
             } else {
                 for (PlannedCatalog plan : plans) {
@@ -494,7 +498,7 @@ public final class Orchestrator {
         AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
                 List.copyOf(executions.keySet()), totalRunBudget, minimumRunsPerGroup,
                 maximumRunsPerGroup, allocationBatchSize,
-                masterSeed ^ ADAPTIVE_BUDGET_SEED_SALT);
+                masterSeed ^ ADAPTIVE_BUDGET_SEED_SALT, groupBudgetStrategy);
 
         while (allocator.hasNext()) {
             AdaptiveGroupBudgetAllocator.Allocation allocation = allocator.nextAllocation();
@@ -530,7 +534,7 @@ public final class Orchestrator {
             log.info("Adaptive allocation {}: catalog '{}', group '{}', {} run(s), reward {}, "
                     + "{} new behavior(s), {} feature-producing run(s), {} new finding family/families",
                     allocation.phase(), execution.catalog.name(), execution.group.label(),
-                    batch.size(), feedback.reward(), feedback.newBehaviors(),
+                    batch.size(), feedback.reward(groupBudgetStrategy), feedback.newBehaviors(),
                     feedback.runsAddingFeatures(), feedback.newFindingFamilies());
             log.info("{}", CampaignProgressDisplay.format(summary));
         }

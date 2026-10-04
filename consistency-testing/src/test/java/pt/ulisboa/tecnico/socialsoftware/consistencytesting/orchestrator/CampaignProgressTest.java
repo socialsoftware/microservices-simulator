@@ -98,6 +98,20 @@ class CampaignProgressTest {
     }
 
     @Test
+    void balancedAllocationReportsZeroRewardDespiteNovelty() {
+        CampaignProgress progress = new CampaignProgress(
+                "example.Application", 42L, List.of(), 10, "reads-from-guided",
+                GroupBudgetStrategy.BALANCED_REDISTRIBUTION.propertyValue(), "target/reports",
+                List.of(), List.of(), 1_000L);
+        progress.configureGroupBudget(10, 2, 10, 2);
+        progress.recordBudgetAllocation("WARMUP", "catalog", "first__second", 2, 100L, 0.0,
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 1));
+        var allocation = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null)
+                .groupBudget().allocations().getFirst();
+        assertEquals(0.0, allocation.reward());
+    }
+
+    @Test
     void unrestrictedAllGroupsTotalsAndEmptyConflictClassificationSurviveSnapshots() {
         CampaignProgress progress = new CampaignProgress(
                 "example.Application", 42L, List.of(), 20, "random-constraints",

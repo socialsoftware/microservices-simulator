@@ -13,9 +13,9 @@ import java.util.stream.Collectors;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Deterministic campaign-level allocation using bounded novelty reward and a
- * UCB exploration bonus. Every group receives its minimum before feedback can
- * influence allocation.
+ * Deterministic campaign-level allocation using either least-sampled balancing
+ * or novelty reward with a UCB exploration bonus. Every group receives its
+ * minimum before feedback can influence allocation.
  */
 final class AdaptiveGroupBudgetAllocator {
 
@@ -61,9 +61,18 @@ final class AdaptiveGroupBudgetAllocator {
         }
 
         /** Sum of newly observed novelty signals for this batch, with extra weight for new finding families. */
-        double reward() {
+        private double noveltyReward() {
             return newBehaviors + runsAddingFeatures
                     + NEW_FINDING_FAMILY_REWARD * newFindingFamilies;
+        }
+
+        double reward(GroupBudgetStrategy strategy) {
+            return switch (strategy) {
+                case BALANCED_REDISTRIBUTION -> 0.0;
+                case ADAPTIVE_NOVELTY -> noveltyReward();
+                case FIXED_PER_GROUP -> throw new IllegalArgumentException(
+                        "Fixed per-group budgeting does not use allocation feedback");
+            };
         }
     }
 
@@ -80,7 +89,10 @@ final class AdaptiveGroupBudgetAllocator {
          * @param campaignRuns number of completed runs across all groups
          * @return a larger score for groups with more reward or less exploration so far
          */
-        private double priorityScore(int campaignRuns) {
+        private double priorityScore(int campaignRuns, GroupBudgetStrategy strategy) {
+            if (strategy == GroupBudgetStrategy.BALANCED_REDISTRIBUTION) {
+                return -runs; // Serve the least-sampled active group; randomize ties.
+            }
             if (runs == 0) {
                 // Ensure every group gets its warm-up allocation before adaptive selection.
                 return Double.POSITIVE_INFINITY;
@@ -97,6 +109,7 @@ final class AdaptiveGroupBudgetAllocator {
     private final int minimumRunsPerGroup;
     private final int maximumRunsPerGroup;
     private final int batchSize;
+    private final GroupBudgetStrategy strategy;
     private final Map<GroupKey, GroupState> states;
     private final List<GroupKey> warmupOrder;
     private final Random tieBreaker;
@@ -113,6 +126,22 @@ final class AdaptiveGroupBudgetAllocator {
             int batchSize,
             long seed) {
 
+        this(groups, totalRunBudget, minimumRunsPerGroup, maximumRunsPerGroup,
+                batchSize, seed, GroupBudgetStrategy.ADAPTIVE_NOVELTY);
+    }
+
+    AdaptiveGroupBudgetAllocator(
+            List<GroupKey> groups,
+            int totalRunBudget,
+            int minimumRunsPerGroup,
+            int maximumRunsPerGroup,
+            int batchSize,
+            long seed,
+            GroupBudgetStrategy strategy) {
+
+        if (!Objects.requireNonNull(strategy).sharesCampaignBudget()) {
+            throw new IllegalArgumentException("Allocator requires a shared-budget strategy");
+        }
         if (groups.isEmpty()) {
             throw new IllegalArgumentException("Adaptive group budgeting requires at least one group");
         }
@@ -142,6 +171,7 @@ final class AdaptiveGroupBudgetAllocator {
         this.minimumRunsPerGroup = minimumRunsPerGroup;
         this.maximumRunsPerGroup = maximumRunsPerGroup;
         this.batchSize = batchSize;
+        this.strategy = strategy;
         this.warmupOrder = distinctGroups;
         this.states = new LinkedHashMap<>();
         distinctGroups.forEach(group -> states.put(group, new GroupState()));
@@ -182,7 +212,7 @@ final class AdaptiveGroupBudgetAllocator {
         // shuffle makes ties reproducible; max selects the first highest-scoring group.
         Collections.shuffle(eligible, tieBreaker);
         GroupKey selected = eligible.stream()
-                .max(Comparator.comparingDouble(group -> states.get(group).priorityScore(completedRuns)))
+                .max(Comparator.comparingDouble(group -> states.get(group).priorityScore(completedRuns, strategy)))
                 .orElseThrow();
         GroupState selectedState = states.get(selected);
 
@@ -190,7 +220,7 @@ final class AdaptiveGroupBudgetAllocator {
         int requestedRuns = Math.min(batchSize,
                 Math.min(remainingBudget, maximumRunsPerGroup - selectedState.runs));
         pending = new Allocation(
-                selected, requestedRuns, Phase.ADAPTIVE, selectedState.priorityScore(completedRuns));
+                selected, requestedRuns, Phase.ADAPTIVE, selectedState.priorityScore(completedRuns, strategy));
         return pending;
     }
 
@@ -212,7 +242,7 @@ final class AdaptiveGroupBudgetAllocator {
         }
         GroupState state = states.get(allocation.group());
         state.runs += feedback.completedRuns();
-        state.reward += feedback.reward();
+        state.reward += feedback.reward(strategy);
         state.stopped = stopped;
         completedRuns += feedback.completedRuns();
         pending = null;
@@ -223,6 +253,6 @@ final class AdaptiveGroupBudgetAllocator {
     }
 
     double priorityScore(GroupKey group) {
-        return states.get(group).priorityScore(completedRuns);
+        return states.get(group).priorityScore(completedRuns, strategy);
     }
 }

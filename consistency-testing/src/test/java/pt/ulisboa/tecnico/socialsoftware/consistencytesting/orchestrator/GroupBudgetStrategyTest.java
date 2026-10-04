@@ -13,6 +13,8 @@ class GroupBudgetStrategyTest {
                 GroupBudgetStrategy.parse("fixed-per-group"));
         assertEquals(GroupBudgetStrategy.ADAPTIVE_NOVELTY,
                 GroupBudgetStrategy.parse("adaptive-novelty"));
+        assertEquals(GroupBudgetStrategy.BALANCED_REDISTRIBUTION,
+                GroupBudgetStrategy.parse("balanced-redistribution"));
     }
 
     @Test

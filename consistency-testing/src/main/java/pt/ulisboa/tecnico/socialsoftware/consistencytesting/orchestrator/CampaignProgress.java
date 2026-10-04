@@ -110,7 +110,8 @@ final class CampaignProgress {
 
         budgetAllocations.add(new OrchestrationReport.BudgetAllocation(
                 budgetAllocations.size(), phase, catalog, group,
-                requestedRuns, feedback.completedRuns(), durationMillis, priorityScore, feedback.reward(),
+                requestedRuns, feedback.completedRuns(), durationMillis, priorityScore,
+                feedback.reward(GroupBudgetStrategy.parse(groupBudgetStrategy)),
                 feedback.newBehaviors(), feedback.runsAddingFeatures(), feedback.newFindingFamilies()));
     }
 
