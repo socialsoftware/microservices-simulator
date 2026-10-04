@@ -9,7 +9,9 @@ public enum GroupBudgetStrategy {
     /** Shares campaign budget, prioritizing groups by novelty and exploration. */
     ADAPTIVE_NOVELTY("adaptive-novelty"),
     /** Shares campaign budget among least-sampled active groups. */
-    BALANCED_REDISTRIBUTION("balanced-redistribution");
+    BALANCED_REDISTRIBUTION("balanced-redistribution"),
+    /** Priority is based on recent realized cross-saga reads-from novelty. */
+    ADAPTIVE_READS_FROM("adaptive-reads-from");
 
     private final String propertyValue;
 

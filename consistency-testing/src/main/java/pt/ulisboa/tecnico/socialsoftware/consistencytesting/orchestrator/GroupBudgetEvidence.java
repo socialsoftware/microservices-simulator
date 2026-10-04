@@ -6,6 +6,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromTarget;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator.AdaptiveGroupBudgetAllocator.BatchFeedback;
@@ -17,11 +19,13 @@ final class GroupBudgetEvidence {
     private final Set<String> behaviors = new HashSet<>();
     private final Set<String> features = new HashSet<>();
     private final Set<String> findingFamilies = new HashSet<>();
+    private final Set<ReadsFromTarget> readsFrom = new HashSet<>();
 
     BatchFeedback observe(List<TestResult> results) {
         int newBehaviors = 0;
         int runsAddingFeatures = 0;
         int newFindingFamilies = 0;
+        int previousReadsFromCount = readsFrom.size();
 
         for (TestResult result : results) {
             if (result.statuses().contains(TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED)
@@ -32,6 +36,7 @@ final class GroupBudgetEvidence {
                 continue;
             }
             BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
+            recordReadsFromTargets(result);
             if (behaviors.add(fingerprint.hash())) {
                 newBehaviors++;
             }
@@ -46,7 +51,21 @@ final class GroupBudgetEvidence {
             }
         }
 
-        return new BatchFeedback(results.size(), newBehaviors, runsAddingFeatures, newFindingFamilies);
+        return new BatchFeedback(results.size(), newBehaviors, runsAddingFeatures,
+                newFindingFamilies, readsFrom.size() - previousReadsFromCount);
+    }
+
+    /** Records stable cross-saga reads-from targets, excluding initial-state writes. */
+    private void recordReadsFromTargets(TestResult result) {
+        result.readsFromRelations().stream()
+                .filter(relation -> relation.writer().isIdentityStableAcrossRuns()
+                        && relation.reader().isIdentityStableAcrossRuns()
+                        && !relation.writer().equals(StepId.forInitialStateSetupStep())
+                        && !relation.writer().getFunctionalityId().equals(
+                                relation.reader().getFunctionalityId()))
+                .map(relation -> new ReadsFromTarget(
+                        relation.writer(), relation.reader(), relation.aggregateType()))
+                .forEach(readsFrom::add);
     }
 
     int uniqueFindingFamilies() {

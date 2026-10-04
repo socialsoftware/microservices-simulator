@@ -50,7 +50,7 @@ class OrchestratorGroupBudgetTest {
 
     @Test
     void explicitMaximumIsStillValidated() {
-        configure(GroupBudgetStrategy.BALANCED_REDISTRIBUTION);
+        configure(GroupBudgetStrategy.ADAPTIVE_READS_FROM);
         System.setProperty("consistency.maximumRunsPerGroup", "1");
         assertThrows(IllegalArgumentException.class, () -> Orchestrator.of(getClass()));
     }

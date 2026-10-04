@@ -73,13 +73,13 @@ class CampaignProgressTest {
 
         // Record the warm-up allocation and initial snapshot for this group.
         AdaptiveGroupBudgetAllocator.BatchFeedback warmup =
-                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 0);
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 0, 0);
         progress.recordBudgetAllocation("WARMUP", "catalog", "first__second", 2, 100L, 0.0, warmup);
         progress.recordCompletedGroup("catalog", groupSummary(2, 0), List.of());
 
         // A later adaptive batch extends the same group snapshot and adds a finding at run four.
         AdaptiveGroupBudgetAllocator.BatchFeedback adaptive =
-                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 1, 1, 1);
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 1, 1, 1, 0);
         progress.recordBudgetAllocation("ADAPTIVE", "catalog", "first__second", 2, 80L, 2.5, adaptive);
         progress.recordCompletedGroup("catalog", groupSummary(4, 1), List.of(
                 new OrchestrationReport.Finding(
@@ -105,10 +105,25 @@ class CampaignProgressTest {
                 List.of(), List.of(), 1_000L);
         progress.configureGroupBudget(10, 2, 10, 2);
         progress.recordBudgetAllocation("WARMUP", "catalog", "first__second", 2, 100L, 0.0,
-                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 1));
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 1, 0));
         var allocation = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null)
                 .groupBudget().allocations().getFirst();
         assertEquals(0.0, allocation.reward());
+    }
+
+    @Test
+    void readsFromAllocationReportStoresItsActualReward() {
+        CampaignProgress progress = new CampaignProgress(
+                "example.Application", 42L, List.of(), 10, "reads-from-guided",
+                GroupBudgetStrategy.ADAPTIVE_READS_FROM.propertyValue(), "target/reports",
+                List.of(), List.of(), 1_000L);
+        progress.configureGroupBudget(10, 2, 10, 2);
+        progress.recordBudgetAllocation("WARMUP", "catalog", "first__second", 2, 100L, 0.0,
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 1, 3));
+        var allocation = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null)
+                .groupBudget().allocations().getFirst();
+        assertEquals(3.0, allocation.reward());
+        assertEquals(3, allocation.newReadsFromRelations());
     }
 
     @Test

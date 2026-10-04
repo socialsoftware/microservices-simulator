@@ -105,6 +105,27 @@ class AdaptiveGroupBudgetAllocatorTest {
     }
 
     @Test
+    void readsFromStrategyRewardsRelationsRatherThanFingerprintNovelty() {
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A, B), 12, 2, 12, 2, 42L, GroupBudgetStrategy.ADAPTIVE_READS_FROM);
+        allocator.observe(allocator.nextAllocation(), new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 2, 2, 1, 0));
+        allocator.observe(allocator.nextAllocation(), new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 0, 0, 0, 2));
+        assertEquals(B, allocator.nextAllocation().group());
+    }
+
+    @Test
+    void readsFromRewardForgetsAnOldBurstAfterThreeBatches() {
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A), 20, 2, 20, 2, 42L, GroupBudgetStrategy.ADAPTIVE_READS_FROM);
+        allocator.observe(allocator.nextAllocation(), new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 0, 0, 0, 100));
+        for (int batch = 0; batch < 3; batch++) {
+            allocator.observe(allocator.nextAllocation(), feedback(2, 0, 0, 0));
+        }
+        // Bound avoids tying test to exact UCB formula.
+        assertTrue(allocator.priorityScore(A) < 1.0);
+    }
+
+    @Test
     void balancedRedistributionIgnoresNoveltyAndUsesExactOddBudget() {
         AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
                 List.of(A, B), 11, 2, 11, 1, 42L, GroupBudgetStrategy.BALANCED_REDISTRIBUTION);
@@ -112,10 +133,40 @@ class AdaptiveGroupBudgetAllocatorTest {
             var allocation = allocator.nextAllocation();
             boolean novel = allocation.group().equals(A);
             allocator.observe(allocation, new AdaptiveGroupBudgetAllocator.BatchFeedback(
-                    allocation.requestedRuns(), novel ? allocation.requestedRuns() : 0, 0, 0));
+                    allocation.requestedRuns(), novel ? allocation.requestedRuns() : 0, 0, 0, novel ? 100 : 0));
         }
         assertEquals(11, allocator.completedRuns(A) + allocator.completedRuns(B));
         assertTrue(Math.abs(allocator.completedRuns(A) - allocator.completedRuns(B)) <= 1);
+    }
+
+    @Test
+    void readsFromPriorityMovesToNewEvidenceAfterOldEvidenceDecays() {
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A, B), 20, 2, 20, 2, 42L, GroupBudgetStrategy.ADAPTIVE_READS_FROM);
+        allocator.observe(allocator.nextAllocation(), new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 0, 0, 0, 12));
+        allocator.observe(allocator.nextAllocation(), feedback(2, 0, 0, 0));
+        for (int batch = 0; batch < 3; batch++) {
+            var allocation = allocator.nextAllocation();
+            assertEquals(A, allocation.group());
+            allocator.observe(allocation, feedback(2, 0, 0, 0));
+        }
+        var newEvidence = allocator.nextAllocation();
+        assertEquals(B, newEvidence.group());
+        allocator.observe(newEvidence, new AdaptiveGroupBudgetAllocator.BatchFeedback(2, 0, 0, 0, 8));
+        assertEquals(B, allocator.nextAllocation().group());
+    }
+
+    @Test
+    void activeGroupConsumesRemainingBudgetAfterAnotherStops() {
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A, B), 100, 2, 100, 2, 42L, GroupBudgetStrategy.ADAPTIVE_READS_FROM);
+        allocator.observe(allocator.nextAllocation(), feedback(1, 0, 0, 0), true);
+        while (allocator.hasNext()) {
+            var allocation = allocator.nextAllocation();
+            assertEquals(B, allocation.group());
+            allocator.observe(allocation, feedback(allocation.requestedRuns(), 0, 0, 0));
+        }
+        assertEquals(99, allocator.completedRuns(B));
     }
 
     private static List<AdaptiveGroupBudgetAllocator.GroupKey> runSequence(long seed) {
@@ -141,6 +192,6 @@ class AdaptiveGroupBudgetAllocatorTest {
             int runs, int behaviors, int featureRuns, int findingFamilies) {
 
         return new AdaptiveGroupBudgetAllocator.BatchFeedback(
-                runs, behaviors, featureRuns, findingFamilies);
+                runs, behaviors, featureRuns, findingFamilies, 0);
     }
 }

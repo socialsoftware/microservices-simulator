@@ -273,7 +273,9 @@ public record OrchestrationReport(
             double reward,
             int newBehaviors,
             int runsAddingFeatures,
-            int newFindingFamilies) {
+            int newFindingFamilies,
+            /** Previously unseen stable cross-saga reads-from targets realized by this batch. */
+            int newReadsFromRelations) {
 
         public BudgetAllocation {
             if (sequence < 0 || requestedRuns < 1 || completedRuns < 1
@@ -281,7 +283,8 @@ public record OrchestrationReport(
                     || !Double.isFinite(priorityScore) || !Double.isFinite(reward)
                     || reward < 0.0 || newBehaviors < 0 || newBehaviors > completedRuns
                     || runsAddingFeatures < 0 || runsAddingFeatures > completedRuns
-                    || newFindingFamilies < 0 || newFindingFamilies > completedRuns) {
+                    || newFindingFamilies < 0 || newFindingFamilies > completedRuns
+                    || newReadsFromRelations < 0) {
                 throw new IllegalArgumentException("Invalid group budget allocation evidence");
             }
         }

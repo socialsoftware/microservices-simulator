@@ -1,8 +1,10 @@
 package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.Deque;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ final class AdaptiveGroupBudgetAllocator {
     private static final double EXPLORATION_WEIGHT = 2.0;
     // Gives newly discovered bug families extra weight in the reward.
     private static final double NEW_FINDING_FAMILY_REWARD = 4.0;
+    /** Number of recent allocation batches used for reads-from reward. */
+    private static final int READS_FROM_RECENT_BATCHES = 3;
 
     record GroupKey(String catalog, String group) implements Comparable<GroupKey> {
         GroupKey {
@@ -49,13 +53,14 @@ final class AdaptiveGroupBudgetAllocator {
             int completedRuns,
             int newBehaviors,
             int runsAddingFeatures,
-            int newFindingFamilies) {
-
+            int newFindingFamilies,
+            int newReadsFromRelations) {
         BatchFeedback {
             if (completedRuns < 1
                     || newBehaviors < 0 || newBehaviors > completedRuns
                     || runsAddingFeatures < 0 || runsAddingFeatures > completedRuns
-                    || newFindingFamilies < 0 || newFindingFamilies > completedRuns) {
+                    || newFindingFamilies < 0 || newFindingFamilies > completedRuns
+                    || newReadsFromRelations < 0) {
                 throw new IllegalArgumentException("Invalid adaptive budget batch feedback");
             }
         }
@@ -68,6 +73,7 @@ final class AdaptiveGroupBudgetAllocator {
 
         double reward(GroupBudgetStrategy strategy) {
             return switch (strategy) {
+                case ADAPTIVE_READS_FROM -> newReadsFromRelations;
                 case BALANCED_REDISTRIBUTION -> 0.0;
                 case ADAPTIVE_NOVELTY -> noveltyReward();
                 case FIXED_PER_GROUP -> throw new IllegalArgumentException(
@@ -81,6 +87,8 @@ final class AdaptiveGroupBudgetAllocator {
         private int runs;
         private double reward;
         private boolean stopped;
+        /** Recent feedback retained for reads-from reward. Deque supports append and oldest-first removal. */
+        private final Deque<BatchFeedback> recent = new ArrayDeque<>();
 
         /**
          * Scores a group by its observed average reward plus a bonus for limited sampling.
@@ -97,7 +105,10 @@ final class AdaptiveGroupBudgetAllocator {
                 // Ensure every group gets its warm-up allocation before adaptive selection.
                 return Double.POSITIVE_INFINITY;
             }
-            double meanReward = reward / runs;
+            double meanReward = strategy == GroupBudgetStrategy.ADAPTIVE_READS_FROM
+                    ? (double) recent.stream().mapToInt(BatchFeedback::newReadsFromRelations).sum()
+                            / recent.stream().mapToInt(BatchFeedback::completedRuns).sum()
+                    : reward / runs;
             // This bonus favors groups with fewer runs, so they keep a chance to reveal useful behavior.
             double exploration = EXPLORATION_WEIGHT
                     * Math.sqrt(Math.log(Math.max(2, campaignRuns)) / runs);
@@ -243,6 +254,10 @@ final class AdaptiveGroupBudgetAllocator {
         GroupState state = states.get(allocation.group());
         state.runs += feedback.completedRuns();
         state.reward += feedback.reward(strategy);
+        state.recent.addLast(feedback);
+        if (state.recent.size() > READS_FROM_RECENT_BATCHES) {
+            state.recent.removeFirst();
+        }
         state.stopped = stopped;
         completedRuns += feedback.completedRuns();
         pending = null;

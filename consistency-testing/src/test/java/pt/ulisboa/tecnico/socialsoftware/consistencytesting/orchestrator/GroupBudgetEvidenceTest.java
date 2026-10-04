@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Test;
 
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.FunctionalityId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.InterInvariantViolation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromRelation;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepEffect;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepKind;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ScheduleTrace;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockActivity;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.SemanticLockId;
@@ -23,6 +26,29 @@ import pt.ulisboa.tecnico.socialsoftware.ms.exception.SimulatorException;
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState;
 
 class GroupBudgetEvidenceTest {
+
+    @Test
+    void countsRealizedCrossSagaRelationsOnceDespiteChangingDatabaseIds() {
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        StepId writer = StepId.forCompensationStep(FunctionalityId.forSagaFunctionality("first"), "write");
+        StepId reader = StepId.forFunctionalityStep(FunctionalityId.forSagaFunctionality("second"), "read");
+        assertEquals(1, evidence.observe(List.of(rfResult(writer, reader, 1))).newReadsFromRelations());
+        assertEquals(0, evidence.observe(List.of(rfResult(writer, reader, 100))).newReadsFromRelations());
+        assertEquals(0, evidence.observe(List.of(rfResult(reader, reader, 101))).newReadsFromRelations());
+        assertEquals(0, evidence.observe(List.of(
+                rfResult(StepId.forInitialStateSetupStep(), reader, 102))).newReadsFromRelations());
+        // Event-handler StepId identities are unstable across runs, so this target is excluded.
+        assertEquals(0, evidence.observe(List.of(rfResult(StepId.forEventHandlerStep(
+                FunctionalityId.forSagaFunctionality("event")), reader, 103))).newReadsFromRelations());
+    }
+
+    private static TestResult rfResult(StepId writer, StepId reader, int id) {
+        List<StepEffect> effects = List.of(
+                new StepEffect(0, writer, StepKind.COMPENSATION, StepEffect.EffectKind.WRITE, id, "Quiz"),
+                new StepEffect(1, reader, StepKind.FUNCTIONALITY, StepEffect.EffectKind.READ, id, "Quiz"));
+        return new TestResult(new StepDependencies(), new StepDependencies(), Map.of(), List.of(writer, reader),
+                Map.of(), Set.of(), effects, ReadsFromRelation.deriveAll(effects), List.of(), List.of(), Map.of());
+    }
 
     @Test
     void countsOnlyMarginalBehaviorFeaturesAndFindingFamilies() {

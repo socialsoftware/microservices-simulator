@@ -112,7 +112,8 @@ final class CampaignProgress {
                 budgetAllocations.size(), phase, catalog, group,
                 requestedRuns, feedback.completedRuns(), durationMillis, priorityScore,
                 feedback.reward(GroupBudgetStrategy.parse(groupBudgetStrategy)),
-                feedback.newBehaviors(), feedback.runsAddingFeatures(), feedback.newFindingFamilies()));
+                feedback.newBehaviors(), feedback.runsAddingFeatures(), feedback.newFindingFamilies(),
+                feedback.newReadsFromRelations()));
     }
 
     void recordCompletedGroup(
