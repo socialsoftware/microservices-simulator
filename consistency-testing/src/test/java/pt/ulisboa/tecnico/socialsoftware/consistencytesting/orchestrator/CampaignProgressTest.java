@@ -6,13 +6,61 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.stream.IntStream;
 
 import org.junit.jupiter.api.Test;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralSignals;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
 
 class CampaignProgressTest {
+
+    @Test
+    void fixedAllocationsKeepTimingAndEvidenceWithoutRequestingAnAdaptiveReward() {
+        CampaignProgress progress = new CampaignProgress(
+                "example.Application", 1L, List.of(), 30, "uniform-random",
+                GroupBudgetStrategy.FIXED_PER_GROUP.propertyValue(), "target/reports",
+                List.of(), List.of(), 1_000L);
+        progress.registerCatalog("catalog", 2, 3, 2);
+        progress.configureGroupBudget(60, 30, 30, 30);
+        progress.recordBudgetAllocation("FIXED", "catalog", "first__second", 30, 200L, 0.0,
+                new AdaptiveGroupBudgetAllocator.BatchFeedback(30, 3, 2, 1, 4));
+        var budget = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null).groupBudget();
+        var allocation = budget.allocations().getFirst();
+        assertEquals("fixed-per-group", budget.strategy());
+        assertEquals(0.0, allocation.reward());
+        assertEquals(30, allocation.completedRuns());
+        assertEquals(200L, allocation.durationMillis());
+        assertEquals(3, allocation.newBehaviors());
+        assertEquals(4, allocation.newReadsFromRelations());
+    }
+
+    @Test
+    void signalAllocationReportIdentifiesItsMetricAndActualReward() throws Exception {
+        CampaignProgress progress = new CampaignProgress(
+                "example.Application", 42L, List.of(), 10, "feedback-signals",
+                GroupBudgetStrategy.ADAPTIVE_SIGNALS.propertyValue(), "target/reports", List.of(), List.of(), 1_000L);
+        progress.configureGroupBudget(10, 2, 10, 2);
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        var result = new TestResult(
+                new StepDependencies(),
+                new StepDependencies(),
+                Map.of(), List.of(), Map.of(), Set.of(), List.of(), Set.of(), List.of(), List.of(), Map.of());
+        progress.recordBudgetAllocation("WARMUP", "catalog", "first__second", 2, 100L, 0.0,
+                evidence.observe(List.of(result, result)));
+        var budget = progress.snapshot(OrchestrationReport.CampaignStatus.RUNNING, null).groupBudget();
+        assertEquals(BehavioralSignals.SCHEMA, budget.noveltyMetricSchema());
+        assertEquals(1.0, budget.allocations().getFirst().reward());
+        ObjectMapper mapper = new ObjectMapper();
+        String json = mapper.writeValueAsString(budget);
+        assertEquals(BehavioralSignals.SCHEMA, mapper.readTree(json).path("noveltyMetricSchema").asText());
+        assertEquals(budget, mapper.readValue(json, OrchestrationReport.GroupBudgetReport.class));
+    }
 
     @Test
     void snapshotsKeepCompletedGroupsWhileLeavingTheRemainingPlanVisible() {

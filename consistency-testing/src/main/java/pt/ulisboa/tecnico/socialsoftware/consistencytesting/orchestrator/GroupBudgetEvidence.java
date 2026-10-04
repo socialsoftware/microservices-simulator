@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralFingerprint;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.NoveltyMetric;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.ReadsFromTarget;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepId;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
@@ -16,10 +16,15 @@ import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.TestDrive
 /** Group-local novelty state used for campaign budget decisions. */
 final class GroupBudgetEvidence {
 
+    private final NoveltyMetric noveltyMetric;
     private final Set<String> behaviors = new HashSet<>();
     private final Set<String> features = new HashSet<>();
     private final Set<String> findingFamilies = new HashSet<>();
     private final Set<ReadsFromTarget> readsFrom = new HashSet<>();
+
+    GroupBudgetEvidence(GroupBudgetStrategy strategy) {
+        this.noveltyMetric = strategy.noveltyMetric();
+    }
 
     BatchFeedback observe(List<TestResult> results) {
         int newBehaviors = 0;
@@ -35,18 +40,18 @@ final class GroupBudgetEvidence {
                 // do NOT provide useful budget feedback
                 continue;
             }
-            BehavioralFingerprint fingerprint = BehavioralFingerprint.from(result);
+            NoveltyMetric.Observation novelty = noveltyMetric.measure(result);
             recordReadsFromTargets(result);
-            if (behaviors.add(fingerprint.hash())) {
+            if (behaviors.add(novelty.hash())) {
                 newBehaviors++;
             }
             int previousFeatureCount = features.size();
-            features.addAll(fingerprint.features());
+            features.addAll(novelty.features());
             if (features.size() > previousFeatureCount) {
                 runsAddingFeatures++;
             }
             if (TestDriver.isFinding(result)
-                    && findingFamilies.add(findingFamilyOf(fingerprint))) {
+                    && findingFamilies.add(findingFamilyOf(novelty.features()))) {
                 newFindingFamilies++;
             }
         }
@@ -73,11 +78,11 @@ final class GroupBudgetEvidence {
     }
 
     /** Avoids rewarding concrete IDs or every repeated instance of one bug. */
-    private static String findingFamilyOf(BehavioralFingerprint fingerprint) {
+    private static String findingFamilyOf(List<String> features) {
         // Keep status and finding outcome fields. Ignore step, effect, conflict,
         // reads-from, and semantic-lock features because they describe execution
         // details that can vary between occurrences of the same underlying bug.
-        return fingerprint.features().stream()
+        return features.stream()
                 .filter(feature -> feature.startsWith("status|")
                         || feature.startsWith("inter-invariant-violation|")
                         || feature.startsWith("exception|"))

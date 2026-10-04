@@ -10,6 +10,8 @@ import java.util.stream.Collectors;
 
 import org.jspecify.annotations.Nullable;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.BehavioralCoverage;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.testDriver.ScheduleExplorationStrategy;
 import pt.ulisboa.tecnico.socialsoftware.consistencytesting.utils.StringUtils;
@@ -246,6 +248,12 @@ public record OrchestrationReport(
             if (completedRuns > plannedRunBudget) {
                 throw new IllegalArgumentException("Budget allocations exceed planned run budget");
             }
+        }
+
+        /** Schema of allocation newBehaviors/runsAddingFeatures. */
+        @JsonProperty(value = "noveltyMetricSchema", access = JsonProperty.Access.READ_ONLY)
+        public String noveltyMetricSchema() {
+            return GroupBudgetStrategy.parse(strategy).noveltyMetric().schema();
         }
 
         static GroupBudgetReport fixed(int plannedRunBudget, int iterationsPerGroup) {

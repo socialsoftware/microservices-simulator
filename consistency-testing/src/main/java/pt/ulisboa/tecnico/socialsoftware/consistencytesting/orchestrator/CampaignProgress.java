@@ -108,10 +108,12 @@ final class CampaignProgress {
             double priorityScore,
             AdaptiveGroupBudgetAllocator.BatchFeedback feedback) {
 
+        GroupBudgetStrategy strategy = GroupBudgetStrategy.parse(groupBudgetStrategy);
+        double reward = strategy.sharesCampaignBudget() ? feedback.reward(strategy) : 0.0;
         budgetAllocations.add(new OrchestrationReport.BudgetAllocation(
                 budgetAllocations.size(), phase, catalog, group,
                 requestedRuns, feedback.completedRuns(), durationMillis, priorityScore,
-                feedback.reward(GroupBudgetStrategy.parse(groupBudgetStrategy)),
+                reward,
                 feedback.newBehaviors(), feedback.runsAddingFeatures(), feedback.newFindingFamilies(),
                 feedback.newReadsFromRelations()));
     }

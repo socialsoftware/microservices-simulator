@@ -75,7 +75,7 @@ final class AdaptiveGroupBudgetAllocator {
             return switch (strategy) {
                 case ADAPTIVE_READS_FROM -> newReadsFromRelations;
                 case BALANCED_REDISTRIBUTION -> 0.0;
-                case ADAPTIVE_NOVELTY -> noveltyReward();
+                case ADAPTIVE_NOVELTY, ADAPTIVE_SIGNALS -> noveltyReward();
                 case FIXED_PER_GROUP -> throw new IllegalArgumentException(
                         "Fixed per-group budgeting does not use allocation feedback");
             };

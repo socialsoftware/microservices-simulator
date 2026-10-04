@@ -6,9 +6,16 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
+
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.StepDependencies;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestResult;
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.TestStatus;
 
 class AdaptiveGroupBudgetAllocatorTest {
 
@@ -16,6 +23,38 @@ class AdaptiveGroupBudgetAllocatorTest {
             new AdaptiveGroupBudgetAllocator.GroupKey("catalog", "a");
     private static final AdaptiveGroupBudgetAllocator.GroupKey B =
             new AdaptiveGroupBudgetAllocator.GroupKey("catalog", "b");
+
+    @Test
+    void signalAllocationPrioritizesSignalNoveltyAndRetiresStoppedGroups() {
+        GroupBudgetEvidence firstEvidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        GroupBudgetEvidence secondEvidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        AdaptiveGroupBudgetAllocator allocator = new AdaptiveGroupBudgetAllocator(
+                List.of(A, B), 10, 2, 10, 2, 42L, GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        var normal = signalResult(Set.of());
+        var violation = signalResult(Set.of(
+                TestStatus.INTER_INVARIANT_VIOLATION));
+        allocator.observe(allocator.nextAllocation(), firstEvidence.observe(List.of(normal, normal)));
+        allocator.observe(allocator.nextAllocation(), secondEvidence.observe(List.of(normal, violation)));
+        var selected = allocator.nextAllocation();
+        assertEquals(B, selected.group());
+        allocator.observe(selected, secondEvidence.observe(List.of(violation)), true);
+        while (allocator.hasNext()) {
+            var allocation = allocator.nextAllocation();
+            assertEquals(A, allocation.group());
+            allocator.observe(allocation, firstEvidence.observe(
+                    Collections.nCopies(allocation.requestedRuns(), normal)));
+        }
+        assertEquals(10, allocator.completedRuns(A) + allocator.completedRuns(B));
+        assertEquals(3, allocator.completedRuns(B));
+    }
+
+    private static TestResult signalResult(Set<TestStatus> statuses) {
+        return new TestResult(
+                new StepDependencies(),
+                new StepDependencies(),
+                Map.of(), List.of(), Map.of(), statuses,
+                List.of(), Set.of(), List.of(), List.of(), Map.of());
+    }
 
     @Test
     void warmsEveryGroupBeforeUsingFeedback() {

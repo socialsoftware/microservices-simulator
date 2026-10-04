@@ -17,6 +17,8 @@ class GroupBudgetStrategyTest {
                 GroupBudgetStrategy.parse("adaptive-reads-from"));
         assertEquals(GroupBudgetStrategy.BALANCED_REDISTRIBUTION,
                 GroupBudgetStrategy.parse("balanced-redistribution"));
+        assertEquals(GroupBudgetStrategy.ADAPTIVE_SIGNALS,
+                GroupBudgetStrategy.parse("adaptive-signals"));
     }
 
     @Test

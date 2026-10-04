@@ -459,7 +459,8 @@ public final class Orchestrator {
 
             List<OrchestrationReport.Finding> groupFindings = findingsOf(catalog, group, results);
             OrchestrationReport.GroupSummary groupSummary = summaryOf(group, results, groupFindings.size());
-            AdaptiveGroupBudgetAllocator.BatchFeedback feedback = new GroupBudgetEvidence().observe(results);
+            AdaptiveGroupBudgetAllocator.BatchFeedback feedback =
+                    new GroupBudgetEvidence(GroupBudgetStrategy.FIXED_PER_GROUP).observe(results);
             progress.recordBudgetAllocation(
                     "FIXED", catalog.name(), group.label(), results.size(),
                     allocationDurationMillis, 0.0, feedback);
@@ -491,7 +492,7 @@ public final class Orchestrator {
                 AdaptiveGroupBudgetAllocator.GroupKey key = new AdaptiveGroupBudgetAllocator.GroupKey(
                         plan.catalog().name(), group.label());
                 executions.put(key, new AdaptiveGroupExecution(
-                        plan.catalog(), group, driver.startGroupExploration(plan.catalog(), group)));
+                        plan.catalog(), group, driver.startGroupExploration(plan.catalog(), group), groupBudgetStrategy));
             }
         }
 
@@ -979,18 +980,20 @@ public final class Orchestrator {
         private final FunctionalityCatalog catalog;
         private final FunctionalityGroup group;
         private final TestDriver.GroupExplorationSession session;
-        private final GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        private final GroupBudgetEvidence evidence;
         private final List<TestResult> results = new ArrayList<>();
         private int findingCount;
 
         private AdaptiveGroupExecution(
                 FunctionalityCatalog catalog,
                 FunctionalityGroup group,
-                TestDriver.GroupExplorationSession session) {
+                TestDriver.GroupExplorationSession session,
+                GroupBudgetStrategy strategy) {
 
             this.catalog = catalog;
             this.group = group;
             this.session = session;
+            this.evidence = new GroupBudgetEvidence(strategy);
         }
     }
 

@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.consistencytesting.orchestrator;
 
 import java.util.Arrays;
 
+import pt.ulisboa.tecnico.socialsoftware.consistencytesting.oracle.NoveltyMetric;
+
 /** How a campaign distributes oracle runs across planned groups. */
 public enum GroupBudgetStrategy {
     /** Gives every group the configured fixed number of oracle runs. */
@@ -11,7 +13,9 @@ public enum GroupBudgetStrategy {
     /** Shares campaign budget among least-sampled active groups. */
     BALANCED_REDISTRIBUTION("balanced-redistribution"),
     /** Priority is based on recent realized cross-saga reads-from novelty. */
-    ADAPTIVE_READS_FROM("adaptive-reads-from");
+    ADAPTIVE_READS_FROM("adaptive-reads-from"),
+    /** Shares campaign budget using behavioral-signal novelty and exploration. */
+    ADAPTIVE_SIGNALS("adaptive-signals");
 
     private final String propertyValue;
 
@@ -26,6 +30,16 @@ public enum GroupBudgetStrategy {
     /** Returns whether strategy allocates one campaign-wide run budget. */
     public boolean sharesCampaignBudget() {
         return this != FIXED_PER_GROUP;
+    }
+
+    /**
+     * Metric for the reported behavior/feature evidence.
+     * {@link #ADAPTIVE_READS_FROM} uses its separate relation reward.
+     */
+    public NoveltyMetric noveltyMetric() {
+        return this == ADAPTIVE_SIGNALS
+                ? NoveltyMetric.BEHAVIORAL_SIGNALS
+                : NoveltyMetric.DETAILED_FINGERPRINT;
     }
 
     public static GroupBudgetStrategy parse(String value) {

@@ -28,8 +28,36 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 class GroupBudgetEvidenceTest {
 
     @Test
+    void signalNoveltyIgnoresStepChangesButRetainsNewFindingFamilies() {
+        GroupBudgetEvidence signals = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        var first = signals.observe(List.of(result("step", null), result("step", "maximum-tournaments")));
+        var later = signals.observe(List.of(result("renamed", "maximum-tournaments"),
+                result("step", "unique-owner")));
+        assertEquals(2, first.newBehaviors());
+        assertEquals(1, first.runsAddingFeatures());
+        assertEquals(1, first.newFindingFamilies());
+        assertEquals(7.0, first.reward(GroupBudgetStrategy.ADAPTIVE_SIGNALS));
+        assertEquals(1, later.newBehaviors());
+        assertEquals(1, later.runsAddingFeatures());
+        assertEquals(1, later.newFindingFamilies());
+        assertEquals(2, signals.uniqueFindingFamilies());
+    }
+
+    @Test
+    void signalAllocationDoesNotRewardIncompleteRunsOrProtectedLockRejections() {
+        GroupBudgetEvidence signals = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_SIGNALS);
+        var feedback = signals.observe(List.of(
+                result("failed", null, TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED),
+                result("limited", null, TestStatus.EXECUTION_LIMIT_EXCEEDED),
+                protectedSemanticLockConflict()));
+        assertEquals(0.0, feedback.reward(GroupBudgetStrategy.ADAPTIVE_SIGNALS));
+        assertEquals(0, feedback.newReadsFromRelations());
+        assertEquals(0, signals.uniqueFindingFamilies());
+    }
+
+    @Test
     void countsRealizedCrossSagaRelationsOnceDespiteChangingDatabaseIds() {
-        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_NOVELTY);
         StepId writer = StepId.forCompensationStep(FunctionalityId.forSagaFunctionality("first"), "write");
         StepId reader = StepId.forFunctionalityStep(FunctionalityId.forSagaFunctionality("second"), "read");
         assertEquals(1, evidence.observe(List.of(rfResult(writer, reader, 1))).newReadsFromRelations());
@@ -52,7 +80,7 @@ class GroupBudgetEvidenceTest {
 
     @Test
     void countsOnlyMarginalBehaviorFeaturesAndFindingFamilies() {
-        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_NOVELTY);
         TestResult normal = result("step", null);
         TestResult firstFinding = result("step", "maximum-tournaments");
 
@@ -73,7 +101,7 @@ class GroupBudgetEvidenceTest {
 
     @Test
     void doesNotRewardInterdependencyResolutionFailures() {
-        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_NOVELTY);
         TestResult failed = result("failed", null, TestStatus.INTERDEPENDENCY_RESOLUTION_FAILED);
 
         AdaptiveGroupBudgetAllocator.BatchFeedback feedback = evidence.observe(List.of(failed));
@@ -86,7 +114,7 @@ class GroupBudgetEvidenceTest {
 
     @Test
     void doesNotRewardExecutionLimitFailures() {
-        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_NOVELTY);
         TestResult failed = result("failed", null, TestStatus.EXECUTION_LIMIT_EXCEEDED);
 
         AdaptiveGroupBudgetAllocator.BatchFeedback feedback = evidence.observe(List.of(failed));
@@ -99,7 +127,7 @@ class GroupBudgetEvidenceTest {
 
     @Test
     void doesNotTreatAProtectedSemanticLockConflictAsAFindingOrReward() {
-        GroupBudgetEvidence evidence = new GroupBudgetEvidence();
+        GroupBudgetEvidence evidence = new GroupBudgetEvidence(GroupBudgetStrategy.ADAPTIVE_NOVELTY);
         TestResult protectedConflict = protectedSemanticLockConflict();
 
         AdaptiveGroupBudgetAllocator.BatchFeedback feedback = evidence.observe(List.of(protectedConflict));
