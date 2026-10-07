@@ -25,6 +25,15 @@ import pt.ulisboa.tecnico.socialsoftware.ms.versioning.IVersionService
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.ms.versioning.VersionServiceClient
 
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWorkService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.factories.SagasStationFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.sagas.repositories.StationCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.messaging.StationCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
 
@@ -125,4 +134,34 @@ class BeanConfigurationSagas {
     }
 
     // Domain beans are added below as aggregates are implemented in Phase 2.
+
+    // Station
+    @Bean
+    SagasStationFactory sagasStationFactory() {
+        return new SagasStationFactory()
+    }
+
+    @Bean
+    StationCustomRepositorySagas stationCustomRepositorySagas() {
+        return new StationCustomRepositorySagas()
+    }
+
+    @Bean
+    StationService stationService(StationCustomRepository stationCustomRepository,
+                                  StationFactory stationFactory,
+                                  UnitOfWorkService unitOfWorkService,
+                                  AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new StationService(stationCustomRepository, stationFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
+    }
+
+    @Bean
+    StationCommandHandler stationCommandHandler() {
+        return new StationCommandHandler()
+    }
+
+    @Bean
+    StationFunctionalities stationFunctionalities() {
+        return new StationFunctionalities()
+    }
 }

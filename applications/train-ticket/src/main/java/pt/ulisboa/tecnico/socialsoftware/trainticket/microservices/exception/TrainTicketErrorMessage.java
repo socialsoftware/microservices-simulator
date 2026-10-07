@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.exception;
 public final class TrainTicketErrorMessage {
     private TrainTicketErrorMessage() {}
 
+    //geradas pelo boot-strap inicial
+
     public static final String UNDEFINED_TRANSACTIONAL_MODEL = "Undefined transactional model";
 
     public static final String AGGREGATE_BEING_USED_IN_OTHER_SAGA = "Aggregate is being used in %s saga";
@@ -27,4 +29,9 @@ public final class TrainTicketErrorMessage {
     public static final String CANNOT_MODIFY_INACTIVE_AGGREGATE = "Cannot update aggregate %d because it is INACTIVE.";
 
     public static final String PLACEHOLDER = "placeholder";
+
+    // ----------------------------------------------------------------------------------------------------------------
+
+    public static final String STATION_STAY_TIME_NON_NEGATIVE = "Station stay time cannot be null and must be non-negative.";
+    public static final String STATION_NAME_UNIQUE = "A station named %s already exists.";
 }

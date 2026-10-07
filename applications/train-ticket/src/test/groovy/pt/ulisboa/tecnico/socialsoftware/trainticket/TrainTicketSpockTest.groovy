@@ -9,11 +9,20 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggr
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.aggregate.SagaAggregate.SagaState
 import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUnitOfWorkService
 
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
 class TrainTicketSpockTest extends SpockTest {
 
     // Domain constants are added here as aggregates are implemented in Phase 2.
+
+    // Station
+    public static final String STATION_NAME = "Shang Hai"
+    public static final String STATION_NAME_2 = "Nan Jing"
+    public static final Integer STATION_STAY_TIME = 10
 
     @Autowired
     public ImpairmentService impairmentService
@@ -23,6 +32,10 @@ class TrainTicketSpockTest extends SpockTest {
     protected EntityManager entityManager
 
     // Domain @Autowired fields are added here as aggregates are implemented in Phase 2.
+    @Autowired
+    protected StationService stationService
+    @Autowired
+    protected StationFunctionalities stationFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -51,4 +64,11 @@ class TrainTicketSpockTest extends SpockTest {
     }
 
     // Domain create* helpers are added below as aggregates are implemented in Phase 2.
+
+    Integer createStation(String name = STATION_NAME, Integer stayTime = STATION_STAY_TIME) {
+        def stationDto = new StationDto()
+        stationDto.setName(name)
+        stationDto.setStayTime(stayTime)
+        return stationFunctionalities.createStation(stationDto).aggregateId
+    }
 }
