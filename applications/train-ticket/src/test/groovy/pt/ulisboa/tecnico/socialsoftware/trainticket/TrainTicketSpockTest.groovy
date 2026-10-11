@@ -12,6 +12,9 @@ import pt.ulisboa.tecnico.socialsoftware.ms.transaction.sagas.unitOfWork.SagaUni
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggregate.StationDto
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeDto
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 
 // Domain imports (DTOs, functionalities, services) are added here as aggregates are implemented in Phase 2.
 
@@ -23,6 +26,13 @@ class TrainTicketSpockTest extends SpockTest {
     public static final String STATION_NAME = "Shang Hai"
     public static final String STATION_NAME_2 = "Nan Jing"
     public static final Integer STATION_STAY_TIME = 10
+
+    // TrainType
+    public static final String TRAIN_TYPE_NAME = "GaoTieOne"
+    public static final String TRAIN_TYPE_NAME_2 = "DongCheOne"
+    public static final Integer TRAIN_TYPE_ECONOMY_CLASS_SEATS = 120
+    public static final Integer TRAIN_TYPE_FIRST_CLASS_SEATS = 60
+    public static final Integer TRAIN_TYPE_AVERAGE_SPEED = 250
 
     @Autowired
     public ImpairmentService impairmentService
@@ -36,6 +46,10 @@ class TrainTicketSpockTest extends SpockTest {
     protected StationService stationService
     @Autowired
     protected StationFunctionalities stationFunctionalities
+    @Autowired
+    protected TrainTypeService trainTypeService
+    @Autowired
+    protected TrainTypeFunctionalities trainTypeFunctionalities
 
     def loadBehaviorScripts() {
         def mavenBaseDir = System.getProperty("maven.basedir", new File(".").absolutePath)
@@ -70,5 +84,17 @@ class TrainTicketSpockTest extends SpockTest {
         stationDto.setName(name)
         stationDto.setStayTime(stayTime)
         return stationFunctionalities.createStation(stationDto).aggregateId
+    }
+
+    Integer createTrainType(String name = TRAIN_TYPE_NAME,
+                            Integer economyClassSeats = TRAIN_TYPE_ECONOMY_CLASS_SEATS,
+                            Integer firstClassSeats = TRAIN_TYPE_FIRST_CLASS_SEATS,
+                            Integer averageSpeed = TRAIN_TYPE_AVERAGE_SPEED) {
+        def trainTypeDto = new TrainTypeDto()
+        trainTypeDto.setName(name)
+        trainTypeDto.setEconomyClassSeats(economyClassSeats)
+        trainTypeDto.setFirstClassSeats(firstClassSeats)
+        trainTypeDto.setAverageSpeed(averageSpeed)
+        return trainTypeFunctionalities.createTrainType(trainTypeDto).aggregateId
     }
 }

@@ -2,6 +2,8 @@ package pt.ulisboa.tecnico.socialsoftware.trainticket;
 
 public enum ServiceMapping {
     STATION("station"),
+    TRAIN_TYPE("trainType"),
+    ROUTE("route"),
     ;
 
     private final String serviceName;

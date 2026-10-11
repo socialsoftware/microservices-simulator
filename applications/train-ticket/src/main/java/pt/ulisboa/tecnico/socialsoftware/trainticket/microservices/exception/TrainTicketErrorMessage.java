@@ -34,4 +34,14 @@ public final class TrainTicketErrorMessage {
 
     public static final String STATION_STAY_TIME_NON_NEGATIVE = "Station stay time cannot be null and must be non-negative.";
     public static final String STATION_NAME_UNIQUE = "A station named %s already exists.";
+
+    public static final String TRAIN_TYPE_SEATS_NON_NEGATIVE = "Train type seat counts cannot be null and must be non-negative.";
+    public static final String TRAIN_TYPE_SPEED_POSITIVE = "Train type average speed cannot be null and must be positive.";
+    public static final String TRAIN_TYPE_NAME_UNIQUE = "A train type named %s already exists.";
+
+    public static final String ROUTE_AT_LEAST_TWO_STOPS = "A route must have at least two stops.";
+    public static final String ROUTE_SEQUENCE_CONTIGUOUS = "Route stop sequence numbers must be exactly 0 to n-1.";
+    public static final String ROUTE_ORIGIN_AT_ZERO = "The first stop of a route must be at distance 0.";
+    public static final String ROUTE_DISTANCE_INCREASING = "Route stop distances must strictly increase along the sequence.";
+    public static final String ROUTE_NO_REPEATED_STATION = "A route cannot visit the same station twice.";
 }

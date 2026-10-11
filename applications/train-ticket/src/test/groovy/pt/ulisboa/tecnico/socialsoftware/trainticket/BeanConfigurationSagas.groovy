@@ -33,6 +33,13 @@ import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.aggre
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.coordination.functionalities.StationFunctionalities
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.messaging.StationCommandHandler
 import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.station.service.StationService
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeCustomRepository
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.TrainTypeFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.factories.SagasTrainTypeFactory
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.aggregate.sagas.repositories.TrainTypeCustomRepositorySagas
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.coordination.functionalities.TrainTypeFunctionalities
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.messaging.TrainTypeCommandHandler
+import pt.ulisboa.tecnico.socialsoftware.trainticket.microservices.traintype.service.TrainTypeService
 
 // Domain imports (factories, custom repositories, services, functionalities, command handlers,
 // event processing/handling) are added here as aggregates are implemented in Phase 2.
@@ -163,5 +170,35 @@ class BeanConfigurationSagas {
     @Bean
     StationFunctionalities stationFunctionalities() {
         return new StationFunctionalities()
+    }
+
+    // TrainType
+    @Bean
+    SagasTrainTypeFactory sagasTrainTypeFactory() {
+        return new SagasTrainTypeFactory()
+    }
+
+    @Bean
+    TrainTypeCustomRepositorySagas trainTypeCustomRepositorySagas() {
+        return new TrainTypeCustomRepositorySagas()
+    }
+
+    @Bean
+    TrainTypeService trainTypeService(TrainTypeCustomRepository trainTypeCustomRepository,
+                                      TrainTypeFactory trainTypeFactory,
+                                      UnitOfWorkService unitOfWorkService,
+                                      AggregateIdGeneratorService aggregateIdGeneratorService) {
+        return new TrainTypeService(trainTypeCustomRepository, trainTypeFactory, unitOfWorkService,
+                aggregateIdGeneratorService)
+    }
+
+    @Bean
+    TrainTypeCommandHandler trainTypeCommandHandler() {
+        return new TrainTypeCommandHandler()
+    }
+
+    @Bean
+    TrainTypeFunctionalities trainTypeFunctionalities() {
+        return new TrainTypeFunctionalities()
     }
 }
