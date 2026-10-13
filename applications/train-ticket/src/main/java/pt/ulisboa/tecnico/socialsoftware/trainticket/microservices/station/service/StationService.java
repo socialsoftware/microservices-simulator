@@ -31,6 +31,12 @@ public class StationService {
     }
 
     @Transactional(isolation = Isolation.SERIALIZABLE)
+    public StationDto getStationById(Integer stationAggregateId, UnitOfWork unitOfWork) {
+        return stationFactory.createStationDto(
+                (Station) unitOfWorkService.aggregateLoadAndRegisterRead(stationAggregateId, unitOfWork));
+    }
+
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     public StationDto createStation(StationDto stationDto, UnitOfWork unitOfWork) {
         // STATION_NAME_UNIQUE (P3, own-table uniqueness)
         if (stationCustomRepository.findStationIdByName(stationDto.getName()).isPresent()) {
