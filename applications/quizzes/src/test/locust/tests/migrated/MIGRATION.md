@@ -24,25 +24,13 @@ cd tests && ../.venv/bin/python -m locust -f migrated/<file> --headless -u 1 -r 
 - **Pass criteria.** A migrated scenario only passes if it reports `Test Succeeded!`. It quits Locust itself, and `--run-time` is only a safety cap. The default suite's `--iterations` flag belongs to locust-plugins, which isn't installed. Locust 2.46 rejects that flag, and the default runner reads the resulting error as a pass.
 - **Scheduler state.** Every scenario stops the event scheduler before `AppUtils.start()`. `/scheduler/start` registers the event polling again, so on an app whose scheduler is already running, events would otherwise be polled twice. Like the rest of the suite, a scenario ends with `AppUtils.stop()`, which leaves the scheduler stopped.
 
-## Comparing with the JMeter tests
-
-`compare_with_jmeter.sh` runs each numbered `.jmx` and then its Locust port. It restarts `quizzes-local` before every
-run, so each run starts on an empty database, which the JMeter tests need. It then prints whether each pair passes or
-fails alike, with the failed JMeter samples and Locust checks:
-
-```bash
-cd applications/quizzes/src/test/locust/tests/migrated
-./compare_with_jmeter.sh --start --tx-mode sagas      # builds and starts the stack, then compares all 10
-./compare_with_jmeter.sh --tx-mode tcc --tests 8-6,8-7  # app already running with tcc, compare a subset
-```
-
-- **Docker access.** If `docker` isn't accessible to your user, the script uses `sudo docker` and asks for the password once.
-- **Results and exit code.** Outputs go to a new `/tmp/jmeter-vs-locust-<mode>-<timestamp>/` folder, or `--results-dir`. The script exits with 1 when JMeter and Locust disagree on a test.
-- **Help.** `--help` lists every option.
-
 ## Mapping
 
-| JMeter (`jmeter/tournament/thesis-cases/`) | Locust (`tests/migrated/`) | Profiles |
+The `.jmx` files and `compare_with_jmeter.sh`, which ran each `.jmx` against its port, were deleted after the
+verification below. Commit `4df604e70` still has them, e.g.
+`git show 4df604e70:applications/quizzes/jmeter/tournament/thesis-cases/<file>.jmx`.
+
+| JMeter (`jmeter/tournament/thesis-cases/`, deleted) | Locust (`tests/migrated/`) | Profiles |
 |---|---|---|
 | `5a-updateStudentName-addParticipant-processUpdateNameEvent` | `5a_update_name_then_add_participant_test.py` | sagas, tcc |
 | `5b-addParticipant-updateStudentName-processUpdateNameEvent` | `5b_add_participant_then_update_name_test.py` | sagas, tcc |
@@ -64,11 +52,11 @@ rejected; in 8-7 the event processing is rejected. Sagas has no such conflict an
 latest state. Run on sagas, 8-6 fails because the join succeeds and the creator becomes a participant. 8-7 fails
 because the join is rejected and the event processing succeeds. Both also failed when the JMeter tests were run on sagas.
 
-## Verification against JMeter (2026-10-09)
+## Verification against JMeter (2026-10-15)
 
-Each `.jmx` was run with the benchmark script's pass rule (JMeter exit 0 and no failed sample), on a freshly started
-app per test. The Locust ports then ran once on a freshly started app. Both used the `quizzes-local` stack built from
-this branch.
+`compare_with_jmeter.sh` ran each `.jmx` and then its Locust port, restarting `quizzes-local` before every run so each
+started on an empty database. A `.jmx` passed with the benchmark script's rule: JMeter exit 0 and no failed sample.
+Both runs used the `quizzes-local` stack built from this branch, once with `TX_MODE=sagas` and once with `TX_MODE=tcc`.
 
 | Test | sagas: JMeter | sagas: Locust | tcc: JMeter | tcc: Locust |
 |---|---|---|---|---|
@@ -76,7 +64,8 @@ this branch.
 | 8-6 | fail: join returns 200, participants not empty | fail: same checks | pass | pass |
 | 8-7 | fail: join 400, event processing returns 200, participants empty | fail: same checks | pass | pass |
 
-One Locust setup failed on a database serialization conflict (see below). That is why the setup is now retried.
+In an earlier run, one Locust setup failed on a database serialization conflict (see below). That is why the setup is
+now retried.
 
 ## Known application issues
 
@@ -108,26 +97,29 @@ JMeter tests trigger them too.
   - 8-5's updates send only `aggregateId` and `numberOfQuestions`. `AppUtils.update_tournament` would also change the start and end times, which would add intentions to the concurrent updates.
 - **Dropped:** 8-9's anonymize request body, which the endpoint ignores, and 5d's disabled 1100 ms timer.
 
-## Deletion checklist
+## Deletions
 
-Not executed yet.
+Done after the verification above:
 
-- [ ] `applications/quizzes/jmeter/`: every `.jmx`, `msdb_dump.sql` and `jmeter.log` (this includes the non-numbered sagas tests, which load `jmeter/faults` CSVs)
-- [ ] `tests/migrated/compare_with_jmeter.sh` and the "Comparing with the JMeter tests" section above. They only make sense while the `.jmx` files exist.
-- [ ] `applications/quizzes/jmeter.log`
-- [ ] `src/test/resources/jmeter/`
-  - `delays/` is not referenced anywhere.
-  - `faults/` is only loaded by the non-numbered `.jmx`.
-- [ ] `src/test/groovy/.../quizzes/sagas/behaviour/`: 13 test files
-- [ ] `src/test/resources/groovy/`: all 17 CSV directories
-- [ ] The Groovy tests outside `behaviour/` that load CSVs through `loadBehaviorScripts()`:
-  - [ ] `sagas/coordination/answer/StartQuizCompensationTest.groovy`: fault CSV. Faults are no longer injected, so it can't pass.
-  - [ ] `sagas/coordination/tournament/CreateTournamentCompensationTest.groovy`: fault CSV. Same.
-  - [ ] `sagas/coordination/tournament/CreateTournamentAsyncTest.groovy`: delay-only CSV. Its assertions don't depend on the CSV.
-  - [ ] `sagas/coordination/question/UpdateQuestionTopicsAsyncTest.groovy`: delay-only CSV. Same.
-- [ ] Follow-ups once these are gone:
-  - `QuizzesSpockTest.loadBehaviorScripts()` and `mavenBaseDir` have no callers.
-  - Stale JMeter references in `scripts/benchmark-deployments.sh`, `README.md` (Benchmarking and Performance Tests), and `guides/run-maven.md` (Running JMeter tests).
+- [x] `applications/quizzes/jmeter/`: every `.jmx`, `msdb_dump.sql` and `jmeter.log` (this includes the non-numbered sagas tests, which loaded `jmeter/faults` CSVs)
+- [x] `tests/migrated/compare_with_jmeter.sh`, which only made sense while the `.jmx` files existed
+- [x] `applications/quizzes/jmeter.log`
+- [x] `src/test/resources/jmeter/`: `delays/` was not referenced anywhere, and `faults/` was only loaded by the non-numbered `.jmx`
+- [x] `src/test/groovy/.../quizzes/sagas/behaviour/`: 13 test files
+- [x] `src/test/resources/groovy/`: all 17 CSV directories
+- [x] The Groovy tests outside `behaviour/` that loaded CSVs through `loadBehaviorScripts()`:
+  - `sagas/coordination/answer/StartQuizCompensationTest.groovy`: fault CSV. Faults are no longer injected, so it couldn't pass.
+  - `sagas/coordination/tournament/CreateTournamentCompensationTest.groovy`: fault CSV. Same.
+  - `sagas/coordination/tournament/CreateTournamentAsyncTest.groovy`: delay-only CSV.
+  - `sagas/coordination/question/UpdateQuestionTopicsAsyncTest.groovy`: delay-only CSV.
+
+Left for later:
+
+- [ ] Stale JMeter references:
+  - `scripts/benchmark-deployments.sh` only runs `.jmx` files, so it no longer works.
+  - `README.md`: the Benchmarking and Performance Tests section, and the link to `sagas/behaviour/`.
+  - `guides/run-maven.md`: the Running JMeter tests section.
+- [ ] `QuizzesSpockTest.loadBehaviorScripts()` and `mavenBaseDir` no longer have callers in quizzes. They stay for now because the `boot-strap` skill copies this base class into new apps, and `docs/concepts/testing.md` still teaches the CSV mechanism. Both belong to the docs and harness update.
 
 **Kept:** the other 33 Groovy tests under `sagas/coordination/` and `causal/`, plus the base and bean configuration
 classes. None of them loads a CSV. `AddParticipantAsyncTest` and `SolveQuizAsyncTest` only call the deprecated
