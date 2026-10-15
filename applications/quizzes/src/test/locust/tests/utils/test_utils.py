@@ -1,3 +1,4 @@
+import gevent
 import logging
 import re
 import time
@@ -110,6 +111,39 @@ class TestUtils:
             return False
         TestUtils.succeed()
         return True
+
+    @staticmethod
+    def get_participant_names(tournament):
+        """Names of the tournament participants, None if the tournament could not be read"""
+        if tournament is None:
+            return None
+        return [p.get("name") for p in tournament.get("participants") or []]
+
+    @staticmethod
+    def assert_equals(actual, expected, label):
+        """Asserts a single scenario check, leaves "Test Succeeded!" to report_scenario"""
+        if actual != expected:
+            TestUtils.fail(f"{label}: expected {expected!r}, found {actual!r}")
+            return False
+        TestUtils.info(f"{label}: {actual!r}")
+        return True
+
+    @staticmethod
+    def end_scenario(environment):
+        """
+        Ends the run of a single run scenario. Quits from another greenlet because quitting kills the
+        calling user, which would also cut short the test_stop listeners while they wait on requests
+        """
+        gevent.spawn(environment.runner.quit)
+
+    @staticmethod
+    def report_scenario(environment):
+        """Reports a single run scenario, which must reach the end with all its checks passing"""
+        passed = getattr(environment, "scenario_passed", None)
+        if passed is None:
+            TestUtils.fail("Scenario did not run to completion")
+        elif passed:
+            TestUtils.succeed()
 
     @staticmethod
     def info(msg):

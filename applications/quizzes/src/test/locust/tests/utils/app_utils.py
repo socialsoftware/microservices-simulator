@@ -63,6 +63,68 @@ class AppUtils:
 
     """
     ===========================
+    || Interleaving control
+    ===========================
+    """
+
+    @staticmethod
+    def start_scheduler(client=requests):
+        """Re-enables the periodic event polling of the services"""
+        r = AppUtils._get("scheduler/start", client=client)
+        if r is not None and r.status_code == 200:
+            return True
+
+        logging.error(
+            f"Failed to start scheduler: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def stop_scheduler(client=requests):
+        """Disables the periodic event polling, events are then only processed on demand"""
+        r = AppUtils._get("scheduler/stop", client=client)
+        if r is not None and r.status_code == 200:
+            return True
+
+        logging.error(
+            f"Failed to stop scheduler: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def decrement_version(client=requests):
+        """The next functionality runs as if it was concurrent with the previous one"""
+        r = AppUtils._post("versions/decrement", client=client)
+        if r is not None and r.status_code == 200:
+            return True
+
+        logging.error(
+            f"Failed to decrement version: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def process_update_name_events(client=requests):
+        """Makes the tournament service process the pending update student name events"""
+        r = AppUtils._post(
+            "tournament/process/updateExecutionStudentName", client=client)
+        if r is not None and r.status_code == 200:
+            return True
+
+        logging.error(
+            f"Failed to process update name events: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def process_anonymize_events(client=requests):
+        """Makes the tournament service process the pending anonymize student events"""
+        r = AppUtils._post("tournament/process/anonymize", client=client)
+        if r is not None and r.status_code == 200:
+            return True
+
+        logging.error(
+            f"Failed to process anonymize events: {r.text if r is not None else 'No response'}")
+        return False
+
+    """
+    ===========================
     || Requests
     ===========================
     """
@@ -140,6 +202,28 @@ class AppUtils:
         return False
 
     @staticmethod
+    def update_student_name(exec_id, user_id, name, client=requests):
+        r = AppUtils._post(f"/executions/{exec_id}/students/{user_id}/update/name",
+                           json={"name": name}, client=client)
+        if r is not None and r.status_code in [200, 201, 204]:
+            return True
+
+        logging.error(
+            f"Failed to update student name: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def anonymize_student(exec_id, user_id, client=requests):
+        r = AppUtils._post(f"/executions/{exec_id}/anonymize",
+                           params={"userAggregateId": user_id}, client=client)
+        if r is not None and r.status_code in [200, 201, 204]:
+            return True
+
+        logging.error(
+            f"Failed to anonymize student: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
     def create_topic(course_id, name=None, client=requests):
         name = name or f"T_{uuid.uuid4().hex[:6]}"
         r = AppUtils._post(
@@ -175,6 +259,17 @@ class AppUtils:
                 created_questions.append(r.json())
 
         return created_questions
+
+    @staticmethod
+    def create_question(course_id, payload, client=requests):
+        r = AppUtils._post(
+            f"courses/{course_id}/questions/create", json=payload, client=client)
+        if r is not None and r.status_code in [200, 201]:
+            return r.json()
+
+        logging.error(
+            f"Failed to create question: {r.text if r is not None else 'No response'}")
+        return None
 
     @staticmethod
     def create_tournament(execution_id, topic_ids, user_id=None, num_questions=2, client=requests):
@@ -238,6 +333,23 @@ class AppUtils:
 
         logging.error(
             f"Failed to update tournament: {r.text if r else 'No response'}")
+        return None
+
+    @staticmethod
+    def remove_tournament(tournament_id, client=requests):
+        r = AppUtils._post(f"/tournaments/{tournament_id}/remove", client=client)
+        if r is not None and r.status_code in [200, 201, 204]:
+            return True
+
+        logging.error(
+            f"Failed to remove tournament: {r.text if r is not None else 'No response'}")
+        return False
+
+    @staticmethod
+    def find_quiz(quiz_id, client=requests):
+        r = AppUtils._get(f"/quizzes/{quiz_id}", client=client)
+        if r is not None and r.status_code == 200:
+            return r.json()
         return None
 
     @staticmethod
@@ -333,3 +445,109 @@ class AppUtils:
         logging.error(
             "enroll_and_create_tournament aborted: enroll_student failed.")
         return None
+
+    @staticmethod
+    def create_tournament_base_data(num_topics=2, tournament_topic_count=2, num_questions=2, attempts=3, client=requests):
+        """
+        The setUp thread group of the migrated JMeter thesis cases, with the same requests, order and
+        bodies: an execution with two enrolled students, topics TOPIC1..N, one question per topic
+        ("question title i") and a tournament created by the first student over the first
+        tournament_topic_count topics.
+
+        The only change is a per run suffix on the acronym, since the application rejects a second
+        execution with the same acronym and academic term, so the JMeter tests needed a restart per run.
+
+        Retried with new data, since a setup request can abort on a database serialization conflict
+        with the processing of events left pending by a previous test.
+        """
+        for attempt in range(1, attempts + 1):
+            data = AppUtils._create_tournament_base_data_once(
+                num_topics, tournament_topic_count, num_questions, client)
+            if data:
+                return data
+            logging.warning(
+                f"create_tournament_base_data attempt {attempt}/{attempts} failed.")
+        return None
+
+    @staticmethod
+    def _create_tournament_base_data_once(num_topics, tournament_topic_count, num_questions, client):
+        exec_data = AppUtils.create_execution(name="BLCM", acronym=f"TESTBLCM_{uuid.uuid4().hex[:6]}",
+                                              academic_term="2022/2023", end_date="2023-09-20T15:37:58.003198Z", client=client)
+        if not exec_data:
+            logging.error(
+                "create_tournament_base_data aborted: create_execution failed.")
+            return None
+
+        execution_id = exec_data.get("aggregateId")
+        course_id = exec_data.get("courseAggregateId")
+
+        students = []
+        for i in [1, 2]:
+            user_data = AppUtils.create_user(
+                name=f"Student_Name_{i}", username=f"Student_Username_{i}", client=client)
+            if not user_data:
+                logging.error(
+                    "create_tournament_base_data aborted: create_user failed.")
+                return None
+
+            user_id = user_data.get("aggregateId")
+            if not AppUtils.activate_user(user_id, client=client) or not AppUtils.enroll_student(user_id, execution_id, client=client):
+                logging.error(
+                    "create_tournament_base_data aborted: activate_user or enroll_student failed.")
+                return None
+            students.append({"id": user_id, "name": user_data.get(
+                "name"), "username": user_data.get("username")})
+
+        topic_ids = []
+        for i in range(1, num_topics + 1):
+            topic_data = AppUtils.create_topic(
+                course_id, name=f"TOPIC{i}", client=client)
+            if not topic_data:
+                logging.error(
+                    "create_tournament_base_data aborted: create_topic failed.")
+                return None
+            topic_ids.append(topic_data.get("aggregateId"))
+
+        for i, topic_id in enumerate(topic_ids, start=1):
+            payload = {
+                # Ignored by the application, the JMeter tests send the last topic counter value
+                "name": f"TOPIC{num_topics}",
+                "title": f"question title {i}",
+                "content": f"question content {i}",
+                "topicDto": [{"aggregateId": topic_id, "courseId": course_id}],
+                "optionDtos": [
+                    {"sequence": 1, "correct": "true",
+                        "content": "Option content 1"},
+                    {"sequence": 2, "correct": "false",
+                        "content": "Option content 2"}
+                ]
+            }
+            if not AppUtils.create_question(course_id, payload, client=client):
+                logging.error(
+                    "create_tournament_base_data aborted: create_question failed.")
+                return None
+
+        # Not AppUtils.create_tournament, the JMeter tests start the tournament in 1 day instead of 1 hour
+        now = datetime.datetime.now(datetime.timezone.utc)
+        payload = {
+            "startTime": (now + datetime.timedelta(days=1)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
+            "endTime": (now + datetime.timedelta(days=2)).isoformat(timespec='milliseconds').replace("+00:00", "Z"),
+            "numberOfQuestions": num_questions
+        }
+        r = AppUtils._post(f"/executions/{execution_id}/tournaments/create", json=payload, params={
+                           "userId": students[0]["id"], "topicsId": topic_ids[:tournament_topic_count]}, client=client)
+        if r is None or r.status_code not in [200, 201]:
+            logging.error(
+                f"create_tournament_base_data aborted: create_tournament failed: {r.text if r is not None else 'No response'}")
+            return None
+        tournament = r.json()
+
+        return {
+            "execution_id": execution_id,
+            "course_id": course_id,
+            "creator": students[0],
+            "student": students[1],
+            "topic_ids": topic_ids,
+            "tournament_id": tournament.get("aggregateId"),
+            "quiz_id": (tournament.get("quiz") or {}).get("aggregateId"),
+        }
