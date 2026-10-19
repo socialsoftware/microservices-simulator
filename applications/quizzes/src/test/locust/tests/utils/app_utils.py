@@ -449,8 +449,8 @@ class AppUtils:
     @staticmethod
     def create_tournament_base_data(num_topics=2, tournament_topic_count=2, num_questions=2, attempts=3, client=requests):
         """
-        The setUp thread group of the migrated JMeter thesis cases, with the same requests, order and
-        bodies: an execution with two enrolled students, topics TOPIC1..N, one question per topic
+        Setup of the functionality tests: the setUp thread group of the JMeter thesis cases, with the same
+        requests, order and bodies: an execution with two enrolled students, topics TOPIC1..N, one question per topic
         ("question title i") and a tournament created by the first student over the first
         tournament_topic_count topics.
 

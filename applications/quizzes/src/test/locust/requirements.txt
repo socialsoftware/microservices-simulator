@@ -1,0 +1,2 @@
+locust==2.46.7
+locust-plugins==5.0.3

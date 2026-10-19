@@ -1,4 +1,5 @@
 import gevent
+import locust_plugins  # registers --iterations, which run_tests.py uses for the performance tests
 import logging
 import re
 import time

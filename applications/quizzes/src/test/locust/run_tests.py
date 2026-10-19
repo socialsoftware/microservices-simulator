@@ -5,57 +5,62 @@ import sys
 import re
 
 """
-    List of tests to run, add any tests you see fit.
+    Performance tests (tests/performance/): network delays, capacity limits and their configuration.
+    Add any tests you see fit.
     Format: (testname, users, spawn_rate (users/sec), iterations)
 """
-TESTS = [
+PERFORMANCE_TESTS = [
     # Configuration and placement tests
-    ("valid_node_placement_test.py", 1, 1, 1),
-    ("invalid_node_placement_test.py", 1, 1, 1),
-    ("invalid_negative_requirement_test.py", 1, 1, 1),
+    ("performance/valid_node_placement_test.py", 1, 1, 1),
+    ("performance/invalid_node_placement_test.py", 1, 1, 1),
+    ("performance/invalid_negative_requirement_test.py", 1, 1, 1),
 
     # Impairment tests
-    ("impairment_uniform_delays_test.py", 5, 1, 10),
-    ("impairment_lognormal_delays_test.py", 5, 1, 10),
-    ("impairment_full_sweep_delays_test.py", 1, 1, 1),
+    ("performance/impairment_uniform_delays_test.py", 5, 1, 10),
+    ("performance/impairment_lognormal_delays_test.py", 5, 1, 10),
+    ("performance/impairment_full_sweep_delays_test.py", 1, 1, 1),
 
     # Capacity tests
-    ("capacity_single_command_limit_test.py", 10, 5, 30),
-    ("capacity_contention_test.py", 10, 5, 30),
-    ("capacity_multitask_contention_test.py", 10, 5, 30),
+    ("performance/capacity_single_command_limit_test.py", 10, 5, 30),
+    ("performance/capacity_contention_test.py", 10, 5, 30),
+    ("performance/capacity_multitask_contention_test.py", 10, 5, 30),
 ]
 
+# Safety cap for a performance test, which normally ends at its iterations. A test whose users stop
+# before running a task (e.g. a capacity test whose setup failed) never reaches them
+PERFORMANCE_RUN_TIME = "300s"
+
 """
-    Migrated JMeter thesis cases (tests/migrated/, see MIGRATION.md). They are single user scenarios
-    that end the run themselves, so they run with a time cap instead of iterations.
+    Functionality tests (tests/functionality/): the numbered JMeter thesis cases. They are single user
+    scenarios that end the run themselves, so they run with a time cap instead of iterations.
     Format: (testname, transactional profiles the scenario holds under)
 """
-MIGRATED_TESTS = [
-    ("migrated/5a_update_name_then_add_participant_test.py", ("sagas", "tcc")),
-    ("migrated/5b_add_participant_then_update_name_test.py", ("sagas", "tcc")),
-    ("migrated/5c_add_participant_concurrent_update_name_test.py", ("sagas", "tcc")),
-    ("migrated/5d_update_name_processed_then_concurrent_add_participant_test.py", ("sagas", "tcc")),
-    ("migrated/8_5_concurrent_update_tournament_test.py", ("sagas", "tcc")),
-    ("migrated/8_6_add_creator_concurrent_update_name_processed_first_test.py", ("tcc",)),
-    ("migrated/8_7_add_creator_concurrent_update_name_processed_last_test.py", ("tcc",)),
-    ("migrated/8_8_update_name_then_add_creator_after_event_test.py", ("sagas", "tcc")),
-    ("migrated/8_9_add_participant_concurrent_anonymize_processed_first_test.py", ("sagas", "tcc")),
-    ("migrated/8_10_concurrent_remove_tournament_add_participant_test.py", ("sagas", "tcc")),
+FUNCTIONALITY_TESTS = [
+    ("functionality/5a_update_name_then_add_participant_test.py", ("sagas", "tcc")),
+    ("functionality/5b_add_participant_then_update_name_test.py", ("sagas", "tcc")),
+    ("functionality/5c_add_participant_concurrent_update_name_test.py", ("sagas", "tcc")),
+    ("functionality/5d_update_name_processed_then_concurrent_add_participant_test.py", ("sagas", "tcc")),
+    ("functionality/8_5_concurrent_update_tournament_test.py", ("sagas", "tcc")),
+    ("functionality/8_6_add_creator_concurrent_update_name_processed_first_test.py", ("tcc",)),
+    ("functionality/8_7_add_creator_concurrent_update_name_processed_last_test.py", ("tcc",)),
+    ("functionality/8_8_update_name_then_add_creator_after_event_test.py", ("sagas", "tcc")),
+    ("functionality/8_9_add_participant_concurrent_anonymize_processed_first_test.py", ("sagas", "tcc")),
+    ("functionality/8_10_concurrent_remove_tournament_add_participant_test.py", ("sagas", "tcc")),
 ]
 
-# Safety cap for a migrated scenario, the longest one waits 20s for event processing
-MIGRATED_RUN_TIME = "180s"
+# Safety cap for a functionality scenario, the longest one waits 20s for event processing
+FUNCTIONALITY_RUN_TIME = "180s"
 
 
-def run_test(filename, users, spawn_rate, iterations=None, run_time=None, require_success=False):
+def run_test(filename, users, spawn_rate, iterations=None, run_time=None):
     """
-        @ require_success - the test only passes if it reports "Test Succeeded!", so a run that
-          errors before reaching its assertions is not taken as a pass
+        A test only passes if it reports "Test Succeeded!" and no "Test failed:", so a run that
+        errors before reaching its assertions is not taken as a pass
     """
     print(f"\n{'='*80}")
     print(f" RUNNING: {filename}")
     print(
-        f" PARAMETERS: Users={users}, Spawn Rate={spawn_rate}, " + (f"Iterations={iterations}" if iterations is not None else f"Run Time={run_time}"))
+        f" PARAMETERS: Users={users}, Spawn Rate={spawn_rate}, Iterations={iterations}, Run Time={run_time}")
     print(f"{'='*80}\n")
 
     # Check if file exists before running
@@ -122,7 +127,7 @@ def run_test(filename, users, spawn_rate, iterations=None, run_time=None, requir
 
         process.wait()
 
-        if require_success and not test_failed and not test_succeeded:
+        if not test_failed and not test_succeeded:
             test_failed = True
             failure_messages.append(
                 f"No success reported, last output: {last_line}")
@@ -146,10 +151,10 @@ def run_test(filename, users, spawn_rate, iterations=None, run_time=None, requir
 def parse_args():
     parser = argparse.ArgumentParser(
         description="Runs a Locust test suite against the quizzes gateway (localhost:8080)")
-    parser.add_argument("suite", nargs="?", choices=["default", "migrated"], default="default",
-                        help="default: impairment and capacity tests, migrated: JMeter thesis cases")
+    parser.add_argument("suite", nargs="?", choices=["performance", "functionality"], default="performance",
+                        help="performance: network delay and capacity tests, functionality: JMeter thesis cases")
     parser.add_argument("--tx-mode", choices=["sagas", "tcc"], default="sagas",
-                        help="profile the application was started with (TX_MODE), migrated tests not valid for it are skipped")
+                        help="profile the application was started with (TX_MODE), functionality tests not valid for it are skipped")
     return parser.parse_args()
 
 
@@ -167,11 +172,11 @@ def main():
 
     print(f"Starting Locust Test Suite in {os.getcwd()}...")
 
-    tests = TESTS
-    if args.suite == "migrated":
-        tests = [(f, 1, 1, None, MIGRATED_RUN_TIME, True)
-                 for f, profiles in MIGRATED_TESTS if args.tx_mode in profiles]
-        for f, profiles in MIGRATED_TESTS:
+    tests = [test + (PERFORMANCE_RUN_TIME,) for test in PERFORMANCE_TESTS]
+    if args.suite == "functionality":
+        tests = [(f, 1, 1, None, FUNCTIONALITY_RUN_TIME)
+                 for f, profiles in FUNCTIONALITY_TESTS if args.tx_mode in profiles]
+        for f, profiles in FUNCTIONALITY_TESTS:
             if args.tx_mode not in profiles:
                 print(f"[-] Skipping {f}: only holds under {', '.join(profiles)}")
 
