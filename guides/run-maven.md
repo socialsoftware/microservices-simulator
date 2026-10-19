@@ -25,8 +25,7 @@
   - [Running the Microservices](#running-the-microservices)
 - [Maven Profiles Quick Reference](#maven-profiles-quick-reference)
 - [Service Access & Ports](#service-access--ports)
-- [Running JMeter tests](#running-jmeter-tests)
-  - [Viewing JMeter tests structure](#viewing-jmeter-tests-structure)
+- [Running Locust tests](#running-locust-tests)
 
 ### Technology Requirements
 
@@ -35,7 +34,7 @@
 - [PSQL 14](https://www.postgresql.org/download/)
 - [RabbitMQ 3.12+](https://www.rabbitmq.com/download.html) (required for stream profile)
 - [Jaeger 1.75](https://www.jaegertracing.io/)
-- [JMeter 5.6](https://jmeter.apache.org/download_jmeter.cgi)
+- [Python 3](https://www.python.org/downloads/) (for the Locust tests)
 
 ### Setting up the Database
 
@@ -288,36 +287,10 @@ See the **[Service URLs and Ports](../README.md#service-urls-and-ports)** sectio
 
 ---
 
-### Running JMeter tests
+### Running Locust tests
 
-1. Start the application with the `tcc` profile (using Docker or Maven).
-2. Ensure JMeter is installed.
-3. Run a test from the thesis cases directory:
+The Locust functionality and performance tests run against a running application. See
+[Locust Tests](../README.md#locust-tests) in the main README for the setup and the commands.
 
-```bash
-cd applications/quizzes/jmeter/tournament/thesis-cases/
-jmeter -n -t TEST.jmx
-```
-
-Example test files:
-- `5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx`
-- `5b-addParticipant-updateStudentName-processUpdateNameEvent.jmx`
-- `5c-updateStudentName1-addParticipant-updateStudentName2-processUpdateNameEvent.jmx`
-- `5d-addParticipant1-updateStudentName-processUpdateNameEvent1-addParticipant2-processUpdateNameEvent2.jmx`
-- `8-5-update-tournament-concurrent-intention-pass.jmx`
-- `8-6-add-participant-concurrent-update-execution-student-name-processing-ends-first.jmx`
-- `8-7-add-participant-concurrent-anonymize-event-processing-processing-ends-last.jmx`
-- `8-8-update-execution-student-add-participant-process-event-add-participant.jmx`
-- `8-9-add-participant-concurrent-anonymize-event-processing-processing-ends-first.jmx`
-- `8-10-concurrent-delete-tournament-add-participant.jmx`
-
-### Viewing JMeter tests structure
-
-```bash
-cd applications/quizzes/jmeter/tournament/thesis-cases/
-jmeter
-```
-
-The command launches the JMeter GUI.
-- Use `File > Open` to inspect a `.jmx` test structure.
-- Use `Start` to execute tests from the GUI.
+The performance tests read the impairment and capacity reports from `/logs` and their configuration from
+`/resources`, which only the Docker `quizzes-local` deployment provides, so run them against that deployment.

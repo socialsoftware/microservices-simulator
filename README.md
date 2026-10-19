@@ -26,7 +26,7 @@
     - [Service URLs and Ports](#service-urls-and-ports)
     - [API Gateway Configuration](#api-gateway-configuration)
 - [Test Cases](#test-cases)
-- [Benchmarking and Performance Tests](#benchmarking-and-performance-tests)
+- [Locust Tests](#locust-tests)
 - [Publications](#publications)
 
 ## Overview
@@ -162,7 +162,7 @@ distributed resilience on Kubernetes.
 | Execution Environment        | Best For                                                                                                | Documentation                                       |
 |------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
 | **Docker Compose**           | Local testing, switching between centralized/distributed topologies quickly without local dependencies. | [Run Using Docker](guides/run-docker.md)            |
-| **Maven**                    | Development, running individual microservices, and load testing with JMeter.                            | [Run Using Maven](guides/run-maven.md)              |
+| **Maven**                    | Development and running individual microservices.                                                       | [Run Using Maven](guides/run-maven.md)              |
 | **IntelliJ IDEA**            | Debugging and stepping through execution flows using pre-configured run profiles.                       | [Run Using IntelliJ](guides/run-intellij.md)        |
 | **Kubernetes (Local/Cloud)** | Testing production-grade orchestration (Kind) or cloud latency (Azure AKS).                             | [Deploy to Kubernetes](guides/deploy-kubernetes.md) |
 
@@ -457,7 +457,7 @@ How these tests map to simulator capabilities:
 * **Functionality orchestration and ordering**: validate workflow step dependencies and execution order.
 * **Concurrency interleavings**: force race scenarios with controlled step progression (for example,
   `executeUntilStep(...)` in coordination tests).
-* **Fault and recovery behavior**: inject failures and verify compensation and abort paths.
+* **Compensation behavior**: make a saga step fail on a business rule and verify the compensation and abort paths.
 * **Model comparison**: run analogous Sagas and TCC tests to compare lock-based and merge-based conflict handling.
 
 Sagas-focused test suites:
@@ -466,7 +466,6 @@ Sagas-focused test suites:
 - [Circuit Breaker Tests (Simulator)](simulator/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/ms/workflow/CircuitBreakerTest.groovy)
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/)
 - [Tournament Async Coordination Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/coordination/tournament/AddParticipantAsyncTest.groovy)
-- [Fault and Recovery Behavior Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/sagas/behaviour/)
 
 TCC-focused test suites:
 
@@ -474,32 +473,59 @@ TCC-focused test suites:
 - [Tournament Functionality Tests (Quizzes)](applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/causal/coordination/TournamentFunctionalityCausalTest.groovy)
 
 For deterministic concurrency scenarios and paper-aligned walkthroughs, see
-[Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
+[Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md). The thesis tournament scenarios run against a live
+application as [Locust functionality tests](#locust-tests).
 
-## Benchmarking and Performance Tests
+## Locust Tests
 
-For repeated deployment benchmarking of tournament scenarios, use:
+The [Locust](https://locust.io/) tests run against a running Quizzes application through the gateway at
+`localhost:8080`. They are in [applications/quizzes/src/test/locust/tests](applications/quizzes/src/test/locust/tests),
+in two suites:
+
+* **[Functionality tests](applications/quizzes/src/test/locust/tests/functionality)**: single-user scenarios that drive
+  tournament functionalities through a fixed interleaving and check the resulting state. They stop and start event
+  processing, process events on demand and decrement the version counter to stage concurrency. They are the
+  numbered thesis cases that used to be JMeter tests: each file names the `.jmx` it comes from. 8-6 and 8-7 only hold
+  under TCC; the others hold under both Sagas and TCC.
+* **[Performance tests](applications/quizzes/src/test/locust/tests/performance)**: multi-user workloads that check the
+  [network delays and capacity management](#network-delays-and-capacity-management): the delays injected per
+  deployment, the capacity limits, and the validation of their configuration.
+
+Set up the Python environment once:
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx
+cd applications/quizzes/src/test/locust
+python3 -m venv .venv
+.venv/bin/pip install -r requirements.txt
 ```
 
-Run with a specific transaction mode and a number of repetitions:
+Start the application with Docker Compose. The performance tests need the `quizzes-local` deployment, which mounts the
+configuration and log folders they read:
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx --tx-mode sagas --repetitions 5
-./scripts/benchmark-deployments.sh --test 5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx --tx-mode tcc --repetitions 5
+cd applications/quizzes
+TX_MODE=sagas docker compose up -d --build quizzes-local   # or TX_MODE=tcc
 ```
 
-What this script does:
+Then run a suite:
 
-* Boots each configured topology (`centralized-*`, `distributed-*`, and `distributed-version` variants).
-* Runs the selected `.jmx` test for each deployment, across the configured repetitions.
-* Writes per-run and aggregate results under [jmeter-results](jmeter-results) in a timestamped benchmark folder.
-* Returns non-zero on benchmark failures, so it can be used in CI/regression workflows.
+```bash
+cd applications/quizzes/src/test/locust
+.venv/bin/python run_tests.py functionality --tx-mode sagas   # --tx-mode must match the TX_MODE the app runs with
+.venv/bin/python run_tests.py performance
+```
 
-Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-jmeter-tests). DAIS paper
-scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
+* Run each suite on a freshly started application (`docker compose restart quizzes-local`), and restart it before
+  running a suite again. The functionality scenarios leave events and data behind that make a second run fail, and
+  the performance tests inject delay and capacity configurations that stay active.
+* `--tx-mode` skips the functionality scenarios that do not hold under that profile.
+* A test passes only if it reports `Test Succeeded!` and no `Test failed:`. The runner exits with a non-zero code when
+  any test fails.
+* To run a single test, from `applications/quizzes/src/test/locust/tests`:
+
+  ```bash
+  ../.venv/bin/python -m locust -f functionality/5a_update_name_then_add_participant_test.py --headless -u 1 -r 1 --run-time 180s
+  ```
 
 ## Publications
 
