@@ -2,8 +2,15 @@ import logging
 import re
 import time
 
+import gevent
+from locust.clients import HttpSession
+from locust.exception import StopUser
+
+from . import jmeter_semantics as JS
+
 
 class TestUtils:
+    failures = 0  # number of fail() calls in this run
     @staticmethod
     def get_delays_from_func(report, functionality_name):
         """Extracts delays (before/after) for each command in a functionality from a report"""
@@ -121,4 +128,123 @@ class TestUtils:
 
     @staticmethod
     def fail(msg):
+        TestUtils.failures += 1
         logging.error('\033[91m' + "Test failed: " + msg + '\033[0m')
+
+    """
+    ===========================
+    || Functionality tests (scenarios migrated from jmeter/tournament/thesis-cases)
+    ===========================
+    A scenario runs once: the data is created in test_start, the steps run in the single @task, which ends with
+    end_scenario(), and test_stop calls report_scenario(). Every request is checked as in the .jmx, and a failed
+    check does not stop the scenario. The test succeeds only if it reached its end and no check failed.
+
+    Body checks take a dotted field path ("creator.name", "participants.0.name") that is searched anywhere in the
+    body and evaluated with the same rules as the .jmx JSONPath Assertion on "$..creator.name" (jmeter_semantics.py):
+    the check passes if any match equals the expected value.
+    """
+
+    @staticmethod
+    def assert_success(response, step):
+        """The request succeeded (2xx or 3xx)."""
+        code = TestUtils._code(response)
+        return TestUtils._check(JS.sample_ok(code), step, f"expected success, got {code or 'no response'}", response)
+
+    @staticmethod
+    def assert_rejected(response, step):
+        """The request was not answered with 200 (any other code, or no response at all)."""
+        code = TestUtils._code(response)
+        return TestUtils._check("200" not in code, step, "expected a rejection, got 200", response)
+
+    @staticmethod
+    def assert_status(response, status, step):
+        code = TestUtils._code(response)
+        return TestUtils._check(code == str(status), step, f"expected {status}, got {code or 'no response'}",
+                                response)
+
+    @staticmethod
+    def assert_field(response, field, expected, step=None):
+        """`field` equals `expected`."""
+        return TestUtils._check_body(response, TestUtils._json_path(field), str(expected), False,
+                                     step or f"{field} = {expected}")
+
+    @staticmethod
+    def assert_matches(response, field, regex, step=None):
+        """`field` matches the whole `regex`."""
+        return TestUtils._check_body(response, TestUtils._json_path(field), regex, True,
+                                     step or f"{field} matches {regex}")
+
+    @staticmethod
+    def assert_empty(response, field, step=None):
+        """`field` is an empty list (or absent)."""
+        return TestUtils._check_body(response, TestUtils._json_path(field), "[]", False, step or f"{field} is empty")
+
+    @staticmethod
+    def assert_count(response, field, count, step=None):
+        """`field` has `count` elements (an absent field has 0)."""
+        return TestUtils._check_body(response, TestUtils._json_path(field) + ".length()", str(count), False,
+                                     step or f"{field} has {count} element(s)")
+
+    @staticmethod
+    def assert_at_most_one(response, field, step=None):
+        """`field` has no second element."""
+        return TestUtils._check_body(response, TestUtils._json_path(field) + "[1]", "[]", False,
+                                     step or f"{field} has at most one element")
+
+    @staticmethod
+    def run_in_parallel(user, *groups):
+        """Runs the functions at the same time, like parallel JMeter Thread Groups. Each one gets its own HTTP
+        client (its own connection) as its only argument."""
+        clients = [HttpSession(base_url=user.host, request_event=user.environment.events.request, user=user)
+                   for _ in groups]
+        greenlets = [gevent.spawn(group, client) for group, client in zip(groups, clients)]
+        gevent.joinall(greenlets)
+        for g in greenlets:
+            if g.exception is not None:
+                raise g.exception
+
+    @staticmethod
+    def end_scenario(user):
+        """Marks the scenario as complete and quits Locust from another greenlet, so this user stops cleanly."""
+        user.environment.scenario_completed = True
+        gevent.spawn(user.environment.runner.quit)
+        raise StopUser()
+
+    @staticmethod
+    def report_scenario(environment):
+        if not getattr(environment, "scenario_completed", False):
+            TestUtils.fail("Scenario did not reach its end (run-time cap hit?)")
+        elif TestUtils.failures == 0:
+            TestUtils.succeed()
+
+    @staticmethod
+    def _code(response):
+        """The status code as text; "" when there was no response (Locust reports those as status 0)."""
+        if response is None or not response.status_code:
+            return ""
+        return str(response.status_code)
+
+    @staticmethod
+    def _text(response):
+        try:
+            return response.text or "" if response is not None else ""
+        except Exception:
+            return ""
+
+    @staticmethod
+    def _json_path(field):
+        return "$.." + re.sub(r"\.(\d+)", r"[\1]", field)
+
+    @staticmethod
+    def _check_body(response, path, expected, regex, step):
+        passed, message = JS.jsonpath_assertion(TestUtils._text(response), path, expected, regex)
+        return TestUtils._check(passed, step, message, response)
+
+    @staticmethod
+    def _check(passed, step, detail, response=None):
+        if passed:
+            TestUtils.info(f"OK: {step}")
+        else:
+            body = TestUtils._text(response)[:300]
+            TestUtils.fail(f"{step}: {detail}" + (f" | body: {body}" if body else ""))
+        return passed
