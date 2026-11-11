@@ -25,8 +25,6 @@ class ConcurrentAddUpdateParticipant(HttpUser):
         try:
             TestUtils.assert_success(AppUtils.stop_event_detection(), "Stop event detection")
             TestUtils.assert_success(AppUtils.start_event_detection(), "Start event detection")
-            TestUtils.assert_success(AppUtils.load_behaviour("jmeter/faults"), "Load behaviour jmeter/faults")
-            TestUtils.assert_success(AppUtils.clean_behaviour_report(), "Clean behaviour report")
             TestUtils.assert_success(AppUtils.start_traces(), "Start root span")
             environment.data = AppUtils.create_scenario_data(users=2)
             if not environment.data:

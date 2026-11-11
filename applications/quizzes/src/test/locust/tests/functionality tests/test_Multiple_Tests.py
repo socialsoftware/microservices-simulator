@@ -24,8 +24,6 @@ class MultipleTests(HttpUser):
     def on_test_start(environment, **kwargs):
         environment.data = None
         try:
-            TestUtils.assert_success(AppUtils.load_behaviour("jmeter/test"), "Load behaviour jmeter/test")
-            TestUtils.assert_success(AppUtils.clean_behaviour_report(), "Clean behaviour report")
             TestUtils.assert_success(AppUtils.start_traces(), "Start root span")
             environment.data = AppUtils.create_scenario_data(users=2)
             if not environment.data:

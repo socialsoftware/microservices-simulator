@@ -429,14 +429,6 @@ class AppUtils:
         return AppUtils._get("scheduler/start", client=client)
 
     @staticmethod
-    def load_behaviour(directory, client=requests):
-        return AppUtils._post(f"behaviour/load?dir={directory}", client=client)
-
-    @staticmethod
-    def clean_behaviour_report(client=requests):
-        return AppUtils._get("behaviour/clean", client=client)
-
-    @staticmethod
     def start_traces(client=requests):
         return AppUtils._get("traces/start", client=client)
 
