@@ -24,6 +24,8 @@ TESTS = [
     ("capacity_multitask_contention_test.py", 10, 5, 30),
 ]
 
+TEST_DIR = "performance tests"
+
 
 def run_test(filename, users, spawn_rate, iterations):
     print(f"\n{'='*80}")
@@ -33,8 +35,9 @@ def run_test(filename, users, spawn_rate, iterations):
     print(f"{'='*80}\n")
 
     # Check if file exists before running
-    if not os.path.exists(filename):
-        print(f"[!] Warning: {filename} not found, skipping.")
+    path = os.path.join(TEST_DIR, filename)
+    if not os.path.exists(path):
+        print(f"[!] Warning: {path} not found, skipping.")
         return False, "File not found"
 
     """ 
@@ -47,7 +50,7 @@ def run_test(filename, users, spawn_rate, iterations):
     """
     cmd = [
         sys.executable, "-m", "locust",
-        "-f", filename,
+        "-f", path,
         "--headless",
         "--only-summary",
         "-u", str(users),
@@ -107,7 +110,7 @@ def main():
     if script_dir:
         os.chdir(script_dir)
 
-    # Move into the tests directory
+    # Move into the tests directory (so that `utils` resolves through the cwd)
     if os.path.exists("tests"):
         os.chdir("tests")
 
