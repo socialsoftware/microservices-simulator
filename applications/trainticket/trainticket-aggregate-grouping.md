@@ -1,0 +1,227 @@
+# TrainTicket — Aggregate Grouping
+
+> Follows the structure defined in [`docs/templates/aggregate-grouping-template.md`](../../docs/templates/aggregate-grouping-template.md).
+
+> **Provenance note — 2026-09-19.** This file and
+> [`trainticket-domain-model.md`](trainticket-domain-model.md) were re-partitioned after the run that
+> produced this application, so that the pair is one *plain domain* plus one *aggregate grouping*
+> over it. Everything this file gained — the aggregate-to-service mapping, the consistency-policy
+> preamble that used to open domain §3.2, §2.b, the §5 Rule realisation table and several notes —
+> moved here from the domain model unchanged in substance. **Nothing the pair specifies changed**,
+> and the application was not regenerated.
+>
+> **2026-09-27.** The §5 Rule realisation table was removed: `/classify-and-plan` now derives each
+> rule's pattern from §1, §2, §3.a and §4, and no skill had read the table. The last version with it
+> is in git at `50e31d84a`.
+>
+> **2026-09-29.** §5 Cross-file notes was removed: no skill read it, and the grouping template no
+> longer has it. The last version with it is in git at `e56a384b1`.
+
+This file captures **one** aggregate partitioning of the [TrainTicket domain model](trainticket-domain-model.md).
+Several such files may exist over that one domain; writing a second must require no edit to it.
+
+The nine entities are placed in eight aggregates whose boundaries are **TrainTicket's own service
+boundaries**, one aggregate per data-owning service in the book-a-ticket flow:
+
+| Aggregate | TrainTicket service |
+|---|---|
+| Station | `ts-station-service` |
+| Route | `ts-route-service` |
+| TrainType | `ts-train-service` |
+| PriceConfig | `ts-price-service` |
+| Trip | `ts-travel-service` |
+| Contacts | `ts-contacts-service` |
+| User | `ts-user-service` |
+| Order | `ts-order-service` |
+
+The five services in the flow that own no data — `ts-preserve-service`, `ts-basic-service`,
+`ts-seat-service`, `ts-cancel-service` and `ts-execute-service` — become saga steps rather than
+aggregates. `RouteStation` is the only entity that is not an aggregate root: this grouping
+co-locates it with `Route`.
+
+Choosing the benchmark's boundaries rather than inventing new ones means the partitioning is not a
+degree of freedom this thesis exercised — it is inherited.
+
+> **References are by aggregate id, not by natural key.** TrainTicket references entities by name
+> (`Route.stations` holds station *names*, `Trip.trainTypeName` holds a type *name*,
+> `Order.trainNumber` holds a trip identifier string). The simulator identifies aggregates by
+> `Integer aggregateId`, so every cross-aggregate reference in this realisation becomes an id, with
+> the human-readable name cached alongside it only where the benchmark genuinely stores a copy. This
+> is a realisation decision: the domain model states the references, not their encoding.
+
+---
+
+## §1 — Aggregate Grouping
+
+| Aggregate | Description | Entities contained | Snapshot value objects | Service |
+|---|---|---|---|---|
+| Station | A stop on the network, with the dwell time a train spends there. Referenced by routes; shared across many of them. | Station | — | StationService |
+| Route | An ordered sequence of stations with cumulative distances from the origin. The distances are what fares are computed from. | Route, RouteStation | — | RouteService |
+| TrainType | A class of rolling stock: how many seats it has in each class and how fast it travels. Its seat counts are the capacity every booking is checked against. | TrainType | — | TrainTypeService |
+| PriceConfig | The per-distance fare rates for one route operated by one train type. Its identity depends on both. | PriceConfig | — | PriceConfigService |
+| Trip | A scheduled service: a train type running a route, departing and arriving at fixed times of day. A template — a concrete journey is a `(Trip, travelDate)` pair. | Trip | — | TripService |
+| User | An account holder, with credentials and identity document. | User | — | UserService |
+| Contacts | A passenger identity record owned by an account. One account may hold several, and books tickets for any of them. | Contacts | — | ContactsService |
+| Order | A purchased ticket for one passenger on one journey. Freezes the fare, the seat, the passenger identity and the departure moment at purchase, and carries the ticket through its lifecycle. | Order | — | OrderService |
+
+> **No snapshot value objects.** This grouping introduces no class that is not a domain entity.
+> `RouteStation` is a domain entity (domain §1), co-located inside `Route` here, and it carries the
+> cached `Station` fields listed in §2 — it is not a snapshot class this grouping invented. The
+> fields this grouping adds to it are `stationAggregateId: Integer` and `stationName: String`,
+> alongside its domain attributes `sequence: Integer` and `distanceFromStart: Integer`.
+
+---
+
+## §2 — Snapshots
+
+Field names below match the entity attributes declared in §1 of the [domain model](trainticket-domain-model.md),
+except for the `*AggregateId` fields, which exist only in this realisation.
+
+> **No version fields.** Every row's "Updated on event" column reads `n/a`, so no aggregate ever
+> builds an `EventSubscription`, and no aggregate caches a publisher `version` alongside an id. This
+> is a direct consequence of the consistency policy in §3.a below.
+
+> **Snapshots are minimal by design.** A cached copy that is never refreshed, whose source is
+> mutable, is stale data waiting to be read. This application therefore caches only two things:
+> values the benchmark genuinely copies into storage, and the ids needed to fetch a source live.
+> Everything a rule depends on is fetched by the saga at operation time — which is also what
+> TrainTicket does, since it holds no local caches at all and calls the owning service over HTTP on
+> every request.
+
+| Aggregate | Snapshots of | Fields cached | Updated on event |
+|---|---|---|---|
+| Route / RouteStation × N | Station | `stationAggregateId`, `stationName` | n/a — no cascade (see §3.a) |
+| Trip | Route | `routeAggregateId` | n/a — no cascade (see §3.a) |
+| Trip | TrainType | `trainTypeAggregateId` | n/a — no cascade (see §3.a) |
+| PriceConfig | Route | `routeAggregateId` | n/a — no cascade (see §3.a) |
+| PriceConfig | TrainType | `trainTypeAggregateId` | n/a — no cascade (see §3.a) |
+| Contacts | User | `userAggregateId` | n/a — no cascade (see §3.a) |
+| Order | Trip | `tripAggregateId`, `tripNumber`, `departureTime` | n/a — frozen contract |
+| Order | Contacts | `contactsAggregateId`, `contactsName`, `contactsDocumentType`, `contactsDocumentNumber` | n/a — frozen contract |
+| Order | User (account) | `userAggregateId` | n/a — frozen contract |
+| Order | Route (endpoints) | `fromStationName`, `toStationName` | n/a — frozen contract |
+| Order | PriceConfig (fare) | `price` | n/a — frozen contract |
+
+> **Single-reference snapshots live directly on the aggregate.** Where an aggregate holds exactly
+> one reference to another (`Trip → Route`, `Trip → TrainType`, `PriceConfig → Route`,
+> `PriceConfig → TrainType`, `Contacts → User`, `Order → Trip`, `Order → Contacts`,
+> `Order → User`), the cached id is a field of the aggregate root. `RouteStation` carries the fields
+> for the one **collection** reference.
+
+> **`departureTime` is derived, not copied.** It is the only entry in the "Fields cached" column that
+> is not a field of the source aggregate: it is `Order.travelDate` combined with the `Trip.startTime`
+> in force at purchase, computed by the booking saga and frozen on the Order. It is listed on the Trip
+> row because Trip is where its non-local half comes from.
+
+> **`RouteStation.stationName` is a real copy.** TrainTicket's `Route` stores station **names**, not
+> ids — `List<String> stations` — and every consumer matches on the name. Caching the name alongside
+> the id preserves that, and it is the only collection snapshot in the application.
+
+> **`n/a — frozen contract` is a different claim from `n/a — no cascade`.** The Order rows are not
+> stale caches that this application declines to refresh; they are the domain's contract terms
+> (domain §1, "`Order` is a frozen contract"), and they would be fields of `Order` under any
+> grouping. The upstream rows, by contrast, *would* want refreshing and do not get it — that is the
+> benchmark behaviour reproduced in §3.a.
+
+---
+
+## §2.b — Technical fields
+
+**None.** No aggregate in this grouping carries a field that exists for implementation reasons only.
+
+> **Why no `lastModifiedTime`.** Every field `Order` copies from another aggregate is Java `final`,
+> so no aggregate here needs a modification timestamp to decide whether a cached value is current.
+> The frozen-contract argument in §2 is what buys that; if a later change makes any of those fields
+> mutable, it goes away.
+
+> **Soft-delete state.** The simulator's `Aggregate` base class provides `state: AggregateState`
+> (`ACTIVE`, `INACTIVE`, `DELETED`) and sets it via `remove()`. It is not a domain attribute and
+> appears in no entity row of the domain model. Wherever a domain rule says "`X` has been removed",
+> this realisation resolves it against that inherited field (`X.state == DELETED`).
+
+---
+
+## §3 — Upstream / Downstream Event Dependencies
+
+```
+Station ──────────────────────────► Route
+Route ────────────────────────────► Trip
+Route ────────────────────────────► PriceConfig
+TrainType ────────────────────────► Trip
+TrainType ────────────────────────► PriceConfig
+User ─────────────────────────────► Contacts
+Trip ─────────────────────────────► Order
+Route ────────────────────────────► Order
+PriceConfig ──────────────────────► Order
+Contacts ─────────────────────────► Order
+User ─────────────────────────────► Order
+```
+
+> **`Route ──► Order` and `PriceConfig ──► Order` are fare-and-endpoint arrows.** The booking saga
+> reads the Trip's Route to resolve `fromStationName` / `toStationName` and validate their ordering,
+> and reads the PriceConfig to compute `price`. Order stores the results, so the arrows exist even
+> though Order holds no `routeAggregateId` or `priceConfigAggregateId` — what it caches from those
+> two aggregates is contract values, not references.
+
+> An arrow `A ──► B` means B holds a reference to A and caches the fields listed in §2. **In this
+> application no arrow carries an event subscription.** Every snapshot is seeded once, at the
+> consuming aggregate's creation, and is never refreshed thereafter.
+>
+> **Not every arrow is a saga fetch.** Four are seeded from a value the caller supplies, because the
+> rule that would have made the creating operation fetch the source was dropped at the §9 review for
+> having no benchmark support: `User ──► Contacts`, `User ──► Order`, `Route ──► PriceConfig` and
+> `TrainType ──► PriceConfig`. `CreateContacts` and `CreatePriceConfig` are therefore
+> single-aggregate writes, and `PreserveTicket` does not read User. The reference is still stored and
+> the arrow still holds; nothing validates that it points at a live aggregate, which is the same
+> dangling-reference behaviour §3.a specifies everywhere else.
+
+### 3.a — Consistency policy: no cascade
+
+This is a deliberate decision, and the most consequential one in this file. It reproduces the
+benchmark faithfully, and it is recorded as finding **F2** in the domain model's preamble.
+
+TrainTicket propagates nothing. `deleteStation` removes a station that routes still list by name;
+`deleteTravel` removes a trip that orders still reference by `trainNumber`; `deletePrice` and
+`deleteTrain` behave the same way; and lowering `TrainType.economyClass` below the number of seats
+already sold for a departure is accepted silently. No service subscribes to another's changes,
+because no service publishes any.
+
+**What this does to the domain's §3.2 rules.** The domain model states every cross-entity rule as a
+standing invariant over live references. Under this grouping **none of them is maintained as one**:
+with nothing propagating, a rule phrased as "`Order.trip` has not been removed" would be
+unenforceable, because no mechanism informs Order when the Trip goes. Every such rule is instead a
+**precondition checked at operation time** and is not restored afterwards. The rules that fall
+entirely inside one aggregate are unaffected and hold transactionally.
+
+Four consequences follow, and they are the reason this file states the policy rather than leaving it
+implicit:
+
+1. **§4 is empty.** The application defines no domain events.
+2. **No rule in this application is P2.** Each cross-aggregate rule is enforced by a saga fetch that
+   fails when the precondition is unmet (**P4a**), by a service guard over a saga-assembled DTO or
+   the aggregate's own table (**P3**), or by the saga passing one computed value into the aggregate
+   it constructs (**P4b**).
+3. **References can dangle, and that is the specified behaviour.** An `Order` may reference a
+   removed `Trip`; a `Route` may list a removed `Station`. Nothing detects this and nothing
+   repairs it. Reads return the frozen local copy.
+4. **A precondition guard is phrased pre-mutation.** Where a domain invariant is a bound on a count
+   over rows the operation is about to add to — `SEAT_CAPACITY_NOT_EXCEEDED` — the guard runs
+   *before* the aggregate is mutated, so it is written as `count(existing) < capacity` rather than
+   as the domain's post-state `count(all) <= capacity`. Transcribing the post-state form literally
+   into a pre-mutation guard would admit `capacity + 1` bookings.
+
+---
+
+## §4 — Events
+
+**This application publishes no domain events.**
+
+| Event | Publisher | Trigger | Payload fields | Consumer(s) |
+|---|---|---|---|---|
+| — | — | — | — | — |
+
+> The table is intentionally empty; see §3.a. Since there are no
+> events, there are no `EventSubscription` subclasses, no `getEventSubscriptions()` overrides
+> returning anything but an empty list, and no inter-invariant handlers in any aggregate.
+
+---

@@ -6,17 +6,17 @@ next session — agents are told exactly what to read and what to produce, not o
 
 **Scope:** Sagas transactional model only. TCC is out of scope.
 
-**Canonical example:** `applications/quizzes/` and its spec files
-`quizzes-domain-model.md` / `quizzes-aggregate-grouping.md`.
-
 ---
 
 ## Required Inputs
 
 | File | Content |
 |------|---------|
-| `{App}-domain-model.md` | Entities, attributes, relationships, rules (§3.1/§3.2), functionalities (§4) |
-| `{App}-aggregate-grouping.md` | Aggregate partitioning (§1), snapshots (§2), event DAG (§3), events (§4) |
+| `{App}-domain-model.md` — the plain domain | Entities (§1), relationships incl. composition (§2), rules as standing invariants (§3.1/§3.2), functionalities with Primary Entity / Other Entities (§4) |
+| `{App}-aggregate-grouping.md` | Aggregate partitioning + snapshot value objects (§1), snapshots (§2), technical fields (§2.b), event DAG + consistency policy (§3), events (§4) |
+
+One plain domain, N aggregate groupings: the domain model names no aggregate, and a second grouping
+over it must require no edit to it. See `HARNESS.md` § 5.
 
 ---
 
@@ -30,10 +30,13 @@ applications/{app-name}/
     ├── main/java/pt/ulisboa/tecnico/socialsoftware/{app}/
     │   ├── commands/
     │   │   └── {aggregate}/           ← one subpackage per aggregate
+    │   ├── enums/                     ← domain enums named by more than one aggregate
     │   ├── events/                    ← shared event classes (published by any aggregate)
     │   └── microservices/
     │       ├── exception/             ← {App}Exception.java + {App}ErrorMessage.java
+    │       ├── domain/                ← {App}DomainConstants.java (shared sentinels; only if an aggregate declares one)
     │       └── {aggregate}/           ← one subpackage per aggregate
+    │           ├── {Aggregate}ServiceApplication.java
     │           ├── aggregate/
     │           │   └── sagas/
     │           │       ├── factories/
@@ -42,46 +45,42 @@ applications/{app-name}/
     │           ├── coordination/
     │           │   ├── eventProcessing/
     │           │   ├── functionalities/
-    │           │   └── sagas/
+    │           │   ├── sagas/
+    │           │   └── webapi/
     │           ├── messaging/
     │           ├── notification/
     │           │   ├── handling/
     │           │   │   └── handlers/
     │           │   └── subscribe/
     │           └── service/
-    └── test/groovy/pt/ulisboa/tecnico/socialsoftware/{app}/
-        ├── BeanConfigurationSagas.groovy
-        ├── SpockTest.groovy
-        ├── {App}SpockTest.groovy
-        └── sagas/
-            ├── adversarial/
-            │   └── {aggregate}/       ← Phase 3 @PendingFeature proof tests (transient)
-            ├── coordination/
-            │   └── {aggregate}/       ← T4 functionality tests
-            └── {aggregate}/           ← T1 + T2 (incl. event pub.) + T3 subscription tests
+    └── test/groovy/pt/ulisboa/tecnico/socialsoftware/
+        ├── SpockTest.groovy           ← package pt.ulisboa.tecnico.socialsoftware (parent, not {app})
+        └── {app}/
+            ├── BeanConfigurationSagas.groovy
+            ├── {App}SpockTest.groovy
+            └── sagas/
+                ├── coordination/
+                │   └── {aggregate}/   ← T4 functionality tests
+                └── {aggregate}/       ← T1 + T2 (incl. event pub.) + T3 subscription tests
 ```
-
-> `sagas/adversarial/` is transient. Phase 3 writes proof tests there; Phase 4 absorbs each one into
-> its proper tier and deletes the directory once empty. A file lingering there means an
-> implementation defect is still open.
 
 ### Naming conventions
 
 | Layer | Pattern | Example |
 |-------|---------|---------|
-| Aggregate root | `{Aggregate}.java` | `Tournament.java` |
-| Sagas extension | `Saga{Aggregate}.java` | `SagaTournament.java` |
-| Saga state enum | `{Aggregate}SagaState.java` | `TournamentSagaState.java` |
-| Factory | `Sagas{Aggregate}Factory.java` | `SagasTournamentFactory.java` |
-| Custom repository | `{Aggregate}CustomRepositorySagas.java` | `TournamentCustomRepositorySagas.java` |
-| Service | `{Aggregate}Service.java` | `TournamentService.java` |
-| Command handler | `{Aggregate}CommandHandler.java` | `TournamentCommandHandler.java` |
-| Write functionality | `{Operation}FunctionalitySagas.java` | `AddParticipantFunctionalitySagas.java` |
-| Read functionality | `{Query}FunctionalitySagas.java` | `GetOpenedTournamentsFunctionalitySagas.java` |
-| Event subscription | `{Aggregate}Subscribes{Event}.java` | `TournamentSubscribesUpdateStudentName.java` |
-| Event handling | `{Aggregate}EventHandling.java` | `TournamentEventHandling.java` |
-| Event handler | `{Aggregate}EventHandler.java` | `TournamentEventHandler.java` |
-| Event processing | `{Aggregate}EventProcessing.java` | `TournamentEventProcessing.java` |
+| Aggregate root | `{Aggregate}.java` | `Shipment.java` |
+| Sagas extension | `Saga{Aggregate}.java` | `SagaShipment.java` |
+| Saga state enum | `{Aggregate}SagaState.java` | `ShipmentSagaState.java` |
+| Factory | `Sagas{Aggregate}Factory.java` | `SagasShipmentFactory.java` |
+| Custom repository | `{Aggregate}CustomRepositorySagas.java` | `ShipmentCustomRepositorySagas.java` |
+| Service | `{Aggregate}Service.java` | `ShipmentService.java` |
+| Command handler | `{Aggregate}CommandHandler.java` | `ShipmentCommandHandler.java` |
+| Write functionality | `{Operation}FunctionalitySagas.java` | `AddShipmentItemFunctionalitySagas.java` |
+| Read functionality | `{Query}FunctionalitySagas.java` | `GetOpenShipmentsFunctionalitySagas.java` |
+| Event subscription | `{Aggregate}Subscribes{Event}.java` | `ShipmentSubscribesUpdateWarehouseName.java` |
+| Event handling | `{Aggregate}EventHandling.java` | `ShipmentEventHandling.java` |
+| Event handler | `{Aggregate}EventHandler.java` | `ShipmentEventHandler.java` |
+| Event processing | `{Aggregate}EventProcessing.java` | `ShipmentEventProcessing.java` |
 
 ### Test naming
 
@@ -90,11 +89,11 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 | Type | Pattern | Session |
 |------|---------|---------|
 | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` | 2.N.a |
-| T2 Service | `{Aggregate}ServiceTest.groovy` — one class per aggregate; also owns event-publication assertions | 2.N.b (write methods + event publication; read-method cases appended in 2.N.c) |
+| T2 Service | `{Aggregate}ServiceTest.groovy` — one class per aggregate; also owns event-publication assertions | 2.N.b (read methods; write-method and event-publication cases appended in 2.N.c) |
 | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` | 2.N.d |
-| T4 Write Functionality | `{Operation}Test.groovy` | 2.N.b |
-| T4 Read Functionality | `{Query}Test.groovy` | 2.N.c |
-| Adversarial proof (transient) | `{Aggregate}AdversarialTest.groovy` | 3.N |
+| T4 Read Functionality | `{Query}Test.groovy` | 2.N.b |
+| T4 Write Functionality | `{Operation}Test.groovy` | 2.N.c |
+| T4 Compensation | `{Operation}CompensationTest.groovy` - one per write op that holds a semantic lock across a later step | 2.N.c |
 
 ---
 
@@ -102,20 +101,19 @@ See [`docs/concepts/testing.md`](concepts/testing.md) for the full taxonomy (T1�
 
 `plan.md` lives at `applications/{app-name}/plan.md`. It is produced by Phase 1 and updated
 (checkbox ticked) at the end of every subsequent session. It is the single entry point for every
-agent in Phases 2 through 4: a Rule Classification table, an Aggregate Implementation Order table
-(topological sort), one Aggregate Details section per aggregate (functionalities, events,
-cross-aggregate prerequisites, the per-session file list, a checklist), a Phase 3
-implementation-review table, and a Phase 4 test-review table.
+agent in Phase 2: a Rule Classification table, an Aggregate Implementation Order table
+(topological sort), and one Aggregate Details section per aggregate (functionalities, events,
+cross-aggregate prerequisites, the per-session file list, a checklist).
 
 Illustrative excerpt (one row of the Implementation Order table):
 
 ```markdown
 | # | Aggregate | Upstream deps | Events published | Events subscribed | Sessions |
 |---|-----------|--------------|-----------------|-------------------|---------|
-| 1 | Course    | —            | —               | —                 | a b c   |
+| 1 | Warehouse | —            | —               | —                 | a b c   |
 ```
 
-> Sessions column: `a`=domain, `b`=write functionalities, `c`=read functionalities,
+> Sessions column: `a`=domain, `b`=read functionalities, `c`=write functionalities,
 > `d`=event wiring (only when Events subscribed is non-empty).
 
 The full output structure (every section, exact table columns, and generation rules) is
@@ -126,11 +124,35 @@ here; if it changes, edit the skill, not this file.
 
 ---
 
+## Spec Authoring
+
+**Before Phase 0.** The pipeline starts from the spec pair listed under § "Required Inputs", written
+into `applications/{app-name}/`. Every later phase treats the pair as given: Phase 1 does not
+question an aggregate boundary, and no Phase 2 session adds a functionality the domain model omitted.
+
+Write it with [`docs/templates/domain-model-template.md`](templates/domain-model-template.md) and
+[`docs/templates/aggregate-grouping-template.md`](templates/aggregate-grouping-template.md), which
+define the section numbers and table shapes the harness parses; `/author-spec <pointer to the
+application being modelled>`, which interviews you through the design tree in two parts — the plain
+domain first, the grouping only after you sign it off — and writes one file at the end of each; and
+`applications/trainticket/`, a finished pair kept as a worked example. `HARNESS.md` § 5 and the
+templates own the detail.
+
+### Does not update
+plan.md does not exist yet. Phase 1 creates it.
+
+---
+
 ## Phase 0 — Bootstrap
 
 **One session. No plan.md exists yet.** Produces the Maven scaffold, exception classes,
 `BeanConfigurationSagas.groovy` (infrastructure beans only — no domain beans yet), and Spock test
-base classes, all cloned and transformed from the `quizzes` reference app.
+base classes, all produced from the checked-in scaffold templates under
+`.claude/skills/boot-strap/templates/`.
+
+It also creates `applications/{app-name}/harness-log.md` and is the **sole declarer** of the run's
+self-healing mode, written into that file's header and never rewritten afterwards. `--self-healing`
+turns the mode on; absent, it is off (`AGENTS.md` § "Harness evolution").
 
 The full procedure — exact files read, every transformation applied, and the complete produced-file
 list — is authoritatively defined in
@@ -152,22 +174,25 @@ plan.md does not exist yet. Phase 1 creates it.
 - `docs/concepts/rule-enforcement-patterns.md` — the pattern taxonomy and classification flowchart
 
 ### Produces
-`applications/{app-name}/plan.md` using the structure defined in
-`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above). The agent
-must:
+`applications/{app-name}/plan.md` only, using the structure defined in
+`.claude/skills/classify-and-plan/SKILL.md` (see **plan.md — The Job Queue** above).
+`harness-log.md` belongs to Phase 0: this phase **halts** if it is absent rather than creating one,
+because creating it here would create it without a declared mode. The agent must:
 
-1. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
-2. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
+1. Join §4 of domain-model (Primary Entity / Other Entities) against §1 of aggregate-grouping
+   (Entities contained) → the Derived Aggregate Mapping table. Entities the grouping co-locates
+   collapse to one aggregate; an operation left with no other aggregate needs no saga coordination.
+2. Apply the decision guide to every §3.2 rule → populate the Rule Classification table.
+3. Topological-sort aggregates by the dependency DAG (§3 of aggregate-grouping) → the
    Implementation Order table. Aggregates with no upstream deps come first.
-3. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
-   (split from §4 of domain-model), events published/subscribed (from aggregate-grouping §4),
+4. For each aggregate in order, fill the Aggregate Details section: write/read functionalities
+   (split from §4 of domain-model by the derived mapping), events published/subscribed (from aggregate-grouping §4),
    cross-aggregate prerequisites (P4a rules and P3 DTO-check rules) with their step names, and the full file list per session.
-4. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
-5. Populate the Phase 3 and Phase 4 sections: one session per aggregate each, in the same order as
-   the Implementation Order table. No per-scenario analysis needed for either.
+5. Set the `d` session checkbox only for aggregates that have a non-empty Events subscribed list.
 
 ### Does not modify
-Any source file. Output is plan.md only.
+Any source file, and not the `harness-log.md` header. Output is plan.md, plus any harness-log rows
+this session's own friction produced.
 
 ---
 
@@ -192,113 +217,115 @@ only:
 | Session | Name | Sub-file | Adds to BeanConfigurationSagas.groovy |
 |---------|------|----------|----------------------------------------|
 | 2.N.a | Domain Layer | [`session-a.md`](../.claude/skills/implement-aggregate/session-a.md) | `Sagas{Aggregate}Factory`, `{Aggregate}CustomRepositorySagas` |
-| 2.N.b | Write Functionalities | [`session-b.md`](../.claude/skills/implement-aggregate/session-b.md) | `{Aggregate}Service`, `{Aggregate}CommandHandler`, `{Aggregate}Functionalities` |
-| 2.N.c | Read Functionalities | [`session-c.md`](../.claude/skills/implement-aggregate/session-c.md) | none — `{Op}FunctionalitySagas` are per-request objects, not Spring beans |
+| 2.N.b | Read Functionalities | [`session-b.md`](../.claude/skills/implement-aggregate/session-b.md) | `{Aggregate}Service`, `{Aggregate}CommandHandler`, `{Aggregate}Functionalities` |
+| 2.N.c | Write Functionalities | [`session-c.md`](../.claude/skills/implement-aggregate/session-c.md) | none — the three beans are registered in 2.N.b; `{Op}FunctionalitySagas` are per-request objects, not Spring beans |
 | 2.N.d | Event Wiring *(only if aggregate has subscribed events)* | [`session-d.md`](../.claude/skills/implement-aggregate/session-d.md) | `{Aggregate}EventHandling`, `{Aggregate}EventHandler`, `{Aggregate}EventProcessing` |
 
----
+### Slices
 
-## Phase 3 — Implementation Review
+A session's unit of work is a **slice**: one write functionality (session `c`) or one subscribed
+event (session `d`), implemented end to end - its own new files, its appends to the session's shared
+files, and its own tests.
 
-**One session per aggregate in plan.md's Implementation Order.** Two skills, run in this order.
+Each session carries an **ordered slice list**, emitted into plan.md as sub-checkboxes at Phase 1 and
+fixed from then on. Sessions `a` and `b` are never sliced. Sessions `c` and `d` are sliced one slice
+per item only when the item count is **greater than 3**; at or below the threshold the session is one
+implicit slice and carries no sub-checkboxes. The generation rules, the id scheme (`2.{N}.{type}{k}`)
+and the ordering rules are owned by
+[`.claude/skills/classify-and-plan/SKILL.md`](../.claude/skills/classify-and-plan/SKILL.md)
+§ "Step 8.5" - do not restate them here.
 
-Runs before Phase 4 because `/review-tests` cannot modify non-test files. Implementation defects must
-be found and fixed here, or Phase 4 will strengthen test assertions to match buggy behaviour and that
-work is thrown away when the bug is later fixed.
+Deciding the split at Phase 1 rather than at runtime makes it a reviewable, reproducible artifact of
+the run: the same spec always slices the same way.
 
-### Division of labour
+### Two entry points
 
-| Skill | Question it answers | Ground truth | Writes |
-|-------|--------------------|--------------|--------|
-| `/review-aggregate` | Does it exist and is it shaped right? | `plan.md` files-to-produce table, `docs/architecture.md` package layout, concept docs | `reviews/review-{Aggregate}.md` |
-| `/adversarial-review-aggregate` | Does it do the right thing? | the domain model, R1-R8, and violating inputs | `reviews/adversarial-review-{Aggregate}.md` + proof tests |
-| `/review-tests` (Phase 4) | Are the tests real? | the implementation vs. the test assertions | test files + `reviews/test-review-{Aggregate}.md` |
+| Command | Scope | Topology |
+|---------|-------|----------|
+| `/implement-aggregate [session]` | one session | one agent implements the whole session |
+| `/implement-aggregate-full <N>` | one aggregate, `2.N.a` through `2.N.d` | a manager runs the sessions and delegates each slice to a fresh subagent |
 
-The boundary is deliberate. `/review-aggregate` is a conformance auditor: it assumes the code is
-right and looks for deviations, so its checks are presence/shape checks and it treats `plan.md` as
-authoritative. `/adversarial-review-aggregate` is the opposite: it assumes the code is wrong, attacks
-semantics, checks R1-R8 against code, and re-derives rule classification independently so it can catch
-a Phase 1 misclassification. Neither should absorb the other's checks — the adversarial pass runs in a
-fresh context specifically so it is not anchored by the structural review's verdict.
+Both read the same `session-a..d.md` sub-files, which remain the single source of truth for how to
+implement, and both close a session through
+[`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md),
+so they produce the same retro shape and the same one-commit-per-session history.
 
-### How to run
+Slices run strictly sequentially, each with a fresh narrow context, instead of one agent holding a
+whole heavy session at once. The manager owns the self-healing gate, the harness-log rows and every
+commit; slices report friction and halt on Type 2 (`AGENTS.md` § "Harness evolution"). Its contract
+for a slice is [`.claude/agents/aggregate-slice.md`](../.claude/agents/aggregate-slice.md).
 
-```
-/review-aggregate {Aggregate}
-/adversarial-review-aggregate {Aggregate}
-```
+What the choice actually trades:
 
-Fix any Critical findings from the first before running the second — there is no value in attacking
-code that does not compile.
+| Axis | `/implement-aggregate` | `/implement-aggregate-full` |
+|------|------------------------|------------------------------|
+| **Scheduled checkpoints** | One per session, so four per aggregate. Each ends in a completion report you read before invoking the next. | One per aggregate. The manager runs `a` through `d` and reports at the boundary. |
+| **Unscheduled halts** | Type 2 and `2-fw` halt and wait for you. | **Identical.** A slice halts, the manager surfaces the block verbatim and waits. |
+| **Token cost** | Lower. One agent, one context per session. | Higher. Every slice reads the session sub-file and its concept docs from cold, and the manager holds its own context on top. |
+| **Context quality** | Degrades across a long session as one context accumulates the whole of it. | Higher per unit of work. Each slice starts fresh and narrow, which is the property the topology exists to buy. |
+| **Failure blast radius** | One session. You see the result before the next one starts. | Up to a whole aggregate. A wrong reading can be repeated across four sessions before you next look. |
 
-### Produces (per session)
+**`-full` is not unattended.** It reduces how often you are asked to *start* something, not how often
+you are asked to *decide* something: the Type 2 and `2-fw` gates are the same gates, they fire on the
+same friction, and they wait just as long. Budget for being interrupted either way.
 
-- `applications/{app-name}/reviews/review-{Aggregate}.md` — structural review
-- `applications/{app-name}/reviews/adversarial-review-{Aggregate}.md` — adversarial review
-- `src/test/groovy/.../sagas/adversarial/{aggregate}/{Aggregate}AdversarialTest.groovy` — one
-  `@PendingFeature` proof test per confirmed defect, or no file at all if nothing was confirmed
+Applications whose plan.md predates slicing are not migrated: `/implement-aggregate-full` halts
+rather than guessing a slice list. Run `/implement-aggregate` on them, or regenerate the plan.
 
-### The proof-test rule
+### Harness maintenance: `/review-artifacts`
 
-`/adversarial-review-aggregate` may not report a defect it cannot prove with a test that was written,
-run, and observed to fail. A candidate whose test passes is dropped outright, not softened into a
-caveat. Zero findings is a valid and expected outcome.
+`/review-artifacts` is not a phase of this pipeline. It is a static maintenance pass over the harness
+itself - `docs/`, `.claude/`, `AGENTS.md`, `HARNESS.md` - that collects the debris hand-editing and
+mid-run repair leave behind: paths that no longer resolve, two files prescribing different things, a
+piece of knowledge that lost its single owner, a domain noun leaked in from the application being
+generated. It reports; it does not repair.
 
-Confirmed proof tests are annotated `@PendingFeature`, so the suite stays green while the defect is
-open and goes **red the moment the defect is fixed** — which is the signal for Phase 4 to promote the
-test into its proper T1-T4 tier.
+**It is always human-invoked, under both entry points.** `/implement-aggregate-full` stops at the
+aggregate boundary and tells the human it is available; it never runs it itself and never continues
+to `{N+1}` either way.
 
-Neither skill in this phase modifies `src/main/**`. Fixes are a human decision between phases.
+**It is expensive.** It reads every harness file in full, so it fills a context window fast. Run it
+in a fresh session, never inline in a Phase 2 session. That cost is why the guidance below is a
+recommendation rather than a step.
 
-**Ticks:** `- [ ] 3.{N} — {Aggregate}` in plan.md upon completion of both skills.
+**When it is worth running,** in descending order:
 
----
-
-## Phase 4 — Test Review
-
-**One session per aggregate in plan.md's Implementation Order.**
-
-### Reads
-- `plan.md` — Phase 4 session row being processed (aggregate name and ordinal)
-- (no other reads required — the review-tests skill reads all necessary files internally)
-
-### Produces (per session)
-- `applications/{app-name}/reviews/test-review-{Aggregate}.md` — audit report
-- Fixes to existing `*.groovy` test files (fake/wrong/weak tests corrected; missing tests added)
-- Absorption of any Phase 3 proof tests into their proper tier
-
-### How to run
-
-Invoke the review-tests skill:
-
-```
-/review-tests {Aggregate}
-```
-
-The skill reads all test files across the four tiers (T1–T4) and the implementation files for the aggregate, audits completeness,
-adds missing tests, fixes fake/wrong tests, runs the full test suite, and writes the review report.
-
-It also absorbs any `@PendingFeature` proof tests left by Phase 3: a proof test that now passes means
-the defect was fixed, so the test is promoted into its correct tier and the annotation removed. A proof
-test still failing means the defect is still open, which blocks the Phase 4 checkbox.
-
-**Ticks:** `- [ ] 4.{N} — {Aggregate}` in plan.md upon completion.
+1. **After any substantial change to the harness** - a refactor, a batch of doc rewrites, a new or
+   retired skill. This is what it is for, and the run that follows reads whatever the edits left
+   behind.
+2. **After each finished aggregate, under self-healing ON** (`AGENTS.md` § "Harness evolution").
+   There, sessions repair `docs/` and `.claude/skills/` under the Type 1 gate, so the artifacts
+   change *while* they are being read: a fix made in `2.{N}.c` can contradict a doc that `2.{N+1}.a`
+   is about to follow, and the aggregate boundary is the last moment that contradiction is cheap.
+   Act on its Critical and Major findings, in their own `harness:` commits, before starting `{N+1}`.
+3. **Occasionally under OFF, if you want the neutral-domain sweep early.** Under OFF the harness
+   cannot drift mid-run - the bucket must stay clean and the session commit halts if it is not - so
+   there is nothing new for it to find between aggregates except nouns the run itself could not have
+   introduced. Once at the end of the run is usually enough, and its findings are acted on between
+   runs rather than at a boundary.
 
 ---
 
 ## Post-Session Retrospective
 
-**Generated automatically by `/implement-aggregate` as Step 7.**
+**Generated automatically at the end of every Phase 2 session, by whichever entry point ran it.**
 
 No separate invocation required. After all session files are produced and the plan.md checkbox is
-ticked, `/implement-aggregate` synthesises the retro from conversation context and writes it to:
+ticked, the retro is written to:
 
 `applications/{app-name}/retros/retro-{session-id}-{Aggregate}.md`
 
-Example: `applications/{app-name}/retros/retro-2.3.b-Tournament.md`
+Example: `applications/{app-name}/retros/retro-2.3.b-Shipment.md`
 
-A single commit covering both the implementation files and the retro file is then issued
-automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})`.
+A single commit covering the implementation files, the retro file and any `harness-log.md` rows is
+then issued automatically, in the message format defined in `session-completion.md` § "Commit".
+
+The retro template, both assembly topologies and the commit step are owned by
+[`.claude/skills/_shared/session-completion.md`](../.claude/skills/_shared/session-completion.md).
+Under `/implement-aggregate` the retro is synthesised from the single agent's conversation context;
+under `/implement-aggregate-full` the manager merges the retro fragment each slice returned, which
+preserves the same "synthesis from own context" property at the level where the context actually
+lives. The file name and schema are identical either way, so `/harness-retrospective` is unaffected.
 
 ### What it produces
 
@@ -306,9 +333,8 @@ automatically (Step 8), with message: `feat({app-name}): 2.{N}{type} ({Aggregate
 |---------|---------|
 | Files Produced | Audit trail of what was shipped |
 | Docs Consulted | Which concept docs were read and whether they were sufficient |
-| Reference App Consulted | Files read from `applications/quizzes/` — each entry is a gap signal |
 | Skill Instructions Feedback | What worked / what was unclear in the skill sub-file |
 | Documentation Gaps | Specific missing or ambiguous content in `docs/concepts/` |
 | Patterns to Capture | Undocumented patterns discovered during implementation |
-| Action Items | Prioritised list of improvements to make to docs and skills |
+| Harness Changes | The `harness-log.md` row numbers appended this session, and the `harness:` commit sha of every Type 1 fix |
 | One-Line Summary | The single most important finding |

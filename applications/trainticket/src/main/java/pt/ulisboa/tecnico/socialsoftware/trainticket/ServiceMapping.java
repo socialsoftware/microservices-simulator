@@ -1,0 +1,23 @@
+package pt.ulisboa.tecnico.socialsoftware.trainticket;
+
+public enum ServiceMapping {
+    STATION("station"),
+    TRAIN_TYPE("trainType"),
+    USER("user"),
+    ROUTE("route"),
+    CONTACTS("contacts"),
+    TRIP("trip"),
+    PRICE_CONFIG("priceConfig"),
+    ORDER("order"),
+    ;
+
+    private final String serviceName;
+
+    ServiceMapping(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public String getServiceName() {
+        return serviceName;
+    }
+}

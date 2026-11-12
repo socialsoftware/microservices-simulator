@@ -1,7 +1,7 @@
 ---
 name: implement-aggregate
-description: Phase 2 aggregate implementation for microservices-simulator. Auto-detects the next unchecked session in plan.md and delegates to the appropriate sub-file (session-a.md through session-d.md). Invoke with /implement-aggregate [session] (e.g., /implement-aggregate or /implement-aggregate 2.3.b).
-argument-hint: "[session] (e.g. 2.3.b — optional, auto-detects if omitted)"
+description: Phase 2 aggregate implementation for microservices-simulator. Auto-detects the next unchecked session in plan.md and delegates to the appropriate sub-file (session-a.md through session-d.md). The recommended default entry point - one session per invocation, so a checkpoint after every session, the lowest token cost and the narrowest failure blast radius. Invoke with /implement-aggregate [session] (e.g., /implement-aggregate or /implement-aggregate 2.3.b).
+argument-hint: "[session] [--self-healing|--no-self-healing] (e.g. 2.3.b - session optional, auto-detects if omitted)"
 ---
 
 # Phase 2: Implement Aggregate
@@ -15,25 +15,29 @@ file(s) it produces (session → file, for file-generation purposes only):
 | Session | Test type | File |
 |---------|-----------|------|
 | `a` | T1 Aggregate | `{Aggregate}IntraInvariantTest.groovy` |
-| `b` | T2 Service (write methods + event publication) | `{Aggregate}ServiceTest.groovy` |
-| `b` | T4 Functionality (writes) | `{Op}Test.groovy` |
-| `c` | T2 Service (read methods) | appended to `{Aggregate}ServiceTest.groovy` |
-| `c` | T4 Functionality (reads) | `{Query}Test.groovy` |
+| `b` | T2 Service (read methods) | `{Aggregate}ServiceTest.groovy` |
+| `b` | T4 Functionality (reads) | `{Query}Test.groovy` |
+| `c` | T2 Service (write methods + event publication) | appended to `{Aggregate}ServiceTest.groovy` |
+| `c` | T4 Functionality (writes) | `{Op}Test.groovy` |
+| `c` | T4 Compensation | `{Op}CompensationTest.groovy` |
 | `d` | T3 Subscription (Inter-Invariant) | `{Aggregate}InterInvariantTest.groovy` |
 
 > **Recorded decision — why T2 lives in sessions `b`/`c`, not `a`:** the migration plan's default
 > assigns T1+T2 to session `a`, but session `a` produces only the domain layer; the `*Service`
-> class that T2 tests invoke does not exist until session `b` (read methods until `c`). Per the
-> plan's allowance, T2 authoring (including event-publication assertions) is therefore assigned to
-> session `b`, with read-method T2 cases appended in session `c`.
+> class that T2 tests invoke does not exist until session `b`. Per the plan's allowance, T2
+> authoring is therefore assigned to session `b` for the read methods, with the write-method and
+> event-publication cases appended in session `c`.
 
 ---
 
-## Anti-Pattern: Do Not Consult the Reference App
+## Application isolation
 
-**Never read files under `applications/quizzes/` during implementation.** The docs and skills are the authoritative source. The reference app contains known bugs that the docs have already corrected; consulting it will reproduce those bugs in the target implementation.
+Read `.claude/skills/_shared/conventions.md` § "Application isolation" in full before implementing.
+Do not continue until you have. It governs which files this session may read.
 
-**If the docs or skill don't cover something:** flag it explicitly in the Step 6 report and the retro. Do not silently fill the gap from the reference. Surfacing the gap is the correct behavior — it becomes a documentation improvement, not a hidden copy of a potentially buggy pattern.
+**If the docs or skill don't cover something:** flag it explicitly in the completion report and append a
+harness-log row (`_shared/session-completion.md` § "Harness-log rows"). Do not silently fill the gap from another application. Surfacing the gap is
+the correct behavior — it becomes a harness improvement, not a hidden copy of a peer's pattern.
 
 ---
 
@@ -47,6 +51,8 @@ Invoked as:
 
 - **No argument** — auto-detect the next unchecked session across all `applications/*/plan.md` files.
 - **With session arg** (e.g., `2.3.b`) — target that specific session; skip the auto-detect scan.
+- **`--self-healing` / `--no-self-healing`** - override the run's declared self-healing mode for this
+  invocation only (Step 3b). The `harness-log.md` header is never rewritten.
 
 > If multiple applications have unchecked sessions and no argument was given, ask: "Multiple apps have unchecked sessions: {list}. Which should I work on?"
 
@@ -77,7 +83,14 @@ Parse it: `{N}` = `3`, `{type}` = `b`. Verify the checkbox `- [ ] 2.3.b` exists 
 
 **If no argument (auto-detect):**
 
-Scan plan.md for the first line matching `- [ ] 2.\d+\.[abcd]`. Extract:
+Scan plan.md for the first line matching `- \[ \] 2\.\d+\.[abcd](?![0-9])`. Extract:
+
+The negative lookahead matters: a session checkbox may be followed by indented **slice**
+sub-checkboxes of the form `- [ ] 2.{N}.{type}{k} {ItemName}`
+(`.claude/skills/classify-and-plan/SKILL.md` § "Step 8.5"). Those are not sessions and this skill
+does not target them - it implements the whole session regardless of how plan.md sliced it, and ticks
+the session checkbox plus every one of its sub-checkboxes at the end.
+
 - `{N}` = the aggregate number (the `\d+`)
 - `{type}` = the session type (`a`, `b`, `c`, or `d`)
 
@@ -89,13 +102,12 @@ If no unchecked Phase 2 session found, inform: "All Phase 2 sessions are complet
 
 Read `.claude/skills/_shared/conventions.md` § "Resolve app context" and derive `{app-name}`,
 `{pkg}`, `{AppClass}` from the plan.md path located in Step 1 (already found — do not re-run the
-`find`). Additionally, locally:
-- `{appClass}` = same as `{AppClass}` but first segment lowercase (e.g., `quizzesFull`)
+`find`).
 
 From plan.md, find the aggregate details section for aggregate number `{N}`:
 - Section header pattern: `### {N}. {Aggregate}` or `### {N}. {AggregateName}`
-- `{Aggregate}` = the aggregate name in PascalCase (e.g., `Tournament`)
-- `{aggregate}` = lowercase version (e.g., `tournament`)
+- `{Aggregate}` = the aggregate name in PascalCase (e.g., `Warehouse`)
+- `{aggregate}` = lowercase version (e.g., `warehouse`)
 
 Derive standard path prefixes:
 - `{src}` = `applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/`
@@ -116,7 +128,51 @@ Read and hold in context the entire aggregate section for `{N}` from plan.md. Th
 - Files to produce table (sessions 2.N.a through 2.N.d)
 - Checklist
 
-This is the authoritative source for what to produce. Do not re-derive the file list — use the one in plan.md exactly.
+plan.md is the **starting point** for what to produce, not an authoritative manifest. What is
+actually required for this session is determined by the session sub-file loaded in Step 4 and the
+concept docs it names. Producing a file that plan.md omitted is correct and expected - amend the row
+per `_shared/session-completion.md` § "Amend plan.md for omitted files" rather than skipping the
+file.
+
+---
+
+## Step 3b: The Self-Healing Gate
+
+Implementation starts at Step 4. Before it does, load the gate, because this is the skill where it
+actually fires: read `AGENTS.md` § "Harness evolution" in full. It defines Type 1, Type 2 and
+`2-fw`; do not proceed on a remembered version of it.
+
+**Read the mode before anything else.** Open the `**Self-healing:**` line in the header of
+`applications/{app-name}/harness-log.md`. `on` or `off`; missing, unreadable or anything else means
+**off** (`.claude/skills/_shared/conventions.md` § "Harness log"). A `--self-healing` /
+`--no-self-healing` flag on this invocation overrides it for this session only, and is stated in the
+completion report and the retro rather than written to the header. State the mode in force, and
+whether it came from the header or a flag, in the completion report.
+
+Operationally, for every friction point hit between here and the end of the session:
+
+1. **Classify it first.** Can you demonstrate the harness wrong mechanically - a failing build, a
+   symbol that does not exist, two harness files prescribing different things? That is Type 1.
+   Otherwise it is Type 2. **Classification does not depend on the mode**; only what you do next
+   does.
+2. **Type 1, mode ON - fix it on the spot.** Repair the harness file that misled you - anything in
+   the Harness bucket of `AGENTS.md` § "What the harness is", which is `docs/`, `.claude/` and the
+   root files `AGENTS.md`, `CLAUDE.md` and `HARNESS.md` - commit that one file alone with a
+   `harness:` prefix, and carry on. Do not ask, do not batch it to the end of the
+   session, and do not work around it in the application code. The fix is written in the neutral
+   vocabulary of `.claude/skills/_shared/conventions.md` § "Neutral domain".
+3. **Type 1, mode OFF - do not edit the harness, and do not halt.** Proceed on the most reasonable
+   reading, log the row with `Outcome` = `deferred` and `Ref` = `-`, and name it in the completion
+   report so the human can act on it between runs. Say in the report which reading you proceeded on;
+   that sentence is what makes the deferred row actionable later.
+4. **Type 2 - halt before writing any code, in both modes.** The answer is a design decision and it
+   determines the code, so writing first and asking later produces code that has to be thrown away.
+   State what the harness says, what it does not settle, and the options; then wait.
+5. **Anything under `simulator/` is Type `2-fw` and always halts**, in both modes, even when it looks
+   mechanically provable. There is no Type 1 fast path for the framework.
+
+Every one of these gets a row in `harness-log.md` at `_shared/session-completion.md`
+§ "Harness-log rows", whatever the mode and whatever its outcome.
 
 ---
 
@@ -127,8 +183,8 @@ Based on `{type}`, load and follow the corresponding sub-file. All context varia
 | type | Sub-file | Session name |
 |------|----------|--------------|
 | `a`  | `session-a.md` | Domain Layer |
-| `b`  | `session-b.md` | Write Functionalities |
-| `c`  | `session-c.md` | Read Functionalities |
+| `b`  | `session-b.md` | Read Functionalities |
+| `c`  | `session-c.md` | Write Functionalities |
 | `d`  | `session-d.md` | Event Wiring |
 
 Read the sub-file now and follow its instructions exactly. The sub-file specifies:
@@ -139,223 +195,20 @@ Read the sub-file now and follow its instructions exactly. The sub-file specifie
 
 ---
 
-## Step 5: Tick the Checkbox
-
-After all files are produced and BeanConfigurationSagas.groovy is updated, update plan.md:
-
-Replace `- [ ] 2.{N}.{type}` with `- [x] 2.{N}.{type}` in plan.md.
-
----
-
-## Step 5b: Patch plan.md for Missing Files
-
-While producing files, note any file that should exist but is absent from plan.md's file table for this session — for example, an enum type class (e.g., `CourseType.java`) for an aggregate field typed as that enum, or an owned entity class referenced in the domain model.
-
-- For **unambiguous** omissions (a file you had to create to make the code compile): add it to the appropriate session row in plan.md and record it in the final report.
-- For **ambiguous** cases (you are unsure whether a file belongs or should be generated elsewhere): ask the user before adding.
-
----
-
-## Step 6: Report Completion
-
-After ticking the checkbox, output a concise structured report:
-
-1. **Files produced** — list all files created or modified (full paths)
-2. **Checkbox ticked** — e.g., `[x] 2.1.a`
-3. **plan.md additions** — any files added to the plan.md file table during this session (Step 5b), and why
-4. **Contradictions / problems** — any contradiction between plan.md and the domain model or rule classification (e.g., a write functionality that mutates a field marked P1 final), or any pattern that required inference or guessing beyond what the docs cover
-5. **Doc gaps** — any pattern that wasn't covered by the docs or skill and required inference or guessing; each gap is a candidate for a documentation improvement
-6. **Next session** — "Next: 2.{N}.{next-type}" or "Aggregate {Aggregate} complete. Next: aggregate {N+1}."
-
----
-
-## Step 7: Write Retro
-
-All session context variables are already resolved. Derive retro paths:
-- `{session-id}` = `2.{N}.{type}`
-- `{session-type-name}` = map: a→"Domain Layer", b→"Write Functionalities", c→"Read Functionalities", d→"Event Wiring"
-- `{retro-dir}` = `applications/{app-name}/retros/`
-- `{retro-file}` = `{retro-dir}retro-{session-id}-{Aggregate}.md`
-
-### 7.a — Gather Evidence from Conversation Context
-
-This is a synthesis step — do NOT run filesystem audits, grep, or re-read files to reconstruct history. Use only what is already in the conversation context.
-
-Answer these questions by reviewing what happened during the session:
-
-1. **Which files were produced?** List every file created or modified.
-2. **Which concept docs were read?** For each: which sections were actually used? Was the doc sufficient?
-3. **Was the reference app (`applications/quizzes/`) consulted?** Consulting it is a violation of the anti-pattern rule. If it happened, note exactly which files and what gap caused it — add a High-priority Action Item to document that gap so it never needs the reference again.
-4. **Which instructions in the skill sub-file (`session-{type}.md`) were unclear, missing, or required inference beyond what was written?**
-5. **Were there any naming, path, or pattern decisions the skill/docs didn't cover?**
-6. **Were there any bugs, corrections, or fixes applied mid-session?** What triggered them?
-7. **Were any patterns observed that aren't yet documented anywhere?**
-8. **Were any files under `simulator/` modified?** If yes, list each one with: the exact diff (what was removed vs added), the root cause that required the change, and why the fix belongs in the framework rather than in application code.
-
-### 7.b — Write the Retro File
-
-Create `{retro-file}` using this exact template. Write "none" for any section with nothing to report — do not omit sections.
-
-```markdown
-# Retro — {session-id} — {Aggregate}
-
-**App:** {app-name}
-**Session:** {session-id} ({session-type-name})
-**Date:** {today}
-
----
-
-## Files Produced
-
-List every file created or modified this session (absolute paths).
-
-### Application files ({app-name})
-
-- `/path/to/file1`
-- `/path/to/file2`
-
-### Application bug fixes (earlier-session files)
-
-- (none) OR list files fixed this session that were produced in a previous session
-
----
-
-> ## ⚠️ SIMULATOR FRAMEWORK CHANGES
->
-> [Include this block ONLY if one or more files under `simulator/` were modified. Delete this entire block if no simulator files changed.]
->
-> The following files belong to `simulator/` — the **shared core library** used by all applications. Changes here affect every consumer of the library and must be treated as framework patches, not application fixes. Each change below includes a root-cause explanation and a justification for why the fix belongs in the framework rather than in application code.
-
-### `simulator/path/to/ChangedFile.java`
-
-**What changed (diff summary):**
-```diff
-- removed line(s)
-+ added line(s)
-```
-
-**Root cause:** (What application-level symptom triggered the investigation? What was wrong in the framework?)
-
-**Fix rationale:** (Why is this the correct fix? Why does the fix belong here and not in the application?)
-
-**Impact scope:** (Which other applications or test profiles are affected? Any production impact?)
-
----
-
-[Repeat the `### simulator/...` block for each additional simulator file changed.]
-
----
-
-## Docs Consulted
-
-| Doc file | Sections used | Sufficient? | Notes |
-|----------|--------------|-------------|-------|
-| `docs/concepts/aggregate.md` | § verifyInvariants, § SagaAggregate | Yes | — |
-
-**Sufficient?** = `Yes` / `Partial` / `No`
-- `Partial` = doc existed but was missing something important
-- `No` = doc didn't address the need; fell back to inference or guessing
-
----
-
-## Skill Instructions Feedback
-
-### What worked well
-
-- (specific instructions or patterns in the skill that produced correct output without ambiguity)
-
-### What was unclear or missing
-
-- (gaps or ambiguities that required guessing or looking elsewhere)
-
-### Suggested wording / structure changes
-
-- (optional: concrete rewrite proposals; reference the exact file and section)
-
----
-
-## Semantic-Lock Coverage Audit (sessions `b` only — write "n/a" for `a`/`c`/`d`)
-
-For every saga produced this session, list every saga step that calls `setSemanticLock`, and the test
-name covering its lock-acquisition case.
-
-| Saga class | Step name | Foreign aggregate locked | Lock-acquisition test name | Present? |
-|------------|-----------|--------------------------|----------------------------|---------:|
-
-- One row per `setSemanticLock` call site.
-- "Present? = No" rows are **Major** findings: add the test in this session, or open an explicit follow-up. **Never tick the session checkbox with an unresolved `No` row** unless it is recorded with explicit deferral rationale in Action Items.
-
----
-
-## Documentation Gaps
-
-Gaps in `docs/concepts/` files that caused friction or required inference or guessing.
-
-| Doc | Missing / unclear | Impact | Suggested fix |
-|-----|------------------|--------|---------------|
-| `docs/concepts/aggregate.md` | X not explained | High | Add section on X |
-
----
-
-## Patterns to Capture
-
-Patterns or conventions observed during this session that aren't yet documented. Candidates for
-adding to docs or skills.
-
-- **Pattern:** (name or brief title)
-  **Observed in:** (file path)
-  **Description:** (what it does, when to use it)
-
----
-
-## Action Items
-
-Prioritised improvements to docs and skills based on this retro.
-
-| Priority | Target file | Action |
-|----------|------------|--------|
-| High | `.claude/skills/implement-aggregate/session-a.md` | ... |
-| Medium | `docs/concepts/aggregate.md` | ... |
-
----
-
-## One-Line Summary
-
-(One sentence: the single most important finding from this retro.)
-```
-
-### 7.c — Create Directory and Write File
-
-Create `{retro-dir}` if it does not already exist, then write the completed retro to `{retro-file}`.
-
-**Hard rules for the retro:**
-1. **Synthesis only.** No filesystem audits, no grep sweeps, no re-reading files to reconstruct history.
-2. **Never omit sections.** If a section has nothing to report, write "none".
-3. **Absolute paths in Files Produced.**
-4. **Any reference-app consultation is a violation** — flag the gap in Action Items as High priority.
-5. **No emojis, no hype.** Terse and concrete — paths, file names, section names, decisions.
-6. **Does not modify plan.md, source files, or BeanConfigurationSagas.groovy.**
-7. **Simulator changes are mandatory to document.** If any file under `simulator/` was modified during the session, the `⚠️ SIMULATOR FRAMEWORK CHANGES` block is **required** in the Files Produced section — not optional. For each changed file include: exact diff, root cause, fix rationale, and impact scope. If no simulator files changed, remove the block entirely rather than leaving it blank.
-8. **Semantic-Lock Coverage Audit is mandatory for session-`b` retros.** A session-`b` retro missing the audit table, or containing it with unresolved `Present? = No` rows (without an explicit deferral entry in Action Items), blocks the Step 8 commit. For sessions `a`/`c`/`d` the section is still present with the literal value "n/a".
-
-Do not print a separate retro completion report — the retro file path is included in the Step 8 commit output.
-
----
-
-## Step 8: Commit
-
-Stage all files produced during this session using `git add <specific files>` (never `git add -A`). Include:
-- Every file created or modified (from the Step 6 report)
-- The retro file written in Step 7
-
-Issue a single commit using HEREDOC format:
-
-```
-feat({app-name}): 2.{N}{type} ({Aggregate} {session-type-name})
-```
-
-Where `{session-type-name}` maps: `a`→"Domain Layer", `b`→"Write Functionalities", `c`→"Read Functionalities", `d`→"Event Wiring".
-
-Example: `feat({app-name}): 2.2c (User Read Functionalities)`
-
-After the commit, output the commit hash and message as the final line of the session report.
+## Steps 5-8: Complete the Session
+
+Read `.claude/skills/_shared/session-completion.md` in full and follow it, in the **single-agent topology**.
+Do not continue from memory of a previous read. It owns, in this order:
+
+| Step | Section in `session-completion.md` |
+|------|------------------------------------|
+| 5  | § "Tick the checkbox" |
+| 5b | § "Amend plan.md for omitted files" |
+| 6  | § "Report completion" |
+| 6b | § "Harness-log rows" |
+| 7  | § "Retro assembly" - use § "Single-agent topology", then § "Retro template" |
+| 8  | § "Commit" |
+
+The retro template, the Semantic-Lock Coverage Audit commit-blocking rule and the commit message
+format each live there and only there. `.claude/skills/implement-aggregate-full/SKILL.md` reads the
+same file in the manager topology, which is what keeps the two entry points producing identical artifacts.

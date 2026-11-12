@@ -19,9 +19,9 @@ This document is the system-level companion to the per-concept docs. Read it bef
 
 | Class | Path | Role |
 |-------|------|------|
-| `Aggregate` | `simulator/.../ms/domain/aggregate/Aggregate.java` | Base for all domain aggregates; defines `verifyInvariants()`, `getEventSubscriptions()`, version chain |
-| `SagaAggregate` | `simulator/.../ms/sagas/aggregate/SagaAggregate.java` | Interface for semantic-lock protocol; adds `getSagaState()` / `setSagaState()` |
-| `WorkflowFunctionality` | `simulator/.../ms/coordination/workflow/WorkflowFunctionality.java` | Base for all cross-service workflows; provides `executeWorkflow()`, `executeUntilStep()`, `resumeWorkflow()` |
+| `Aggregate` | `simulator/.../ms/aggregate/Aggregate.java` | Base for all domain aggregates; defines `verifyInvariants()`, `getEventSubscriptions()`, version chain |
+| `SagaAggregate` | `simulator/.../ms/transaction/sagas/aggregate/SagaAggregate.java` | Interface for semantic-lock protocol; adds `getSagaState()` / `setSagaState()` |
+| `WorkflowFunctionality` | `simulator/.../ms/coordination/WorkflowFunctionality.java` | Base for all cross-service workflows; provides `executeWorkflow()`, `executeUntilStep()`, `resumeWorkflow()` |
 
 ---
 
@@ -52,6 +52,11 @@ Aggregate publishes event
 
 Canonical directory layout for one microservice. Each package maps to an architectural layer:
 
+Two packages under `microservices/` are shared rather than per-service: `exception/`
+(`{App}Exception`, `{App}ErrorMessage`) and `domain/` (`{App}DomainConstants`, present only when some
+aggregate declares a sentinel). Both hold plain constants and exception types rather than beans, so
+they cross service boundaries without coupling one microservice's package to another's.
+
 ```
 microservices/{serviceName}/
 ├── {Xxx}ServiceApplication.java
@@ -80,18 +85,16 @@ microservices/{serviceName}/
 │   └── eventProcessing/                            ← optional: only if aggregate consumes events
 │       └── {Xxx}EventProcessing.java
 └── notification/                                   ← optional: only if aggregate consumes events
-    ├── api/
-    │   └── {Xxx}EventController.java
     ├── handling/
     │   ├── {Xxx}EventHandling.java                 (polling loop)
     │   └── handlers/
-    │       └── {Event}EventHandler.java
+    │       └── {Xxx}EventHandler.java             (single dispatcher - one per aggregate, not per event)
     └── subscribe/
         └── {Xxx}Subscribes{Event}.java
 ```
 
 **Optional directories:**
-- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Tournament). Aggregates that only **publish events** (e.g., User) omit both directories.
+- `coordination/eventProcessing/` and `notification/` are present only in aggregates that **consume events** from other services (e.g., Shipment). Aggregates that only **publish events** (e.g., Warehouse) omit both directories.
 
 ### `{Xxx}ServiceApplication.java`
 
@@ -102,7 +105,7 @@ Each microservice has a `@SpringBootApplication` entry point gated by `@Profile(
 
 ### `{Xxx}Controller.java`
 
-A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot and match the reference app structure. Endpoints can be filled in when a web-API layer is needed.
+A minimal `@RestController` stub under `coordination/webapi/`. In the simulator, HTTP endpoints are not exercised by the test harness (tests drive operations directly via `{Xxx}Functionalities`). The controller is created as an empty stub to mark the architectural slot. Endpoints can be filled in when a web-API layer is needed.
 
 ---
 
@@ -175,17 +178,24 @@ A service class may `@Autowired` (or constructor-inject) only the repository, cu
 
 ### R3 — Cross-aggregate state must flow through DTOs, not aggregate instances
 
-A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. It must never hold a reference to another aggregate's concrete class (e.g., `SagaExecution`, `CausalQuiz`). Aggregate instances carry UoW registration state that must not leak across service boundaries.
+A service may accept and return `{Xxx}Dto` objects belonging to any aggregate. It must never hold a reference to another aggregate's concrete class (e.g., `SagaWarehouse`, `CausalShipment`). Aggregate instances carry UoW registration state that must not leak across service boundaries.
 
 **Instead:** Expose all observable state through immutable DTO classes. The Functionality receives the DTO from a `Get*Command` step and passes the needed fields to downstream steps as plain values.
 
 ---
 
-### R4 — Saga steps that mutate an aggregate must declare `forbiddenStates`
+### R4 — Saga steps that touch a pre-existing aggregate must declare their lock intent
 
-In the Sagas protocol, any step that mutates an aggregate must list the `SagaState` values of concurrent operations that would conflict. Omitting `forbiddenStates` allows two operations to interleave in ways that violate business rules.
+In the Sagas protocol, a step that touches an aggregate **that already exists when the saga starts** must declare how it guards against concurrent operations. Which mechanism applies depends on the aggregate's relationship to the saga:
 
-See [`concepts/sagas.md`](concepts/sagas.md) for how semantic locks are acquired and checked.
+- **Primary aggregate** (the one owning this saga) — wrap the *read* command in `SagaCommand` and call `setSemanticLock(state)` on it. The mutate step that follows sends a plain, unwrapped command and declares the lock step as a dependency. Do not use `forbiddenStates` to acquire a primary-aggregate lock.
+- **Foreign aggregate** (an upstream aggregate a cross-aggregate step touches) — wrap the command in `SagaCommand` and call `setForbiddenStates([...])` on it, listing the `SagaState` values of concurrent operations that would conflict. This checks that the foreign aggregate is not already mid-saga; it does not acquire a lock. Both saga-state setters live on `SagaCommand`, so a guarded step wraps exactly as a lock step does.
+
+Declaring neither lets two operations interleave in ways that violate business rules.
+
+The scope is deliberate. A step that **creates** an aggregate has no prior state to guard: nothing else can hold a lock on an aggregate whose id the service has not minted yet. Such a step declares neither a semantic lock nor `forbiddenStates`, and instead registers a compensation that removes what it created if and only if a later step follows it. See [`concepts/sagas.md`](concepts/sagas.md) § "Create Functionality Sagas".
+
+[`concepts/sagas.md`](concepts/sagas.md) § "R4 Decision Table" is authoritative for which of the three cases applies, and § "Lock-Acquisition Step Pattern" shows how semantic locks are acquired and checked.
 
 ---
 
@@ -209,6 +219,17 @@ See [`concepts/rule-enforcement-patterns.md`](concepts/rule-enforcement-patterns
 
 DTOs are point-in-time snapshots of an aggregate's observable state. A Functionality step must not mutate a DTO it received from a `Get*Command`. Mutations must be expressed as new commands dispatched to the owning service.
 
+```java
+// WRONG — mutates a snapshot owned by another aggregate. The write is invisible to
+// that aggregate's UoW, so it is never persisted and never compensated.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
+dto.set{Field}(newValue);
+
+// RIGHT — read the snapshot, send the change as a command to the owning service.
+{Aggregate}Dto dto = ({Aggregate}Dto) commandGateway.send(new Get{Aggregate}ByIdCommand(id));
+commandGateway.send(new Update{Aggregate}{Field}Command(dto.getAggregateId(), newValue));
+```
+
 ---
 
 ### R8 — Functionalities may only send commands to upstream aggregates
@@ -216,6 +237,22 @@ DTOs are point-in-time snapshots of an aggregate's observable state. A Functiona
 A functionality that belongs to aggregate A may only issue commands (read or mutate) to aggregates that are **upstream of A** in the event dependency graph. It must never send commands to aggregates that are downstream of A.
 
 **Why:** Downstream aggregates depend on A's events to cache A's state — the data-flow direction is A → downstream. Sending a command from A's functionality to a downstream aggregate reverses that direction, couples A to downstream internals, and risks circular command chains.
+
+```java
+// WRONG — A's functionality reaches into a downstream aggregate to push the new value.
+// The command chain now runs both ways, and A must know which downstream types cache the field.
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+commandGateway.send(new Set{Downstream}{Field}Command(unitOfWork,
+        ServiceMapping.{DOWNSTREAM}.getServiceName(), {downstream}AggregateId, newValue));
+
+// RIGHT — A's step updates A only. The downstream aggregate subscribes to A's event and
+// folds the new value into its cached copy through its own ByEvent path.
+commandGateway.send(new Update{Aggregate}Command(unitOfWork,
+        ServiceMapping.{AGGREGATE}.getServiceName(), {aggregate}AggregateId, newValue));
+// {Aggregate}Service registers Update{Aggregate}Event; the downstream aggregate declares the
+// matching subscription in getEventSubscriptions() — see concepts/events.md § Canonical Wiring Snippet.
+```
 
 ---
 

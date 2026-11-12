@@ -27,14 +27,25 @@ silently created.
 
 Run: `find applications -name plan.md`
 
-Use the first result (if a skill needs different handling for multiple results — e.g. disambiguating
-by unchecked checkboxes or prompting the user — that logic is defined locally in the referencing
-skill, not here). From the result path, extract:
+If there is exactly one result, use it. If there are several, apply this tie-break in order - `find`
+returns them in directory order, which has nothing to do with which run is current, so never just take
+the first:
 
-- `{app-name}` = directory containing `plan.md` (e.g., `quizzes-full`)
-- `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `quizzesfull`)
+1. The plan.md with at least one unchecked `- [ ]` box. If exactly one qualifies, that is the run in
+   flight.
+2. Otherwise (all complete, or several still open) the one whose application directory has the most
+   recent commit: `git log -1 --format=%ct -- applications/{app-name}`.
+3. If that is still ambiguous, halt and ask which application to work on. Never guess.
+
+A referencing skill may override this with its own local rule; absent one, the tie-break above is
+binding.
+
+From the result path, extract:
+
+- `{app-name}` = directory containing `plan.md` (e.g., `my-app`)
+- `{pkg}` = `{app-name}` with hyphens removed, lowercase (e.g., `myapp`)
 - `{AppClass}` = PascalCase of `{app-name}` — split on hyphens, capitalize each segment, join without
-  separator (e.g., `QuizzesFull`)
+  separator (e.g., `MyApp`)
 
 If no `plan.md` found, halt: **"No plan.md found. Run /classify-and-plan first."**
 
@@ -47,25 +58,139 @@ For skills that take an aggregate name as their argument. Requires `{app-name}`,
 
 From the PascalCase argument, derive:
 
-- `{Aggregate}` = the argument as given (e.g., `Course`, `CourseExecution`)
-- `{aggregate}` = all-lowercase, hyphens and separators removed (e.g., `course`, `courseexecution`)
+- `{Aggregate}` = the argument as given (e.g., `Warehouse`, `ShipmentItem`)
+- `{aggregate}` = all-lowercase, hyphens and separators removed (e.g., `warehouse`, `shipmentitem`)
 
 Verify that a section `### N. {Aggregate}` exists in `plan.md`. If not found, halt:
 **"Aggregate '{Aggregate}' not found in plan.md. Check the name or run /classify-and-plan."**
 
 `{N}` = the ordinal from that section header. It is the aggregate's position in the Implementation
-Order table and the number used in session IDs (`2.{N}.a`, `3.{N}`, `4.{N}`).
+Order table and the number used in session IDs (`2.{N}.a`).
 
 Path prefixes — all relative to the repository root:
 
 ```
 {tgt-src}     = applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
 {tgt-test}    = applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/
-{review-dir}  = applications/{app-name}/reviews/
 ```
 
-Skills that additionally need the `quizzes` reference app define `{ref-src}` / `{ref-test}` locally —
-they are not part of this block, because most skills must not consult the reference app.
+---
+
+## Harness evolution
+
+Defined in `AGENTS.md` § "Harness evolution", including the self-healing mode and what each mode
+changes. Read it there; it is not restated here.
+
+Two clarifications specific to skills:
+
+- The Type 1 / Type 2 gates apply **from `/boot-strap` onward**, whether or not `plan.md` exists yet.
+- The mode is read from the `harness-log.md` header (§ "Harness log" below), not from memory of an
+  earlier session and not from the invoking human's tone. A skill that acts on the gate reads it.
+
+---
+
+## Harness log
+
+`applications/{app-name}/harness-log.md` is the single append-only record of harness friction and
+harness repair for a run. It is created by `/boot-strap` and appended to by every skill that
+encounters friction. It is never edited retroactively and rows are never deleted.
+
+### Header
+
+The header is written once, by `/boot-strap`, and carries the run's self-healing mode:
+
+```markdown
+# Harness Log - {app-name}
+
+**Self-healing:** off
+
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
+```
+
+`Self-healing:` takes exactly `on` or `off`. **A missing, unreadable or unrecognised value means
+`off`** - the fail-safe reading, because OFF only withholds unilateral edits, while a wrongly assumed
+ON lets an agent rewrite the harness it is being measured against. `/boot-strap` is the sole writer
+of this line; no other skill edits the header.
+
+A single invocation may override the run's mode with `--self-healing` or `--no-self-healing`. The
+override binds that invocation only and never rewrites the header. It is recorded in the session
+completion report and in the session retro's `## Harness Changes` section, **not** as a row: a row
+describes friction in a named artifact, and an override is neither.
+
+A later row may CLOSE an earlier one by beginning its `Problem` cell with `Closes row {N}.` The
+earlier row is never edited, because its `Outcome` records what happened at the time, not what
+happened eventually. A `deferred` row that no later row closes is still open at the end of the run.
+
+Schema - append one row per distinct friction point. The three rows below are **illustrative**, not
+real entries: they show the `Problem` phrasing to aim for, a `Closes row {N}.` row, and how thin a
+thin row is.
+
+| # | Session | Type | Artifact | Problem | Outcome | Ref |
+|---|---------|------|----------|---------|---------|-----|
+| 12 | 2.4.b | 1 | `.claude/skills/implement-aggregate/session-b.md` | § "{Aggregate}Service.java (read methods)" told the service to fetch a foreign aggregate's DTO through that aggregate's service, which requires injecting a foreign `*Service` - forbidden by R2 and contradicted by the same file's § "Two-step read saga variant". Two sections of one skill prescribed opposite mechanisms for the same read. | fixed | a1b2c3d4e |
+| 19 | 2.6.d | 2 | `docs/concepts/events.md` | § ByEvent sagaState guard says the guard may be skipped when the event "must apply even while the aggregate is mid-saga" but gives no test for which events those are, and `{Operation}` here writes a cached field two saga steps also write. Silent, not contradictory - the answer is a design decision. Human chose the field-overlap test. | fixed | f6g7h8i9j |
+| 24 | 2.7.d | 1 | `docs/concepts/events.md`, `.claude/skills/implement-aggregate/session-d.md` | Closes row 19. The test agreed there was stated in `events.md` only; `session-d.md` still carried its own softer paraphrase, so the two could drift. Paraphrase replaced with a pointer to the owning section. | fixed | k1l2m3n4o |
+
+- `#` - monotonically increasing; read the last row to get the next number.
+- `Session` - the session id (`2.3.b`, `3.5`, `4.1`), `0`/`1` for Phase 0/1, or `review` for a repair
+  driven by a `reviews/` report rather than by friction hit inside a session.
+- `Type` - `1` (contradiction, fixed unilaterally), `2` (ambiguity, human decided), `2-fw`
+  (`simulator/`, always human-decided).
+- `Artifact` - the repo-relative path of the harness file at fault.
+- `Problem` - one sentence. What was needed, what was found instead.
+- `Outcome` - `fixed` / `declined` / `deferred`. `declined` means the human decided the harness was
+  right and the agent proceeded on the stated reading. Under self-healing OFF a Type 1 row is
+  `deferred`, never `fixed`: the contradiction was recorded and worked around, not repaired.
+- `Ref` - the `harness:` commit sha for `fixed`; `-` otherwise.
+
+**Keep rows thin.** Do not restate the change - git holds the diff with perfect fidelity, and a
+prose copy drifts. The row answers *why, which session, what type, what outcome*;
+`git show {Ref}` answers *what changed*.
+
+**Implementation defects are not harness friction.** A defect in the generated application belongs
+in the review report's own Action Items table. Only findings that target `docs/`, `.claude/skills/`
+or `simulator/` come here.
+
+---
+
+## Application isolation
+
+While implementing or reviewing `{app-name}`, read only within `applications/{app-name}/`.
+Files anywhere under `applications/` belonging to a **different** application must never be read —
+not as templates, not for naming, not to resolve an ambiguity. The docs and skills are the
+authoritative source; another application is a peer, not a specification.
+
+Reads **within** `applications/{app-name}/` are unrestricted, including sibling aggregates already
+implemented in earlier sessions.
+
+**A completed application kept as a worked example is exempt, read-only.** `/author-spec` reads
+`applications/trainticket/` for exactly this reason: a finished run cannot be led to its own answers,
+so consulting one for the *shape* of a spec pair is not a peer-as-specification read. The exemption
+covers reading only - importing an entity, rule or boundary from the example into the spec being
+written is still forbidden, and it never extends to the application currently being generated.
+
+If a cross-application read happens anyway, log it in `harness-log.md` naming the file read and the
+gap that drove it: Type 1 if a doc or skill demonstrably failed to supply what was needed, Type 2
+otherwise.
+
+---
+
+## Neutral domain
+
+A harness fix may **not** name any entity, aggregate or operation of the application currently being
+generated. Write fixes in the placeholder vocabulary already used across the docs - `{Aggregate}`,
+`{Entity}`, `{Operation}`, `{Event}`. Where a worked example genuinely needs concrete nouns, invent a
+neutral domain unrelated to the application at hand.
+
+The reason is that a fix is authored while looking at one specific aggregate, and the vivid example
+that comes to mind is a leaked answer for the next application the harness is pointed at.
+
+This rule binds the harness artifacts only. `harness-log.md` rows are **exempt** and should name the
+functionality that triggered the fix - that is the provenance the end-of-run retrospective needs.
+
+Naming a **completed** application as a human-readable worked example is not a violation either: the
+rule protects the application currently being generated, and a finished run cannot be led to its own
+answers.
 
 ---
 
@@ -80,13 +205,47 @@ reporting a result it did not observe.
 Get the verdict from two sources the hook does not touch: maven's own **exit status**, and the
 **surefire report files** maven writes to disk.
 
-Run the build with no pipe, then read the exit status on the following line:
+**Do not redirect maven's output to a file.** A build log written into the working tree is an
+artifact of a verification step, not of the application, and nothing downstream reads it - failures
+are quoted from the surefire report `.txt` files, which maven writes to disk anyway.
+
+A full run's stdout can exceed the tool's output budget and be truncated, taking the `MAVEN_EXIT`
+line with it. **A run whose `MAVEN_EXIT` line you did not see is unverified**: re-run it, do not
+infer the verdict from whatever stdout survived, and never report a pass you did not observe.
+
+Run the build with no pipe and no redirect, then read the exit status from the `MAVEN_EXIT` line:
 
 ```bash
 cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
 mvn clean -Ptest-sagas test {-Dtest=... if narrowing}
 echo "MAVEN_EXIT=$?"
 ```
+
+**The `clean` run above is the mandated form for session-level and final verification** - the
+verdict a session, a review or a phase reports comes from it, and nothing weaker.
+
+**One narrow form is permitted, for intermediate verification only.** An agent implementing a slice
+of a session (`.claude/agents/aggregate-slice.md`) drops `clean` and narrows with `-Dtest=`:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+mvn -Ptest-sagas test -Dtest={NarrowedClasses}
+echo "MAVEN_EXIT=$?"
+```
+
+`clean` on every slice recompiles the whole application once per slice, and the run it guards
+against - a stale class from a previous build - is caught by the full clean suite the manager runs at
+the end of the session anyway. The narrow form is never a substitute for that run: a slice's green is
+a local signal, not the session's verdict, and cross-slice regressions are invisible to it.
+
+**Without `clean`, `target/surefire-reports/` still holds every earlier run's reports**, so the
+aggregation script below sums classes the narrowed run never executed. Its `tests=` total therefore
+does not describe the narrowed run. Report the per-class numbers for the classes named in `-Dtest=`,
+and say which total you are quoting - a slice that reports the unfiltered total as its own is
+reporting a number it did not produce, and one that reads a stale class's failure as its own will
+chase a defect that is not there.
+
+Everything below applies to both forms.
 
 Then aggregate the surefire reports:
 
@@ -112,11 +271,57 @@ for p, body in bad:
 Interpret the two together:
 
 - **Green** = `MAVEN_EXIT=0` **and** `failures=0 errors=0`.
-- `MAVEN_EXIT` non-zero with `failures=0 errors=0` means the failure is outside the tests —
-  a compilation error, or a `@PendingFeature` test that unexpectedly passed. Neither is visible in the
-  surefire totals; treat it as a failure and find the cause.
+- `MAVEN_EXIT` non-zero with `failures=0 errors=0` means the failure is outside the tests — e.g. a
+  compilation error. It is not visible in the surefire totals; treat it as a failure and find the
+  cause.
 - The script prints the full report body for every class with a failure or error, so quote the failure
   output from there rather than from maven stdout.
 
 Report the build outcome using these observed numbers. Do not write "BUILD SUCCESS" unless
 `MAVEN_EXIT` was `0`.
+
+### Inspecting maven output
+
+The verdict never comes from maven's stdout - that is what the exit status and the surefire reports
+above are for. A few checks nonetheless need the build's *real* stdout, because what they look for
+is written only to the console: a framework log line a test's correctness depends on, for instance.
+
+A shell redirect (`mvn ... > file.log`) does not reliably capture it. A `PreToolUse` hook may
+filter or summarize the command's output before it is written, so the file can hold a condensed
+transcript in which the line you are looking for simply is not present - and a `grep` returning
+zero matches then reads as "the line never appeared" when it means "the line was filtered out".
+
+Capture it from a child process instead, which the hook does not sit in front of:
+
+```bash
+cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+python3 -c "
+import subprocess, os, re
+env = dict(os.environ); env['JAVA_HOME'] = '/path/to/jdk-21'
+r = subprocess.run(['mvn','clean','-Ptest-sagas','test'{, '-Dtest=...'}],
+                   capture_output=True, text=True, env=env)
+print('MAVEN_EXIT', r.returncode)
+out = r.stdout + r.stderr
+for line in sorted(set(re.findall(r'{pattern to confirm}', out))):
+    print(line)
+"
+```
+
+The exit status is still `r.returncode`, and the surefire aggregation above still runs afterwards
+unchanged - this recipe adds a console-log assertion, it does not replace either signal.
+
+---
+
+## Commands whose output feeds a verdict
+
+The same `PreToolUse` hook that rewrites maven output also rewrites other CLI invocations - a bare
+`rg` can reach the shell as `grep`, which rejects `rg`-only flags and fails the command outright, or
+accepts a pattern file with different semantics and scans differently. Two rules follow:
+
+- **A check whose command errored is a failed check, never a pass with zero hits.** Zero output from
+  a command that did not run to completion is the absence of evidence, not evidence of absence.
+  Inspect the exit status before reporting any "clean" verdict derived from a search.
+- **Where a search result decides a verdict, use `python3 -` rather than `rg` or `grep`.** A short
+  inline script reads the files itself, so the pattern semantics are in the script and not at the
+  mercy of which binary the hook substituted. `rg` remains fine for exploration, where a mangled
+  result costs a retry rather than a wrong conclusion.

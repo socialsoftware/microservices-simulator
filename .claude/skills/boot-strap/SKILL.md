@@ -1,7 +1,7 @@
 ---
 name: boot-strap
-description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the quizzes reference app. Invoke with /boot-strap <App Name> (e.g., /boot-strap quizzes-full).
-argument-hint: "<App Name>"
+description: Bootstrap a new microservices-simulator application (Phase 0). Creates pom.xml, the {AppClass}Simulator entry point, exception classes, BeanConfigurationSagas.groovy, and Spock test base classes from the checked-in scaffold templates. Invoke with /boot-strap <App Name> (e.g., /boot-strap my-app).
+argument-hint: "<App Name> [--self-healing]"
 ---
 
 # Boot-Strap Phase 0 Application
@@ -10,19 +10,22 @@ This skill automates the Phase 0 bootstrap process. It creates the Maven project
 
 The bootstrap establishes a minimal, working foundation: all infrastructure beans and base test classes are in place, but domain-specific code is deferred to Phase 1 planning and Phase 2 implementation.
 
+Every file is produced from a checked-in template under `.claude/skills/boot-strap/templates/`. The templates are already correct and minimal — the only operation is token substitution. **Never read another application during bootstrap** — see `.claude/skills/_shared/conventions.md` § "Application isolation".
+
 ## Input
 
-The skill is invoked as: `/boot-strap <App Name>`
+The skill is invoked as: `/boot-strap <App Name> [--self-healing]`
 
 Examples:
-- `/boot-strap quizzes-full`
 - `/boot-strap my-app`
+- `/boot-strap train-ticket --self-healing`
 
 > **If no argument is provided**, ask the user: "What should the new application be named? (kebab-case, e.g. `my-app`)"
 
-The `<App Name>` must be:
-- Kebab-case (lowercase with hyphens)
-- Will be converted to `pkg` (no hyphens, lowercase) and `AppClass` (PascalCase with each word capitalized)
+`--self-healing` turns the run's self-healing mode ON. Absent, the mode is **off** - see
+`AGENTS.md` § "Harness evolution". This skill is the **sole declarer** of the mode for the whole run:
+it writes the mode into the `harness-log.md` header in Step 4b and nothing later rewrites that
+header. Do not infer the mode from anything else the invocation says; only the flag turns it on.
 
 ## Process
 
@@ -33,23 +36,32 @@ root". Do not run any command until you have.
 
 ### Step 1: Parse Arguments and Derive Naming Variables
 
-Given the `<App Name>` argument:
-1. `app-name` = the argument as-is (kebab case, e.g., `quizzes-full`)
-2. `pkg` = remove all hyphens and convert to lowercase (e.g., `quizzesfull`)
-3. `AppClass` = split on hyphens, capitalize each segment, join without separator (e.g., `QuizzesFull`)
-4. `appClass` (camelCase, first segment lowercase) = first segment lowercase, rest capitalized (e.g., `quizzesFull`)
+Given the `<App Name>` argument, derive the four substitution tokens:
 
-### Step 2: Read Reference Files
+| Token | Derivation | Example |
+|-------|------------|---------|
+| `{{APP_NAME}}` | the argument as-is (kebab-case) | `my-app` |
+| `{{PKG}}` | hyphens removed, lowercase | `myapp` |
+| `{{APP_CLASS}}` | split on hyphens, capitalize each segment, join without separator | `MyApp` |
+| `{{appClass}}` | as `{{APP_CLASS}}` but with the first segment lowercase | `myApp` |
 
-Read these files from the quizzes reference application to use as templates:
+The argument must be kebab-case (lowercase with hyphens).
 
-1. **pom.xml template:** `applications/quizzes/pom.xml`
-2. **BeanConfigurationSagas template:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/BeanConfigurationSagas.groovy`
-3. **SpockTest infrastructure template:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/SpockTest.groovy`
-   (Note: the file is physically under `quizzes/` but its package declaration is `pt.ulisboa.tecnico.socialsoftware` — copy verbatim, output path is the parent package folder.)
-4. **QuizzesSpockTest template:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/QuizzesSpockTest.groovy`
-5. **QuizzesException template:** `applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/exception/QuizzesException.java`
-6. **QuizzesErrorMessage template:** `applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/exception/QuizzesErrorMessage.java`
+### Step 2: Read Template Files
+
+Read all nine templates from `.claude/skills/boot-strap/templates/`:
+
+1. `pom.xml.template`
+2. `application.yaml.template`
+3. `application-test.yaml.template`
+4. `AppSimulator.java.template`
+5. `AppException.java.template`
+6. `AppErrorMessage.java.template`
+7. `SpockTest.groovy.template`
+8. `BeanConfigurationSagas.groovy.template`
+9. `AppSpockTest.groovy.template`
+
+`templates/README.md` documents the token vocabulary and how the templates are maintained.
 
 ### Step 3: Create Directory Structure
 
@@ -61,6 +73,7 @@ applications/{app-name}/
 └── src/
     ├── main/
     │   ├── java/pt/ulisboa/tecnico/socialsoftware/{pkg}/
+    │   │   ├── {AppClass}Simulator.java
     │   │   └── microservices/exception/
     │   │       ├── {AppClass}Exception.java
     │   │       └── {AppClass}ErrorMessage.java
@@ -76,178 +89,188 @@ applications/{app-name}/
 
 ### Step 4: Produce Files
 
-#### File 1: `applications/{app-name}/pom.xml`
+For each template: substitute the four tokens from Step 1, then write the result to its output path.
+Copy the template content **verbatim** apart from token substitution — do not add, remove, reorder,
+or reformat anything, and do not delete the `// ... added here as aggregates are implemented in
+Phase 2` marker comments (Phase 2 relies on them as insertion points).
 
-**Source:** `applications/quizzes/pom.xml`
+| Template | Output path (under `applications/{app-name}/`) |
+|----------|------------------------------------------------|
+| `pom.xml.template` | `pom.xml` |
+| `application.yaml.template` | `src/main/resources/application.yaml` |
+| `application-test.yaml.template` | `src/main/resources/application-test.yaml` |
+| `AppSimulator.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/{AppClass}Simulator.java` |
+| `AppException.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}Exception.java` |
+| `AppErrorMessage.java.template` | `src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}ErrorMessage.java` |
+| `SpockTest.groovy.template` | `src/test/groovy/pt/ulisboa/tecnico/socialsoftware/SpockTest.groovy` |
+| `BeanConfigurationSagas.groovy.template` | `src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/BeanConfigurationSagas.groovy` |
+| `AppSpockTest.groovy.template` | `src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/{AppClass}SpockTest.groovy` |
 
-**Transformations:**
-- Replace `<artifactId>QuizzesTutor</artifactId>` with `<artifactId>{AppClass}</artifactId>`
-- Replace `<name>QuizzesTutor</name>` with `<name>{AppClass}</name>`
-- Replace `<description>Quizzes Tutor</description>` with `<description>{AppClass}</description>`
-- Replace `<start-class>pt.ulisboa.tecnico.socialsoftware.quizzes.QuizzesSimulator</start-class>` with `<start-class>pt.ulisboa.tecnico.socialsoftware.{pkg}.{AppClass}Simulator</start-class>`
-- In the `test-sagas` profile, update the surefire include path from `**/quizzes/sagas/**` to `**/{pkg}/sagas/**`
-- **Delete** the entire `test-tcc` profile (time-critical consistency is not in scope for Phase 0)
-- **Delete** all 8 microservice deployment profiles: `answer-service`, `execution-service`, `course-service`, `question-service`, `quiz-service`, `topic-service`, `tournament-service`, `user-service`
-- Keep all other profiles: `sagas`, `tcc`, `local`, `stream`, `grpc`, `distributed-version`, `kubernetes`
+Note that `SpockTest.groovy` lands in the **parent** package folder (`.../socialsoftware/`), not
+under `{pkg}/` — its package declaration is `pt.ulisboa.tecnico.socialsoftware`.
 
-#### File 2: `applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}Exception.java`
+### Step 4b: Create the Harness Log
 
-**Source:** `applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/exception/QuizzesException.java`
+Create `applications/{app-name}/harness-log.md` with exactly this content - header only, no rows.
+Substitute `{app-name}`, and `on` or `off` for `{mode}` per the `--self-healing` flag from Step 1:
 
-**Transformations:**
-- Package declaration: `pt.ulisboa.tecnico.socialsoftware.{pkg}.microservices.exception`
-- Class name: `{AppClass}Exception`
-- Field name: `{appClass}ErrorMessage` (camelCase, first segment lowercase)
-- Logger class reference: `LoggerFactory.getLogger({AppClass}Exception.class)`
-- Constructor parameter names: all instances of `quizzesErrorMessage` → `{appClass}ErrorMessage`
-- Constructor method `getErrorMessage()` return value: same field reference
-- `fromRemote()` factory return type: `{AppClass}Exception`
-- All references to `QuizzesException` → `{AppClass}Exception`
+```markdown
+# Harness Log - {app-name}
 
-#### File 3: `applications/{app-name}/src/main/java/pt/ulisboa/tecnico/socialsoftware/{pkg}/microservices/exception/{AppClass}ErrorMessage.java`
+**Self-healing:** {mode}
 
-**Source:** `applications/quizzes/src/main/java/pt/ulisboa/tecnico/socialsoftware/quizzes/microservices/exception/QuizzesErrorMessage.java`
+Append-only. Schema and rules: `.claude/skills/_shared/conventions.md` § "Harness log".
 
-**Transformations:**
-- Package declaration: `pt.ulisboa.tecnico.socialsoftware.{pkg}.microservices.exception`
-- Class name: `{AppClass}ErrorMessage`
-- Keep all generic infrastructure constants — identify by name, not by position (domain-specific constants are interspersed throughout the file):
-  - `UNDEFINED_TRANSACTIONAL_MODEL`
-  - `AGGREGATE_BEING_USED_IN_OTHER_SAGA`
-  - `INVALID_AGGREGATE_TYPE`
-  - `AGGREGATE_DELETED`
-  - `AGGREGATE_NOT_FOUND`
-  - `VERSION_MANAGER_DOES_NOT_EXIST`
-  - `AGGREGATE_MERGE_FAILURE`
-  - `AGGREGATE_MERGE_FAILURE_DUE_TO_INTENSIONS_CONFLICT`
-  - `CANNOT_PERFORM_CAUSAL_READ`
-  - `CANNOT_PERFORM_CAUSAL_READ_DUE_TO_EMITTED_EVENT_NOT_PROCESSED`
-  - `INVALID_PREV`
-  - `NO_PRIMARY_AGGREGATE_FOUND`
-  - `TOO_MANY_PRIMARY_AGGREGATE_FOUND`
-  - `INVARIANT_BREAK`
-  - `INVALID_EVENT_TYPE`
-  - `CANNOT_MODIFY_INACTIVE_AGGREGATE`
-- Delete all domain-specific error message constants (those prefixed with domain names like `TOURNAMENT_`, `COURSE_EXECUTION_`, `USER_`, `QUESTION_`, `QUIZ_`, `TOPIC_`, `ANSWER_`)
-- Add exactly one placeholder constant:
-  ```java
-  public static final String PLACEHOLDER = "placeholder";
-  ```
+| # | Session | Type | Artifact | Problem | Outcome | Ref |
+|---|---------|------|----------|---------|---------|-----|
+```
 
-#### File 4: `applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/SpockTest.groovy`
+If the file already exists, leave it **untouched** - it is append-only and may already carry rows and
+a declared mode from a partial run. Report that it was found rather than created, and report the mode
+its header declares, which is the mode in force from here on. **The existing header always wins over
+a `--self-healing` / `--no-self-healing` flag on this invocation**: rewriting the header would make
+the rows already under it unreadable, since nobody could tell which mode each was logged under. When
+the flag disagrees with the header, say so in the Step 6 confirmation and state that the flag was
+ignored.
 
-**Source:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/SpockTest.groovy`
+Report the mode in the Step 6 confirmation either way. It changes what every later session may do,
+and a run whose mode nobody stated is a run whose record cannot be interpreted.
 
-**Transformations:** None — copy verbatim. This file is shared infrastructure (package is `pt.ulisboa.tecnico.socialsoftware`, not app-specific).
+Any friction this session encounters with the harness is appended here as a row with `Session` = `0`,
+under the gates in `AGENTS.md` § "Harness evolution", which apply from this session onward.
 
-#### File 5: `applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/BeanConfigurationSagas.groovy`
+### Step 5: Give the New App the Machine-Local Maven Settings
 
-**Source:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/BeanConfigurationSagas.groovy`
+Maven is invoked per-app, so each app carries its own untracked `.mvn/maven.config` pointing at the
+developer's settings file. Without it the very first `mvn` run fails resolving plugins from whatever
+mirror `~/.m2/settings.xml` names — an error that looks like a scaffold bug but is not. This file is
+machine config, so it is copied from elsewhere in the repo rather than templated: from a sibling app
+if one exists, otherwise from `simulator/.mvn/maven.config`, which is what makes this step work for
+the **first** application in a repo, when the sibling glob matches nothing. Because the file is
+untracked, a **linked git worktree starts without it** even when the developer has one; the search
+therefore continues into the main worktree before giving up.
 
-**Transformations:**
-- Package declaration: `pt.ulisboa.tecnico.socialsoftware.{pkg}`
-- Keep the `@PropertySource("classpath:application-test.properties")` annotation unchanged — this loads `application-test.properties` from the `simulator` library JAR (at `simulator/src/main/resources/`), not from the app itself. Do not remove or change the path.
-- Keep **only** the infrastructure bean methods (no aggregate-specific beans):
-  - `aggregateIdGeneratorService()`
-  - `versionService(LocalCommandGateway commandGateway)`
-  - `centralizedVersionService()`
-  - `eventApplicationService()`
-  - `eventService()`
-  - `unitOfWorkService()`
-  - `ImpairmentService()` (note the capital 'I' in method name)
-  - `retryRegistry()`
-  - `messagingObjectMapperProvider()`
-  - `localCommandService(...)`
-  - `commandGateway(...)`
-  - `streamBridge()`
-  - `commandResponseAggregator()`
-  - `streamCommandGateway(...)`
-  - `TraceService()` (note the capital 'T' in method name)
-  - `sagaCommandHandler()`
-  - `versionCommandHandler()`
-- Delete all imports and bean methods related to domain aggregates. The categories to remove are:
-  - **Functionalities & event processing:** e.g. `executionFunctionalities()`, `executionEventProcessing()`, `userFunctionalities()`, `topicFunctionalities()`, `questionFunctionalities()`, `questionEventProcessing()`, `quizFunctionalities()`, `quizEventProcessing()`, `answerFunctionalities()`, `answerEventProcessing()`, `tournamentFunctionalities()`, `tournamentEventProcessing()`
-  - **Custom repositories:** e.g. `courseCustomRepositorySagas()`, `courseExecutionCustomRepositorySagas()`, `tournamentCustomRepositorySagas()`, `quizAnswerCustomRepositorySagas()`
-  - **Aggregate factories:** e.g. `sagasQuizAnswerFactory()`, `sagasCourseFactory()`, `sagasCourseExecutionFactory()`, `sagasQuestionFactory()`, `sagasQuizFactory()`, `sagasTopicFactory()`, `sagasTournamentFactory()`, `sagasUserFactory()`
-  - **Domain services:** e.g. `courseService(...)`, `answerService(...)`, `tournamentService(...)`, `executionService(...)`, `userService(...)`, `topicService(...)`, `questionService(...)`, `quizService(...)`
-  - **Event handling/detection:** e.g. `courseExecutionEventDetection()`, `questionEventDetection()`, `quizEventDetection()`, `answerEventDetection()`, `tournamentEventDetection()`
-  - **Domain command handlers:** e.g. `userCommandHandler()`, `tournamentCommandHandler()`, `questionCommandHandler()`, `topicCommandHandler()`, `executionCommandHandler()`, `courseCommandHandler()`, `answerCommandHandler()`, `quizCommandHandler()` — keep only `sagaCommandHandler()` and `versionCommandHandler()`
-- The resulting file should have only infrastructure imports from `pt.ulisboa.tecnico.socialsoftware.ms.*`
+> **The one sanctioned exception to § "Application isolation".** `.mvn/maven.config` is untracked
+> machine configuration — a `-s <path>` line naming the developer's settings file. It carries no
+> domain content and is not a design source, so copying it is not a peer-as-specification read. The
+> exception is limited to this single file: never open any other file of a sibling application, and
+> never read the sibling's `pom.xml`, source, or tests while doing it.
 
-#### File 6: `applications/{app-name}/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/{pkg}/{AppClass}SpockTest.groovy`
+```bash
+root=$(git rev-parse --show-toplevel)
+common=$(cd "$(git rev-parse --git-common-dir)" && pwd)
+main=$(dirname "$common")
 
-**Source:** `applications/quizzes/src/test/groovy/pt/ulisboa/tecnico/socialsoftware/quizzes/QuizzesSpockTest.groovy`
+src=$(find "$root/applications" "$main/applications" -maxdepth 3 -path '*/.mvn/maven.config' 2>/dev/null \
+        | grep -v "/applications/{app-name}/.mvn/" | head -1)
+[ -n "$src" ] || src=$(find "$root/simulator/.mvn/maven.config" "$main/simulator/.mvn/maven.config" \
+        -maxdepth 0 2>/dev/null | head -1)
+[ -n "$src" ] || { echo "no maven.config to inherit"; exit 1; }
 
-**Transformations:**
-- Package declaration: `pt.ulisboa.tecnico.socialsoftware.{pkg}`
-- Class name: `{AppClass}SpockTest`
-- Keep infrastructure annotations and fields:
-  - `@Autowired` for `ImpairmentService impairmentService`
-  - `@Autowired(required = false)` for `SagaUnitOfWorkService unitOfWorkService`
-- Keep infrastructure helper methods:
-  - `loadBehaviorScripts()` — unchanged
-  - `sagaStateOf(Integer aggregateId)` — unchanged
-- Delete all domain-specific `@Autowired` fields (ExecutionFunctionalities, UserFunctionalities, TopicFunctionalities, QuestionFunctionalities, TournamentFunctionalities)
-- Delete all domain-specific constant declarations (times, aggregate IDs, names, usernames, titles, content, options)
-- Delete all domain-specific helper methods (createCourseExecution, createUser, createTopic, createQuestion, createTournament)
-- Delete all domain-specific imports
-- Add a single line comment after the class declaration:
-  ```groovy
-  // Domain @Autowired fields and helper methods will be added as aggregates are implemented
-  ```
-- Keep only the `mavenBaseDir` constant (shared infrastructure for script loading)
+mkdir -p "$root/applications/{app-name}/.mvn"
+cp "$src" "$root/applications/{app-name}/.mvn/"
+echo "/applications/{app-name}/.mvn/maven.config" >> "$common/info/exclude"
+```
 
-#### File 7: `applications/{app-name}/src/main/resources/application.yaml`
+The exclude file lists these paths one app at a time, so the new app's entry must be appended —
+otherwise the file shows up as untracked and can be committed by accident. It is addressed through
+`git rev-parse --git-common-dir` rather than as `.git/info/exclude`, because in a linked worktree
+`.git` is a **file** and the literal path is not a directory; the common dir also happens to be the
+one exclude file all worktrees share.
 
-**Source:** `applications/quizzes/src/main/resources/application.yaml`
+`simulator/.mvn/maven.config` is itself untracked machine config, for the same reason the copy is -
+it is git-excluded, not committed. It is nonetheless the right fallback: `simulator/` is where the
+core library is built, so any checkout that has ever run `mvn install` there has one, which covers
+the first application in a repo. Do not fall back to "the default `~/.m2/settings.xml` may already
+resolve" - it typically does not, and the failure surfaces much later as an unreachable-mirror build
+error that reads like a scaffold bug.
 
-**Transformations:**
-- Replace `name: quizzes` with `name: {app-name}` (under `spring.application`)
-- Remove the `spring.profiles.group` block (`stream: remote` / `grpc: remote`) — these group mappings only apply when the `remote` profile exists, which is being deleted
-- Delete the entire `remote` profile section (Spring Cloud Stream / RabbitMQ bindings) — the `quizzes.function-definition.events` block and all aggregate-specific subscriber bindings reference the quizzes domain and must not be copied
-- Delete the `stream` profile section (command channel bindings for all quizzes aggregates)
-- Delete the `grpc` profile section
-- Keep: root defaults, `local` profile, `kubernetes` profile
-- Note: there is no `distributed-version` profile section in `application.yaml` — that profile only exists in `pom.xml`
+Only when no candidate is found in **either** worktree does the developer have no mirror
+configuration to inherit: halt and say so, rather than scaffolding an application whose build will
+fail for a reason unrelated to the scaffold. Never commit `applications/{app-name}/.mvn/maven.config`.
 
-#### File 8: `applications/{app-name}/src/main/resources/application-test.yaml`
+### Step 6: Verify and Confirm
 
-**Source:** `applications/quizzes/src/main/resources/application-test.yaml`
+1. Assert no token survived substitution. The result is a verdict on the scaffold, so it comes from
+   `python3` rather than `rg` — a `PreToolUse` hook in this environment can rewrite a bare `rg` into
+   `grep`, and a command that failed outright prints no matches either, which would read as a pass.
+   See `.claude/skills/_shared/conventions.md` § "Commands whose output feeds a verdict". Substitute
+   `{app-name}` before running:
 
-**Transformations:** None — copy verbatim. This file configures the H2 in-memory database and disables service discovery for all tests.
+   ```bash
+   cd "$(git rev-parse --show-toplevel)"
+   python3 - <<'EOF'
+   import pathlib, sys
 
----
+   root = pathlib.Path("applications/{app-name}")
+   if not root.is_dir():
+       sys.exit(f"{root} does not exist - check the app name")
 
-### Step 5: Confirm Success
+   scanned, hits = 0, []
+   for path in sorted(p for p in root.rglob("*") if p.is_file()):
+       try:
+           lines = path.read_text().splitlines()
+       except (UnicodeDecodeError, OSError):
+           continue
+       scanned += 1
+       hits += [(path, n, l.strip()) for n, l in enumerate(lines, 1) if "{{" in l]
 
-After creating all 8 files:
+   print(f"scanned {scanned} files under {root}")
+   print(f"surviving tokens={len(hits)}")
+   for path, n, l in hits:
+       print(f"  {path}:{n}: {l}")
+   EOF
+   ```
 
-1. Report that bootstrap completed successfully
-2. List the full paths of all created files
-3. Confirm the structure and mention that Phase 1 (plan generation) is the next step
+   Expect `surviving tokens=0` over a non-zero file count. A zero over `scanned 0 files` is a failed
+   check, not a pass. If any token survived, fix the file before continuing.
 
-## Critical Transformations Summary
+2. Compile the scaffold. Read `.claude/skills/_shared/conventions.md` § "Run the test suite" and
+   follow it — no pipes, verdict from maven's exit status:
 
-| Item | From | To |
-|------|------|-----|
-| Artifact ID | `QuizzesTutor` | `{AppClass}` |
-| Package | `pt.ulisboa.tecnico.socialsoftware.quizzes` | `pt.ulisboa.tecnico.socialsoftware.{pkg}` |
-| Class names | `Quizzes*` | `{AppClass}*` |
-| Field names | `quizzesErrorMessage` | `{appClass}ErrorMessage` |
-| Test include path | `**/quizzes/sagas/**` | `**/{pkg}/sagas/**` |
-| pom.xml `<description>` | `Quizzes Tutor` | `{AppClass}` |
-| pom.xml profiles removed | `test-tcc` + 8 microservice profiles | — |
-| BeanConfig beans | All quizzes aggregates (6 categories) | Infrastructure only |
-| SpockTest fields | Domain functionalities | Infrastructure only |
-| SpockTest helpers | Domain create* methods | Infrastructure only |
-| application.yaml | `name: quizzes` + remote/stream/grpc sections | `name: {app-name}`, stripped |
-| application-test.yaml | — | Copied verbatim |
+   ```bash
+   cd "$(git rev-parse --show-toplevel)/applications/{app-name}"
+   mvn clean -Ptest-sagas test
+   echo "MAVEN_EXIT=$?"
+   ```
+
+   Expect `MAVEN_EXIT=0` and no tests run — Phase 0 ships no tests, and the surefire include is
+   `**/{pkg}/sagas/**`, which nothing matches yet. A non-zero exit here means a template has drifted
+   from the `simulator` library: fix the **template**, then regenerate. Do not patch the generated
+   app.
+
+3. Report that bootstrap completed successfully and list the full paths of all 9 created files, plus
+   `harness-log.md` from Step 4b and whether it was created or already present.
+4. State the run's self-healing mode, as declared in the `harness-log.md` header.
+5. Confirm the structure and mention that Phase 1 (plan generation) is the next step.
+
+### Step 7: Commit the Scaffold
+
+Phase 0 output must be committed before Phase 1 starts. Left uncommitted, the first application
+commits of the run are not buildable from a clean checkout, and the run's history no longer shows
+where the application began.
+
+Stage the 9 generated files and `applications/{app-name}/harness-log.md` with explicit paths - never
+`git add -A` or `git add .`, which would sweep in unrelated working-tree files. `applications/{app-name}/.mvn/maven.config` is machine
+config and is **not** staged; Step 5 already excluded it.
+
+```
+chore({app-name}): bootstrap scaffold
+```
+
+Verify with `git status --short applications/{app-name}` that nothing generated is left untracked
+apart from `.mvn/`, and report the commit sha.
 
 ---
 
 ## Notes
 
 - The skill does not create a `plan.md` — that is Phase 1's responsibility.
-- The skill does not create any `{AppClass}Simulator.java` entry point (that is outside the bootstrap scope).
-- All 8 files are ready for Phase 1 planning immediately after bootstrap completes.
-- For quizzes-full bootstrap, the app-name is `quizzes-full`, pkg is `quizzesfull`, AppClass is `QuizzesFull`, and appClass is `quizzesFull`.
+- The skill **is** the sole creator of `harness-log.md` and the sole declarer of the self-healing
+  mode. `/classify-and-plan` halts if the file is absent rather than creating it, so a run that
+  skipped Phase 0 cannot acquire a mode by accident.
+- `{AppClass}Simulator.java` is **required**, not optional, even though nothing in Phase 0 runs it. Phase 2 test classes are annotated `@DataJpaTest`, which locates its context by searching for a `@SpringBootConfiguration` in the test's package and then upwards; `{AppClass}Simulator` in `pt.ulisboa.tecnico.socialsoftware.{pkg}` is the only class that search can find. It also supplies the `@EnableJpaRepositories` / `@EntityScan` over both `...{pkg}` and `...ms` that the simulator's entities and repositories need. Omit it and the first Phase 2 test fails with `Unable to find a @SpringBootConfiguration by searching packages upwards from the test`. The per-aggregate `{Aggregate}ServiceApplication` created in session 2.N.a does not substitute for it: it sits under `...{pkg}.microservices.{aggregate}`, which is not an ancestor of any test package, and is `@Profile`-gated.
+- All 9 files are ready for Phase 1 planning immediately after bootstrap completes.
+- `@PropertySource("classpath:application-test.properties")` in `BeanConfigurationSagas` resolves against `simulator/src/main/resources/application-test.properties` in the library jar, not against the new app. Leave it unchanged.
+- `applications/{app-name}/.mvn/maven.config` (Step 5) is a `-s <path-to-settings>` line and is deliberately not templated — it names an absolute path on the developer's machine.
+- If a template turns out to be wrong or stale, fix the **template**, not the generated app — see `templates/README.md`.

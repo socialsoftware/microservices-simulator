@@ -1,3 +1,4 @@
+<!-- plain-domain: allow — historic run record, authored before the 2026-09-19 plain-domain contract; deliberately not re-partitioned, so the whole file is exempt -->
 # Quizzes — Domain Model
 
 > Follows the structure defined in [`docs/templates/domain-model-template.md`](../../docs/templates/domain-model-template.md).

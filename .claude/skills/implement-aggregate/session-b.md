@@ -1,6 +1,12 @@
-# Session 2.N.b — Write Functionalities
+# Session 2.N.b — Read Functionalities
 
 This sub-file is loaded by `implement-aggregate` when the target session type is `b`. All context variables (`{app-name}`, `{pkg}`, `{AppClass}`, `{Aggregate}`, `{N}`, `{src}`, `{test}`, `{bean-config}`) are already available from the router.
+
+> **Slice scope.** You may be assigned a subset of this session's items. If your brief names specific
+> functionalities or events, implement only those, and append to the shared files rather than
+> rewriting them. If no subset is named, you own the whole session.
+
+> **If the plan.md aggregate section lists "Read functionalities: none"**, this session is still not empty: produce the boilerplate `Get{Aggregate}ByIdCommand`, its `{Aggregate}Service` read method, its `{Aggregate}CommandHandler` case and its T2 not-found test, and no *domain read* artifacts beyond these. There are no domain read functionalities to add on top, so no `{Query}FunctionalitySagas`, no coordinator read methods beyond `get{Aggregate}ById`, and no `{Query}Test.groovy`.
 
 ---
 
@@ -8,221 +14,209 @@ This sub-file is loaded by `implement-aggregate` when the target session type is
 
 Load these files before writing any code:
 
-1. **Domain files produced in session 2.{N}.a** — read every file listed in the plan.md `2.{N}.a` row for this aggregate. You need the aggregate class structure, field names, constructor signature, and `SagaState` enum values.
+1. **Domain files produced in session 2.{N}.a** — specifically: `{Aggregate}.java`, `{Aggregate}Dto.java`. You need the field names and DTO constructor signature.
 
-2. **`docs/concepts/service.md`** — specifically:
-   - § Method Patterns (Read / Create / Mutate / Mutate with event publication / Mutate with optional sub-collection parameter)
-   - § Copy-on-Write Rule, § DTO Immutability (R7), § Exception-Throw Convention
-   - § P3 Guard Placement — where own-table uniqueness checks and DTO field validation live
-   - § Partial-Data Owned Entities (only if the aggregate has owned sub-entities)
-   - § Custom Repository — Latest-Active-Version Query (only if returning lists)
+2. **`docs/architecture.md`** — § package layout for this aggregate. This session creates `{Aggregate}Service.java`, `{Aggregate}CommandHandler.java` and `{Aggregate}Functionalities.java`; session 2.{N}.c appends its write methods to all three.
 
-3. **`docs/concepts/commands.md`** — specifically:
-   - § What a Command Is, § Naming Conventions, § File Location
-   - § ServiceMapping Enum (mandatory entry per aggregate)
-   - § Sending Commands (Functionality Layer), § Routing Commands (CommandHandler)
-   - § Known DTO Gaps and Compensating Command Steps (only if the saga touches a known-gap DTO; see subsection list)
+3. **`docs/concepts/service.md`** — specifically:
+   - § Method Patterns → Read method
+   - § Custom Repository — Latest-Active-Version Query (only if the read returns a collection)
+   - **R3** - cross-aggregate state flows as DTOs, never as aggregate instances (`docs/architecture.md`
+     § R3, restated in § Injected Dependencies). A read method returns this aggregate's own DTO.
+   - **R7** - DTOs are immutable value objects; never call a setter on one (`docs/architecture.md` § R7,
+     `service.md` § DTO Immutability).
 
-4. **`docs/concepts/sagas.md`** — specifically:
-   - § Step Ordering (authoritative; this session no longer restates it)
-   - § Lock-Acquisition Step Pattern (Two-Step Write Sagas), § Semantic Locks in Practice
-   - § R4 Decision Table — `SagaCommand` vs `setForbiddenStates`
-   - § Write Workflow Structure
+4. **`docs/concepts/commands.md`** — specifically:
+   - § What a Command Is, § Naming Conventions (read-command form: `Get{Aggregate}By{Field}Command`)
+   - § Routing Commands (CommandHandler) — adding a new case for the read command
 
-5. **`docs/concepts/testing.md`** — § Assertion Ownership, § T2 — Service Test, § T4 — Functionality Test, § Fake / Wrong / Weak Detection Checklist. This session writes tests in two tiers (T2 write cases + event publication, T4 write functionality) — read the full rule set before writing any test file, apply the Fake/Wrong/Weak checklist before committing each one.
+5. **`docs/concepts/sagas.md`** — specifically:
+   - § Read Functionality Sagas, and its § List-return read variant when the read returns a collection.
+     For § Two-step read saga variant the criterion is § One-step vs two-step decision, below in this file.
+   - **R8** - a functionality may only send commands to aggregates upstream of its own. A read saga is no
+     exception (`docs/architecture.md` § R8, `docs/concepts/commands.md`).
 
-6. ***(Conditional)*** If the plan.md aggregate section lists cross-aggregate prerequisites (P4a or P3 DTO-check rules): read the service file and relevant command files of each upstream aggregate involved. You need their command class names, service method signatures, and what they throw on failure.
+6. **`docs/concepts/testing.md`** — § T2 — Service Test (including § Not-Found Paths for the Path A / Path B rule of thumb), § T4 — Functionality Test, and § Assertion Ownership. T1 (aggregate) and T3 subscription (inter-invariant) tests are not produced in this session.
+
+7. ***(Conditional)*** If any read functionality joins data from an upstream aggregate (e.g., a "get with details" that includes Warehouse name alongside Shipment): read that upstream aggregate's service file to understand what it returns.
 
 ---
 
 ## Produce
 
-Produce every file listed in the plan.md `2.{N}.b` row. The authoritative file list is in plan.md — use it exactly. The descriptions below explain what each file must contain.
+Produce every file listed in the plan.md `2.{N}.b` row. plan.md is a blueprint, not a manifest: the `###` subheadings below are the authority on what this session must emit, and a file they require but plan.md omits is still produced - amend the row per `_shared/session-completion.md` § "Amend plan.md for omitted files".
 
-> **Prerequisite — ServiceMapping**: Verify that `{src}{AppClass}/ServiceMapping.java` exists and contains an entry for `{AGGREGATE}`. If not, create it (or add the missing entry) before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`.
+`Get{Aggregate}ByIdCommand` is produced unconditionally for **every** aggregate, whether or not §4
+lists any read functionality for it. Write sagas need it for their get-then-lock step, so it is
+infrastructure rather than a domain read. Session `b` is therefore never empty.
+
+> **Prerequisite — ServiceMapping**: Verify that `{src}ServiceMapping.java` exists and contains an entry for `{AGGREGATE}`. If not, create it (or add the missing entry) before writing any commands — every command constructor references `ServiceMapping.{AGGREGATE}.getServiceName()`. This session is the first to create commands for this aggregate, so the entry lands here.
 >
-> **Multi-word aggregate naming:** The value must equal `resolveServiceName(SagaXxx)`, which strips "Saga" from the aggregate's simple class name and lowercases the first character. For multi-word aggregates this is camelCase — e.g. `SagaQuizAnswer` → `"quizAnswer"`. Never use a shortened alias; mismatches cause silent bean-lookup failures that only appear at commit/abort time.
+> **Multi-word aggregate naming:** The value must equal `resolveServiceName(Saga{Aggregate})`, which strips "Saga" from the aggregate's simple class name and lowercases the first character. For multi-word aggregates this is camelCase — a `SagaShipmentItem` resolves to `"shipmentItem"`. Never use a shortened alias such as `"item"`; mismatches cause silent bean-lookup failures that only appear at commit/abort time.
 
-> **Prerequisite — `Get{Aggregate}ByIdCommand`**: If `Get{Aggregate}ByIdCommand` does not yet exist (it may be planned for session-c), create it now. Write sagas that use a get-then-lock step require this read command in session-b. Also add `get{Aggregate}ById` to `{Aggregate}Service` (if not yet present) and a handler case for `Get{Aggregate}ByIdCommand` in `{Aggregate}CommandHandler` — missing either will cause a compile error even when the command class exists.
->
-> **Recording this in plan.md:** After creating `Get{Aggregate}ByIdCommand` here, add a note in plan.md under the session-b row (or as a separate inline comment) stating that the command was already created in session-b. This prevents session-c from creating a duplicate when it encounters the command in the session-c file list.
-
-> **Prerequisite — Upstream count-manipulation commands**: If any saga for this aggregate sends an `Increment{Xxx}CountCommand` or `Decrement{Xxx}CountCommand` to an upstream aggregate's `CommandHandler`, verify that handler already routes the command. If the case is missing, add it before running tests — an unrouted command silently does nothing and will cause invariant violations or state corruption that are difficult to diagnose after the fact.
-
-### `{Aggregate}Service.java` (write methods)
+### `{Aggregate}Service.java` (read methods)
 
 Path: `{src}microservices/{aggregate}/service/{Aggregate}Service.java`
 
-- Spring `@Service`
-- One method per write functionality listed in plan.md
-- Method signature: receives the command's fields + `UnitOfWork unitOfWork`
-- **P3 own-table uniqueness guards** (if listed in plan.md P3 rules): query the repository for duplicates before creating; throw `{AppClass}Exception` with the appropriate error message constant if found
-- **P3 DTO field checks** (if listed in plan.md cross-aggregate prerequisites): receive the saga-assembled DTO as a parameter; validate the field; throw `{AppClass}Exception` on violation
-- After validation: fetch the target aggregate via `{Aggregate}CustomRepositorySagas`, mutate its fields via setters, call `verifyInvariants()`, then `unitOfWork.registerChanged(aggregate)`
-- **Soft-delete** (`remove()`): use copy-on-write — load the aggregate, create a factory copy via `factory.create{Aggregate}Copy(old)`, call `copy.remove()`, then `registerChanged(copy)`. Never call `remove()` on the managed entity returned by `aggregateLoadAndRegisterRead`; doing so lets JPA auto-flush the deleted state before the saga abort query runs, making the aggregate invisible to the abort path.
-- **Event publishing**: for each event this aggregate publishes (see plan.md Events published), call `unitOfWork.registerEvent(new {Event}(...))` at the end of the relevant service method
+- Spring `@Service`. This session **creates** the class; session 2.{N}.c appends the write methods to it.
+- One method per read functionality listed in plan.md, plus `get{Aggregate}ById` unconditionally
+- Method signature: receives query parameters (ids, filters) + `UnitOfWork unitOfWork`
+- Body — follow `docs/concepts/service.md` § Method Patterns → Read method:
+  - **By primary key (the normal case):** `{aggregate}Factory.create{Aggregate}Dto(({Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(aggregateId, unitOfWork))`. Do not add a not-found guard — the infrastructure throws `SimulatorException` when the ID does not resolve. This is the Path A that the T2 not-found case below asserts.
+  - **By composite / non-PK key:** query `{Aggregate}CustomRepository`, and throw `{AppClass}Exception` with the domain-specific not-found constant when the `Optional` is empty. This is Path B.
+- If the read needs data from a foreign aggregate, the service does **not** fetch it. The saga resolves it in a preceding step and passes the DTO in as a parameter — see § "Two-step read saga variant" below, and `docs/concepts/service.md` § Injected Dependencies (R1/R2/R3). Injecting a foreign `*Service` to fetch it here violates R2.
+- **List-return reads**: If the read returns a collection (e.g., all open shipments for a warehouse), the service method iterates all matching aggregate instances. Use a JPQL "latest-active-version" query rather than `jpaRepo.findAll()` — `findAll()` returns every historical version, not just the current one. Add `findAllLatestActive()` (or a narrower variant) to the JPA repository interface and call it from `{Aggregate}CustomRepositorySagas`. See `docs/concepts/service.md` — "Custom Repository — Latest-Active-Version Query" for the JPQL pattern.
 
-> **Deferred P3 guards:** If a P3 DTO-check rule listed in plan.md cross-aggregate prerequisites requires data from an aggregate ordered _after_ this one in plan.md (because that later aggregate subscribes to this one's events), the guard cannot be implemented yet. Do the following:
-> 1. **Skip** the data-assembly saga step and the service guard — do not add stubs.
-> 2. Add a `// TODO: {RULE_NAME} — deferred; requires {LaterAggregate}Dto, available after session 2.{M}.b` comment in the `{Op}FunctionalitySagas` class at the exact location where the data-assembly step will be inserted.
-> 3. Flag the deferral explicitly in the session retro.
-> 4. When session 2.{M}.b completes, revisit this saga and add the data-assembly step and service guard.
+  The service method then maps each matching aggregate to a DTO via `aggregateLoadAndRegisterRead`.
+
+### One `{Query}Command.java` per read functionality
+
+Path: `{src}commands/{aggregate}/{Query}Command.java` — rooted at the **app source root**, not at
+`microservices/{aggregate}/`, so the same command class can be sent by other aggregates' sagas. See
+`docs/concepts/commands.md` § "File Location".
+
+`Get{Aggregate}ByIdCommand` is always one of them, even when plan.md lists no read functionality.
+
+- Implements `Command`
+- Fields: all parameters needed by the service read method (e.g., `aggregateId`, filter fields)
+- Constructor, getters
+- Name convention: `Get{Aggregate}By{Field}Command` or similar (match plan.md file list exactly)
+
+### One `{Query}FunctionalitySagas.java` per read functionality
+
+Path: `{src}microservices/{aggregate}/coordination/sagas/{Query}FunctionalitySagas.java`
+
+- Extends `WorkflowFunctionality` (`pt.ulisboa.tecnico.socialsoftware.ms.coordination.WorkflowFunctionality`) — the same base class as write sagas; there is no separate read base class
+- Constructor calls `buildWorkflow(...)`, which assigns `this.workflow = new SagaWorkflow(this, unitOfWorkService, unitOfWork)` and registers the step
+- Single step: send `{Query}Command` to `{Aggregate}CommandHandler`, store the result DTO in an instance field
+- Provide a getter for the result DTO
+- No compensation needed (reads are non-mutating)
+- See `docs/concepts/sagas.md` — "Read Functionality Sagas" section for the full class template
+
+> **One-step vs two-step read saga decision:**
+> - **One step** — when every filter criterion is stored directly on the aggregate (e.g., `warehouseAggregateId` is a field on `Shipment`), **or when there is no filter at all** (a read returning every instance of its type). The saga sends one command and returns the result; no foreign-ID resolution is needed. An unfiltered read takes no id parameter anywhere and its command passes `null` as `rootAggregateId` — see `docs/concepts/sagas.md` § "Unfiltered variant — no filter parameter at all".
+> - **Two steps** — when the filter parameter is a foreign aggregate's ID that must be resolved to a different field before the primary query can run (e.g., `shipmentId → warehouseAggregateId`).
 >
-> This situation arises when there is a bidirectional dependency between two aggregates: the topological sort correctly prioritizes the event-subscription direction, and the P3 read-time reverse dependency is the deferred consequence. The plan.md for such rules should carry a ⚠️ DEFERRED marker (added by classify-and-plan) — if you see it, this guidance applies.
+> **Two-step read saga:** If the read's filter parameter is a foreign aggregate's ID that must be resolved before the primary read command can be sent (e.g., `shipmentId → warehouseAggregateId`), use a two-step saga instead:
+> - Step 1: fetch the foreign aggregate DTO (plain read step, no compensation needed)
+> - Step 2: send the primary read command using the resolved field from step 1 (declare step 1 as a dependency)
+>
+> No compensation is needed on either step since reads are non-mutating. See `docs/concepts/sagas.md` — "Two-step read saga variant" section for the full class template.
+>
+> Step 1 fetches the foreign aggregate through a command sent **upstream** - to an aggregate this one
+> already depends on (R8 - see `docs/concepts/commands.md`); never downstream to an aggregate that
+> depends on this one. The DTO it returns is read as-is and never mutated
+> (see `docs/concepts/service.md` § DTO Immutability (R7)).
+
+> **Deferred reads:** If a read functionality carries a ⚠️ DEFERRED marker in plan.md, it reads an
+> aggregate ordered _after_ this one, whose service does not exist yet. The marker is added by
+> `classify-and-plan` § "Step 5.5b". Do the following:
+> 1. **Skip it entirely** — produce no `{Query}Command.java`, no `{Query}FunctionalitySagas.java`, no
+>    `{Query}Test.groovy`, and no service method. Do not add stubs; a stub that compiles is worse than
+>    an absent file, because nothing later forces it to be revisited.
+> 2. Implement **every other** read for this aggregate as normal and tick the session checkbox. A
+>    deferred read does not hold up session `b`.
+> 3. Flag the deferral explicitly in the session retro.
+> 4. When the blocking aggregate's session `c` completes, revisit this session and add the skipped
+>    files. plan.md carries a matching "revisit" note in that aggregate's section.
+>
+> This is the read-side counterpart of § "Deferred P3 guards" in
+> [`session-c.md`](session-c.md), and arises for the same reason: the topological sort follows
+> event-subscription edges, and a read-time dependency running the other way is its deferred
+> consequence.
+
+### `{Aggregate}Functionalities.java` (read methods)
+
+Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
+
+> **Always required**, even if `{Aggregate}Functionalities.java` is not listed in the plan.md `2.{N}.b` file table. This session **creates** the class; session 2.{N}.c appends the write coordinator methods to it.
+
+- Spring `@Service`
+- One method per read functionality
+- The method creates a `SagaUnitOfWork`, instantiates the `{Query}FunctionalitySagas` inline, calls `executeWorkflow`, and returns the DTO via `saga.get{Aggregate}Dto()`
+- **Name the unit of work with a string literal** matching the method name —
+  `unitOfWorkService.createUnitOfWork("get{Aggregate}ById")`. Session `c` appends its write
+  coordinators to this same class under the same rule, so the file carries one idiom throughout.
+- Tests `@Autowired` this class and call its methods directly
 
 ### `{Aggregate}CommandHandler.java`
 
 Path: `{src}microservices/{aggregate}/messaging/{Aggregate}CommandHandler.java`
 
-- Spring `@Component`
-- One `@CommandHandler` method per command class produced in this session
-- Each handler: creates a `UnitOfWork`, calls the matching service method, commits the `UnitOfWork`, returns result
-- Routes each command to the corresponding service method
+> **Always required**, even if the file is not listed in the plan.md `2.{N}.b` file table. This session **creates** the class with its read cases; session 2.{N}.c appends the write cases.
 
-### One `{Op}{Aggregate}Command.java` per write functionality
+- Spring `@Component`, extends `CommandHandler` (`pt.ulisboa.tecnico.socialsoftware.ms.messaging.CommandHandler`)
+- Exactly two overrides, per `docs/concepts/commands.md` § Routing Commands (CommandHandler):
+  `getAggregateTypeName()` returning the PascalCase aggregate name, and a single
+  `handleDomainCommand(Command command)` holding one `switch` case per command class plus a
+  `default` branch that logs a warning
+- The Spring **bean name** must be `ServiceMapping.{AGGREGATE}.getServiceName() + "CommandHandler"` (lowercase camelCase) — that is the actual routing key
+- One `case` in `handleDomainCommand` for each read command
+- Delegate to a matching private handler method that calls the corresponding service read method
+- Pattern:
+  ```java
+  case Get{Aggregate}By{Field}Command cmd -> handleGet{Aggregate}By{Field}(cmd);
+  ```
+  ```java
+  private Object handleGet{Aggregate}By{Field}(Get{Aggregate}By{Field}Command command) {
+      return {aggregate}Service.get{Aggregate}By{Field}(command.get{Field}(), command.getUnitOfWork());
+  }
+  ```
 
-Path: `commands/{aggregate}/{Op}{Aggregate}Command.java`
+---
 
-- Implements `Command`
-- Fields: all parameters needed by the service method
-- Constructor, getters
-- Name convention: operation in PascalCase + aggregate name + `Command` (e.g., `CreateTournamentCommand`)
+### One `{Query}Test.groovy` per read functionality (T4)
 
-### One `{Op}FunctionalitySagas.java` per write functionality
+Path: `{test}sagas/coordination/{aggregate}/{Query}Test.groovy`
 
-Path: `{src}microservices/{aggregate}/coordination/sagas/{Op}FunctionalitySagas.java`
+- Extends `{AppClass}SpockTest`
+- **Happy-path test only**: create the aggregate using the `create{Aggregate}(...)` helper this session adds to `{AppClass}SpockTest` (see § Update `{AppClass}SpockTest.groovy`), execute the read via `{Aggregate}Functionalities`, assert the returned DTO matches the aggregate's state
+- **No not-found cases here** — per `docs/concepts/testing.md` § Assertion Ownership, not-found belongs to T2 (next section)
 
-- Extends `FunctionalitySagas` (or the appropriate saga base class from the simulator core)
-- Steps are defined as `SagaStep` instances in the constructor or `defineSteps()` method
-- **Step ordering, lock-step pattern, R4 foreign-vs-primary distinction, and R8 upstream-only rule** — follow `docs/concepts/sagas.md` § Step Ordering (and the linked § Lock-Acquisition Step Pattern, § R4 Decision Table). That section is authoritative; do not re-derive the order from the implementation.
-- **Compensations (`registerCompensation`) are for genuine domain-level undos only** — reversing a real side effect a step produced (e.g. deleting a child aggregate a step created). Never register a compensation to release a semantic lock: lock release on abort is automatic, and a manual release re-locks the aggregate (see `docs/concepts/sagas.md` § Semantic-lock release on abort is automatic).
-- The **conditional validate-dates step** is per-aggregate guidance, not a generic pattern: if `plan.md` for this aggregate lists time-based invariants on both this aggregate and a downstream aggregate created in the same saga, insert the validate-dates step first.
-
-### `{Aggregate}Functionalities.java`
-
-Path: `{src}microservices/{aggregate}/coordination/functionalities/{Aggregate}Functionalities.java`
-
-- Spring `@Service`
-- One public method per write functionality (matching the saga class name)
-- Each method:
-  1. Derives `functionalityName` via `new Throwable().getStackTrace()[0].getMethodName()`
-  2. Creates a `SagaUnitOfWork` with `unitOfWorkService.createUnitOfWork(functionalityName)`
-  3. Instantiates the corresponding `{Op}FunctionalitySagas` directly (not as a Spring bean)
-  4. Calls `executeWorkflow(uow)` on it
-  5. Returns the result DTO (or `void` for mutations)
-- Tests `@Autowired` this class and call its methods directly
-
-### `{Aggregate}ServiceTest.groovy` (T2 — write-method cases)
+### `{Aggregate}ServiceTest.groovy` (T2 — read-method cases)
 
 Path: `{test}sagas/{aggregate}/{Aggregate}ServiceTest.groovy`
 
-One class per aggregate, covering all its service methods (session `c` appends the read-method
-cases). Follow the template in `docs/concepts/testing.md` § T2 — Service Test. Invoke the
-`*Service` bean directly with a `UnitOfWork` — no saga workflow, no `{Aggregate}Functionalities`.
+This session **creates** the class with its read-method cases; session 2.{N}.c appends the
+write-method and event-publication cases. For each read service method added this session:
 
-- Extends `{AppClass}SpockTest`
-- **Per write service method, a happy path**: call the service with a fresh UnitOfWork, then read
-  back **through a second, fresh UnitOfWork** (via the read service method or
-  `aggregateLoadAndRegisterRead`) and assert the persisted fields. Reading back through the same
-  UnitOfWork instance used for the write is **Fake** — it never exercises the load path.
-- **Kill-mutation check (after each happy path):** Ask "if `unitOfWorkService.registerChanged(aggregate)`
-  were removed from the service, would my test still pass?" If yes, the test does not verify
-  persistence — the `then:` must read back through the fresh UnitOfWork, not from a local variable.
-- **Uniqueness / composite-key guard cases**: one per P3 own-table or DTO-check guard in the
-  service method.
-- **P3 numeric-guard boundaries**: on-point (`notThrown`) / off-point (`thrown` + `ex.message ==
-  {RULE_NAME}`) pairs per ordered-domain P3 guard (see testing.md § Choosing Input Values).
-- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy`
-  (session a, T1).
-- `// Spec:` comment on every test naming the plan.md section and rule (see Spec-First note below).
-
-**Event-publication assertions (only if plan.md lists events published):** appended to the same
-`{Aggregate}ServiceTest.groovy` class as separate `def` methods (not folded into existing `then:`
-blocks — event-store facts and persisted-state facts stay separate assertions). Follow the
-template in `docs/concepts/testing.md` § T2 — Service Test. Autowire `EventService`. Trigger the
-publishing operation **via a direct service call** with a `UnitOfWork` (not via
-`{Aggregate}Functionalities`), then assert against the event store via the `EventService` bean.
-
-- **Per published event type** (from plan.md's Events published list): one case asserting the
-  event exists with the correct type, `publisherAggregateId`, and **every payload field** —
-  asserting only type/count is **Weak**.
-- **One negative case**: capture the event-store count before, run a service operation that must
-  *not* publish, assert the count is unchanged.
-- Consumers are out of scope here — they are covered by T3 subscription tests in session `d`.
-
-### One `{Op}Test.groovy` per write functionality (T4)
-
-Path: `{test}sagas/coordination/{aggregate}/{Op}Test.groovy`
-
-> **Anti-pattern:** Do not read `{Aggregate}Service.java` or `{Op}FunctionalitySagas.java` to decide what to assert. Tests derived from the implementation you just wrote are tautological — they verify what the code does, not what the domain says it should do. The remedy is the spec table below.
-
-**Cite plan.md as the spec — do not author a parallel artifact.** The `plan.md` aggregate section for the target aggregate already contains the happy-path postconditions, the events-published list, and the P1/P3 rule list. That section *is* the spec; the test asserts it. See `docs/concepts/testing.md` § Spec-First Ordering.
-
-At the top of every happy-path and violation test, write a single-line `// Spec:` comment that names the plan.md section and the rule (or "happy path") the test asserts. Example:
-
-```groovy
-def "updateQuestionContent: QUESTION_CONTENT_REQUIRED violation"() {
-    // Spec: plan.md §3.5 Question / functionalities — UpdateQuestionContent; rule QUESTION_CONTENT_REQUIRED
-    given:
-    ...
-}
-```
-
-If the implementation disagrees with the cited section, flag it as an impl deviation — do not adjust the cited rule to match.
-
-**Strict assertion ownership (testing.md § Assertion Ownership):** T4 functionality tests do **not**
-assert field-level persistence, uniqueness, or not-found — those belong in `{Aggregate}ServiceTest`
-(T2, above). They also do not re-assert event-store contents — `{Aggregate}ServiceTest` (T2) owns
-that.
-
-- Extends `{AppClass}SpockTest`
-- **Happy-path test**: set up prerequisites using `{AppClass}SpockTest` helpers, execute the operation via `{Aggregate}Functionalities`, and assert **orchestration outcomes only**: the operation completes, the returned DTO is coherent, and `sagaStateOf(<aggregateId>) == GenericSagaState.NOT_IN_SAGA`
-- **Saga-path guard tests**: P3 guard violations that involve cross-aggregate saga coordination, driven through `{Aggregate}Functionalities` (single-aggregate guard violations are already covered in T2 via direct service calls — do not duplicate them here)
-- **P4a prerequisite tests**: test what happens when the upstream fetch fails (e.g., creator not enrolled in execution)
-- **Assertion for all violation tests:** `thrown({AppClass}Exception)` plus `ex.message == {RULE_NAME}`. Never use `thrown(Exception)` — the bare `Exception` is only acceptable in Fault / Behavior Test (Appendix) fault-injection tests. Never accept a bare `thrown({AppClass}Exception)` without the message assertion — it passes on any thrown exception of that type, including unrelated bugs. The `{RULE_NAME}` constant must match the name in `plan.md`'s rule list, not be inferred from the implementation.
-- **P1 intra-invariants are not tested here** — they belong in `{Aggregate}IntraInvariantTest.groovy` (session a). Do not add P1 violation tests or BVA boundary straddles to T4 functionality tests.
-- **State-transition / semantic-lock acquisition (required):** Follow `docs/concepts/testing.md` § T4 — Functionality Test. Each `setSemanticLock` step is an *acquire* transition into `IN_{OP}`. **One case per saga step that calls `setSemanticLock` — no exceptions:**
-  - **`setSemanticLock` step:** run the workflow through the lock step via `executeUntilStep("<lockStep>", uow)`, assert `sagaStateOf(<id>) == <Aggregate>SagaState.IN_<OP>` in `expect:` (the post-*acquire* state), call `resumeWorkflow(uow)` in `when:`, assert `noExceptionThrown()` in `then:` (the traversal completes back to `NOT_IN_SAGA`).
-  - Cross-aggregate `setForbiddenStates` conflict validation is **deferred — see Appendix — Cross-Functionality Test** in `docs/concepts/testing.md`.
-  - **Coverage is audited mechanically.** List every `setSemanticLock` step (one row per call site) in the session retro's **Semantic-Lock Coverage Audit** table — see `.claude/skills/implement-aggregate/SKILL.md` Step 7.b. Unresolved `Present? = No` rows block the Step 8 commit.
-
-### Event classes (if this aggregate publishes events)
-
-For each event listed in plan.md Events published that does not yet exist:
-
-Path: `{src}events/{Event}.java`
-
-- Extends `pt.ulisboa.tecnico.socialsoftware.ms.aggregate.Event` from simulator core — it is a JPA `@Entity` and must be annotated `@Entity`. Do **NOT** implement `DomainEvent` directly.
-- Fields: all payload fields needed by consumers (check aggregate-grouping §4 event table in domain spec for payload)
-- Constructor, getters
-
-### Error message constants
-
-Open `{src}microservices/exception/{AppClass}ErrorMessage.java` and add constants for:
-- P3 guard violations introduced in this session
-- Any new invariant messages not already added in session `a`
-
-Append to the existing file; do not remove existing constants.
-
-### `{Aggregate}Controller.java`
-
-Path: `{src}microservices/{aggregate}/coordination/webapi/{Aggregate}Controller.java`
-
-- Single `@RestController` annotation; empty body
-- Package: `pt.ulisboa.tecnico.socialsoftware.{pkg}.microservices.{aggregate}.coordination.webapi`
-- No methods needed — REST endpoints are not exercised by the test harness; this stub marks the architectural slot
-- Import: `org.springframework.web.bind.annotation.RestController`
+- **Happy read-back**: call the read service method directly with a fresh `UnitOfWork` on an existing aggregate, assert the returned DTO fields
+- **Not-found tests** — two paths (see `docs/concepts/testing.md` § T2 — Service Test → Not-Found Paths):
+  - **Path A (PK load):** service calls `aggregateLoadAndRegisterRead` with a non-existent ID → assert `thrown(SimulatorException)`
+  - **Path B (composite/custom-repo lookup):** service queries a custom repository returning `Optional` and throws on empty → assert `thrown({AppClass}Exception)` with `ex.message == <NOT_FOUND_CONSTANT>`
+  - **Rule of thumb:** read the service method first — if it calls `aggregateLoadAndRegisterRead` directly with an ID, use Path A; if it first calls a custom repository returning `Optional`, use Path B.
+  - **Collection reads have neither path.** A read returning a list has no id that can fail to resolve: an empty result is a valid answer, not an error. Write an **empty-result** case instead — run the read with no matching aggregate present and assert the returned list is empty. Do not invent a not-found exception for it.
 
 ---
 
 ## Update BeanConfigurationSagas.groovy
 
-Open `{bean-config}` and add new `@Bean` methods for:
+Open `{bean-config}` and add new `@Bean` methods for the three classes this session creates.
+
+The service's dependencies are a **closed list**, fixed by `docs/concepts/service.md` § Injected
+Dependencies: own repository, own custom repository, own factory, `UnitOfWorkService` (raw, no type
+argument), `AggregateIdGeneratorService`. Nothing else — a foreign service or foreign repository
+violates R1/R2; cross-aggregate data reaches this service as a DTO passed in by a saga, never by
+injecting the other aggregate's components (R3). Inject factories and repositories through their
+abstract interfaces, never the concrete `Sagas*` classes. Every one of them goes through the
+constructor into a `final` field; a service declares no `@Autowired` field.
+
+Omit any of the five the service genuinely does not use — typically `AggregateIdGeneratorService`,
+which no read method needs. Session 2.{N}.c's create method is then the first to need it, and widens
+both this `@Bean` method and the service constructor to match.
+
+The bean method takes exactly the dependencies the service constructor declares, in the same order,
+and passes them all to `new {Aggregate}Service(...)` - there is no field-injected category that skips
+the bean method (`docs/concepts/service.md` § Injected Dependencies).
 
 ```groovy
 @Bean
-{Aggregate}Service {aggregate}Service(...) {  // inject repos and other services as needed
-    return new {Aggregate}Service(...)
+{Aggregate}Service {aggregate}Service(SagaUnitOfWorkService unitOfWorkService,
+                                      {Aggregate}Repository {aggregate}Repository,
+                                      {Aggregate}CustomRepository {aggregate}CustomRepository,
+                                      {Aggregate}Factory {aggregate}Factory) {
+    return new {Aggregate}Service(unitOfWorkService, {aggregate}Repository, {aggregate}CustomRepository,
+                                  {aggregate}Factory)
 }
 
 @Bean
@@ -236,7 +230,7 @@ Open `{bean-config}` and add new `@Bean` methods for:
 }
 ```
 
-**Note:** `{Op}FunctionalitySagas` classes are **not** Spring beans — they are instantiated inline inside `{Aggregate}Functionalities`. Only the three beans above are needed per aggregate.
+**Note:** `{Query}FunctionalitySagas` classes are **not** Spring beans — they receive a `SagaUnitOfWork` in their constructor and are instantiated *inline* inside coordinator methods, so they are per-request objects, not Spring singletons. Only the three beans above are needed per aggregate; session 2.{N}.c adds none.
 
 Add the corresponding `import` statements. Place new beans after the beans added in session `a` for this aggregate.
 
@@ -244,25 +238,98 @@ Add the corresponding `import` statements. Place new beans after the beans added
 
 ## Update `{AppClass}SpockTest.groovy`
 
-Open `{test}{AppClass}SpockTest.groovy` and add:
+Open `{test}{AppClass}SpockTest.groovy` and add an `@Autowired(required = false)` field for the functionalities class:
 
-1. An `@Autowired(required = false)` field for the functionalities class:
-   ```groovy
-   @Autowired(required = false)
-   protected {Aggregate}Functionalities {aggregate}Functionalities
-   ```
+```groovy
+@Autowired(required = false)
+protected {Aggregate}Functionalities {aggregate}Functionalities
+```
 
-2. A `create{Aggregate}(...)` helper method that calls `{aggregate}Functionalities.create{Aggregate}(...)` with a minimal valid DTO and returns the resulting aggregate ID. Tests use this helper in their `setup:` block to satisfy prerequisites.
+The fixture helper below calls `aggregateIdGeneratorService`, which the scaffolded base class does
+**not** declare. Add it too, once per application - the first aggregate's session `b` adds it and
+later aggregates reuse it:
+
+```groovy
+@Autowired(required = false)
+protected AggregateIdGeneratorService aggregateIdGeneratorService
+```
+
+Then add the `create{Aggregate}(...)` fixture helper. This session's T2 and T4 tests need a persisted
+aggregate to read back, but the create functionality does not exist until session 2.{N}.c, so the
+helper is built **directly on the aggregate** here:
+
+```groovy
+Integer create{Aggregate}(/* minimal valid args, defaulted to the domain constants */) {
+    def {aggregate} = new Saga{Aggregate}(aggregateIdGeneratorService.getNewAggregateId(), /* args */)
+    unitOfWorkService.registerChanged({aggregate}, unitOfWorkService.createUnitOfWork("fixture"))
+    return {aggregate}.getAggregateId()
+}
+```
+
+Not every parameter can be defaulted. A parameter carrying a **foreign aggregate's id** has no
+domain constant to default to - the id is minted at fixture time by whichever upstream helper
+created that aggregate, and differs per test. Such parameters stay **required and undefaulted, and
+come first** in the signature, ahead of the defaulted own-field parameters; the caller passes the
+id returned by the upstream fixture helper:
+
+```groovy
+Integer create{Aggregate}(Integer {foreign}AggregateId, {Field} {field} = {FIELD_CONSTANT}) { ... }
+```
+
+Only the aggregate's **own** fields get constant defaults.
+
+`registerChanged` merges the aggregate immediately, so no `commit` is needed for the read-back to
+resolve through a fresh `UnitOfWork`.
+
+**The signature is a contract with session 2.{N}.c**, which replaces this body with the real create
+functionality. Choose the parameter list and defaults so that the call sites written this session
+survive that swap unchanged: minimal valid arguments, own-field parameters defaulted to the domain
+constants and foreign-aggregate-id parameters required and leading, aggregate id returned. Do **not** name it `persist{Aggregate}` or make it `private` to a test class — a
+per-test-class fixture is thrown away in 2.{N}.c and every call site has to be rewritten.
+
+### Fixture state a create cannot reach
+
+`create{Aggregate}` builds a **minimal valid** aggregate, so its owned collections come out empty. A
+read functionality that filters on a field of an owned entity - `Get{Aggregate}sBy{Element}({foreign}AggregateId)`
+selecting over `{Aggregate}.{elements}` - therefore cannot be tested through `create{Aggregate}`
+alone, because only a session-2.{N}.c write functionality can populate that collection.
+
+Do **not** widen `create{Aggregate}` to carry the collection, and do **not** populate the collection
+inline in a test class. Instead add **one sibling helper per write functionality the session-`b`
+reads depend on**, named after that functionality and built directly on the aggregate exactly as
+`create{Aggregate}` is:
+
+```groovy
+void {operation}{Aggregate}(Integer {aggregate}AggregateId, Integer {foreign}AggregateId) {
+    def unitOfWork = unitOfWorkService.createUnitOfWork("fixture")
+    def {aggregate} = new Saga{Aggregate}((Saga{Aggregate}) unitOfWorkService.aggregateLoadAndRegisterRead(
+            {aggregate}AggregateId, unitOfWork))
+    {aggregate}.add{Element}(new {Element}({foreign}AggregateId, /* snapshot fields */))
+    unitOfWorkService.registerChanged({aggregate}, unitOfWork)
+}
+```
+
+The same signature contract binds these helpers: parameters minimal, foreign-aggregate-id parameters
+required and leading, and the signature unchanged when 2.{N}.c replaces the body with the real
+functionality.
+
+**The foreign id must be minted by the upstream aggregate's own fixture helper, never a domain
+constant** - the same rule as for `create{Aggregate}`, and for a sharper reason here. This helper's
+2.{N}.c replacement calls a write functionality that *fetches* that foreign aggregate and runs its P3
+guards against it, so a synthetic id names an aggregate that does not exist and every call site
+throws on the swap. The upstream aggregate must also already be in whatever state those guards
+require: if the functionality rejects an inactive counterpart, the fixture activates it first. Where
+no upstream helper produces that state yet, add one, in the same base class and under this same
+contract. Keeping `create{Aggregate}` minimal is what makes that swap safe - a collection
+parameter on the create helper would have no counterpart in the create functionality and would force
+a signature change in 2.{N}.c, rewriting every call site.
 
 ---
 
 ## Tick the Checkbox
 
-In plan.md, replace:
-```
-- [ ] 2.{N}.b — Write functionalities
-```
-with:
-```
-- [x] 2.{N}.b — Write functionalities
-```
+The session checkbox for this session is `- [ ] 2.{N}.b — Read functionalities`. Read
+`_shared/session-completion.md` § "Tick the checkbox" in full and follow it. Do not continue until
+you have. It owns the whole rule, including how to anchor on the session line rather than doing a
+bare string replace, and what the manager and single-agent topologies each do about the slice
+sub-checkboxes underneath it.

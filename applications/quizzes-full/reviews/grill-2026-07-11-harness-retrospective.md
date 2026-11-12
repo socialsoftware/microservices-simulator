@@ -17,7 +17,7 @@ Structural equivalence to `quizzes/` is a proxy, not the goal.
   was genuine domain difficulty, not a harness defect — and the resulting doc gaps (nullable-anchor
   subscriptions, ByEvent deletion semantics) were folded back into `session-d.md` (see
   "Conditional subscriptions (nullable anchor IDs)" and the shared-anchor events section).
-- The review-to-fix loop for test-suite boilerplate (`docs/reviews/review-2026-05-26.md` →
+- The review-to-fix loop for test-suite boilerplate (`reviews/review-2026-05-26.md` →
   `InterInvariantTestBase.groovy`) actually landed and is in use by the final aggregate
   (`TournamentInterInvariantTest extends InterInvariantTestBase`), not just logged as resolved.
 - The profile-agnostic service-layer boundary from `AGENTS.md` (`*Service` classes never import
