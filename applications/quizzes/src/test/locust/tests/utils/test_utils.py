@@ -192,6 +192,28 @@ class TestUtils:
                                      step or f"{field} has at most one element")
 
     @staticmethod
+    def outcome(response, step):
+        """For a request in a race, where either answer is valid: logs whether it was accepted (2xx/3xx) or
+        rejected (any other code, or no response) and returns True if accepted. It is not a check."""
+        code = TestUtils._code(response)
+        accepted = JS.sample_ok(code)
+        TestUtils.info(f"{step}: {'accepted' if accepted else 'rejected'} ({code or 'no response'})")
+        return accepted
+
+    @staticmethod
+    def assert_ids(response, field, expected_ids, step=None):
+        """The elements of the list `field` have exactly these aggregateIds, in any order."""
+        expected = sorted(expected_ids)
+        try:
+            lists = JS.read(TestUtils._text(response), TestUtils._json_path(field))
+            found = sorted(e.get("aggregateId") for lst in lists if isinstance(lst, list)
+                           for e in lst if isinstance(e, dict))
+            passed, detail = found == expected, f"expected {expected}, found {found}"
+        except JS.JsonPathError as e:
+            passed, detail = False, str(e)
+        return TestUtils._check(passed, step or f"{field} are {expected}", detail, response)
+
+    @staticmethod
     def run_in_parallel(user, *groups):
         """Runs the functions at the same time, like parallel JMeter Thread Groups. Each one gets its own HTTP
         client (its own connection) as its only argument."""

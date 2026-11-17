@@ -2,7 +2,10 @@
 Migrated from jmeter/tournament/thesis-cases/concurrentAddparticipant.jmx
 
 Students 1, 2 and 3 join the tournament at the same time (about 1 s after setUp), with event polling running.
-At about 5 s the tournament must have exactly 3 participants.
+The simulator may accept all three joins or reject some of them as conflicting (e.g. tcc: a serialization failure),
+so the joins' answers are not checked. At about 5 s the tournament must be readable and its participants must be
+exactly the students whose join was accepted: an accepted join that is missing (a lost update) fails, and so does
+a tournament that can no longer be read (e.g. two joins committed the same version).
 
 The groups of steps run at the same time, each with its own connection, as the .jmx parallel Thread Groups do;
 the waits reproduce each group's ConstantTimer, which JMeter applies before every request of the group.
@@ -49,18 +52,24 @@ class ConcurrentAddParticipant(HttpUser):
     def steps(self, data):
         execution, tournament = data["execution_id"], data["tournament_id"]
 
+        accepted = {}
+
         def join(i, student):
             def add_participant(client):
                 time.sleep(1)
-                TestUtils.assert_success(AppUtils.add_participant(tournament, student, execution, client=client),
-                                         f"Student {i} joins the tournament")
+                accepted[student] = TestUtils.outcome(
+                    AppUtils.add_participant(tournament, student, execution, client=client),
+                    f"Student {i} joins the tournament")
             return add_participant
 
         def verify(client):
             time.sleep(5)
             r = AppUtils.get_tournament(tournament, client=client)
             TestUtils.assert_success(r, "Get the tournament")
-            TestUtils.assert_count(r, "participants", 3)
+            if len(accepted) < len(data["user_ids"]):
+                TestUtils.fail("Not every join had answered when the tournament was read")
+            TestUtils.assert_ids(r, "participants", [s for s, ok in accepted.items() if ok],
+                                 "The participants are exactly the students whose join was accepted")
 
         def cleanup(client):
             time.sleep(7)
