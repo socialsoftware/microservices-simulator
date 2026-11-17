@@ -498,6 +498,16 @@ class AppUtils:
         return AppUtils._get(f"tournaments/{tournament_id}", client=client)
 
     @staticmethod
+    def get_execution_tournaments(execution_id, client=requests):
+        """The course execution's tournaments, without the removed (DELETED) and INACTIVE ones."""
+        return AppUtils._get(f"executions/{execution_id}/tournaments", client=client)
+
+    @staticmethod
+    def read_user(user_id, client=requests):
+        """GET /users/{id} as a response (get_user returns the parsed body, or None)."""
+        return AppUtils._get(f"users/{user_id}", client=client)
+
+    @staticmethod
     def get_quiz(quiz_id, client=requests):
         return AppUtils._get(f"quizzes/{quiz_id}", client=client)
 

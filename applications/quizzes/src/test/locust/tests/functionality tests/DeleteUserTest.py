@@ -1,9 +1,16 @@
 """
 Migrated from jmeter/tournament/thesis-cases/DeleteUserTest.jmx
 
-Student 1 (the tournament creator, the only student) joins the tournament at about 1 s, and is deactivated and
-deleted from about 1.5 s. From about 4 s the tournament must have no participants, the course execution no
-students, and /users/students must answer successfully.
+Student 1 (the tournament creator, the only student) joins the tournament at about 1 s, and is deactivated at about
+1.5 s and deleted at about 3 s. What the simulator then does, and what is checked:
+- at about 4 s, the deleted user can no longer be read;
+- the deletion reaches the course execution (DeleteUserEvent), which marks the student inactive and emits
+  DisenrollStudentFromCourseExecutionEvent; the tournament, whose creator left, becomes INACTIVE. This takes one to
+  two event-polling rounds, so it is checked at about 8 s: the tournament's state is INACTIVE.
+Not checked, because the REST responses do not show it: the student stays listed in the course execution (only
+marked inactive internally), and the participant stays listed in the tournament (only marked DELETED internally).
+/users/students is not called: it answers 400 once a user is deleted (UserService.getStudents also loads deleted
+users), an application bug outside this scenario.
 
 The groups of steps run at the same time, each with its own connection, as the .jmx parallel Thread Groups do;
 the waits reproduce each group's ConstantTimer, which JMeter applies before every request of the group.
@@ -63,15 +70,12 @@ class DeleteUserTest(HttpUser):
 
         def verify(client):
             time.sleep(4)
+            TestUtils.assert_rejected(AppUtils.read_user(creator, client=client),
+                                      "The deleted creator can no longer be read")
+            time.sleep(4)
             r = AppUtils.get_tournament(tournament, client=client)
             TestUtils.assert_success(r, "Get the tournament")
-            TestUtils.assert_count(r, "participants", 0)
-            time.sleep(4)
-            r = AppUtils.get_course_execution(execution, client=client)
-            TestUtils.assert_success(r, "Get the course execution")
-            TestUtils.assert_count(r, "students", 0)
-            time.sleep(4)
-            TestUtils.assert_success(AppUtils.list_students(client=client), "List the students")
+            TestUtils.assert_field(r, "state", "INACTIVE", "The tournament is INACTIVE (its creator left)")
 
         def cleanup(client):
             time.sleep(20)

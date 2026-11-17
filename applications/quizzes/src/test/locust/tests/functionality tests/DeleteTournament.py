@@ -1,8 +1,9 @@
 """
 Migrated from jmeter/tournament/thesis-cases/DeleteTournament.jmx
 
-With only the creator (student 1) enrolled, the tournament is removed at about 1.5 s. At about 4 s reading the
-tournament must show no participants (the check also holds on a body without participants).
+With only the creator (student 1) enrolled, the tournament is removed at about 1.5 s. At about 4 s the tournament
+must be gone: reading it is rejected (the simulator deletes it, so it answers 400 "does not exist"), and the course
+execution's tournament list no longer contains it (that list leaves out DELETED and INACTIVE tournaments).
 
 The groups of steps run at the same time, each with its own connection, as the .jmx parallel Thread Groups do;
 the waits reproduce each group's ConstantTimer, which JMeter applies before every request of the group.
@@ -55,9 +56,11 @@ class DeleteTournament(HttpUser):
 
         def verify(client):
             time.sleep(4)
-            r = AppUtils.get_tournament(tournament, client=client)
-            TestUtils.assert_success(r, "Get the tournament")
-            TestUtils.assert_count(r, "participants", 0)
+            TestUtils.assert_rejected(AppUtils.get_tournament(tournament, client=client),
+                                      "The removed tournament can no longer be read")
+            r = AppUtils.get_execution_tournaments(data["execution_id"], client=client)
+            TestUtils.assert_success(r, "List the course execution's tournaments")
+            TestUtils.assert_empty(r, "aggregateId", "The removed tournament is not listed")
 
         def cleanup(client):
             time.sleep(4.5)
