@@ -171,7 +171,7 @@ distributed resilience on Kubernetes.
 | Execution Environment        | Best For                                                                                                | Documentation                                       |
 |------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
 | **Docker Compose**           | Local testing, switching between centralized/distributed topologies quickly without local dependencies. | [Run Using Docker](guides/run-docker.md)            |
-| **Maven**                    | Development, running individual microservices, and load testing with JMeter.                            | [Run Using Maven](guides/run-maven.md)              |
+| **Maven**                    | Development, running individual microservices, and functionality testing with Locust.                   | [Run Using Maven](guides/run-maven.md)              |
 | **IntelliJ IDEA**            | Debugging and stepping through execution flows using pre-configured run profiles.                       | [Run Using IntelliJ](guides/run-intellij.md)        |
 | **Kubernetes (Local/Cloud)** | Testing production-grade orchestration (Kind) or cloud latency (Azure AKS).                             | [Deploy to Kubernetes](guides/deploy-kubernetes.md) |
 
@@ -487,27 +487,40 @@ For deterministic concurrency scenarios and paper-aligned walkthroughs, see
 
 ## Benchmarking and Performance Tests
 
-For repeated deployment benchmarking of tournament scenarios, use:
+For repeated deployment runs of the tournament scenarios (the Locust functionality tests in
+[`applications/quizzes/src/test/locust/tests/functionality tests/`](applications/quizzes/src/test/locust/tests/functionality%20tests)), use:
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx
+./scripts/locust-functionality-deployments.sh --tests concurrentAddparticipant
 ```
 
-Run with a specific transaction mode and a number of repetitions:
+Run with a specific transaction mode and a number of repetitions (without `--tx-modes`, both `sagas` and `tcc` run):
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx --tx-mode sagas --repetitions 5
-./scripts/benchmark-deployments.sh --test 5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx --tx-mode tcc --repetitions 5
+./scripts/locust-functionality-deployments.sh --tests concurrentAddparticipant --tx-modes sagas --repetitions 5
+./scripts/locust-functionality-deployments.sh --tests 5a-updateStudentName-addParticipant-processUpdateNameEvent --tx-modes tcc --repetitions 5
+```
+
+Limit the run to some deployments (default: all 9):
+
+```bash
+./scripts/locust-functionality-deployments.sh --tests DeleteTournament --deployments centralized-local,distributed-stream
 ```
 
 What this script does:
 
-* Boots each configured topology (`centralized-*`, `distributed-*`, and `distributed-version` variants).
-* Runs the selected `.jmx` test for each deployment, across the configured repetitions.
-* Writes per-run and aggregate results under [jmeter-results](jmeter-results) in a timestamped benchmark folder.
-* Returns non-zero on benchmark failures, so it can be used in CI/regression workflows.
+* Boots each configured topology (`centralized-*`, `distributed-*`, and `*-distributed-version` variants), restarting
+  it on empty databases before every run.
+* Runs the selected Locust test(s) through `run_functionality_tests.py` for each deployment, transaction mode and
+  repetition.
+* Writes per-run results under [jmeter-results](jmeter-results) in a timestamped `functionality_<timestamp>` folder:
+  `locust/<mode>/<test>/runs.csv` and `summary.csv` (pass/fail and duration per run), plus each run's Locust and
+  Docker Compose logs.
+* Returns non-zero if any run fails, so it can be used in CI/regression workflows.
 
-Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-jmeter-tests). DAIS paper
+The results record whether each run passed and how long it took; latency and throughput tables are not produced.
+
+Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-locust-tests). DAIS paper
 scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
 
 ## Publications
