@@ -15,4 +15,9 @@ public class QuizAnswerController {
     public void answerQuestion(@PathVariable Integer quizAggregateId, @RequestParam Integer userAggregateId, @RequestBody QuestionAnswerDto questionAnswerDto) throws Exception {
         quizAnswerFunctionalities.answerQuestion(quizAggregateId, userAggregateId, questionAnswerDto);
     }
+
+    @PostMapping("/quizzes/{quizAggregateId}/start")
+    public void startQuiz(@PathVariable Integer quizAggregateId, @RequestParam Integer courseExecutionAggregateId, @RequestParam Integer userAggregateId) throws Exception {
+        quizAnswerFunctionalities.startQuiz(quizAggregateId, courseExecutionAggregateId, userAggregateId);
+    }
 }

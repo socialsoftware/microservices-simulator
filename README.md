@@ -18,6 +18,7 @@
     - [Deploy to Kubernetes](guides/deploy-kubernetes.md)
 - [Configuration Reference](#configuration-reference)
     - [Jaeger Tracing](#jaeger-tracing)
+    - [Network Delays and Capacity Management](#network-delays-and-capacity-management)
     - [Service Discovery](#service-discovery)
     - [Database Configuration](#database-configuration)
     - [Spring Cloud Stream Bindings](#spring-cloud-stream-bindings)
@@ -170,7 +171,7 @@ distributed resilience on Kubernetes.
 | Execution Environment        | Best For                                                                                                | Documentation                                       |
 |------------------------------|---------------------------------------------------------------------------------------------------------|-----------------------------------------------------|
 | **Docker Compose**           | Local testing, switching between centralized/distributed topologies quickly without local dependencies. | [Run Using Docker](guides/run-docker.md)            |
-| **Maven**                    | Development, running individual microservices, and load testing with JMeter.                            | [Run Using Maven](guides/run-maven.md)              |
+| **Maven**                    | Development, running individual microservices, and functionality testing with Locust.                   | [Run Using Maven](guides/run-maven.md)              |
 | **IntelliJ IDEA**            | Debugging and stepping through execution flows using pre-configured run profiles.                       | [Run Using IntelliJ](guides/run-intellij.md)        |
 | **Kubernetes (Local/Cloud)** | Testing production-grade orchestration (Kind) or cloud latency (Azure AKS).                             | [Deploy to Kubernetes](guides/deploy-kubernetes.md) |
 
@@ -190,6 +191,148 @@ requests across microservices.
   functionalities and their steps.
 * **Cross-service correlation**: Trace IDs are propagated through workflow execution, command dispatching, and event
   processing, allowing end-to-end inspection of one functionality across microservices.
+
+### Network Delays and Capacity Management
+
+The simulator includes an impairment and resource contention engine that simulates network topologies and physical hardware constraints. 
+
+When the simulator boots, it automatically reads its initial deployment and capacity settings from the configuration file specified in [`applications/quizzes/src/main/resources/application.yaml`](applications/quizzes/src/main/resources/application.yaml):
+> **Default Configuration File**: [`applications/quizzes/src/main/resources/quizzes-configuration.json`](applications/quizzes/src/main/resources/quizzes-configuration.json)
+
+To activate this functionality for other applications, the `simulator:` configuration block must be added to the corresponding `application.yaml`.
+
+---
+
+#### Network Delay & Deployment Model
+
+##### What It Models & How It Works
+In distributed architectures, services communicate over network links with some overhead. The simulator models this using Spring AOP (`ImpairmentHandler` and `NetworkManager`):
+* Whenever an aggregate or workflow dispatches a transactional command (e.g. Sagas or Causal commands), the call is intercepted.
+* The simulator inspects the deployment topology (`Placement.nodes`) to identify where the sender (`sourceService`) and receiver (`targetService`) reside:
+  * **`intraservice`**: Communication within the same microservice (typically 0 ms delay).
+  * **`intranode`**: Communication between two different microservices placed on the **same node** (models local IPC / loopback overhead).
+  * **`internode`**: Communication between microservices placed on **different nodes** (models cross-machine network latency through switches and routers).
+* Latency values are sampled from configurable statistical distributions:
+  * Uniform: `"uni": [min_ms, max_ms]`
+  * Lognormal: `"lognormal": [mu, sigma]`
+* The sampled delay is injected **twice** per command: once before execution (request transit) and once after (response transit). If a delay is injected, the span is tagged with `isImpaired = true` in OpenTelemetry traces.
+
+##### How to Change the Deployment
+The deployment topology is defined in `Placement.nodes`:
+* To move a microservice to a different node, simply move its name from one node's `microservices` array to another in the JSON configuration.
+* **Node Capacity Constraint**: Each node defines a `capacity` limit. The sum of capacities of all microservices hosted on a node cannot exceed the node's capacity:
+  $$\sum_{\text{ms} \in \text{Node}} \text{capacity}(\text{ms}) \le \text{Node.capacity}$$
+  If a deployment violates this constraint, the simulator rejects the configuration with a `ConfigurationError`.
+
+---
+
+#### Capacity Management Model
+
+##### What It Models
+Capacity management models hardware resource limits (such as CPU shares). It simulates contention and bottlenecking when services face traffic surges.
+
+##### How It Works
+* **Microservice Capacity**: Each microservice is assigned an capacity pool (`capacity`) maintained using a fair `Semaphore`.
+* **Operation Requirements**: Every service method defines a resource `requirement`, representing the amount of capacity (permits) it needs to process a single invocation of that operation. The Quizzes application was already profiled to obtain realistic requirements, and these values are defined in the default [`quizzes-configuration.json`](applications/quizzes/src/main/resources/quizzes-configuration.json).
+* **Queuing & Telemetry**:
+  1. When a method executes, `CapacityManager` attempts to acquire its required permits from the microservice's semaphore.
+  2. If sufficient capacity is available, the request executes immediately.
+  3. If capacity is exhausted, incoming requests enter a FIFO queue (`waitingRequests`).
+  4. The duration spent waiting in the queue is measured and recorded directly in OpenTelemetry trace spans as **`queue time (ms)`**.
+  5. When execution finishes, permits are released back to the semaphore, unblocking waiting requests.
+
+---
+
+#### Configuration Fields Reference
+
+A complete configuration file contains three main sections:
+
+```json
+{
+  "Placement": {
+    "nodes": [
+      {
+        "name": "Node1",
+        "capacity": 100,
+        "microservices": ["user", "execution", "course"]
+      },
+      {
+        "name": "Node2",
+        "capacity": 100,
+        "microservices": ["quiz", "tournament"]
+      },
+      {
+        "name": "Node3",
+        "capacity": 100,
+        "microservices": ["question", "topic", "answer"]
+      }
+    ]
+  },
+  "Delays": {
+    "intraservice": { "uni": [0, 0] },
+    "intranode":     { "uni": [0, 50] },
+    "internode":    { "uni": [100, 105] }
+  },
+  "Capacities": {
+    "microservices": [
+      {
+        "name": "answer",
+        "capacity": 20,
+        "services": [
+          { "name": "getQuizAnswerDtoByQuizIdAndUserId", "requirement": 1.39 },
+          { "name": "concludeQuiz", "requirement": 2.5 }
+        ]
+      }
+    ]
+  }
+}
+```
+
+| Field | Description |
+|---|---|
+| `Placement.nodes[].name` | Unique identifier for the computing node (e.g. `"Node1"`). |
+| `Placement.nodes[].capacity` | Maximum total resource capacity that the node can host (e.g. `100`). |
+| `Placement.nodes[].microservices` | Array of microservice names hosted on this node. |
+| `Delays.intraservice` | Latency distribution for calls within the same service (usually `[0, 0]`). |
+| `Delays.intranode` | Latency distribution for calls between different services on the same node. |
+| `Delays.internode` | Latency distribution for calls across different nodes. |
+| `Capacities.microservices[].name` | Name of the microservice to configure. |
+| `Capacities.microservices[].capacity` | Total concurrency budget / permits allocated to this microservice. |
+| `Capacities.microservices[].services[].name` | Exact service method name (e.g. `"concludeQuiz"`). |
+| `Capacities.microservices[].services[].requirement` | Concurrency permits consumed by a single invocation of this method. |
+
+---
+
+#### How to Use & Apply Changes
+
+##### At Startup (Static)
+Configure the file path in [`applications/quizzes/src/main/resources/application.yaml`](applications/quizzes/src/main/resources/application.yaml) (or add the configuration block to your application's `application.yaml`):
+```yaml
+simulator:
+  impairment:
+    network-delays:
+      enabled: true
+      configuration-file: /resources/quizzes-configuration.json
+  capacity-management:
+    enabled: true
+    configuration-file: /resources/quizzes-configuration.json
+```
+
+##### At Runtime (Dynamic Injection via REST)
+To change placements, modify delay distributions, or tune capacities on-the-fly without restarting the simulator:
+* **Update Placement & Delays**:
+  ```bash
+  curl -X POST http://localhost:8080/behaviour/inject -H "Content-Type: application/json" -d @new_config.json
+  ```
+* **Update Capacities**:
+  ```bash
+  curl -X POST http://localhost:8080/capacity/inject -H "Content-Type: application/json" -d @new_config.json
+  ```
+* **Reset State**:
+  ```bash
+  curl http://localhost:8080/behaviour/reset
+  curl http://localhost:8080/capacity/reset
+  ```
 
 ### Service Discovery
 
@@ -344,27 +487,40 @@ For deterministic concurrency scenarios and paper-aligned walkthroughs, see
 
 ## Benchmarking and Performance Tests
 
-For repeated deployment benchmarking of tournament scenarios, use:
+For repeated deployment runs of the tournament scenarios (the Locust functionality tests in
+[`applications/quizzes/src/test/locust/tests/functionality tests/`](applications/quizzes/src/test/locust/tests/functionality%20tests)), use:
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx
+./scripts/locust-functionality-deployments.sh --tests concurrentAddparticipant
 ```
 
-Run with a specific transaction mode and a number of repetitions:
+Run with a specific transaction mode and a number of repetitions (without `--tx-modes`, both `sagas` and `tcc` run):
 
 ```bash
-./scripts/benchmark-deployments.sh --test concurrentAddparticipant.jmx --tx-mode sagas --repetitions 5
-./scripts/benchmark-deployments.sh --test 5a-updateStudentName-addParticipant-processUpdateNameEvent.jmx --tx-mode tcc --repetitions 5
+./scripts/locust-functionality-deployments.sh --tests concurrentAddparticipant --tx-modes sagas --repetitions 5
+./scripts/locust-functionality-deployments.sh --tests 5a-updateStudentName-addParticipant-processUpdateNameEvent --tx-modes tcc --repetitions 5
+```
+
+Limit the run to some deployments (default: all 9):
+
+```bash
+./scripts/locust-functionality-deployments.sh --tests DeleteTournament --deployments centralized-local,distributed-stream
 ```
 
 What this script does:
 
-* Boots each configured topology (`centralized-*`, `distributed-*`, and `distributed-version` variants).
-* Runs the selected `.jmx` test for each deployment, across the configured repetitions.
-* Writes per-run and aggregate results under [jmeter-results](jmeter-results) in a timestamped benchmark folder.
-* Returns non-zero on benchmark failures, so it can be used in CI/regression workflows.
+* Boots each configured topology (`centralized-*`, `distributed-*`, and `*-distributed-version` variants), restarting
+  it on empty databases before every run.
+* Runs the selected Locust test(s) through `run_functionality_tests.py` for each deployment, transaction mode and
+  repetition.
+* Writes per-run results under [jmeter-results](jmeter-results) in a timestamped `functionality_<timestamp>` folder:
+  `locust/<mode>/<test>/runs.csv` and `summary.csv` (pass/fail and duration per run), plus each run's Locust and
+  Docker Compose logs.
+* Returns non-zero if any run fails, so it can be used in CI/regression workflows.
 
-Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-jmeter-tests). DAIS paper
+The results record whether each run passed and how long it took; latency and throughput tables are not produced.
+
+Requirements and setup details are in [Run Using Maven](guides/run-maven.md#running-locust-tests). DAIS paper
 scenario mapping is in [Reproducing DAIS2023 Paper Tests](guides/reproduce-dais2023.md).
 
 ## Publications

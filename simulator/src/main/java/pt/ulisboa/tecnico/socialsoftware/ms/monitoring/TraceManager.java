@@ -10,13 +10,16 @@ import io.opentelemetry.sdk.OpenTelemetrySdk;
 import io.opentelemetry.sdk.resources.Resource;
 import io.opentelemetry.sdk.trace.SdkTracerProvider;
 import io.opentelemetry.sdk.trace.export.BatchSpanProcessor;
-
+import pt.ulisboa.tecnico.socialsoftware.ms.messaging.Command;
+import pt.ulisboa.tecnico.socialsoftware.ms.transaction.unitOfWork.UnitOfWork;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
+import java.util.WeakHashMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class TraceManager {
@@ -34,9 +37,10 @@ public class TraceManager {
     private final Tracer masterRootTracer;
     private final SdkTracerProvider masterRootTracerProvider;
     private final Map<String, Span> functionalitySpans = new ConcurrentHashMap<>();
-    private final Map<String, Span> stepSpans = new ConcurrentHashMap<>();
-    private final Map<String, AtomicInteger> functionalityCounters = new ConcurrentHashMap<>();
-    private final Map<String, java.util.concurrent.ConcurrentLinkedQueue<String>> activeInvocationKeys = new ConcurrentHashMap<>();
+    private final Map<String, Span> commandSpans = new ConcurrentHashMap<>();
+    private final Map<String, Long> queueWaitTimesNano = new ConcurrentHashMap<>();
+    private final Map<String, Integer> commandRetryCounters = new ConcurrentHashMap<>();
+    private final Map<UnitOfWork, String> uowTraceIds = Collections.synchronizedMap(new WeakHashMap<>());
 
     // --- Constructor ---
     private TraceManager(String serviceName) {
@@ -149,10 +153,9 @@ public class TraceManager {
         if (rootSpan != null) {
             rootSpan.end();
             rootSpan = null;
-            activeInvocationKeys.clear();
-            functionalityCounters.clear();
             functionalitySpans.clear();
-            stepSpans.clear();
+            commandSpans.clear();
+            commandRetryCounters.clear();
         } else {
             throw new IllegalStateException("Root span has not been started");
         }
@@ -166,146 +169,152 @@ public class TraceManager {
     }
 
     // --- Functionality Span Management ---
-    public String startSpanForFunctionality(String func) {
+    public void startSpanForFunctionality(String executionId, String func) {
         if (rootSpan == null) {
-            return null;
+            return;
         }
-        int counter = functionalityCounters.computeIfAbsent(func, k -> new AtomicInteger(0)).getAndIncrement();
-        String invocationKey = func + "::" + counter;
+        String invocationKey = func + "::" + executionId;
         Span span = tracer.spanBuilder(invocationKey)
                 .setParent(Context.current().with(rootSpan))
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
-        span.setAttribute("func.name", invocationKey);
         span.setAttribute("functionality", func);
+        span.setAttribute("executionId", executionId);
+        span.setAttribute("isImpaired", false); // defaut behaviour is not being impaired
 
-        functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys.computeIfAbsent(func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
-                .add(invocationKey);
-
-        return invocationKey;
+        functionalitySpans.put(executionId, span);
     }
 
-    public void endSpanForFunctionality(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty())
+    public void endSpanForFunctionality(String executionId, UnitOfWork unitOfWork) {
+        Span span = functionalitySpans.remove(executionId);
+        if (span == null) {
             return;
-        String invocationKey = queue.poll();
-        if (invocationKey == null)
-            return;
+        }
 
-        forceEndAllActiveStepsSpans(invocationKey);
-
-        functionalitySpans.computeIfPresent(invocationKey, (f, span) -> {
-            span.end();
-            return null;
-        });
-    }
-
-    public Span getSpanForFunctionality(String func, int counter) {
-        return functionalitySpans.get(func + "::" + counter);
-    }
-
-    public Span getSpanForFunctionality(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty())
-            return null;
-        String latestKey = queue.peek();
-        return functionalitySpans.get(latestKey);
+        forceEndAllActiveCommandsSpans(executionId);
+        if (unitOfWork != null && unitOfWork.getId() != null) {
+            span.setAttribute("unitOfWork.id", unitOfWork.getId());
+        }
+        span.end();
     }
 
     // --- Compensation Span Management ---
-    public void startSpanForCompensation(String func) {
+    public void startSpanForCompensation(String executionId, String func) {
         if (rootSpan == null) {
             return;
         }
-        int counter = functionalityCounters.computeIfAbsent("[Compensate]" + func, k -> new AtomicInteger(0))
-                .getAndIncrement();
-        String invocationKey = "[Compensate]" + func + "::" + counter;
+        String invocationKey = compensationKey(executionId, func);
         Span span = tracer.spanBuilder(invocationKey)
                 .setParent(Context.current().with(rootSpan))
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
-        span.setAttribute("func.name", invocationKey);
         span.setAttribute("functionality", func);
+        span.setAttribute("executionId", executionId);
 
         functionalitySpans.put(invocationKey, span);
-        activeInvocationKeys
-                .computeIfAbsent("[Compensate]" + func, k -> new java.util.concurrent.ConcurrentLinkedQueue<>())
-                .add(invocationKey);
     }
 
-    public void endSpanForCompensation(String func) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get("[Compensate]" + func);
-        if (queue == null || queue.isEmpty())
-            return;
-        String invocationKey = queue.poll();
-        if (invocationKey == null)
-            return;
-
-        forceEndAllActiveStepsSpans(invocationKey);
-
-        functionalitySpans.computeIfPresent(invocationKey, (f, span) -> {
-            span.end();
-            return null;
-        });
+    public void startQueueWaitTimer(String executionId, String methodName) {
+        String key = commandKey(executionId, methodName);
+        queueWaitTimesNano.put(key, System.nanoTime());
     }
 
-    // --- Step Span Management ---
-    public Span getStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
-            return null;
+    public void endQueueWaitTimer(String executionId, String methodName, String microserviceName) {
+        String key = commandKey(executionId, methodName);
+        Long start = queueWaitTimesNano.remove(key);
+        double durationMs = -1D;
+        if (start != null) {
+            durationMs = (System.nanoTime() - start) / 1_000_000.0;
         }
-        String firstInvocationKey = queue.peek();
-        String key = key(firstInvocationKey, stepName);
-        return stepSpans.get(key);
+
+        // Use OpenTelemetry's active span in context first
+        Span activeSpan = Span.current();
+        if (activeSpan != null && activeSpan.getSpanContext().isValid()) {
+            activeSpan.setAttribute("queue time (ms)", durationMs);
+        } else {
+            // Fallback to name-based lookup
+            Span parentSpan = getCommandSpan(executionId, methodName + "command");
+            if (parentSpan != null) {
+                parentSpan.setAttribute("queue time (ms)", durationMs);
+            }
+        }
     }
 
-    public void startStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
+    public void recordUsefulTime(double durationMs) {
+        Span activeSpan = Span.current();
+        if (activeSpan != null && activeSpan.getSpanContext().isValid()) {
+            activeSpan.setAttribute("useful time (ms)", durationMs);
+        }
+    }
+
+    public void endSpanForCompensation(String executionId, String func) {
+        String invocationKey = compensationKey(executionId, func);
+        Span span = functionalitySpans.remove(invocationKey);
+        if (span == null) {
             return;
         }
-        String firstInvocationKey = queue.peek();
-        Span parentSpan = functionalitySpans.get(firstInvocationKey);
 
+        forceEndAllActiveCommandsSpans(executionId);
+        span.end();
+    }
+
+    // --- Command Span Management ---
+    public Span getCommandSpan(String executionId, String commandName) {
+        String key = commandKey(executionId, commandName);
+        return commandSpans.get(key);
+    }
+
+    public Span startCommandSpan(String executionId, Command command) {
+        String commandName = command.getClass().getSimpleName();
+        Span parentSpan = functionalitySpans.get(executionId);
         if (parentSpan == null) {
-            return;
+            return null;
         }
 
-        Span stepSpan = tracer.spanBuilder(stepName)
+        String key = commandKey(executionId, commandName);
+        // get 1 if null otherwise add 1
+        int attempt = commandRetryCounters.merge(key, 1, Integer::sum);
+        int retryCount = attempt - 1;
+
+        String spanName = retryCount > 0
+                ? commandName + " [Retry #" + retryCount + "]"
+                : commandName;
+
+        Span commandSpan = tracer.spanBuilder(spanName)
                 .setParent(Context.current().with(parentSpan))
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
-        stepSpan.setAttribute("step.name", stepName);
-        stepSpan.setAttribute("functionality", func);
-
-        stepSpans.put(key(firstInvocationKey, stepName), stepSpan);
+        commandSpan.setAttribute("command.name", commandName);
+        commandSpan.setAttribute("executionId", executionId);
+        commandSpan.setAttribute("microservice", command.getServiceName());
+        if (command.getUnitOfWork() != null) {
+            commandSpan.setAttribute("functionality", command.getUnitOfWork().getFunctionalityName());
+        }
+        commandSpans.put(key, commandSpan);
+        return commandSpan;
     }
 
-    public void endStepSpan(String func, String stepName) {
-        java.util.concurrent.ConcurrentLinkedQueue<String> queue = activeInvocationKeys.get(func);
-        if (queue == null || queue.isEmpty()) {
-            return;
-        }
-        String firstInvocationKey = queue.peek();
-        String key = key(firstInvocationKey, stepName);
-        Span stepSpan = stepSpans.get(key);
-        if (stepSpan != null) {
-            stepSpan.end();
+    public void endCommandSpan(String executionId, Command command) {
+        String commandName = command.getClass().getSimpleName();
+        String key = commandKey(executionId, commandName);
+        Span commandSpan = commandSpans.remove(key);
+        if (commandSpan != null) {
+            commandSpan.end();
         }
     }
 
     // --- Delay Span Management ---
-    public Span startDelaySpan(String func, String step, int delay, boolean isBefore) {
+    public Span startDelaySpan(String executionId, String command, int delay, boolean isBefore) {
         if (delay <= 0) {
             return null;
         }
-        Span parentSpan = getStepSpan(func, step);
+        Span parentSpan = Span.current();
+        if (parentSpan == null || !parentSpan.getSpanContext().isValid()) {
+            parentSpan = getCommandSpan(executionId, command);
+        }
         if (parentSpan == null)
             return null;
         String spanName = (isBefore ? "before" : "after");
@@ -314,8 +323,8 @@ public class TraceManager {
                 .setSpanKind(SpanKind.INTERNAL)
                 .startSpan();
 
-        span.setAttribute("functionality", func);
-        span.setAttribute("step", step);
+        span.setAttribute("executionId", executionId);
+        span.setAttribute("command", command);
         span.setAttribute("value", Integer.toString(delay) + " ms");
 
         return span;
@@ -337,8 +346,8 @@ public class TraceManager {
         }
     }
 
-    public void recordException(String func, Throwable e, String message) {
-        Span span = getSpanForFunctionality(func);
+    public void recordException(String executionId, Throwable e, String message) {
+        Span span = getSpanForFunctionality(executionId);
         if (span == null)
             return;
         span.recordException(e);
@@ -348,8 +357,21 @@ public class TraceManager {
                 AttributeKey.stringKey("exception.message"), e.getMessage()));
     }
 
-    public void recordWarning(String func, Exception e, String message) {
-        Span span = getSpanForFunctionality(func);
+    public void recordCommandException(String executionId, String commandName, Throwable e,
+            String message) {
+        Span span = getCommandSpan(executionId, commandName);
+        if (span == null)
+            return;
+        span.recordException(e);
+        span.setStatus(StatusCode.ERROR, message != null ? message : e.getMessage());
+        span.setAttribute("retry.failed", true);
+        span.addEvent("exception.caught", Attributes.of(
+                AttributeKey.stringKey("exception.type"), e.getClass().getSimpleName(),
+                AttributeKey.stringKey("exception.message"), e.getMessage()));
+    }
+
+    public void recordWarning(String executionId, Exception e, String message) {
+        Span span = getSpanForFunctionality(executionId);
         if (span == null)
             return;
         span.addEvent("warning", Attributes.of(
@@ -357,33 +379,49 @@ public class TraceManager {
                 AttributeKey.stringKey("message"), message));
     }
 
-    public void setSpanAttribute(String func, String key, String value) {
-        Span span = getSpanForFunctionality(func);
+    public void setSpanAttribute(String executionId, String key, Boolean value) {
+        Span span = getSpanForFunctionality(executionId);
         if (span != null) {
             span.setAttribute(key, value);
         }
     }
 
-    // --- Private Helpers ---
-    private void forceEndAllActiveStepsSpans(String invocationKey) {
-        String prefix = invocationKey + "::";
-        List<String> stepSpansList = stepSpans.keySet().stream()
-                .filter(key -> key.startsWith(prefix))
-                .collect(Collectors.toList());
-        for (String key : stepSpansList) {
-            String stepName = key.substring(prefix.length());
-            Span stepSpan = stepSpans.get(key);
-            if (stepSpan != null) {
-                stepSpan.setAttribute("Warning", "Forced end step span");
-                stepSpan.addEvent("forced-end", Attributes.of(
-                        AttributeKey.stringKey("reason"), "Functionality was aborted!"));
-                stepSpan.end();
-                stepSpans.remove(key);
-            }
+    public String resolveExecutionId(UnitOfWork unitOfWork) {
+        if (unitOfWork == null) {
+            return "null-" + UUID.randomUUID().toString().substring(0, 8);
         }
+
+        return uowTraceIds.computeIfAbsent(unitOfWork, key -> UUID.randomUUID().toString().substring(0, 8));
     }
 
-    private String key(String func, String stepName) {
-        return func + "::" + stepName;
+    // --- Private Helpers ---
+    private Span getSpanForFunctionality(String executionId) {
+        return functionalitySpans.get(executionId);
+    }
+
+    private void forceEndAllActiveCommandsSpans(String executionId) {
+        String prefix = executionId + "::";
+        List<String> commandSpansList = commandSpans.keySet().stream()
+                .filter(key -> key.startsWith(prefix))
+                .collect(Collectors.toList());
+        for (String key : commandSpansList) {
+            Span commandSpan = commandSpans.get(key);
+            if (commandSpan != null) {
+                commandSpan.setAttribute("Warning", "Forced end command span");
+                commandSpan.addEvent("forced-end", Attributes.of(
+                        AttributeKey.stringKey("reason"), "Functionality was aborted!"));
+                commandSpan.end();
+                commandSpans.remove(key);
+            }
+        }
+        commandRetryCounters.keySet().removeIf(key -> key.startsWith(prefix));
+    }
+
+    private String commandKey(String executionId, String commandName) {
+        return (executionId + "::" + commandName).toLowerCase();
+    }
+
+    private String compensationKey(String executionId, String func) {
+        return "[Compensate] " + func + "::" + executionId;
     }
 }

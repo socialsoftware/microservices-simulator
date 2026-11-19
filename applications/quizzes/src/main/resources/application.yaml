@@ -7,7 +7,6 @@ spring:
       stream: remote
       grpc: remote
 
-
   datasource:
     url: jdbc:postgresql://localhost:5432/msdb
     driver-class-name: org.postgresql.Driver
@@ -22,6 +21,17 @@ spring:
       ddl-auto: create # IMPORTANT this is only for jmeter testing -> it cleans the database every time it runs
     show-sql: false
     open-in-view: false
+
+simulator:
+  capacity-management:
+    enabled: true
+    configuration-file: /resources/quizzes-configuration.json
+    report-file: /logs/CapacityReport.txt
+  impairment:
+    report-file: /logs/ImpairmentReport.txt
+    network-delays:
+      enabled: true
+      configuration-file: /resources/quizzes-configuration.json
 
 management:
   endpoints:
@@ -52,6 +62,7 @@ eureka:
   client:
     enabled: false
 
+
 # Local-specific health tuning
 ---
 spring:
@@ -63,6 +74,7 @@ management:
   health:
     rabbit:
       enabled: false
+
 
 # Tech-agnostic remote configuration
 ---
@@ -119,7 +131,7 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
-    registry-fetch-interval-seconds: 5 
+    registry-fetch-interval-seconds: 5
   instance:
     prefer-ip-address: true
     instance-id: ${spring.application.name}:${random.uuid}
@@ -137,6 +149,7 @@ quizzes:
       courseEventSubscriber;
       topicEventSubscriber;
       userEventSubscriber
+
 
 # Spring Cloud Stream specific (commands via RabbitMQ)
 ---
@@ -210,6 +223,7 @@ spring:
           destination: ${spring.application.name}-command-responses
           group: response-group
 
+
 # gRPC specific (commands via gRPC)
 ---
 spring:
@@ -230,6 +244,7 @@ grpc:
     version:
       port: 9091
 
+
 # Kubernetes specific
 ---
 spring:
@@ -238,4 +253,3 @@ spring:
       on-profile: kubernetes
     import:
       - "classpath:application-kubernetes.yaml"
-

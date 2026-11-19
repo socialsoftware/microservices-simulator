@@ -1,0 +1,170 @@
+from abc import ABC, abstractmethod
+import math
+
+
+class RewardStrategy(ABC):
+    @property
+    @abstractmethod
+    def stop_reward(self) -> float:
+        """Reward value for the stop action (end early)."""
+        pass
+
+    @property
+    @abstractmethod
+    def invalid_action_reward(self) -> float:
+        """Reward value when an agent executes an invalid action."""
+        pass
+
+    @property
+    @abstractmethod
+    def time_tax(self) -> float:
+        """Tax to subtract from the reward overtime to ensure the agent is as quick as possible."""
+        pass
+
+    @abstractmethod
+    def compute(self, old_metrics: dict, new_metrics: dict) -> float:
+        """Computes the reward based on current metrics."""
+        pass
+
+
+class RewardStrategyFactory:
+    @staticmethod
+    def create(strategy_type: str, **kwargs) -> RewardStrategy:
+        if strategy_type == "global_average_latency":
+            return GlobalAverageLatencyReward(**kwargs)
+        elif strategy_type == "logarithmic_penalty":
+            return LogarithmicPenaltyReward(**kwargs)
+        elif strategy_type == "bottleneck_targeting":
+            return BottleneckTargetingReward(**kwargs)
+        else:
+            raise ValueError(f"Unknown reward strategy: {strategy_type}")
+
+
+class GlobalAverageLatencyReward(RewardStrategy):
+    """
+    Naturally biased towards high-traffic microservices, optimizing for user experience.
+    """
+
+    stop_reward = -0.1
+    invalid_action_reward = -1
+    time_tax = 0.05
+
+    def __init__(self, alpha=1.0, beta=1.0):
+        self.alpha = alpha
+        self.beta = beta
+
+    def compute(self, old_metrics, new_metrics) -> float:
+        if old_metrics is None or not old_metrics.get("microservices"):
+            return 0.0
+
+        if new_metrics is None or not new_metrics.get("microservices"):
+            return -1.0
+
+        old_mss = old_metrics.get("microservices", {}).values()
+        new_mss = new_metrics.get("microservices", {}).values()
+
+        def get_global_avg(mss, key):
+            total_time = sum(m.get(key, 0) for m in mss)
+            total_invocs = sum(m.get("invocations", 0) for m in mss)
+            return total_time / total_invocs if total_invocs > 0 else 0.0
+
+        old_q_avg = get_global_avg(old_mss, "queue_time")
+        old_d_avg = get_global_avg(old_mss, "delay_time")
+
+        new_q_avg = get_global_avg(new_mss, "queue_time")
+        new_d_avg = get_global_avg(new_mss, "delay_time")
+
+        delta_q = old_q_avg - new_q_avg
+        delta_d = old_d_avg - new_d_avg
+
+        return (self.alpha * delta_q) + (self.beta * delta_d)
+
+
+class BottleneckTargetingReward(RewardStrategy):
+    """
+    Evaluates architecture by summing raw linear latencies and explicitly 
+    applying a heavy penalty to the worst-performing bottleneck service.
+    """
+
+    stop_reward = -0.1
+    invalid_action_reward = -1
+    time_tax = 0.05
+    c = 1000.0
+
+    def __init__(self, alpha=1.0, beta=1.0):
+        self.alpha = alpha
+        self.beta = beta
+        self.bottleneck_multiplier = 2.0
+
+    def compute(self, old_metrics: dict, new_metrics: dict) -> float:
+        if new_metrics is None or not new_metrics.get("microservices"):
+            return -1.0
+
+        new_mss_metrics = new_metrics.get("microservices", {})
+
+        total_penalty = 0.0
+        max_queue = 0.0
+        max_delay = 0.0
+
+        for metrics in new_mss_metrics.values():
+            invocs = metrics.get("invocations", 0)
+
+            avg_q = metrics.get("queue_time", 0.0) / \
+                invocs if invocs > 0 else 0.0
+            avg_d = metrics.get("delay_time", 0.0) / \
+                invocs if invocs > 0 else 0.0
+
+            if avg_q > max_queue:
+                max_queue = avg_q
+            if avg_d > max_delay:
+                max_delay = avg_d
+
+            total_penalty += (self.alpha * avg_q) + (self.beta * avg_d)
+
+        bottleneck_penalty = (self.alpha * max_queue +
+                              self.beta * max_delay) * self.bottleneck_multiplier
+
+        total_penalty += bottleneck_penalty
+
+        return -(total_penalty / self.c)
+
+
+class LogarithmicPenaltyReward(RewardStrategy):
+    """
+    Uses a logarithmic function to evaluate the absolute quality of the architecture. 
+    Penalizes starved services heavily and ignores old metrics to prevent the lagging baseline trap.
+    """
+
+    stop_reward = -0.1
+    invalid_action_reward = -1
+    time_tax = 0.05
+
+    def __init__(self, alpha=1.0, beta=1.0):
+        self.alpha = alpha
+        self.beta = beta
+
+    def compute(self, old_metrics: dict, new_metrics: dict) -> float:
+        # We completely ignore old_metrics for this stateless environment
+
+        if new_metrics is None or not new_metrics.get("microservices"):
+            return -1.0
+
+        new_mss_metrics = new_metrics.get("microservices", {})
+
+        total_penalty = 0.0
+
+        for metrics in new_mss_metrics.values():
+            invocs = metrics.get("invocations", 0)
+
+            avg_q = metrics.get("queue_time", 0.0) / invocs \
+                if invocs > 0 else 0.0
+            avg_d = metrics.get("delay_time", 0.0) / invocs \
+                if invocs > 0 else 0.0
+
+            # Apply logarithmic scaling so the rewards are not erratic
+            log_q = math.log1p(avg_q)
+            log_d = math.log1p(avg_d)
+
+            total_penalty += (self.alpha * log_q) + (self.beta * log_d)
+
+        return -total_penalty
