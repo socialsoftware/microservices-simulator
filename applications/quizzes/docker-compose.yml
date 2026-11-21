@@ -128,6 +128,9 @@ services:
       EUREKA_HOST: eureka-server
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/msdb
       OTEL_EXPORTER_OTLP_ENDPOINT: http://jaeger:4317
+    volumes:
+      - ./src/main/resources:/resources
+      - ./src/main/logs:/logs
     networks:
       - messaging-network
 

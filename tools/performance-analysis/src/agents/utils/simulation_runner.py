@@ -1,0 +1,134 @@
+import json
+import subprocess
+import logging
+import os
+import sys
+from src.simulator_tools.simulator_utils import *
+from src.simulator_tools.h2_utils import *
+from src.simulator_tools.config_utils import ConfigTool
+from dataclasses import dataclass
+
+
+@dataclass
+class WorkloadConfig:
+    """Represents the workload profiles executed by the agent in each episode."""
+    file: str
+    users: int
+    spawn_rate: int
+    iterations: int
+    runtime_seconds: int
+    read_weight: float = 1.0
+    write_weight: float = 1.0
+    wait_time: float = 0.5
+
+
+class SimRunner:
+    """
+    Class responsible for bridging the agent and the simulator.
+    Abstracts the type of agent and algorithm implemented from the workloads and data collection.
+    """
+
+    def __init__(self, trace_collector, config_path: str = None):
+        self.trace_collector = trace_collector
+        self.base_config = self._read_base_config(config_path)
+        self.current_config = self.base_config
+
+    def _read_base_config(self, config_path: str = None) -> dict:
+        """Loads and returns configuration. If config_path is None, defaults to initial_config/config.json."""
+
+        if config_path is None:
+            config_path = os.path.join(
+                os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))),
+                "initial_config",
+                "config.json"
+            )
+        else:
+            config_path = ConfigTool.resolve_config_path(config_path)
+
+        try:
+            with open(config_path, 'r') as f:
+                logging.info(
+                    f"Loaded base configuration from {config_path}")
+                return json.load(f)
+        except Exception as e:
+            logging.error(
+                f"Failed to load base config from {config_path}: {e}")
+            return {}
+
+    def _run_workload(self, workload: WorkloadConfig):
+        """Executes the workload configuration using a Locust subprocess."""
+
+        workloads_dir = os.path.join(os.path.dirname(
+            os.path.dirname(os.path.dirname(os.path.abspath(__file__)))), "workloads")
+
+        cmd = [
+            sys.executable, "-m", "locust",
+            "-f", workload.file,
+            "--headless",
+            "--only-summary",
+            "-u", str(workload.users),
+            "-r", str(workload.spawn_rate),
+            "--read-weight", str(workload.read_weight),
+            "--write-weight", str(workload.write_weight),
+            "--wait-time", str(workload.wait_time)
+        ]
+
+        # As explain in the yaml configuration, run-time is the default behavior
+        # Set it to 0 in order to use iterations
+        if workload.runtime_seconds > 0:
+            cmd.extend(["-t", str(workload.runtime_seconds)])
+        else:
+            cmd.extend(["--iterations", str(workload.iterations)])
+
+        try:
+            # We use subprocess.run to wait for the workload to finish
+            # Suppress stdout and stderr so it doesn't pollute the CLI
+            logging.info(
+                f"cmd: {cmd}")
+            subprocess.run(
+                cmd,
+                check=False,
+                cwd=workloads_dir,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=100
+            )
+            logging.info(
+                f"Workload {workload.file} completed.")
+        except subprocess.TimeoutExpired as e:
+            logging.error(
+                f"Workload {workload.file} timed out.")
+        except subprocess.CalledProcessError as e:
+            logging.error(
+                f"Workload {workload.file} execution failed: {e}")
+
+    def evaluate_configuration(self, config: dict, workload: WorkloadConfig) -> dict:
+        """Injects a new configuration, runs the workload and returns the resulting metrics."""
+
+        # Reset metrics and DB so every config starts from the same point
+        try:
+            self.trace_collector.reset()
+            H2DBManager.reset_db_state()
+        except Exception as e:
+            logging.error(f"Error resetting environment in evaluate_configuration: {e}")
+
+        try:
+            SimInterface.inject_configuration(config)
+            self.current_config = config
+        except Exception as e:
+            logging.error(f"Error injecting configuration: {e}")
+
+        try:
+            self._run_workload(workload)
+        except Exception as e:
+            logging.error(f"Error running workload: {e}")
+
+        try:
+            self.trace_collector.wait_for_data()
+            metrics = self.trace_collector.get_metrics()
+            if not metrics or not isinstance(metrics, dict):
+                return {"functionalities": {}, "microservices": {}}
+            return metrics
+        except Exception as e:
+            logging.error(f"Error collecting trace metrics: {e}")
+            return {"functionalities": {}, "microservices": {}}

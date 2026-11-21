@@ -1,0 +1,140 @@
+name: microservices-simulator
+
+# ==========================================
+# RESOURCE LIMITS (ANCHORS)
+# ==========================================
+# All container allocations are centralized here.
+# Edit these to quickly adjust resources per worker.
+
+x-limits-quizzes: &limits-quizzes
+  deploy:
+    resources:
+      limits:
+        #cpus: '${QUIZZES_CPUS:-1.0}'
+        memory: '${QUIZZES_MEM_LIMIT:-1.0g}'
+      reservations:
+        memory: '${QUIZZES_MEM_RESERVATION:-640m}'
+
+#  --- Only enabled in debug profile ---
+
+x-limits-otel: &limits-otel
+  deploy:
+    resources:
+      limits:
+        #cpus: '${OTEL_CPUS:-0.5}'
+        memory: '${OTEL_MEM_LIMIT:-128m}'
+      reservations:
+        memory: '${OTEL_MEM_RESERVATION:-64m}'
+
+x-limits-jaeger: &limits-jaeger
+  deploy:
+    resources:
+      limits:
+        #cpus: '${JAEGER_CPUS:-0.5}'
+        memory: '${JAEGER_MEM_LIMIT:-256m}'
+      reservations:
+        memory: '${JAEGER_MEM_RESERVATION:-128m}'
+
+# ==========================================
+# SIMULATOR ANCHORS
+# ==========================================
+
+x-quizzes-base: &quizzes-base
+  <<: *limits-quizzes
+  image: quizzes:latest
+  build:
+    context: .
+    dockerfile: tools/performance-analysis/Dockerfile
+    args:
+      PROFILE: ${TX_MODE:-sagas},local
+  init: true
+  stop_grace_period: 2s
+  ports:
+    - ${GATEWAY_PORT:-8080}:8080
+  environment: &quizzes-env
+    # JVM Container Ergonomics to prevent memory page locking on cgroup destruction
+    JAVA_TOOL_OPTIONS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError -XX:ActiveProcessorCount=2 -XX:ParallelGCThreads=2 -XX:ConcGCThreads=1 -Djava.util.concurrent.ForkJoinPool.common.parallelism=2"
+    SPRING_PROFILES_INCLUDE: ${VERSION_MODE:-}
+    SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local
+    EUREKA_CLIENT_ENABLED: "false"
+    LOGGING_LEVEL_ROOT: "ERROR"
+    LOGGING_LEVEL_PT_ULISBOA_TECNICO: "ERROR"
+    SPRING_JPA_DATABASE_PLATFORM: org.hibernate.dialect.PostgreSQLDialect
+    SPRING_DATASOURCE_DRIVER_CLASS_NAME: org.h2.Driver
+    SPRING_DATASOURCE_USERNAME: sa
+    SPRING_DATASOURCE_PASSWORD: sa
+    SPRING_DATASOURCE_URL: jdbc:h2:mem:msdb;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DB_CLOSE_DELAY=-1
+  volumes:
+    - ./src/main/resources:/resources
+    - ./src/main/logs:/logs
+  networks:
+    - messaging-network
+  extra_hosts:
+    - host.docker.internal:host-gateway
+
+# ==========================================
+# SERVICES
+# ==========================================
+services:
+
+  # Core Application (Simulator)
+
+  # Profile: TRAIN (Direct to Python)
+  quizzes-train:
+    <<: *quizzes-base
+    profiles: [ "train" ]
+    environment:
+      <<: *quizzes-env
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local,train
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://host.docker.internal:${GRPC_PORT:-4319}
+
+  # Profile: DEBUG (Routed via OTel Collector)
+  quizzes-train-debug:
+    <<: *quizzes-base
+    profiles: [ "train-debug" ]
+    depends_on:
+      jaeger:
+        condition: service_started
+      otel-collector:
+        condition: service_started
+    environment:
+      <<: *quizzes-env
+      SPRING_PROFILES_ACTIVE: ${TX_MODE:-sagas},local,train-debug
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://otel-collector:4317
+
+  # Tracing & Observability
+  jaeger:
+    <<: *limits-jaeger
+    profiles: [ "train-debug" ]
+    image: jaegertracing/all-in-one:1.75.0
+    stop_grace_period: 1s
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    ports:
+      - ${JAEGER_PORT:-16686}:16686
+    networks:
+      - messaging-network
+
+  otel-collector:
+    profiles: [ "train-debug" ]
+    <<: *limits-otel
+    image: otel/opentelemetry-collector-contrib:latest
+    stop_grace_period: 1s
+    command:
+      - --config=/etc/otel-collector-config.yaml
+    depends_on:
+      jaeger:
+        condition: service_started
+    volumes:
+      - ./tools/performance-analysis/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    networks:
+      - messaging-network
+    extra_hosts:
+      - host.docker.internal:host-gateway
+    environment:
+      - GRPC_PORT=${GRPC_PORT:-4319}
+
+# GLOBAL CONFIGURATION
+networks:
+  messaging-network:
+    driver: bridge

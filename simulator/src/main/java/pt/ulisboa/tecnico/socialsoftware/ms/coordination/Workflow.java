@@ -48,10 +48,6 @@ public abstract class Workflow {
         return this.executionPlan;
     }
 
-    public int getWorkflowTotalDelay() {
-        return this.executionPlan.getTotalDelay();
-    }
-
     public void addStep(FlowStep step){
         this.stepsWithDependencies.put(step, step.getDependencies());
         stepNameMap.put(step.getName(), step);
@@ -59,41 +55,55 @@ public abstract class Workflow {
 
     public void executeUntilStep(String stepName, UnitOfWork unitOfWork) {
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-        this.traceManager.startSpanForFunctionality(unitOfWork.getFunctionalityName());
+        String executionId = this.traceManager.resolveExecutionId(unitOfWork);
+        this.traceManager.startSpanForFunctionality(executionId, unitOfWork.getFunctionalityName());
 
         if (this.executionPlan == null) {
             this.executionPlan = planOrder(this.stepsWithDependencies);
         }
-        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "behaviour", this.executionPlan.getBehaviour());
-        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
-        this.traceManager.setSpanAttribute(unitOfWork.getFunctionalityName(), "hasBehaviour", hasBehaviour);
 
-        FlowStep targetStep = getStepByName(stepName);
         try {
+            FlowStep targetStep = getStepByName(stepName);
             executionPlan.executeUntilStep(targetStep, unitOfWork).join();
         } catch (CompletionException e) {
             this.aborted = true;
-            throw e;
+            Throwable cause = e.getCause();
+
+            this.traceManager.recordException(executionId, e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
+
+            if (cause instanceof SimulatorException) {
+                throw (SimulatorException) cause;
+            } else {
+                throw e;
+            }
         } catch (SimulatorException e) {
             this.aborted = true;
+            this.traceManager.recordWarning(executionId, e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
+            unitOfWorkService.abort(unitOfWork);
+            logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
         }
     }
 
     public CompletableFuture<Void> resume(UnitOfWork unitOfWork) {
+        String executionId = this.traceManager.resolveExecutionId(unitOfWork);
         try {
             return executionPlan.resume(unitOfWork)
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
-                    this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+                    this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
                 })
                 .exceptionally(ex -> {
                     this.aborted = true;
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
 
-                    this.traceManager.recordException(unitOfWork.getFunctionalityName(), ex, ex.getMessage());
-                    this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+                    this.traceManager.recordException(executionId, ex, ex.getMessage());
+                    this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
 
@@ -105,8 +115,8 @@ public abstract class Workflow {
                 });
         } catch (SimulatorException e) {
             this.aborted = true;
-            this.traceManager.recordWarning(unitOfWork.getFunctionalityName(), e, e.getMessage());
-            this.traceManager.endSpanForFunctionality(unitOfWork.getFunctionalityName());
+            this.traceManager.recordWarning(executionId, e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
             unitOfWorkService.abort(unitOfWork);
             logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", unitOfWork.getFunctionalityName(), unitOfWork.getVersion());
             throw e;
@@ -136,12 +146,10 @@ public abstract class Workflow {
         final String functionalityName = (unitOfWork != null)
             ? unitOfWork.getFunctionalityName()
             : this.functionality.getClass().getSimpleName();
+        String executionId = this.traceManager.resolveExecutionId(unitOfWork);
         logger.info("START EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
-        this.traceManager.startSpanForFunctionality(functionalityName);
+        this.traceManager.startSpanForFunctionality(executionId, functionalityName);
         this.executionPlan = planOrder(this.stepsWithDependencies);
-        this.traceManager.setSpanAttribute(functionalityName, "behaviour", this.executionPlan.getBehaviour());
-        String hasBehaviour = this.executionPlan.getBehaviour() != "{}" ? "true" : "false";
-        this.traceManager.setSpanAttribute(functionalityName, "hasBehaviour", hasBehaviour);
 
         try {
 
@@ -151,17 +159,17 @@ public abstract class Workflow {
                 .thenRun(() -> {
                     unitOfWorkService.commit(unitOfWork);
                     logger.info("END EXECUTION FUNCTIONALITY: {} with version {}",functionalityName, unitOfWork.getVersion());
-                    this.traceManager.endSpanForFunctionality(functionalityName);
+                    this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
                 })
                 .exceptionally(ex -> {
                     this.aborted = true;
                     Throwable cause = (ex instanceof CompletionException) ? ex.getCause() : ex;
 
-                    this.traceManager.recordException(functionalityName, ex, ex.getMessage());
+                    this.traceManager.recordException(executionId, ex, ex.getMessage());
                     if (ex.getMessage() != null && ex.getMessage().contains("invariant"))
-                        this.traceManager.setSpanAttribute(functionalityName, "invariantBreak", "true");
+                        this.traceManager.setSpanAttribute(executionId, "invariantBreak", true);
 
-                    this.traceManager.endSpanForFunctionality(functionalityName);
+                    this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
                     unitOfWorkService.abort(unitOfWork);
                     logger.info("ABORT(1) EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
 
@@ -173,8 +181,8 @@ public abstract class Workflow {
                 });
         } catch (SimulatorException e) {
             this.aborted = true;
-            this.traceManager.recordWarning(functionalityName, e, e.getMessage());
-            this.traceManager.endSpanForFunctionality(functionalityName);
+            this.traceManager.recordWarning(executionId, e, e.getMessage());
+            this.traceManager.endSpanForFunctionality(executionId, unitOfWork);
             unitOfWorkService.abort(unitOfWork);
             logger.info("ABORT(2) EXECUTION FUNCTIONALITY: {} with version {}", functionalityName, unitOfWork.getVersion());
             throw e;

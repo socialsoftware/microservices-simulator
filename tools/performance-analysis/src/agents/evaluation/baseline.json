@@ -1,0 +1,420 @@
+{
+  "Placement": {
+    "nodes": [
+      {
+        "name": "Node1",
+        "capacity": 100,
+        "microservices": [
+          "user"
+        ]
+      },
+      {
+        "name": "Node2",
+        "capacity": 100,
+        "microservices": [
+          "quiz",
+          "tournament",
+          "execution"
+        ]
+      },
+      {
+        "name": "Node3",
+        "capacity": 100,
+        "microservices": [
+          "question",
+          "topic",
+          "answer",
+          "course"
+        ]
+      }
+    ]
+  },
+  "Delays": {
+    "intraservice": {
+      "uni": [
+        0,
+        0
+      ]
+    },
+    "intranode": {
+      "uni": [
+        0,
+        50
+      ]
+    },
+    "internode": {
+      "uni": [
+        100,
+        105
+      ]
+    }
+  },
+  "Capacities": {
+    "microservices": [
+      {
+        "name": "answer",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getQuizAnswerDtoByQuizIdAndUserId",
+            "requirement": 1.39
+          },
+          {
+            "name": "startQuiz",
+            "requirement": 2.07
+          },
+          {
+            "name": "answerQuestion",
+            "requirement": 4.47
+          },
+          {
+            "name": "concludeQuiz",
+            "requirement": 3.13
+          },
+          {
+            "name": "removeQuizAnswer",
+            "requirement": 3.04
+          },
+          {
+            "name": "updateUserName",
+            "requirement": 3.14
+          },
+          {
+            "name": "removeUser",
+            "requirement": 1.0
+          },
+          {
+            "name": "removeQuestion",
+            "requirement": 3.28
+          }
+        ]
+      },
+      {
+        "name": "course",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getCourseById",
+            "requirement": 1.15
+          },
+          {
+            "name": "getAndOrCreateCourseRemote",
+            "requirement": 1.66
+          },
+          {
+            "name": "getCourseByNameRemote",
+            "requirement": 1.26
+          },
+          {
+            "name": "createCourseRemote",
+            "requirement": 1.35
+          },
+          {
+            "name": "deleteCourse",
+            "requirement": 1.73
+          },
+          {
+            "name": "incrementCourseQuestionCount",
+            "requirement": 1.75
+          },
+          {
+            "name": "decrementCourseQuestionCount",
+            "requirement": 1.78
+          },
+          {
+            "name": "incrementCourseExecutionCount",
+            "requirement": 1.92
+          },
+          {
+            "name": "decrementCourseExecutionCount",
+            "requirement": 1.76
+          }
+        ]
+      },
+      {
+        "name": "execution",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getCourseExecutionById",
+            "requirement": 1.35
+          },
+          {
+            "name": "createCourseExecution",
+            "requirement": 6.52
+          },
+          {
+            "name": "getAllCourseExecutions",
+            "requirement": 6.48
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 2.94
+          },
+          {
+            "name": "enrollStudent",
+            "requirement": 2.15
+          },
+          {
+            "name": "getCourseExecutionsByUserId",
+            "requirement": 10.97
+          },
+          {
+            "name": "removeStudentFromCourseExecution",
+            "requirement": 3.26
+          },
+          {
+            "name": "getStudentByExecutionIdAndUserId",
+            "requirement": 1.22
+          },
+          {
+            "name": "anonymizeStudent",
+            "requirement": 3.23
+          },
+          {
+            "name": "updateExecutionStudentName",
+            "requirement": 3.22
+          },
+          {
+            "name": "removeUser",
+            "requirement": 3.43
+          }
+        ]
+      },
+      {
+        "name": "question",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getQuestionById",
+            "requirement": 1.22
+          },
+          {
+            "name": "findQuestionsByCourseAggregateId",
+            "requirement": 6.63
+          },
+          {
+            "name": "createQuestion",
+            "requirement": 2.62
+          },
+          {
+            "name": "updateQuestion",
+            "requirement": 3.48
+          },
+          {
+            "name": "removeQuestion",
+            "requirement": 3.3
+          },
+          {
+            "name": "updateQuestionTopics",
+            "requirement": 2.46
+          },
+          {
+            "name": "findQuestionsByTopicIds",
+            "requirement": 3.84
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 2.78
+          },
+          {
+            "name": "removeTopic",
+            "requirement": 1.36
+          }
+        ]
+      },
+      {
+        "name": "quiz",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getQuizById",
+            "requirement": 1.43
+          },
+          {
+            "name": "generateQuiz",
+            "requirement": 2.34
+          },
+          {
+            "name": "startTournamentQuiz",
+            "requirement": 1.32
+          },
+          {
+            "name": "createQuiz",
+            "requirement": 2.21
+          },
+          {
+            "name": "updateGeneratedQuiz",
+            "requirement": 3.98
+          },
+          {
+            "name": "updateQuiz",
+            "requirement": 3.43
+          },
+          {
+            "name": "getAvailableQuizzes",
+            "requirement": 1.44
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 2.91
+          },
+          {
+            "name": "updateQuestion",
+            "requirement": 1.45
+          },
+          {
+            "name": "removeQuizQuestion",
+            "requirement": 2.55
+          },
+          {
+            "name": "removeQuiz",
+            "requirement": 2.63
+          }
+        ]
+      },
+      {
+        "name": "topic",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getTopicById",
+            "requirement": 1.16
+          },
+          {
+            "name": "createTopic",
+            "requirement": 1.26
+          },
+          {
+            "name": "findTopicsByCourseId",
+            "requirement": 2.25
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 2.89
+          },
+          {
+            "name": "deleteTopic",
+            "requirement": 2.89
+          }
+        ]
+      },
+      {
+        "name": "tournament",
+        "capacity": 20,
+        "services": [
+          {
+            "name": "getTournamentById",
+            "requirement": 1.21
+          },
+          {
+            "name": "createTournament",
+            "requirement": 2.16
+          },
+          {
+            "name": "addParticipant",
+            "requirement": 2.83
+          },
+          {
+            "name": "updateTournament",
+            "requirement": 3.44
+          },
+          {
+            "name": "getTournamentsByCourseExecutionId",
+            "requirement": 3.14
+          },
+          {
+            "name": "getOpenedTournamentsForCourseExecution",
+            "requirement": 1.36
+          },
+          {
+            "name": "getClosedTournamentsForCourseExecution",
+            "requirement": 1.56
+          },
+          {
+            "name": "leaveTournament",
+            "requirement": 6.93
+          },
+          {
+            "name": "solveQuiz",
+            "requirement": 4.46
+          },
+          {
+            "name": "cancelTournament",
+            "requirement": 3.49
+          },
+          {
+            "name": "removeTournament",
+            "requirement": 2.45
+          },
+          {
+            "name": "anonymizeUser",
+            "requirement": 2.81
+          },
+          {
+            "name": "removeCourseExecution",
+            "requirement": 1.0
+          },
+          {
+            "name": "removeUser",
+            "requirement": 2.79
+          },
+          {
+            "name": "updateTopic",
+            "requirement": 3.54
+          },
+          {
+            "name": "removeTopic",
+            "requirement": 0
+          },
+          {
+            "name": "updateParticipantAnswer",
+            "requirement": 3.97
+          },
+          {
+            "name": "invalidateQuiz",
+            "requirement": 0
+          },
+          {
+            "name": "updateUserName",
+            "requirement": 2.46
+          }
+        ]
+      },
+      {
+        "name": "user",
+        "capacity": 100,
+        "services": [
+          {
+            "name": "getUserById",
+            "requirement": 0.9
+          },
+          {
+            "name": "createUser",
+            "requirement": 1.49
+          },
+          {
+            "name": "activateUser",
+            "requirement": 1.85
+          },
+          {
+            "name": "deactivateUser",
+            "requirement": 1.81
+          },
+          {
+            "name": "deleteUser",
+            "requirement": 2.5
+          },
+          {
+            "name": "getStudents",
+            "requirement": 15.44
+          },
+          {
+            "name": "getTeachers",
+            "requirement": 2.7
+          }
+        ]
+      }
+    ]
+  }
+}

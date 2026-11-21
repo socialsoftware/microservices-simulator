@@ -61,10 +61,8 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep getQuizAnswerStep = new SagaStep("getQuizAnswerStep", () -> {
             GetQuizAnswerDtoByQuizIdAndUserIdCommand getQuizAnswerDtoByQuizIdAndUserIdCommand = new GetQuizAnswerDtoByQuizIdAndUserIdCommand(
-                    unitOfWork, ServiceMapping.QUIZ.getServiceName(), quizAnswer.getQuizAggregateId(), quizAggregateId, userAggregateId);
-            SagaCommand sagaCommand = new SagaCommand(getQuizAnswerDtoByQuizIdAndUserIdCommand);
-            sagaCommand.setSemanticLock(QuizAnswerSagaState.READ_QUIZ_ANSWER);
-            QuizAnswerDto quizAnswer = (QuizAnswerDto) commandGateway.send(sagaCommand);
+                    unitOfWork, ServiceMapping.QUIZ.getServiceName(), null, quizAggregateId, userAggregateId);
+            QuizAnswerDto quizAnswer = (QuizAnswerDto) commandGateway.send(getQuizAnswerDtoByQuizIdAndUserIdCommand);
             this.setQuizAnswer(quizAnswer);
         });
 
@@ -78,7 +76,7 @@ public class AnswerQuestionFunctionalitySagas extends WorkflowFunctionality {
 
         SagaStep answerQuestionStep = new SagaStep("answerQuestionStep", () -> {
             AnswerQuestionCommand answerQuestion = new AnswerQuestionCommand(unitOfWork,
-                    ServiceMapping.QUIZ.getServiceName(), quizAggregateId, userAggregateId, userQuestionAnswerDto,
+                    ServiceMapping.ANSWER.getServiceName(), quizAggregateId, userAggregateId, userQuestionAnswerDto,
                     this.getQuestionDto());
             SagaCommand sagaCommand = new SagaCommand(answerQuestion);
             commandGateway.send(sagaCommand);
